@@ -39,7 +39,20 @@ EXPECTED_COLUMNS = {
     "explore/sessions_of_selection": ["week", "session_id", "first_start_ms", "harness", "main_model", "requests",
                                       "turns", "subagents", "tool_calls", "duration_s", "input_tokens",
                                       "reported_input_tokens", "cached_tokens", "peak_prompt_tokens"],
+    "figures/requests_per_session_cdf": ["series", "x", "share", "rows"],
 }
+
+
+# The CDF queries, each with the series it draws: one row per series and point.
+CDF_SERIES = {
+    "figures/requests_per_session_cdf": ["requests", "tool_steps", "user_steps"],
+}
+CDF_POINTS = 201  # every CDF series has this many points, its share running evenly from 0 to 1
+
+# The queries that give the global orders fixing every chart's colours, each with its columns.
+COLOUR_ORDER_COLUMNS = {
+    "setup/model_order": ["model", "requests"],
+    "setup/category_order": ["category", "calls"],
 
 # The `?` parameters of the queries that take them, in order, by the query's name.
 QUERY_PARAMETERS: dict[str, list] = {}
@@ -126,3 +139,51 @@ def test_a_new_session_replaces_the_previous_one(connection: duckdb.DuckDBPyConn
     site_database.select_session(connection, SECOND_SUNDAY, "mutation")
     site_database.select_session(connection, FIRST_SUNDAY, SELECTED_SESSION)
     assert connection.table("selected_session").fetchall() == [(FIRST_SUNDAY, SELECTED_SESSION)]
+
+
+@pytest.mark.parametrize("name", sorted(CDF_SERIES))
+def test_a_cdf_runs_from_0_to_1_in_even_steps_with_x_never_falling(connection: duckdb.DuckDBPyConnection,
+                                                                   fixture_weeks: list[str], name: str) -> None:
+    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    rows = site_database.run_query(connection, name)
+    assert sorted(rows.series.unique()) == CDF_SERIES[name]
+    for series, points in rows.groupby("series"):
+        assert points.share.tolist() == pytest.approx([step / (CDF_POINTS - 1) for step in range(CDF_POINTS)]), series
+        assert points.x.is_monotonic_increasing, series
+        assert points.rows.nunique() == 1, series
+
+
+@pytest.mark.parametrize("name", sorted(CDF_SERIES))
+def test_a_cdf_of_no_weeks_has_no_rows(connection: duckdb.DuckDBPyConnection, name: str) -> None:
+    site_database.select_weeks(connection, [], ALL_SCOPES)
+    assert site_database.run_query(connection, name).empty
+
+
+# Top-level sessions of the fixture's Agentic scope over both weeks, with their requests, user steps and tool steps,
+# counted by hand from `fixture_release.REQUESTS`: `tree-root` 5, `idle-week-1` 3, `mutation` 3, `idle-week-2` 2.
+AGENTIC_SESSIONS = 4
+MEDIAN_REQUESTS_PER_AGENTIC_SESSION = 3.0
+
+
+def test_the_requests_per_session_cdf_crosses_one_half_at_the_median(connection: duckdb.DuckDBPyConnection,
+                                                                     fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, site_database.SCOPES_OF["Agentic"])
+    rows = site_database.run_query(connection, "figures/requests_per_session_cdf")
+    requests = rows[rows.series == "requests"]
+    assert requests.rows.tolist() == [AGENTIC_SESSIONS] * CDF_POINTS
+    assert requests[requests.share == 0.5].x.tolist() == [MEDIAN_REQUESTS_PER_AGENTIC_SESSION]
+
+
+@pytest.mark.parametrize("name", sorted(COLOUR_ORDER_COLUMNS))
+def test_a_colour_order_lists_every_value_largest_first(connection: duckdb.DuckDBPyConnection, name: str) -> None:
+    rows = site_database.run_query(connection, name)
+    assert list(rows.columns) == COLOUR_ORDER_COLUMNS[name]
+    counts = rows.iloc[:, 1].tolist()
+    assert counts == sorted(counts, reverse=True)
+    assert rows.iloc[:, 0].is_unique
+
+
+def test_the_colour_orders_ignore_the_selection(connection: duckdb.DuckDBPyConnection) -> None:
+    site_database.select_weeks(connection, [], [])
+    for name in COLOUR_ORDER_COLUMNS:
+        assert not site_database.run_query(connection, name).empty, name

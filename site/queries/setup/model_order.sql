@@ -1,4 +1,5 @@
--- One row per model: its number of top-level requests over every week and scope, largest first; the order that fixes each model's colour.
+-- One row per model, with its top-level requests over every week and scope, largest first (ties by name):
+-- the global order that gives each model the same colour on every chart, whatever the selection.
 SELECT model,
        count(*) AS requests
 FROM requests
