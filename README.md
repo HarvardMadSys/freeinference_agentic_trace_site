@@ -29,6 +29,7 @@ make setup    # a virtual environment with the pipeline's package and the test t
 make data     # site/data/ from the release: four Parquet files and weeks.json
 make serve    # http://localhost:8000
 make test     # the Python tests and the node tests
+make deploy   # publish site/ as the only commit of gh-pages on origin, force-pushed
 ```
 
 `make data` reads the release and the cache simulation built by the pipeline
@@ -44,7 +45,8 @@ make data RELEASE=~/freeinference_agentic_trace/release SIMULATION=~/freeinferen
 ```
 README.md          this file
 CONTRIBUTING.md    the rules, the patterns, and how to add a query, a figure or a page
-Makefile           setup · data · serve · test
+Makefile           setup · data · serve · test · deploy
+deploy.sh          what make deploy runs: copies site/ onto an orphan branch and force-pushes it
 pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas; pytest and duckdb for tests
 package.json       sets ES modules for node --test; no dependencies
 site_data/         builds site/data/ from a release

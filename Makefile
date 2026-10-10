@@ -7,7 +7,11 @@ PIPELINE ?= ../freeinference-agentic-pipeline
 RELEASE ?= $(PIPELINE)/data/v1/release
 SIMULATION ?= $(PIPELINE)/data/v1/simulation
 
-.PHONY: setup setup-browser data serve test
+# Where make deploy publishes the site: a remote of this repository and a branch on it.
+DEPLOY_REMOTE ?= origin
+DEPLOY_BRANCH ?= gh-pages
+
+.PHONY: setup setup-browser data serve test deploy
 
 # Create the virtual environment; install the pipeline's package from its
 # repository, then this package with its test tools.
@@ -33,3 +37,7 @@ serve:
 test:
 	$(PYTHON) -m pytest
 	node --test "tests/*.test.js"
+
+# Publish site/, with its data, as the only commit of $(DEPLOY_BRANCH) on $(DEPLOY_REMOTE), force-pushed.
+deploy:
+	./deploy.sh $(DEPLOY_REMOTE) $(DEPLOY_BRANCH)
