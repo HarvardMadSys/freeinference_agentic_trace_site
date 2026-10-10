@@ -1,0 +1,89 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+
+import {
+  assignColours,
+  captionText,
+  dropThinBins,
+  foldToOther,
+  MIN_ROWS_PER_BIN,
+  OTHER_SERIES,
+  SERIES_SLOTS,
+  TOKEN_PART_COLOURS,
+} from "../site/js/shared/charts.js";
+
+const NINE_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
+
+test("the eight series slots are the series tokens in order, and cannot be changed", () => {
+  assert.equal(SERIES_SLOTS.length, 8);
+  assert.equal(SERIES_SLOTS[0], "var(--series-1)");
+  assert.equal(SERIES_SLOTS[7], "var(--series-8)");
+  assert.ok(Object.isFrozen(SERIES_SLOTS));
+  assert.ok(Object.isFrozen(TOKEN_PART_COLOURS));
+  assert.equal(TOKEN_PART_COLOURS.cached, "var(--token-cached)");
+});
+
+test("names get the slots in the order given", () => {
+  const colours = assignColours(["claude-code", "codex", "aider"]);
+  assert.deepEqual([...colours.entries()], [
+    ["claude-code", "var(--series-1)"],
+    ["codex", "var(--series-2)"],
+    ["aider", "var(--series-3)"],
+  ]);
+});
+
+test("a repeated name keeps its first slot and takes no other", () => {
+  const colours = assignColours(["codex", "aider", "codex", "opencode"]);
+  assert.deepEqual([...colours.entries()], [
+    ["codex", "var(--series-1)"],
+    ["aider", "var(--series-2)"],
+    ["opencode", "var(--series-3)"],
+  ]);
+});
+
+test("the same order gives the same colours on every call", () => {
+  assert.deepEqual(assignColours(NINE_MODELS), assignColours(NINE_MODELS));
+});
+
+test("the ninth name and beyond take the other colour", () => {
+  const colours = assignColours([...NINE_MODELS, "m10"]);
+  assert.equal(colours.get("m8"), "var(--series-8)");
+  assert.equal(colours.get("m9"), OTHER_SERIES);
+  assert.equal(colours.get("m10"), "var(--series-other)");
+});
+
+test("names past the first eight fold into Other, and the rows are not changed in place", () => {
+  const rows = [{ model: "m1", requests: 5 }, { model: "m9", requests: 3 }, { model: "unlisted", requests: 1 }];
+  const folded = foldToOther(rows, "model", NINE_MODELS);
+  assert.deepEqual(folded, [{ model: "m1", requests: 5 }, { model: "Other", requests: 3 }, { model: "Other", requests: 1 }]);
+  assert.equal(rows[1].model, "m9");
+});
+
+test("folding counts the first eight distinct names, not the first eight entries", () => {
+  const names = ["m1", "m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
+  const folded = foldToOther([{ model: "m8" }, { model: "m9" }], "model", names);
+  assert.deepEqual(folded, [{ model: "m8" }, { model: "Other" }]);
+});
+
+test("a bin with exactly the minimum rows is kept, and one below it is hidden", () => {
+  assert.equal(MIN_ROWS_PER_BIN, 50);
+  const rows = [{ bin: "a", requests: 50 }, { bin: "b", requests: 49 }, { bin: "c", requests: 1200 }, { bin: "d", requests: 0 }];
+  assert.deepEqual(dropThinBins(rows, "requests"), {
+    rows: [{ bin: "a", requests: 50 }, { bin: "c", requests: 1200 }],
+    hidden: 2,
+  });
+});
+
+test("counts that DuckDB returns as BigInt are compared like numbers", () => {
+  const rows = [{ bin: "a", requests: 50n }, { bin: "b", requests: 49n }];
+  assert.deepEqual(dropThinBins(rows, "requests"), { rows: [{ bin: "a", requests: 50n }], hidden: 1 });
+});
+
+test("a caption over several weeks gives their count", () => {
+  const weeks = Array.from({ length: 16 }, (_, index) => `week-${index}`);
+  assert.equal(captionText({ rows: 1186582, scope: "Agentic", weeks }), "1,186,582 rows · Agentic · 16 weeks");
+});
+
+test("a caption over one week names its Sunday", () => {
+  assert.equal(captionText({ rows: 4100, scope: "All", weeks: ["2026-08-09"] }), "4,100 rows · All · 1 week (2026-08-09)");
+});
