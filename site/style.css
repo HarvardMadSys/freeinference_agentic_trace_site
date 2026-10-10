@@ -444,6 +444,16 @@ button:hover {
   background: var(--color-surface-raised);
 }
 
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button:disabled:hover {
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+}
+
 button.is-primary {
   color: #ffffff;
   background: var(--color-accent);
