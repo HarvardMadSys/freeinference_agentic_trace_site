@@ -6,6 +6,7 @@ import {
 import { mountContextView } from "../session/context.js";
 import { mountFacts, sessionFacts } from "../session/facts.js";
 import { mountRequestsView } from "../session/requests.js";
+import { mountTimelineView } from "../session/timeline.js";
 import { shortSessionId } from "../session/tree.js";
 import { OPEN_REQUEST_EVENT } from "../session/view_chart.js";
 import { assignColours, showError, showLoading, showNote } from "../shared/charts.js";
@@ -104,8 +105,8 @@ function showView(view, session, address) {
     return mountContextView(page.view, session.tree, session.requests);
   }
   if (view === "timeline") {
-    showNote(page.view, `The ${VIEW_TITLES[view]} view is not drawn yet.`);
-    return () => undefined;
+    const options = { categoryColours: session.categoryColours };
+    return mountTimelineView(page.view, session.tree, session.requests, session.toolCalls, options);
   }
   const options = { focusSessionId: address.id, focusStep: address.step, categoryColours: session.categoryColours };
   return mountRequestsView(page.view, session.tree, session.requests, session.toolCalls, options);
