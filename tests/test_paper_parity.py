@@ -2,7 +2,8 @@
 
 The queries run as the browser runs them, on the full site data with every week selected, in the scope the paper
 counts each number in (the trace summary over `All`, the benchmark's medians over `SWE-Bench`, the rest over
-`Agentic`). The module is skipped when the full site data (`make data`) or the pipeline's `numbers.json` is missing.
+`Agentic`). It is skipped when the full site data (`make data`) or `numbers.json` in `$FREEINFERENCE_PIPELINE`
+(by default the sibling pipeline repository the Makefile builds from) is missing.
 
 A number counted the same way is compared; a count must be equal and a median, share or ratio equal up to
 `RELATIVE_TOLERANCE`. These figures draw a number the paper also reports, but define it differently on purpose, so
@@ -22,6 +23,7 @@ they are not compared:
 
 import json
 import math
+import os
 import pathlib
 import typing
 
@@ -33,8 +35,10 @@ import site_database
 
 SITE_DATA_FOLDER = site_database.QUERIES_FOLDER.parent / "data"  # built by `make data` from the full release
 SITE_DATA_FILES = ["weeks.json", "requests.parquet", "sessions.parquet", "tool_calls.parquet", "simulation.parquet"]
-NUMBERS_FILE = pathlib.Path(
-    "/madsys/williamn/dataset_maintain/freeinference-trace/freeinference-agentic-pipeline/figures/v1/numbers.json")
+PIPELINE_VARIABLE = "FREEINFERENCE_PIPELINE"  # names the pipeline repository's folder, when it is not the default
+# Unset, it is `../freeinference-agentic-pipeline` from this repository's root, the Makefile's `PIPELINE` default.
+DEFAULT_PIPELINE_FOLDER = site_database.QUERIES_FOLDER.parent.parent / ".." / "freeinference-agentic-pipeline"
+NUMBERS_PATH = pathlib.Path("figures") / "v1" / "numbers.json"  # where the pipeline writes the paper's numbers
 
 EXACT = 0  # a count matches only when it is equal
 RELATIVE_TOLERANCE = 1e-6  # a median, share or ratio may differ by DuckDB's and numpy's float rounding, no more
@@ -68,10 +72,15 @@ def assert_match(paper_numbers: dict, comparisons: list[Comparison]) -> None:
         pytest.fail("the site differs from the paper:\n" + "\n".join(mismatches))
 
 
+def numbers_file() -> pathlib.Path:
+    """The paper's `numbers.json` in the pipeline folder `$FREEINFERENCE_PIPELINE`, or in the default one."""
+    pipeline_folder = os.environ.get(PIPELINE_VARIABLE, str(DEFAULT_PIPELINE_FOLDER))
+    return pathlib.Path(pipeline_folder) / NUMBERS_PATH
+
+
 def skip_unless_inputs_exist() -> None:
     """Skip the calling test when a file of the full site data or `numbers.json` is missing, naming it."""
-    required = [SITE_DATA_FOLDER / name for name in SITE_DATA_FILES]
-    required.append(NUMBERS_FILE)
+    required = [SITE_DATA_FOLDER / name for name in SITE_DATA_FILES] + [numbers_file()]
     for path in required:
         if not path.exists():
             pytest.skip(f"the paper-parity test needs {path}, which is missing")
@@ -81,7 +90,7 @@ def skip_unless_inputs_exist() -> None:
 def paper_numbers() -> dict:
     """The paper's `numbers.json`: section, then item, then name."""
     skip_unless_inputs_exist()
-    return json.loads(NUMBERS_FILE.read_text())
+    return json.loads(numbers_file().read_text())
 
 
 def selected_database(scope: str) -> duckdb.DuckDBPyConnection:
@@ -124,7 +133,8 @@ def cdf_point(rows: pandas.DataFrame, series: str, share: float) -> float:
     return float(point.x.iloc[0])
 
 
-# The scope the paper counts each compared item in, by section and item; the tests select the same.
+# The scope `numbers.json` records with each compared item, by section and item. The tests select it, except that
+# each `median_benchmark` is compared over `SWE-Bench`, the benchmark's half of "Agentic and SWE-Bench".
 PAPER_SCOPES = {
     ("dataset", "trace_summary"): "All",
     ("sessions", "counts_per_session"): "Agentic",
@@ -212,6 +222,7 @@ def paper_tool_categories(paper_numbers: dict) -> list[str]:
     for name in paper_numbers["tools"]["tool_overview"]:
         if name.endswith(suffix) and name != f"All{suffix}":
             categories.append(name.removesuffix(suffix))
+    assert categories, "numbers.json names no tool category"
     return categories
 
 
