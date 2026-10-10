@@ -15,6 +15,7 @@ import { showError, showNote } from "../shared/charts.js";
 import { openDatabase } from "../shared/database.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
 import { mountSelection, readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
+import { layoutHeadline, runHeadline } from "../explore/headline.js";
 import { layoutTrends, runTrends } from "../explore/trends.js";
 
 // The page's own file, which the header marks as the current page.
@@ -26,6 +27,7 @@ const NO_WEEK_NOTE = "Pick at least one week to see its numbers.";
 // Each section: the id of its place in index.html, the function that draws its loading state, and the one that runs it.
 const SECTIONS = Object.freeze([
   Object.freeze({ id: "trends", layout: layoutTrends, run: runTrends }),
+  Object.freeze({ id: "headline", layout: layoutHeadline, run: runHeadline }),
 ]);
 
 start();

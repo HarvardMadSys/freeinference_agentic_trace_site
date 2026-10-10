@@ -7,6 +7,9 @@ const TOKEN_UNITS = [
   [1e3, "k"],
 ];
 
+// The text of a share that has no value.
+const MISSING_SHARE = "—";
+
 /** A count with thousands separators: 1186582 → "1,186,582". */
 export function formatCount(count) {
   return count.toLocaleString("en-US");
@@ -50,6 +53,11 @@ export function formatElapsed(seconds) {
 /** A share of one as a percentage with one decimal: 0.632 → "63.2%". */
 export function formatShare(share) {
   return `${(share * 100).toFixed(1)}%`;
+}
+
+/** A share as `formatShare` writes it, or "—" for a missing share (null), such as a share of nothing. */
+export function formatOptionalShare(share) {
+  return share === null ? MISSING_SHARE : formatShare(share);
 }
 
 function padded(number) {

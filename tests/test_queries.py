@@ -10,7 +10,10 @@ import site_database
 
 # The columns each query returns, in order, by the query's name. Every query file outside `setup/` has an entry.
 EXPECTED_COLUMNS = {
+    "explore/headline_numbers": ["sessions", "accounts", "requests", "input_tokens", "output_tokens", "tool_calls",
+                                 "subagents", "reported_input_tokens", "cached_tokens"],
     "explore/input_tokens_per_week": ["week", "requests", "cached_tokens", "uncached_tokens", "unreported_tokens"],
+    "explore/model_mix": ["model", "requests"],
     "explore/request_count": ["requests"],
     "explore/sessions_per_week_by_harness": ["week", "harness", "sessions"],
 }

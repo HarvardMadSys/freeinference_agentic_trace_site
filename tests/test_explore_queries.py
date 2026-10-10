@@ -66,3 +66,65 @@ def test_input_tokens_per_week_split_into_cached_uncached_and_unreported(connect
                                                                         scope: str, expected: list[dict]) -> None:
     select(connection, [SECOND_SUNDAY], scope)
     assert records(connection, "explore/input_tokens_per_week") == expected
+
+
+def release_top_level_totals() -> dict:
+    """Sessions, accounts, requests and tool calls of the fixture release's top-level sessions, counted from its rows."""
+    top_level = [session for session in fixture_release.SESSIONS if session.parent_session_id is None]
+    top_level_ids = {session.session_id for session in top_level}
+    requests = [request for request in fixture_release.REQUESTS if request.session_id in top_level_ids]
+    tool_calls = 0
+    for request in requests:
+        tool_calls += len(request.calls)
+    return {
+        "sessions": len(top_level),
+        "accounts": len({session.user_id for session in top_level}),
+        "requests": len(requests),
+        "tool_calls": tool_calls,
+    }
+
+
+def test_the_headline_counts_equal_the_release_s_top_level_totals_under_scope_all(
+        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+    select(connection, fixture_weeks, "All")
+    headline = records(connection, "explore/headline_numbers")[0]
+    assert {column: headline[column] for column in ("sessions", "accounts", "requests", "tool_calls")} == {
+        "sessions": 6, "accounts": 4, "requests": 16, "tool_calls": 12}
+    assert {column: headline[column] for column in ("sessions", "accounts", "requests", "tool_calls")} == \
+        release_top_level_totals()
+
+
+# `tree-root` spawns three subagents, at depths 1 and 2; the input, cached and reported input are the sums of the
+# top-level requests' prompt and cache-read tokens, every request answering with 100 completion tokens.
+def test_the_headline_token_totals_and_subagents(connection: duckdb.DuckDBPyConnection,
+                                                  fixture_weeks: list[str]) -> None:
+    select(connection, fixture_weeks, "All")
+    headline = records(connection, "explore/headline_numbers")[0]
+    assert headline["input_tokens"] == 28_500
+    assert headline["output_tokens"] == 1_600
+    assert headline["subagents"] == 3
+    assert headline["reported_input_tokens"] == 28_500 - 1_800  # `swe-bench`'s provider reports no cache reads
+    assert headline["cached_tokens"] == 12_100 + 3_300
+
+
+def test_the_headline_of_a_selection_with_no_sessions_is_zero(connection: duckdb.DuckDBPyConnection) -> None:
+    select(connection, ["2000-01-02"], "All")
+    headline = records(connection, "explore/headline_numbers")[0]
+    assert set(headline.values()) == {0}
+
+
+def test_the_model_mix_counts_top_level_requests_per_model_largest_first(
+        connection: duckdb.DuckDBPyConnection) -> None:
+    select(connection, [FIRST_SUNDAY], "All")
+    assert records(connection, "explore/model_mix") == [
+        {"model": "model-x", "requests": 8},  # `tree-root` 5 and `idle-week-1` 3
+        {"model": "model-y", "requests": 2},  # `swe-bench`; `tree-sibling`'s model-y request is a subagent's
+    ]
+
+
+def test_the_model_order_counts_every_week_and_scope(connection: duckdb.DuckDBPyConnection) -> None:
+    select(connection, [SECOND_SUNDAY], "Agentic")  # the order ignores the selection
+    assert records(connection, "setup/model_order") == [
+        {"model": "model-x", "requests": 14},
+        {"model": "model-y", "requests": 2},
+    ]

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { formatCount, formatElapsed, formatSeconds, formatShare, formatTokens } from "../site/js/shared/format.js";
+import { formatCount, formatElapsed, formatOptionalShare, formatSeconds, formatShare, formatTokens } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
   assert.equal(formatCount(1186582), "1,186,582");
@@ -29,4 +29,10 @@ test("elapsed time is minutes and seconds, with hours when needed", () => {
 
 test("a share is a percentage with one decimal", () => {
   assert.equal(formatShare(0.632), "63.2%");
+});
+
+test("an optional share is a percentage, or a dash when it is missing", () => {
+  assert.equal(formatOptionalShare(0.632), "63.2%");
+  assert.equal(formatOptionalShare(0), "0.0%");
+  assert.equal(formatOptionalShare(null), "—");
 });
