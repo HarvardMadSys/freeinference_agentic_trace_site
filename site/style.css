@@ -357,6 +357,11 @@ code,
   height: 0.5rem;
 }
 
+/* Plot wraps a chart in a figure when it has a legend; the browser's default figure margin would shrink the chart. */
+.figure-body figure {
+  margin: 0;
+}
+
 .figure-caption {
   font-size: 0.75rem;
   color: var(--color-text-faint);

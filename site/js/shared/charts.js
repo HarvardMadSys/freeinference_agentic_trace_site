@@ -38,6 +38,9 @@ export const MIN_ROWS_PER_BIN = 50;
 // The name a series past the eighth takes once folded.
 const OTHER_NAME = "Other";
 
+// Joins a bar's x value and series name into one key when summing folded rows.
+const KEY_SEPARATOR = "\u0000";
+
 const CHART_HEIGHT = 240; // every chart has the same height, so a grid of figures lines up
 const FALLBACK_WIDTH = 480; // the width drawn when the body has not been laid out yet
 const LINE_WIDTH = 2; // pixels; thin lines, as every chart draws them
@@ -70,6 +73,22 @@ export function assignColours(names) {
 export function foldToOther(rows, key, names) {
   const named = distinct(names).slice(0, SERIES_SLOTS.length);
   return rows.map((row) => (named.includes(row[key]) ? row : { ...row, [key]: OTHER_NAME }));
+}
+
+/** The rows with every row sharing `row[x]` and `row[fill]` summed into one on `row[y]`, in order of first appearance. */
+export function sumFolded(rows, { x, y, fill }) {
+  const sums = new Map();
+  for (const row of rows) {
+    // Two rows belong together when both their bar and their series match; the separator cannot occur in either.
+    const barAndSeries = `${row[x]}${KEY_SEPARATOR}${row[fill]}`;
+    const sum = sums.get(barAndSeries);
+    if (sum === undefined) {
+      sums.set(barAndSeries, { ...row });
+    } else {
+      sum[y] += row[y];
+    }
+  }
+  return [...sums.values()];
 }
 
 /** `{ rows, hidden }`: the rows whose `row[countKey]` is at least `MIN_ROWS_PER_BIN`, and how many rows were dropped. */
@@ -127,7 +146,7 @@ export function renderFigure(container, { title, definition, caption }) {
 
 /**
  * Draw into `body` one line per series of `series`, `[{ name, points: [{ x, share }] }]`, with share running 0 to 1.
- * Colours follow the series' order; `format` writes an x value in the tooltip.
+ * Colours follow the series' order, and every series past the eighth draws in the Other colour; `format` writes an x value in the tooltip.
  */
 export async function drawCdf(body, series, { xLabel, logX = false, format = String }) {
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
@@ -158,13 +177,14 @@ export async function drawCdf(body, series, { xLabel, logX = false, format = Str
 /**
  * Draw into `body` one bar per row of `rows`: `row[x]` along the axis, `row[y]` its height, coloured by `row[fill]`.
  * Series colours follow `order` (a fixed order of fill values, largest first) or the rows' order; series past the
- * eighth fold into "Other". Bars stack when `stacked`; `format` writes a y value on the axis and in the tooltip.
+ * eighth fold into "Other", summed into one bar per x. Bars stack when `stacked`; `format` writes a y value on the axis
+ * and in the tooltip; `xTickFormat`, when given, writes the x axis's ticks.
  */
-export async function drawBars(body, rows, { x, y, fill, order, stacked = false, xLabel, yLabel, format = formatCount }) {
+export async function drawBars(body, rows, { x, y, fill, order, stacked = false, xLabel, yLabel, format = formatCount, xTickFormat }) {
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("./libraries.js");
   const names = distinct(order ?? rows.map((row) => row[fill]));
-  const foldedRows = foldToOther(rows, fill, names);
+  const foldedRows = sumFolded(foldToOther(rows, fill, names), { x, y, fill });
   const colours = barColours(names);
   const shown = [...colours.keys()].filter((name) => foldedRows.some((row) => row[fill] === name));
   const chart = Plot.plot({
@@ -176,7 +196,7 @@ export async function drawBars(body, rows, { x, y, fill, order, stacked = false,
     color: colourScale(colours, shown, shown.length > 1),
     marks: [
       Plot.gridY(GRID_STYLE),
-      Plot.axisX({ ...AXIS_STYLE, label: xLabel }),
+      Plot.axisX({ ...AXIS_STYLE, tickFormat: xTickFormat, label: xLabel }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: format, label: yLabel }),
       Plot.barY(foldedRows, {
         x,
