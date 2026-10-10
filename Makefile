@@ -34,8 +34,9 @@ data:
 serve:
 	cd site && python3 -m http.server 8000
 
+# The paper-parity test reads the pipeline's numbers.json; it is told where the pipeline is and skips when it is absent.
 test:
-	$(PYTHON) -m pytest
+	FREEINFERENCE_PIPELINE=$(PIPELINE) $(PYTHON) -m pytest
 	node --test "tests/*.test.js"
 
 # Publish site/, with its data, as the only commit of $(DEPLOY_BRANCH) on $(DEPLOY_REMOTE), force-pushed.
