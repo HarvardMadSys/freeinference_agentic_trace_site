@@ -38,9 +38,11 @@ the scope and weeks it shows.
 - **THEN** every figure SHALL be computed from the Agentic top-level sessions of July 2026's weeks only
 
 ### Requirement: Same definitions as the paper
-With every week selected and the `Agentic` scope, every number a figure
-shares with the paper's `numbers.json` (for example the median input tokens
-per request) SHALL equal the paper's value. Where the site draws a figure
+With every week selected, every number a figure shares with the paper's
+`numbers.json` (for example the median input tokens per request) SHALL equal
+the paper's value, in the scope the paper counts that number in: `Agentic`
+for the figures, `All` for the dataset totals, `SWE-Bench` for the benchmark
+medians. Where the site draws a figure
 more simply than the paper (fixed bins instead of bins fitted to the data,
 thin bins hidden instead of merged), the figure's definition SHALL say so.
 
