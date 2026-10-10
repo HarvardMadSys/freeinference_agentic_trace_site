@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { cdfSeries, dropThinGroups, hiddenText, restingRowCount, sparseTickFormat } from "../site/js/figures/figure_rows.js";
+import {
+  cdfSeries,
+  dropThinGroups,
+  hiddenText,
+  restingCountText,
+  restingRowCount,
+  sparseTickFormat,
+} from "../site/js/figures/figure_rows.js";
 
 // Two CDF series of two points each: `requests` over 120 sessions, `tool_steps` over 30.
 const CDF_ROWS = [
@@ -38,6 +45,14 @@ test("series drawn from the same rows count those rows once, by the largest seri
   assert.equal(restingRowCount(CDF_ROWS, { binColumn: "series", seriesOverSameRows: true }), 120);
   assert.equal(restingRowCount(CDF_ROWS, { binColumn: "series" }), 150);
   assert.equal(restingRowCount([], { binColumn: "series", seriesOverSameRows: true }), 0);
+});
+
+test("a caption counts a figure's rows, or each series under its own noun when the series count different things", () => {
+  assert.equal(restingCountText(BIN_ROWS, { binColumn: "bin_start" }), "499 rows");
+  const nouns = { tool_steps: "tool steps", requests: "requests", user_steps: "user steps" };
+  const figure = { binColumn: "series", seriesNouns: nouns };
+  assert.equal(restingCountText(CDF_ROWS, figure), "30 tool steps · 120 requests");
+  assert.equal(restingCountText([], figure), "0 rows");
 });
 
 test("the hidden note names what was hidden, in the singular or the plural", () => {

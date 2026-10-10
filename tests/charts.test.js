@@ -13,6 +13,7 @@ import {
   SERIES_SLOTS,
   sumFolded,
   TOKEN_PART_COLOURS,
+  weeksText,
 } from "../site/js/shared/charts.js";
 
 const NINE_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
@@ -113,6 +114,11 @@ test("a caption over several weeks gives their count", () => {
 
 test("a caption over one week names its Sunday", () => {
   assert.equal(captionText({ rows: 4100, scope: "All", weeks: ["2026-08-09"] }), "4,100 rows · All · 1 week (2026-08-09)");
+});
+
+test("a caption's weeks are counted, or the one week named by its Sunday", () => {
+  assert.equal(weeksText(["2026-08-02", "2026-08-09"]), "2 weeks");
+  assert.equal(weeksText(["2026-08-09"]), "1 week (2026-08-09)");
 });
 
 test("every chart starts from the same frame, as wide as its body", () => {

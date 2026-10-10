@@ -1,6 +1,7 @@
 /**
  * What the Paper figures page does to a figure's rows before drawing them: thin bins hidden, the caption's row
- * count and its note on hidden bins, a CDF query's points grouped into series, and the labels of a crowded axis.
+ * count, scope, weeks and note on hidden bins, a CDF query's points grouped into series, and the labels of a crowded
+ * axis.
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
  * a CDF series). Every row of a bin carries the bin's count, the number of rows of the data it rests on, in the
@@ -8,6 +9,7 @@
  */
 
 import { dropThinBins, MIN_ROWS_PER_BIN } from "../shared/charts.js";
+import { formatCount } from "../shared/format.js";
 
 // The column of every figure query that holds a bin's count: the number of rows of the data behind the bin.
 const COUNT_COLUMN = "rows";
@@ -43,6 +45,24 @@ export function restingRowCount(rows, { binColumn, seriesOverSameRows = false })
     total += count;
   }
   return total;
+}
+
+/**
+ * The caption's count of the rows a figure rests on: "1,234 rows", or, for a figure whose series count different
+ * things (`seriesNouns`, from series name to plural noun), each shown series' count: "84,239 turns · 12,002 sessions".
+ */
+export function restingCountText(rows, figure) {
+  if (figure.seriesNouns === undefined) {
+    return `${formatCount(restingRowCount(rows, figure))} rows`;
+  }
+  const counts = new Map(binCounts(rows, figure.binColumn).map((bin) => [bin.name, bin.count]));
+  const parts = [];
+  for (const [series, noun] of Object.entries(figure.seriesNouns)) {
+    if (counts.has(series)) {
+      parts.push(`${formatCount(counts.get(series))} ${noun}`);
+    }
+  }
+  return parts.length > 0 ? parts.join(" · ") : "0 rows";
 }
 
 /** The caption's note on hidden bins: "2 bins hidden (fewer than 50 rows each)"; "" when none is hidden. */

@@ -1,10 +1,11 @@
 /**
  * The Sessions section of the Paper figures page: how long sessions are, and how their tokens are spent.
  *
- * Each figure is `{ name, title, definition, query, binColumn, seriesOverSameRows, draw }`: `name` is the
- * figure's id and element id, `query` the query it draws, `binColumn` the column naming the bin or series each
+ * Each figure is `{ name, title, definition, query, binColumn, seriesOverSameRows, seriesNouns, draw }`: `name` is
+ * the figure's id and element id, `query` the query it draws, `binColumn` the column naming the bin or series each
  * row belongs to (a bin under the page's row threshold is hidden whole), `seriesOverSameRows` whether every
- * series is drawn from the same rows, and `draw(rows, body, colours)` draws the rows into `body`.
+ * series is drawn from the same rows, `seriesNouns` what each series counts when they count different things, and
+ * `draw(rows, body, colours)` draws the rows into `body`.
  */
 
 import {
@@ -68,7 +69,7 @@ export const FIGURES = Object.freeze([
     definition: "CDF of each turn's duration (a user step and the tool steps after it, first start to last end) and of each session's, in seconds.",
     query: "figures/duration_cdf",
     binColumn: "series",
-    seriesOverSameRows: true,
+    seriesNouns: Object.freeze({ turn: "turns", session: "sessions" }),
     draw: drawDurations,
   }),
   Object.freeze({
@@ -99,7 +100,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "context_share_by_role",
     title: "Context share by role",
-    definition: "Share of the input held by system, user, assistant and tool messages and by tool definitions, pooled per power-of-two bin of input tokens, where the paper takes each request's share per bin of messages.",
+    definition: "Share of the input held by system, user, assistant and tool messages and by tool definitions, pooled per power-of-two bin of input tokens, where the paper takes each request's share per bin of messages and its main figure leaves tool definitions out.",
     query: "figures/context_share_by_role",
     binColumn: "bin_start",
     draw: drawContextShare,
@@ -107,7 +108,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "ttft_cdf_by_model",
     title: "Time to first token by model",
-    definition: "CDF of the time to first token of the five models with most requests in the selection, over requests whose TTFT is trusted (positive and under 95% of the latency).",
+    definition: "CDF of the time to first token of the five models with most requests in the selection, over requests whose TTFT is trusted (positive and under 95% of the latency), where the paper draws two fixed models, each with its decode and queueing time.",
     query: "figures/ttft_cdf_by_model",
     binColumn: "series",
     draw: drawTtftByModel,

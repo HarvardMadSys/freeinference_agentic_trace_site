@@ -107,8 +107,12 @@ export function dropThinBins(rows, countKey) {
 
 /** A figure's caption: "1,186,582 rows · Agentic · 16 weeks", or "… · 1 week (2026-08-09)" naming a single week's Sunday. */
 export function captionText({ rows, scope, weeks }) {
-  const weekText = weeks.length === 1 ? `1 week (${weeks[0]})` : `${weeks.length} weeks`;
-  return `${formatCount(rows)} rows · ${scope} · ${weekText}`;
+  return `${formatCount(rows)} rows · ${scope} · ${weeksText(weeks)}`;
+}
+
+/** The weeks a caption names: "16 weeks", or "1 week (2026-08-09)" naming a single week's Sunday. */
+export function weeksText(weeks) {
+  return weeks.length === 1 ? `1 week (${weeks[0]})` : `${weeks.length} weeks`;
 }
 
 /** Replace `container`'s content with the loading state. */

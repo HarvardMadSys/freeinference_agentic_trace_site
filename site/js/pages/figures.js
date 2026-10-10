@@ -6,11 +6,11 @@
  * loading state, error or note; a run that a newer selection has replaced is dropped.
  */
 
-import { assignColours, captionText, MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote } from "../shared/charts.js";
+import { assignColours, MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote, weeksText } from "../shared/charts.js";
 import { openDatabase } from "../shared/database.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
 import { mountSelection, readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
-import { dropThinGroups, hiddenText, restingRowCount } from "../figures/figure_rows.js";
+import { dropThinGroups, hiddenText, restingCountText } from "../figures/figure_rows.js";
 
 // Each section of the page: the element its figures go in, and the module listing them. Every section module
 // exports its figures as `FIGURES`, so each is imported by its path rather than under a second name.
@@ -65,7 +65,9 @@ async function drawSelection(page, selection) {
     opened = await page.opening;
     await opened.database.setSelection(selection);
   } catch (error) {
-    bodies.forEach((body) => showError(body, error));
+    if (run.number === page.latestRun) {
+      bodies.forEach((body) => showError(body, error)); // a newer selection's run shows its own state instead
+    }
     return;
   }
   if (run.number !== page.latestRun) {
@@ -100,7 +102,7 @@ async function drawFigure(page, { database, colours }, { figure, card }, body, r
 
 /** Write a figure's caption: the rows it rests on, the scope and the weeks, and how many bins were hidden. */
 function writeCaption(card, figure, shownRows, hidden, selection) {
-  const parts = [captionText({ rows: restingRowCount(shownRows, figure), scope: selection.scope, weeks: selection.weeks })];
+  const parts = [restingCountText(shownRows, figure), selection.scope, weeksText(selection.weeks)];
   const hiddenNote = hiddenText(hidden, figure.binColumn);
   if (hiddenNote !== "") {
     parts.push(hiddenNote);
