@@ -3,7 +3,7 @@
  * on hover, and the model mix: each model's share of their requests, largest first, coloured by the
  * global model order so a model has the same colour on every page.
  *
- * A section's `context` is what the page gives every section: `{ database, selection, weeks, onWeekClick }`.
+ * A section's `context` is what the page gives every section: `{ database, selection, weeks, onWeekClick, replaceQuery }`.
  */
 
 import { assignColours, showError, showLoading, showNote } from "../shared/charts.js";

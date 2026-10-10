@@ -222,3 +222,24 @@ def test_the_cached_fraction_has_twenty_bins_of_a_twentieth_with_1_in_the_last(
         assert row["bin_end"] - row["bin_start"] == pytest.approx(0.05)
     assert bins[0]["bin_start"] == 0  # the first requests of most sessions read nothing from the cache
     assert bins[-1]["bin_end"] <= 1
+
+
+# Input tokens of the top-level sessions: `tree-root` 15,000, `idle-week-1` 3,600, `swe-bench` 1,800 in the
+# first week; `mutation` 5,300, `idle-week-2` 2,200, `idle-benchmark` 600 in the second.
+def test_the_sessions_table_lists_the_selection_s_top_level_sessions_most_input_first(
+        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+    select(connection, fixture_weeks, "All")
+    rows = records(connection, "explore/sessions_of_selection")
+    assert [(row["session_id"], row["input_tokens"]) for row in rows] == [
+        ("tree-root", 15_000), ("mutation", 5_300), ("idle-week-1", 3_600), ("idle-week-2", 2_200),
+        ("swe-bench", 1_800), ("idle-benchmark", 600),
+    ]
+    tree_root = rows[0]
+    assert (tree_root["week"], tree_root["requests"], tree_root["turns"], tree_root["subagents"]) == \
+        (FIRST_SUNDAY, 5, 1, 3)
+
+
+def test_the_sessions_table_keeps_to_the_selected_weeks_and_scope(connection: duckdb.DuckDBPyConnection) -> None:
+    select(connection, [SECOND_SUNDAY], "Agentic")
+    rows = records(connection, "explore/sessions_of_selection")
+    assert [row["session_id"] for row in rows] == ["mutation", "idle-week-2"]

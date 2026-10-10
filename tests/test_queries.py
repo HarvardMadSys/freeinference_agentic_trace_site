@@ -36,6 +36,9 @@ EXPECTED_COLUMNS = {
     "explore/model_mix": ["model", "requests"],
     "explore/request_count": ["requests"],
     "explore/sessions_per_week_by_harness": ["week", "harness", "sessions"],
+    "explore/sessions_of_selection": ["week", "session_id", "first_start_ms", "harness", "main_model", "requests",
+                                      "turns", "subagents", "tool_calls", "duration_s", "input_tokens",
+                                      "reported_input_tokens", "cached_tokens", "peak_prompt_tokens"],
 }
 
 # The `?` parameters of the queries that take them, in order, by the query's name.

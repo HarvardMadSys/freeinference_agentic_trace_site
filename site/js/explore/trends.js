@@ -3,7 +3,7 @@
  * whether the provider reports cache reads, over every week whatever the selection. The selected weeks'
  * bars are drawn solid, the others faint, and a click on a bar selects its week alone.
  *
- * A section's `context` is what the page gives every section: `{ database, selection, weeks, onWeekClick }`.
+ * A section's `context` is what the page gives every section: `{ database, selection, weeks, onWeekClick, replaceQuery }`.
  */
 
 import { OTHER_SERIES, TOKEN_PART_COLOURS, captionText, drawBars, renderFigure, showError, showLoading } from "../shared/charts.js";

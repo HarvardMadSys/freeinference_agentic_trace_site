@@ -7,8 +7,8 @@
  *
  * `page` is what the page owns: `{ weeks, selection, database }`, the entries of `weeks.json`, the current
  * selection and the open database (null until it opens). A section runs as `run(container, context)` with
- * `context = { database, selection, weeks, onWeekClick }`, and lays out fresh places in its container each
- * time, so a run that a newer one replaced draws into places no longer on the page.
+ * `context = { database, selection, weeks, onWeekClick, replaceQuery }`, and lays out fresh places in its
+ * container each time, so a run that a newer one replaced draws into places no longer on the page.
  */
 
 import { showError, showNote } from "../shared/charts.js";
@@ -17,6 +17,7 @@ import { renderFooter, renderHeader } from "../shared/layout.js";
 import { mountSelection, readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
 import { layoutDistributions, runDistributions } from "../explore/distributions.js";
 import { layoutHeadline, runHeadline } from "../explore/headline.js";
+import { layoutSessionsTable, runSessionsTable, withFirstPage } from "../explore/sessions_table.js";
 import { layoutTrends, runTrends } from "../explore/trends.js";
 
 // The page's own file, which the header marks as the current page.
@@ -30,6 +31,7 @@ const SECTIONS = Object.freeze([
   Object.freeze({ id: "trends", layout: layoutTrends, run: runTrends }),
   Object.freeze({ id: "headline", layout: layoutHeadline, run: runHeadline }),
   Object.freeze({ id: "distributions", layout: layoutDistributions, run: runDistributions }),
+  Object.freeze({ id: "sessions", layout: layoutSessionsTable, run: runSessionsTable }),
 ]);
 
 start();
@@ -87,17 +89,28 @@ async function runEverySection(page) {
   if (page.selection !== selection) {
     return;
   }
-  const context = { database: page.database, selection, weeks: page.weeks, onWeekClick: (week) => selectWeek(page, week) };
+  const context = {
+    database: page.database,
+    selection,
+    weeks: page.weeks,
+    onWeekClick: (week) => selectWeek(page, week),
+    replaceQuery,
+  };
   await Promise.all(SECTIONS.map((section) => section.run(sectionElement(section), context)));
 }
 
 /** Make `selection` the page's: write it to the URL and the header's links, and run every section again. */
 function changeSelection(page, selection) {
   page.selection = selection;
-  const params = writeSelection(new URLSearchParams(window.location.search), selection, page.weeks);
-  window.history.replaceState(null, "", `${window.location.pathname}${selectionQuery(params)}`);
+  // A new selection lists other sessions, so the sessions table starts again on its first page.
+  replaceQuery(withFirstPage(writeSelection(new URLSearchParams(window.location.search), selection, page.weeks)));
   renderPageHeader(page);
   runEverySection(page);
+}
+
+/** Write `params` to the address bar, as `selectionQuery` writes them, without reloading the page. */
+function replaceQuery(params) {
+  window.history.replaceState(null, "", `${window.location.pathname}${selectionQuery(params)}`);
 }
 
 /** Select `week` alone, keeping the scope, as a click on its trend bar asks. */
