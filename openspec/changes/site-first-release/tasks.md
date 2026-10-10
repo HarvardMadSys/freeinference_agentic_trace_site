@@ -120,8 +120,8 @@ in a browser at 360 px and at desktop width, in light and dark mode.
   - scrolling to and highlighting `step`.
 
   Verify on the fixture that expanding the depth-2 subagent and opening a `step` link both work.
-- [ ] 7.4 Context view (`js/session/context.js`): cached and uncached area over elapsed time, the switch to roles, one trajectory line per agent, turn and transition marks, and a click opening the request. Verify the fixture's mutation step is marked with its cause.
-- [ ] 7.5 Timeline view (`js/session/timeline.js`): one row per agent, request bars split at TTFT, tool bars coloured by category, waits coloured by cause, and a click opening the request. Verify the fixture's overlapping subagents appear on separate rows at overlapping times.
+- [x] 7.4 Context view (`js/session/context.js`): cached and uncached area over elapsed time, the switch to roles, one trajectory line per agent, turn and transition marks, and a click opening the request. Verify the fixture's mutation step is marked with its cause.
+- [x] 7.5 Timeline view (`js/session/timeline.js`): one row per agent, request bars split at TTFT, tool bars coloured by category, waits coloured by cause, and a click opening the request. Verify the fixture's overlapping subagents appear on separate rows at overlapping times.
 
 ## 8. Deploy
 
