@@ -3,7 +3,8 @@
 Eight sessions, twenty requests and sixteen tool calls:
 - `tree-root` spawns `tree-child` and `tree-sibling` from step 1; `tree-child`
   spawns `tree-grandchild`, at depth 2; the two children's requests overlap;
-- `swe-bench` runs the benchmark scaffold, at a provider that reports no cache reads;
+- `tree-sibling` sends one request to each of two models, a tie;
+- `swe-bench` runs the benchmark scaffold on another model, at a provider that reports no cache reads;
 - `mutation` rewrites its context at step 1;
 - `idle-week-1` and `idle-week-2` belong to one user at one provider, so the
   second's first request has an idle gap that crosses the week boundary.
@@ -58,6 +59,7 @@ class FixtureRequest:
     cache_read_tokens: int | None  # none where the provider reports no cache reads
     calls: tuple[str, ...] = ()  # the tools its response called, in order
     ttft_ms: int | None = 1_000
+    model: str = "model-x"
     provider: str = "A"
     transition: str = "append"  # against step - 1; the release has none at step 0
     cause: str | None = None
@@ -99,11 +101,12 @@ REQUESTS = (
     FixtureRequest("tree-root", 4, 1_300, 1_310, "tool", "tool", 5_000, 4_000),
     FixtureRequest("tree-child", 0, 1_031, 1_040, "user", None, 500, 0, ("task",)),
     FixtureRequest("tree-child", 1, 1_060, 1_070, "tool", "subagent", 800, 500, ("read",)),
-    FixtureRequest("tree-sibling", 0, 1_032, 1_045, "user", None, 500, 0, ("read",)),
+    FixtureRequest("tree-sibling", 0, 1_032, 1_045, "user", None, 500, 0, ("read",), model="model-y"),
     FixtureRequest("tree-sibling", 1, 1_050, 1_058, "tool", "tool", 700, 500, ("bash",)),
     FixtureRequest("tree-grandchild", 0, 1_041, 1_050, "user", None, 400, 0),
-    FixtureRequest("swe-bench", 0, 2_000, 2_010, "user", None, 800, None, ("bash",), provider="C"),
-    FixtureRequest("swe-bench", 1, 2_015, 2_025, "tool", "tool", 1_000, None, ("bash",), provider="C"),
+    FixtureRequest("swe-bench", 0, 2_000, 2_010, "user", None, 800, None, ("bash",), model="model-y", provider="C"),
+    FixtureRequest("swe-bench", 1, 2_015, 2_025, "tool", "tool", 1_000, None, ("bash",), model="model-y",
+                   provider="C"),
     FixtureRequest("idle-week-1", 0, 604_000, 604_010, "user", None, 1_000, 0, ("read",), provider="B"),
     FixtureRequest("idle-week-1", 1, 604_030, 604_040, "tool", "tool", 1_200, 900, ("read",), provider="B"),
     FixtureRequest("idle-week-1", 2, 604_045, 604_200, "tool", "tool", 1_400, 1_200, ("bash",), provider="B"),
@@ -186,7 +189,7 @@ def request_row(request: FixtureRequest, week_start: int) -> dict:
         "start_ms": week_start + request.start_s * schema.MILLISECONDS_PER_SECOND,
         "end_ms": week_start + request.end_s * schema.MILLISECONDS_PER_SECOND,
         "ttft_ms": request.ttft_ms,
-        "model": "model-x",
+        "model": request.model,
         "provider": request.provider,
         "stream": True,
         "step_trigger": request.step_trigger,
