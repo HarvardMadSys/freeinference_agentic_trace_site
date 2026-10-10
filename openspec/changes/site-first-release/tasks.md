@@ -99,7 +99,7 @@ in a browser at 360 px and at desktop width, in light and dark mode.
 - [x] 6.2 Sessions section: `js/figures/sessions.js` and the seven queries of `figures-page`. Verify each query on the fixture and each chart in the browser.
 - [x] 6.3 Tools section: four queries. Verify the overview table's shares sum to 1 and its percentiles are in order.
 - [x] 6.4 Prefix-caching section: four queries, with the simulation charts captioned "Agentic" under any scope. Verify that one week's simulated hit ratio equals hit over hit plus miss from that week's tallies.
-- [ ] 6.5 `tests/test_paper_parity.py`: with all weeks and `Agentic`, run the queries on the full site data and compare every shared number with the paper's `numbers.json`. When the full data are absent, skip with a message. Verify it passes on the full release.
+- [x] 6.5 `tests/test_paper_parity.py`: with all weeks and `Agentic`, run the queries on the full site data and compare every shared number with the paper's `numbers.json`. When the full data are absent, skip with a message. Verify it passes on the full release.
 
 ## 7. Session page
 
