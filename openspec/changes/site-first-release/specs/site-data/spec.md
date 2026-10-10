@@ -55,7 +55,9 @@ sessions included, with these columns:
 
 Definitions that look across weeks (the idle gap) SHALL be computed over all
 weeks together, so a week's first requests get the same value as in the
-paper.
+paper; the idle gap SHALL be computed per scope over that scope's top-level
+requests, as the paper computes it over the Agentic population, and a
+subagent's request SHALL have none.
 
 #### Scenario: A request after a tool step
 - **WHEN** a session's third request has `step_trigger = tool` and its first has `step_trigger = user`
@@ -75,8 +77,9 @@ is_top_level, root_session_id`. It SHALL NOT hold `arguments_skeleton` or `progr
 `week, session_id, harness, scope, parent_session_id, spawned_by_step,
 root_session_id, depth, user_id`, and per session, counting its own requests
 only: `requests, user_steps, tool_steps, tool_calls, first_start_ms,
-duration_s, input_tokens, cached_tokens, output_tokens, peak_prompt_tokens,
-main_model` (the model of most of its requests, the first in name order on a
+duration_s, input_tokens, reported_input_tokens` (the input tokens of the
+requests whose provider reports cache reads), `cached_tokens` (their cache
+reads), `output_tokens, peak_prompt_tokens, main_model` (the model of most of its requests, the first in name order on a
 tie). A top-level session SHALL also hold `subagents` (its subagent sessions
 at every depth) and `subagent_requests` (their requests).
 

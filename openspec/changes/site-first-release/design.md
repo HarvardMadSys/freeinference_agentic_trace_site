@@ -120,6 +120,9 @@ week.
 - adds `scope` with `population.scope_of`;
 - adds `turn`, `wait_s`, `uncached_tokens`, `hit_ratio`, `idle_gap_s`,
   `idle_gap_bin` and `is_trusted_ttft` by calling the pipeline's functions;
+  the idle gap is computed per scope over that scope's top-level requests,
+  as the paper computes it over the Agentic population, so a subagent's
+  request has none;
 - adds `root_session_id` and `depth` by walking `parent_session_id`.
 
 The browser filters, groups, counts, sums and takes quantiles, and lays out
@@ -212,8 +215,11 @@ runs it.
 - **Size and idle-gap bins** are fixed: the pipeline's idle-gap edges, and
   powers of two for messages and input size. The paper fits them to the
   data's 99th percentile.
-- **Thin bins are hidden** below `MIN_ROWS_PER_BIN = 50`, rather than merged
-  into the next bin.
+- **Thin bins are hidden** below `MIN_ROWS_PER_BIN = 50`, and the figure says
+  how many were. The paper also drops thin size bins at the same threshold;
+  it merges only a thin idle-gap bin (under 20 rows) into the next one.
+- **Token split by week** shows plain token shares; the paper's cost split
+  weights cached, uncached and output tokens by price.
 - **Token split by week** replaces the paper's per-session rank-binned stack
   with one bar per selected week.
 
