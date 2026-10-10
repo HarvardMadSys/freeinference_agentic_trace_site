@@ -17,14 +17,14 @@ def loaded_fixture(tmp_path: pathlib.Path) -> reader.Release:
 
 def test_the_reader_loads_every_week(tmp_path: pathlib.Path) -> None:
     release = loaded_fixture(tmp_path)
-    assert (len(release.sessions), len(release.requests), len(release.tool_calls)) == (8, 20, 16)
+    assert (len(release.sessions), len(release.requests), len(release.tool_calls)) == (9, 21, 16)
 
 
 def test_each_week_holds_its_own_sessions(tmp_path: pathlib.Path) -> None:
     fixture_release.write_fixture_release(tmp_path / "release", tmp_path / "simulation")
     second_week = reader.load(tmp_path / "release", weeks=["2026-06-07"])
-    assert sorted(second_week.sessions.session_id) == ["idle-week-2", "mutation"]
-    assert (len(second_week.requests), len(second_week.tool_calls)) == (5, 2)
+    assert sorted(second_week.sessions.session_id) == ["idle-benchmark", "idle-week-2", "mutation"]
+    assert (len(second_week.requests), len(second_week.tool_calls)) == (6, 2)
 
 
 def test_the_nested_subagent_points_at_its_parent(tmp_path: pathlib.Path) -> None:

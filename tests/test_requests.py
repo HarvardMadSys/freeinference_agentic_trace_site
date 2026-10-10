@@ -27,7 +27,7 @@ def fixture_requests(tmp_path: pathlib.Path) -> pandas.DataFrame:
 
 def test_every_request_of_every_session_is_a_row(tmp_path: pathlib.Path) -> None:
     site_requests = fixture_requests(tmp_path)
-    assert len(site_requests) == 20
+    assert len(site_requests) == 21
     assert list(site_requests.columns) == SITE_COLUMNS
 
 
@@ -110,6 +110,14 @@ def test_idle_gaps_fall_in_their_bins(tmp_path: pathlib.Path) -> None:
     assert site_requests.idle_gap_bin[("idle-week-1", 1)] == 3  # edges 10 × 1.254^k: 19.7 s to 24.8 s
     assert site_requests.idle_gap_s[("idle-week-1", 2)] == 5.0
     assert site_requests.idle_gap_bin[("idle-week-1", 2)] == 0  # under 10 s counts in the first bin
+
+
+def test_the_idle_gap_looks_at_the_requests_of_its_own_scope_only(tmp_path: pathlib.Path) -> None:
+    site_requests = fixture_requests(tmp_path)
+    # The same user's SWE-Bench request at the same provider ended 2,010 s into the second week, which would make
+    # the gap 2,190 s; the Agentic gap reaches back to the user's previous Agentic request instead.
+    assert site_requests.idle_gap_s[("idle-week-2", 0)] == 4_800.0
+    assert pandas.isna(site_requests.idle_gap_s[("idle-benchmark", 0)])  # the user's first SWE-Bench request
 
 
 def test_the_idle_gap_looks_at_top_level_sessions_only(tmp_path: pathlib.Path) -> None:

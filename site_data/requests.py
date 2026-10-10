@@ -8,8 +8,9 @@ request, each from the pipeline's function: `turn`, `uncached_tokens`,
 `hit_ratio`, `wait_s`, `idle_gap_s`, `idle_gap_bin`, `is_trusted_ttft` and
 `n_tool_calls`, its rows in the tool calls.
 
-The idle gap is the pipeline's, taken over the top-level sessions of every
-week together; a subagent's request has none. `idle_gap_bin` is the 0-based
+The idle gap is the pipeline's, taken over the top-level sessions of each
+scope, every week together, so a gap never reaches back to a request of the
+other scope; a subagent's request has none. `idle_gap_bin` is the 0-based
 bin of `gaps.IDLE_GAP_EDGES_S` the gap falls in, a gap under the first edge
 counted in the first bin and one over the last edge in none.
 """
@@ -68,9 +69,13 @@ def with_sessions(requests: pandas.DataFrame, sessions: pandas.DataFrame) -> pan
 
 
 def top_level_idle_gaps(requests: pandas.DataFrame) -> pandas.Series:
-    """Each top-level request's idle gap in seconds, where the pipeline gives one; missing on every other row."""
-    idle_gap_rows = gaps.idle_gap_rows(requests[requests.is_top_level])
-    return idle_gap_rows.idle_gap_s.reindex(requests.index)
+    """Each top-level request's idle gap in seconds among the top-level requests of its scope, where the pipeline
+    gives one; missing on every other row."""
+    top_level = requests[requests.is_top_level]
+    idle_gaps = []
+    for scope in sorted(top_level.scope.unique()):
+        idle_gaps.append(gaps.idle_gap_rows(top_level[top_level.scope == scope]).idle_gap_s)
+    return pandas.concat(idle_gaps).reindex(requests.index)
 
 
 def idle_gap_bins(idle_gap_s: pandas.Series) -> pandas.Series:

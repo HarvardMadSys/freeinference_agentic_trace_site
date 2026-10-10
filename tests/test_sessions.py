@@ -11,7 +11,8 @@ import fixture_release
 SITE_COLUMNS = [
     "week", "session_id", "harness", "scope", "parent_session_id", "spawned_by_step", "root_session_id", "depth",
     "user_id", "requests", "user_steps", "tool_steps", "tool_calls", "first_start_ms", "duration_s", "input_tokens",
-    "cached_tokens", "output_tokens", "peak_prompt_tokens", "main_model", "subagents", "subagent_requests",
+    "cached_tokens", "reported_input_tokens", "output_tokens", "peak_prompt_tokens", "main_model", "subagents",
+    "subagent_requests",
 ]
 FIRST_SUNDAY_MS = 1_780_185_600_000  # 2026-05-31 00:00 UTC
 
@@ -28,7 +29,7 @@ def fixture_frames(tmp_path: pathlib.Path) -> tuple[pandas.DataFrame, pandas.Dat
 
 def test_every_session_is_a_row(tmp_path: pathlib.Path) -> None:
     site_sessions = fixture_frames(tmp_path)[1]
-    assert len(site_sessions) == 8
+    assert len(site_sessions) == 9
     assert list(site_sessions.columns) == SITE_COLUMNS
 
 
@@ -38,6 +39,7 @@ def test_the_top_level_session_totals_its_own_requests(tmp_path: pathlib.Path) -
     assert root.first_start_ms == FIRST_SUNDAY_MS + 1_000_000
     assert root.duration_s == 310.0  # from 1,000 s to 1,310 s; its subagents' requests fall inside but do not count
     assert (root.input_tokens, root.cached_tokens, root.output_tokens) == (15_000, 10_000, 500)
+    assert root.reported_input_tokens == 15_000  # every request of its provider reports cache reads
     assert root.peak_prompt_tokens == 5_000
 
 
@@ -50,9 +52,10 @@ def test_totals_equal_the_sums_of_each_session_s_requests(tmp_path: pathlib.Path
     assert by_session.cache_read_tokens.sum().to_dict() == site_sessions.cached_tokens.to_dict()
 
 
-def test_missing_cache_reads_count_as_zero(tmp_path: pathlib.Path) -> None:
+def test_a_session_whose_provider_reports_no_cache_reads_has_no_reported_input(tmp_path: pathlib.Path) -> None:
     benchmark = fixture_frames(tmp_path)[1].loc["swe-bench"]
-    assert (benchmark.cached_tokens, benchmark.input_tokens, benchmark.scope) == (0, 1_800, "SWE-Bench")
+    assert (benchmark.cached_tokens, benchmark.reported_input_tokens) == (0, 0)
+    assert (benchmark.input_tokens, benchmark.scope) == (1_800, "SWE-Bench")
 
 
 def test_a_top_level_session_counts_its_subagents_at_every_depth(tmp_path: pathlib.Path) -> None:

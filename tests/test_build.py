@@ -36,7 +36,7 @@ def test_every_file_is_written_and_its_rows_printed(tmp_path: pathlib.Path, caps
     assert sorted(path.name for path in out.iterdir()) == sorted([*PARQUET_FILES, "weeks.json"])
     printed = capsys.readouterr().out.splitlines()
     assert [line.split(":")[0] for line in printed] == [*PARQUET_FILES, "weeks.json"]
-    assert printed[0].startswith("requests.parquet: 20 rows, ")
+    assert printed[0].startswith("requests.parquet: 21 rows, ")
     assert printed[-1].startswith("weeks.json: 2 rows, ")
 
 

@@ -1,13 +1,15 @@
 """A two-week release in the pipeline's layout, small enough to check by hand, and a simulation of its first week.
 
-Eight sessions, twenty requests and sixteen tool calls:
+Nine sessions, twenty-one requests and sixteen tool calls:
 - `tree-root` spawns `tree-child` and `tree-sibling` from step 1; `tree-child`
   spawns `tree-grandchild`, at depth 2; the two children's requests overlap;
 - `tree-sibling` sends one request to each of two models, a tie;
 - `swe-bench` runs the benchmark scaffold on another model, at a provider that reports no cache reads;
 - `mutation` rewrites its context at step 1;
 - `idle-week-1` and `idle-week-2` belong to one user at one provider, so the
-  second's first request has an idle gap that crosses the week boundary.
+  second's first request has an idle gap that crosses the week boundary;
+  `idle-benchmark`, a SWE-Bench session of the same user at the same
+  provider, falls between them, and the Agentic idle gap must ignore it.
 
 A request is tool-triggered exactly when the request before it called tools,
 so a call's latency is always time spent on tools, never a person's idle time;
@@ -90,6 +92,7 @@ SESSIONS = (
     FixtureSession("idle-week-1", FIRST_WEEK, "user-e", "pi"),
     FixtureSession("mutation", SECOND_WEEK, "user-d", "codex"),
     FixtureSession("idle-week-2", SECOND_WEEK, "user-e", "pi"),
+    FixtureSession("idle-benchmark", SECOND_WEEK, "user-e", "eval:swe-bench"),
 )
 
 REQUESTS = (
@@ -116,6 +119,7 @@ REQUESTS = (
     FixtureRequest("mutation", 2, 1_200, 1_210, "tool", "tool", 1_800, 1_500),
     FixtureRequest("idle-week-2", 0, 4_200, 4_210, "user", None, 1_000, 800, provider="B"),
     FixtureRequest("idle-week-2", 1, 4_300, 4_310, "user", "user", 1_200, 1_000, provider="B"),
+    FixtureRequest("idle-benchmark", 0, 2_000, 2_010, "user", None, 600, 0, provider="B"),
 )
 
 

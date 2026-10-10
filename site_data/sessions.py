@@ -9,7 +9,9 @@ The totals count the session's own requests only, never its subagents':
 `duration_s` its session duration; `tool_calls` sums the requests'
 `n_tool_calls`; `first_start_ms` is the earliest `start_ms`; `input_tokens`,
 `cached_tokens` and `output_tokens` sum `prompt_tokens`, `cache_read_tokens`
-(a missing count as 0) and `completion_tokens`; `peak_prompt_tokens` is the
+(a missing count as 0) and `completion_tokens`; `reported_input_tokens` sums
+`prompt_tokens` over the cache-reporting requests only, the input a cached
+share is taken of; `peak_prompt_tokens` is the
 largest `prompt_tokens`; `main_model` is the model of most of its requests,
 the first in name order on a tie.
 
@@ -19,7 +21,7 @@ depth, and `subagent_requests`, their requests; a subagent holds 0 of both.
 
 import pandas
 
-from paper.metrics import turns
+from paper.metrics import tokens, turns
 from release import schema
 from site_data import loading
 
@@ -29,7 +31,8 @@ RELEASE_COLUMNS = ["week", "session_id", "harness", "parent_session_id", "spawne
 COLUMNS = [
     "week", "session_id", "harness", "scope", "parent_session_id", "spawned_by_step", "root_session_id", "depth",
     "user_id", "requests", "user_steps", "tool_steps", "tool_calls", "first_start_ms", "duration_s", "input_tokens",
-    "cached_tokens", "output_tokens", "peak_prompt_tokens", "main_model", "subagents", "subagent_requests",
+    "cached_tokens", "reported_input_tokens", "output_tokens", "peak_prompt_tokens", "main_model", "subagents",
+    "subagent_requests",
 ]
 
 
@@ -63,6 +66,8 @@ def request_totals(requests: pandas.DataFrame) -> pandas.DataFrame:
         peak_prompt_tokens=("prompt_tokens", "max"),
     )
     totals["cached_tokens"] = requests.cache_read_tokens.fillna(0).groupby(requests.session_id).sum()
+    reported_input = requests.prompt_tokens.where(tokens.is_cache_reporting(requests), 0)
+    totals["reported_input_tokens"] = reported_input.groupby(requests.session_id).sum()
     totals["duration_s"] = turns.session_durations(requests)
     return totals.join(turns.counts_per_session(requests))
 
