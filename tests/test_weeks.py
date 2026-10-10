@@ -20,6 +20,11 @@ def test_a_week_spanning_two_months_belongs_to_the_first(tmp_path: pathlib.Path)
     assert entry == weeks.WeekEntry(week="2026-05-31", last_day="2026-06-06", month="2026-05", simulated=False)
 
 
+def test_an_entry_names_the_folder_it_was_read_from(tmp_path: pathlib.Path) -> None:
+    week_directory = make_week(tmp_path / "release", "2026-05-31_2026-06-06")
+    assert weeks.folder_name(weeks.week_entry(week_directory, tmp_path / "simulation")) == "2026-05-31_2026-06-06"
+
+
 def test_a_week_is_simulated_when_its_tallies_exist(tmp_path: pathlib.Path) -> None:
     week_directory = make_week(tmp_path / "release", "2026-08-30_2026-09-05")
     tallies = tmp_path / "simulation" / "2026-08-30_2026-09-05" / weeks.SIMULATED_MARKER_FILE

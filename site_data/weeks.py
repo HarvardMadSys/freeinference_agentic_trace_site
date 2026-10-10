@@ -31,6 +31,11 @@ def week_entry(week_directory: pathlib.Path, simulation_directory: pathlib.Path)
     return WeekEntry(week=sunday, last_day=saturday, month=sunday[: len("YYYY-MM")], simulated=simulated)
 
 
+def folder_name(entry: WeekEntry) -> str:
+    """The week's folder name in the release and in the simulation: `<sunday>_<saturday>`."""
+    return f"{entry.week}_{entry.last_day}"
+
+
 def weeks_index(release_directory: pathlib.Path, simulation_directory: pathlib.Path) -> list[WeekEntry]:
     """Every week of the release, oldest first."""
     week_directories = reader.find_weeks(release_directory, weeks=None)
