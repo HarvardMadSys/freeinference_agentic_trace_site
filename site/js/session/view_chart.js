@@ -19,13 +19,6 @@ const TICK_STEPS_S = Object.freeze([
   1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400, 172800, 604800,
 ]);
 
-const MILLISECONDS_PER_SECOND = 1000;
-
-/** The seconds from `originMs` to `timeMs`, both in milliseconds. */
-export function elapsedSeconds(timeMs, originMs) {
-  return (timeMs - originMs) / MILLISECONDS_PER_SECOND;
-}
-
 /**
  * The ticks of an elapsed-time axis from 0 to `maxSeconds`: every multiple of the smallest round step that gives at
  * most `maxTicks` intervals, or of a whole number of seconds when even a week is too fine.
@@ -55,6 +48,8 @@ export function viewChartWidth(body) {
  * view that replaced it.
  */
 export function startChartView(container, draw) {
+  // An AbortController rather than the run counter the Explore and Figures pages keep: stopping a view must also
+  // drop a Plot load still in flight, and the caller holds only the stop function this returns.
   const controller = new AbortController();
   showLoading(container);
   drawWithPlot(container, draw, controller.signal);

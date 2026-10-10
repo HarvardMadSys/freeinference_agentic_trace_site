@@ -7,9 +7,7 @@ import {
   nextSort,
   readTableState,
   sessionLink,
-  shortId,
   shownSessions,
-  startedText,
   withCachedShare,
   withFirstPage,
   writeTableState,
@@ -108,14 +106,6 @@ test("a row opens the Session page with its week and id, and the selection", () 
   const row = { week: "2026-08-09", session_id: "aaaa1111-x" };
   const selection = { weeks: ["2026-08-09"], scope: "All", unknownWeeks: [], unknownMonth: null };
   assert.equal(sessionLink(row, selection, WEEKS), "session.html?week=2026-08-09&id=aaaa1111-x&weeks=2026-08-09&scope=All");
-});
-
-test("a start time is written as UTC minutes", () => {
-  assert.equal(startedText(Date.UTC(2026, 7, 9, 13, 5, 42)), "2026-08-09 13:05");
-});
-
-test("a session id is shortened to eight characters", () => {
-  assert.equal(shortId("0123456789abcdef"), "01234567");
 });
 
 test("a session's cached share is cached over reported input, and missing with none reported", () => {

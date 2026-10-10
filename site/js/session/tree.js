@@ -5,13 +5,7 @@
  * `sessions` are rows of `session/session_tree` and `requests` rows of `session/session_requests`.
  */
 
-// The number of characters of a session id that name it on the page; 8 hex characters tell sessions apart.
-const SHORT_ID_LENGTH = 8;
-
-/** The short name of a session: the first eight characters of its id. */
-export function shortSessionId(sessionId) {
-  return sessionId.slice(0, SHORT_ID_LENGTH);
-}
+import { shortSessionId } from "../shared/format.js";
 
 /** An agent's name in the Context and Timeline views: "main" at the top level, "sub <short id>" for a subagent. */
 export function agentLabel(session) {

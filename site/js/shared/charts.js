@@ -46,7 +46,8 @@ const FALLBACK_WIDTH = 480; // the width drawn when the body has not been laid o
 /** The width of every chart's lines, in pixels: thin lines. */
 export const LINE_WIDTH = 2;
 const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars and segments
-const MEDIAN_DASH = "4 3"; // dash and gap lengths of the median gridline, in pixels
+/** The dash and gap lengths of every dashed line, in pixels: a CDF's median, a percentile, a reference line. */
+export const DASH = "4 3";
 const MEDIAN_SHARE = 0.5; // the share of rows at which a CDF crosses its median
 
 // The Plot options every chart shares, so every chart has the same ink.
@@ -174,7 +175,7 @@ export async function drawCdf(body, series, { xLabel, logX = false, format = Str
     marks: [
       Plot.gridX(GRID_STYLE),
       Plot.gridY(GRID_STYLE),
-      Plot.ruleY([MEDIAN_SHARE], { stroke: "var(--chart-axis)", strokeDasharray: MEDIAN_DASH }),
+      Plot.ruleY([MEDIAN_SHARE], { ...AXIS_STYLE, strokeDasharray: DASH }),
       Plot.axisX({ ...AXIS_STYLE, label: xLabel }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: "%", label: "Share of rows" }),
       Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH }),
@@ -202,10 +203,7 @@ export async function drawBars(body, rows, options) {
   const colours = options.colours ?? barColours(names);
   const shown = [...colours.keys()].filter((name) => foldedRows.some((row) => row[fill] === name));
   const chart = Plot.plot({
-    ...PLOT_MARGINS,
-    width: chartWidth(body),
-    height: CHART_HEIGHT,
-    style: PLOT_STYLE,
+    ...chartFrame(body),
     x: { type: "band", domain: xDomain ?? distinct(foldedRows.map((row) => row[x])) },
     color: colourScale(colours, shown, shown.length > 1),
     marks: [
@@ -229,7 +227,8 @@ export async function drawBars(body, rows, options) {
   return chart;
 }
 
-function distinct(values) {
+/** The distinct values, in the order of their first appearance. */
+export function distinct(values) {
   return [...new Set(values)];
 }
 

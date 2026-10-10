@@ -7,13 +7,11 @@
  */
 
 import { OTHER_SERIES, TOKEN_PART_COLOURS } from "../shared/charts.js";
-import { formatCount, formatElapsed } from "../shared/format.js";
+import { elapsedSeconds, formatCount, formatElapsed } from "../shared/format.js";
 
 // A request with more tool calls than this shows the first ones as chips and the rest as one "+ N more" chip; its
 // details list every call. A few requests call thousands of tools, and their chips would bury the list.
 const MAX_CHIPS = 12;
-
-const MILLISECONDS_PER_SECOND = 1000;
 
 /** "Turn N" for a request a user's message started, "↳ step S" for one a tool result started. */
 export function rowLabel(request) {
@@ -22,8 +20,8 @@ export function rowLabel(request) {
 
 /** The request's start and end as time since `originMs`: "+MM:SS–MM:SS", each with hours from an hour on. */
 export function elapsedRange(request, originMs) {
-  const start = formatElapsed((request.start_ms - originMs) / MILLISECONDS_PER_SECOND);
-  const end = formatElapsed((request.end_ms - originMs) / MILLISECONDS_PER_SECOND);
+  const start = formatElapsed(elapsedSeconds(request.start_ms, originMs));
+  const end = formatElapsed(elapsedSeconds(request.end_ms, originMs));
   return `${start}–${end.replace("+", "")}`;
 }
 

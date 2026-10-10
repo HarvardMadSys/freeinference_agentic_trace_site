@@ -9,26 +9,21 @@
  */
 
 import { showError, showLoading } from "../shared/charts.js";
-import { formatCount, formatOptionalShare, formatSeconds, formatTokens } from "../shared/format.js";
+import {
+  cachedShare, formatCount, formatOptionalShare, formatSeconds, formatTokens, MISSING_TEXT, shortSessionId, utcMinute,
+} from "../shared/format.js";
 import { selectionQuery, writeSelection } from "../shared/selection.js";
 import { filterRows, mountTable, searchRows, sortRows } from "../shared/table.js";
-import { cachedShare } from "./cached_share.js";
 
 // The table's sort when the URL names none: most input first.
 const DEFAULT_SORT = Object.freeze({ key: "input_tokens", direction: "descending" });
 
-// The characters of a session id the table shows; the full id is in the link a row opens.
-const SHORT_ID_LENGTH = 8;
-
-// The text of a missing value, such as the main model of a session whose requests name none.
-const MISSING_TEXT = "—";
-
 // The table's columns: the row key each shows, its title, how its value is written, and whether it is a number.
 // The session column gets its link when the table is drawn, since the link carries the selection.
 const COLUMNS = Object.freeze([
-  Object.freeze({ key: "session_id", title: "Session", format: shortId }),
+  Object.freeze({ key: "session_id", title: "Session", format: shortSessionId }),
   Object.freeze({ key: "week", title: "Week" }),
-  Object.freeze({ key: "first_start_ms", title: "Started (UTC)", format: startedText }),
+  Object.freeze({ key: "first_start_ms", title: "Started (UTC)", format: utcMinute }),
   Object.freeze({ key: "harness", title: "Harness" }),
   Object.freeze({ key: "main_model", title: "Main model", format: textOrMissing }),
   Object.freeze({ key: "requests", title: "Requests", format: formatCount, isNumber: true }),
@@ -143,16 +138,6 @@ export function sessionLink(row, selection, weeks) {
   return `session.html${selectionQuery(params)}`;
 }
 
-/** A start time in milliseconds since the epoch as UTC "YYYY-MM-DD HH:MM". */
-export function startedText(milliseconds) {
-  return new Date(milliseconds).toISOString().slice(0, "YYYY-MM-DDTHH:MM".length).replace("T", " ");
-}
-
-/** The first characters of a session id. */
-export function shortId(sessionId) {
-  return sessionId.slice(0, SHORT_ID_LENGTH);
-}
-
 /** A copy of a session row with its cached share, null when none of its input was reported. */
 export function withCachedShare(row) {
   return { ...row, cached_share: cachedShare(row.cached_tokens, row.reported_input_tokens) };
@@ -172,6 +157,7 @@ export function choices(rows, key, current) {
   return [...values].sort();
 }
 
+// A missing value, such as the main model of a session whose requests name none, is shown as `MISSING_TEXT`.
 function textOrMissing(text) {
   return text ?? MISSING_TEXT;
 }

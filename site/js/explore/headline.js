@@ -7,8 +7,8 @@
  */
 
 import { assignColours, showError, showLoading, showNote } from "../shared/charts.js";
-import { formatCount, formatOptionalShare, formatShare, formatTokens } from "../shared/format.js";
-import { cachedShare } from "./cached_share.js";
+import { cachedShare, formatCount, formatOptionalShare, formatShare, formatTokens } from "../shared/format.js";
+import { statStrip } from "../shared/tiles.js";
 
 // Each headline number read straight from the query's one row: its label, column, format and definition.
 const HEADLINE_NUMBERS = Object.freeze([
@@ -52,14 +52,17 @@ export async function runHeadline(container, context) {
   ]);
 }
 
-/** The tiles `{ label, value, definition }` of the headline query's row, the cached share last ("—" with no reported input). */
+/**
+ * The tiles `{ label, value, detail, definition }` of the headline query's row, each tile's definition also its
+ * detail line; the cached share last ("—" with no reported input).
+ */
 export function headlineTiles(row) {
   const tiles = [];
   for (const number of HEADLINE_NUMBERS) {
-    tiles.push({ label: number.label, value: number.format(row[number.column]), definition: number.definition });
+    tiles.push(headlineTile(number.label, number.format(row[number.column]), number.definition));
   }
   const share = cachedShare(row.cached_tokens, row.reported_input_tokens);
-  tiles.push({ label: "Cached share", value: formatOptionalShare(share), definition: CACHED_SHARE_DEFINITION });
+  tiles.push(headlineTile("Cached share", formatOptionalShare(share), CACHED_SHARE_DEFINITION));
   return tiles;
 }
 
@@ -74,12 +77,7 @@ export function modelShares(rows) {
 
 async function drawNumbers(place, context) {
   const rows = await context.database.runQuery("explore/headline_numbers");
-  const strip = document.createElement("div");
-  strip.className = "stat-strip";
-  for (const tile of headlineTiles(rows[0])) {
-    strip.append(statTile(tile));
-  }
-  place.replaceChildren(strip);
+  place.replaceChildren(statStrip(headlineTiles(rows[0])));
 }
 
 async function drawModelMix(place, context) {
@@ -102,18 +100,8 @@ async function drawModelMix(place, context) {
   place.replaceChildren(line);
 }
 
-function statTile(tile) {
-  const element = document.createElement("div");
-  element.className = "stat";
-  element.title = tile.definition;
-  element.innerHTML = `
-    <div class="stat-label"></div>
-    <div class="stat-value"></div>
-    <div class="stat-detail"></div>`;
-  element.querySelector(".stat-label").textContent = tile.label;
-  element.querySelector(".stat-value").textContent = tile.value;
-  element.querySelector(".stat-detail").textContent = tile.definition;
-  return element;
+function headlineTile(label, value, definition) {
+  return { label, value, detail: definition, definition };
 }
 
 function modelChip(model, colour) {

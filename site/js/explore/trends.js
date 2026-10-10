@@ -7,7 +7,7 @@
  */
 
 import { OTHER_SERIES, TOKEN_PART_COLOURS, captionText, drawBars, renderFigure, showError, showLoading } from "../shared/charts.js";
-import { formatTokens } from "../shared/format.js";
+import { formatTokens, monthAndDay } from "../shared/format.js";
 import { weeksByMonth } from "../shared/selection.js";
 
 // A bar of a week outside the selection is drawn at this opacity, so the selected weeks stand out.
@@ -64,7 +64,7 @@ export function labelledWeeks(weeks) {
 
 /** The text of a week's tick: its Sunday as "MM-DD" when it is among `labelled`, otherwise none. */
 export function weekTick(week, labelled) {
-  return labelled.includes(week) ? week.slice("YYYY-".length) : "";
+  return labelled.includes(week) ? monthAndDay(week) : "";
 }
 
 /** The opacity of a bar, by its row's week: solid when the week is among `selectedWeeks`, faint otherwise. */

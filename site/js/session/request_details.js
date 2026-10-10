@@ -5,12 +5,7 @@
  * `request` is a row of `session/session_requests`, `calls` its rows of `session/session_tool_calls`.
  */
 
-import { formatCount, formatSeconds } from "../shared/format.js";
-
-// What a missing value is shown as.
-const MISSING = "—";
-
-const MILLISECONDS_PER_SECOND = 1000;
+import { formatCount, formatSeconds, MILLISECONDS_PER_SECOND, MISSING_TEXT } from "../shared/format.js";
 
 // The input token roles, in the order the details list them, with their column in the requests.
 const ROLE_COLUMNS = Object.freeze([
@@ -44,7 +39,7 @@ export function detailFacts(request) {
     { label: "Messages", value: formatCount(request.n_messages) },
     { label: "Time to first token", value: secondsOrMissing(request.ttft_ms) },
     { label: "Duration", value: secondsOrMissing(request.end_ms - request.start_ms) },
-    { label: "Finish reason", value: request.finish_reason ?? MISSING },
+    { label: "Finish reason", value: request.finish_reason ?? MISSING_TEXT },
     { label: "Transition", value: transitionText(request) },
     { label: "Waited for", value: waitText(request) },
   );
@@ -85,7 +80,7 @@ function callTable(calls) {
   }
   const body = table.createTBody();
   for (const call of calls) {
-    const cells = [call.name, call.category, call.outcome ?? MISSING, secondsOrMissing(call.latency_ms),
+    const cells = [call.name, call.category, call.outcome ?? MISSING_TEXT, secondsOrMissing(call.latency_ms),
       countOrMissing(call.result_tokens)];
     const row = body.insertRow();
     for (let index = 0; index < cells.length; index += 1) {
@@ -113,7 +108,7 @@ function inputText(request) {
 /** "mutation (compaction)", "append", or a dash at a session's first request, which has no transition. */
 function transitionText(request) {
   if (request.transition === null) {
-    return MISSING;
+    return MISSING_TEXT;
   }
   return request.cause === null ? request.transition : `${request.transition} (${request.cause})`;
 }
@@ -121,16 +116,16 @@ function transitionText(request) {
 /** "tool, 4.2s", or a dash at a session's first request, which waited for nothing. */
 function waitText(request) {
   if (request.waited_for === null) {
-    return MISSING;
+    return MISSING_TEXT;
   }
-  const wait = request.wait_s === null ? MISSING : formatSeconds(request.wait_s);
+  const wait = request.wait_s === null ? MISSING_TEXT : formatSeconds(request.wait_s);
   return `${request.waited_for}, ${wait}`;
 }
 
 function countOrMissing(count) {
-  return count === null ? MISSING : formatCount(count);
+  return count === null ? MISSING_TEXT : formatCount(count);
 }
 
 function secondsOrMissing(milliseconds) {
-  return milliseconds === null ? MISSING : formatSeconds(milliseconds / MILLISECONDS_PER_SECOND);
+  return milliseconds === null ? MISSING_TEXT : formatSeconds(milliseconds / MILLISECONDS_PER_SECOND);
 }

@@ -8,10 +8,9 @@
  */
 
 import { AXIS_STYLE, assignColours, chartFrame, colourScale, drawBars, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
-import { formatCount, formatOptionalShare, formatSeconds, formatShare, formatTokens } from "../shared/format.js";
-
-// The text of a median that has no value, such as the latency of a category whose every call was batched.
-const MISSING_VALUE = "—";
+import {
+  formatCount, formatOptionalShare, formatSeconds, formatShare, formatTokens, MILLISECONDS_PER_SECOND, MISSING_TEXT,
+} from "../shared/format.js";
 
 // The tool overview's columns, left to right: the heading, the query's column, how a cell is written, and whether
 // the cell is a number (set right-aligned).
@@ -36,8 +35,6 @@ const PERCENTILES = Object.freeze([
   Object.freeze({ column: "p75", label: "75th" }),
   Object.freeze({ column: "p95", label: "95th" }),
 ]);
-
-const MILLISECONDS_PER_SECOND = 1000;
 
 // How each quantile-range chart draws its values: the axis label, the factor from the query's unit to the drawn
 // one, the smallest value drawn on the log axis (a smaller one is drawn at it), how the tooltip writes a value, and
@@ -217,10 +214,11 @@ function rangeTipText(drawn, range) {
   return lines.join("\n");
 }
 
+// A median with no value, such as the latency of a category whose every call was batched, is shown as `MISSING_TEXT`.
 function optionalMilliseconds(milliseconds) {
-  return milliseconds === null ? MISSING_VALUE : formatSeconds(milliseconds / MILLISECONDS_PER_SECOND);
+  return milliseconds === null ? MISSING_TEXT : formatSeconds(milliseconds / MILLISECONDS_PER_SECOND);
 }
 
 function optionalTokens(tokens) {
-  return tokens === null ? MISSING_VALUE : formatTokens(tokens);
+  return tokens === null ? MISSING_TEXT : formatTokens(tokens);
 }

@@ -1,4 +1,8 @@
-/** Numbers as every page shows them: counts, token totals, durations, elapsed time and shares. */
+/**
+ * Numbers and names as every page shows them: counts, token totals, durations, elapsed time, shares, a session's
+ * short id, a UTC minute and a week's month and day; and the two definitions they rest on, elapsed seconds and the
+ * cached share.
+ */
 
 // A token total is shown in the largest of these units it reaches.
 const TOKEN_UNITS = [
@@ -7,8 +11,20 @@ const TOKEN_UNITS = [
   [1e3, "k"],
 ];
 
-// The text of a share that has no value.
-const MISSING_SHARE = "—";
+/** The text of a value that has none, such as a share of nothing or a median over no rows. */
+export const MISSING_TEXT = "—";
+
+/** The release's times are in milliseconds; the pages write seconds. */
+export const MILLISECONDS_PER_SECOND = 1000;
+
+// The characters of a session id that name it on a page; 8 hex characters tell sessions apart.
+const SHORT_ID_LENGTH = 8;
+
+// The characters of an ISO 8601 time that make up "YYYY-MM-DDTHH:MM".
+const MINUTE_LENGTH = "YYYY-MM-DDTHH:MM".length;
+
+// The characters of a week's Sunday before its month: "YYYY-".
+const YEAR_PREFIX_LENGTH = "YYYY-".length;
 
 /** A count with thousands separators: 1186582 → "1,186,582". */
 export function formatCount(count) {
@@ -62,7 +78,32 @@ export function formatShare(share) {
 
 /** A share as `formatShare` writes it, or "—" for a missing share (null), such as a share of nothing. */
 export function formatOptionalShare(share) {
-  return share === null ? MISSING_SHARE : formatShare(share);
+  return share === null ? MISSING_TEXT : formatShare(share);
+}
+
+/** The seconds from `originMs` to `timeMs`, both in milliseconds. */
+export function elapsedSeconds(timeMs, originMs) {
+  return (timeMs - originMs) / MILLISECONDS_PER_SECOND;
+}
+
+/** Cached over reported input tokens; null when no input was reported, since a share of nothing has no value. */
+export function cachedShare(cachedTokens, reportedInputTokens) {
+  return reportedInputTokens > 0 ? cachedTokens / reportedInputTokens : null;
+}
+
+/** The short name of a session: the first eight characters of its id. */
+export function shortSessionId(sessionId) {
+  return sessionId.slice(0, SHORT_ID_LENGTH);
+}
+
+/** A time in milliseconds since the epoch as its UTC minute: "2026-08-09 14:03". */
+export function utcMinute(milliseconds) {
+  return new Date(milliseconds).toISOString().slice(0, MINUTE_LENGTH).replace("T", " ");
+}
+
+/** A week's Sunday as its month and day, for a crowded axis: "2026-08-09" → "08-09". */
+export function monthAndDay(week) {
+  return week.slice(YEAR_PREFIX_LENGTH);
 }
 
 function padded(number) {

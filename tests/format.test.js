@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  formatCount, formatElapsed, formatOptionalShare, formatQuantity, formatSeconds, formatShare, formatTokens,
+  cachedShare, elapsedSeconds, formatCount, formatElapsed, formatOptionalShare, formatQuantity, formatSeconds,
+  formatShare, formatTokens, shortSessionId, utcMinute,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -43,4 +44,26 @@ test("a quantity names its noun, singular for exactly one", () => {
   assert.equal(formatQuantity(1, "agent", "agents"), "1 agent");
   assert.equal(formatQuantity(0, "agent", "agents"), "0 agents");
   assert.equal(formatQuantity(5040, "request", "requests"), "5,040 requests");
+});
+
+test("elapsed time is in seconds from the origin", () => {
+  assert.equal(elapsedSeconds(1_001_500, 1_000_000), 1.5);
+  assert.equal(elapsedSeconds(1_000_000, 1_000_000), 0);
+});
+
+test("the cached share is cached over reported input", () => {
+  assert.equal(cachedShare(150, 200), 0.75);
+});
+
+test("the cached share is missing when no input was reported", () => {
+  assert.equal(cachedShare(0, 0), null);
+});
+
+test("a session's short name is the first eight characters of its id", () => {
+  assert.equal(shortSessionId("740dd162030203354c9e55d40fb3a2d5"), "740dd162");
+  assert.equal(shortSessionId("tree"), "tree");
+});
+
+test("a UTC minute is written as YYYY-MM-DD HH:MM", () => {
+  assert.equal(utcMinute(Date.UTC(2026, 0, 2, 3, 4, 5)), "2026-01-02 03:04");
 });

@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { readSelection, scopesOf, selectionQuery, weeksByMonth, writeSelection } from "../site/js/shared/selection.js";
+import {
+  readSelection, scopesOf, selectionQuery, unknownSelectionNote, weeksByMonth, writeSelection,
+} from "../site/js/shared/selection.js";
 
 // Four weeks over two months, oldest first, as weeks.json holds them.
 const WEEKS = [
@@ -156,4 +158,10 @@ test("weeks are grouped by month, oldest first", () => {
     { month: "2026-05", weeks: [WEEKS[0], WEEKS[1]] },
     { month: "2026-06", weeks: [WEEKS[2], WEEKS[3]] },
   ]);
+});
+
+test("the note names the weeks and the month the URL asked for that the data do not hold", () => {
+  const selection = { weeks: [], scope: "Agentic", unknownWeeks: ["2025-01-05"], unknownMonth: "2025-02" };
+  assert.equal(unknownSelectionNote(selection), "Not in the data, so not selected: 2025-01-05, month 2025-02.");
+  assert.equal(unknownSelectionNote({ ...selection, unknownWeeks: [], unknownMonth: null }), "");
 });

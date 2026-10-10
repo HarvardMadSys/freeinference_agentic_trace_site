@@ -1,12 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { elapsedSeconds, elapsedTicks, tickCount } from "../site/js/session/view_chart.js";
-
-test("elapsed time is in seconds from the origin", () => {
-  assert.equal(elapsedSeconds(1_001_500, 1_000_000), 1.5);
-  assert.equal(elapsedSeconds(1_000_000, 1_000_000), 0);
-});
+import { elapsedTicks, tickCount } from "../site/js/session/view_chart.js";
 
 test("an elapsed axis ticks by the smallest round step that fits", () => {
   assert.deepEqual(elapsedTicks(50, 5), [0, 10, 20, 30, 40, 50]);

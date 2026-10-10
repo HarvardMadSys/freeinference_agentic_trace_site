@@ -8,7 +8,9 @@
  * the simulation's Agentic rows whatever scope is selected.
  */
 
-import { AXIS_STYLE, assignColours, chartFrame, colourScale, drawBars, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
+import {
+  AXIS_STYLE, assignColours, chartFrame, colourScale, DASH, distinct, drawBars, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
+} from "../shared/charts.js";
 import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
 import { sparseTickFormat } from "./figure_rows.js";
 
@@ -39,7 +41,6 @@ const POLICY_NAMES = Object.freeze({
 });
 
 const MARKER_RADIUS = 3; // pixels; the small markers on every line of the section
-const REFERENCE_DASH = "4 3"; // dash and gap lengths of the line where dead equals active token-seconds, in pixels
 const PLAIN_NUMBER_FORMAT = "~g"; // a log axis writes 0.001 and 100, not Plot's SI "1m" and "100"
 
 /** The figures of the Prefix-caching section, in the order the page shows them. */
@@ -97,7 +98,7 @@ async function drawIdleGapRetention(rows, body) {
     hitRatio: row.median_hit_ratio,
     row,
   }));
-  const providers = [...new Set(points.map((point) => point.provider))];
+  const providers = distinct(points.map((point) => point.provider));
   const chart = Plot.plot({
     ...chartFrame(body),
     x: { type: "log", domain: [FIRST_IDLE_GAP_EDGE_S, LAST_IDLE_GAP_EDGE_S] },
@@ -153,7 +154,7 @@ async function drawPolicyLines(rows, body, { column, yLabel, logY }) {
   const points = policyPoints(rows, column);
   const policyNames = Object.values(POLICY_NAMES);
   const shown = policyNames.filter((name) => points.some((point) => point.policy === name));
-  const reference = logY ? [Plot.ruleY([1], { ...AXIS_STYLE, strokeDasharray: REFERENCE_DASH })] : [];
+  const reference = logY ? [Plot.ruleY([1], { ...AXIS_STYLE, strokeDasharray: DASH })] : [];
   const chart = Plot.plot({
     ...chartFrame(body),
     x: { type: "point", domain: TTLS },

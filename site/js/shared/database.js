@@ -1,6 +1,7 @@
 /**
- * The page's DuckDB database: the data files as the views `requests`, `tool_calls`, `sessions` and
- * `simulation`, the selection tables every query reads, and queries run by name.
+ * The page's data: the weeks `weeks.json` lists, and the DuckDB database, with the data files as the views
+ * `requests`, `tool_calls`, `sessions` and `simulation`, the selection tables every query reads, and queries run
+ * by name.
  *
  * A query's name is its path under `site/queries/` without `.sql`: `runQuery("explore/request_count")`
  * runs `queries/explore/request_count.sql`, fetched relative to the page. `runQueryWith(name, parameters)`
@@ -30,6 +31,18 @@ const SELECTION_TABLE_STATEMENTS = Object.freeze([
 // How query results arrive: 64-bit and 128-bit integers (a SUM of an integer column) and decimals as
 // JavaScript numbers. Every count and token total of this site fits a double exactly.
 const QUERY_CONFIG = Object.freeze({ castBigIntToDouble: true, castDecimalToDouble: true });
+
+// The weeks the data hold, relative to a page; read before DuckDB is opened.
+const WEEKS_FILE = "data/weeks.json";
+
+/** The entries of `data/weeks.json`, oldest first. */
+export async function fetchWeeks() {
+  const response = await fetch(WEEKS_FILE);
+  if (!response.ok) {
+    throw new Error(`Could not fetch ${WEEKS_FILE}: ${response.status} ${response.statusText}`);
+  }
+  return response.json();
+}
 
 /**
  * The database of one page, open over the data folder at `dataUrl` (an absolute URL) with empty selection tables.

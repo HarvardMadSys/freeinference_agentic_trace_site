@@ -5,8 +5,9 @@
  * loads, then opens the database, fills the selection tables and runs every section. A change of the
  * selection, from the picker or a trend bar, rewrites the URL, refills the tables and runs every section again.
  *
- * `page` is what the page owns: `{ weeks, selection, database, orders }`, the entries of `weeks.json`, the
- * current selection, the open database and the colour orders (both null until the database opens). `orders` is
+ * `page` is what the page owns: `{ weeks, selection, database, orders, latestRun }`, the entries of `weeks.json`,
+ * the current selection, the open database and the colour orders (both null until the database opens), and the
+ * number of the latest run of the sections, so a run a newer one replaced stops before it draws. `orders` is
  * `{ harnesses, models }`, the promised rows of `setup/harness_order` and `setup/model_order`, run once per load.
  * A section runs as `run(container, context)` with
  * `context = { database, orders, selection, weeks, onWeekClick, replaceQuery }`, and lays out fresh places in its
@@ -14,7 +15,7 @@
  */
 
 import { showError, showNote } from "../shared/charts.js";
-import { openDatabase } from "../shared/database.js";
+import { fetchWeeks, openDatabase } from "../shared/database.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
 import { mountSelection, readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
 import { layoutDistributions, runDistributions } from "../explore/distributions.js";
@@ -51,10 +52,9 @@ async function start() {
     return;
   }
   const selection = readSelection(new URLSearchParams(window.location.search), weeks);
-  const page = { weeks, selection, database: null, orders: null };
+  const page = { weeks, selection, database: null, orders: null, latestRun: 0 };
   renderPageHeader(page);
   mountPicker(page);
-  showUnknownChoices(page.selection);
   layoutEverySection();
   try {
     page.database = await openDatabase(new URL("data/", window.location.href).href);
@@ -71,17 +71,10 @@ async function start() {
   await runEverySection(page);
 }
 
-/** The entries of `data/weeks.json`, oldest first. */
-async function fetchWeeks() {
-  const response = await fetch("data/weeks.json");
-  if (!response.ok) {
-    throw new Error(`Could not fetch data/weeks.json: ${response.status} ${response.statusText}`);
-  }
-  return response.json();
-}
-
 /** Fill the selection tables with the page's selection, then run every section; with no week selected, show the note instead. */
 async function runEverySection(page) {
+  page.latestRun += 1;
+  const run = page.latestRun;
   const selection = page.selection;
   if (selection.weeks.length === 0) {
     showNoteInEverySection(NO_WEEK_NOTE);
@@ -99,7 +92,7 @@ async function runEverySection(page) {
     return;
   }
   // A newer selection replaced this one while its tables were filled; that selection's run draws the page.
-  if (page.selection !== selection) {
+  if (run !== page.latestRun) {
     return;
   }
   const context = {
@@ -142,21 +135,6 @@ function renderPageHeader(page) {
 function mountPicker(page) {
   const picker = document.querySelector("#selection");
   mountSelection(picker, page.weeks, page.selection, (selection) => changeSelection(page, selection));
-}
-
-/** Add to the picker a note naming the weeks and the month the URL named that `weeks.json` does not hold. */
-function showUnknownChoices(selection) {
-  const unknown = [...selection.unknownWeeks];
-  if (selection.unknownMonth !== null) {
-    unknown.push(`month ${selection.unknownMonth}`);
-  }
-  if (unknown.length === 0) {
-    return;
-  }
-  const note = document.createElement("p");
-  note.className = "note";
-  note.textContent = `Not in the data, so not selected: ${unknown.join(", ")}.`;
-  document.querySelector("#selection").append(note);
 }
 
 function sectionElement(section) {

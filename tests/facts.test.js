@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { requestsPerModel, sessionFacts, utcMinute } from "../site/js/session/facts.js";
+import { requestsPerModel, sessionFacts } from "../site/js/session/facts.js";
 
 const TOP_LEVEL = {
   depth: 0, harness: "claude-code", scope: "Agentic", first_start_ms: Date.UTC(2026, 7, 9, 14, 3, 59),
@@ -61,8 +61,4 @@ test("models with as many requests are in name order", () => {
   assert.deepEqual(requestsPerModel(requests), [
     { model: "c", requests: 2 }, { model: "a", requests: 1 }, { model: "b", requests: 1 },
   ]);
-});
-
-test("a UTC minute is written as YYYY-MM-DD HH:MM", () => {
-  assert.equal(utcMinute(Date.UTC(2026, 0, 2, 3, 4, 5)), "2026-01-02 03:04");
 });

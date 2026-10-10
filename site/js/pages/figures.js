@@ -7,7 +7,7 @@
  */
 
 import { assignColours, MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote, weeksText } from "../shared/charts.js";
-import { openDatabase } from "../shared/database.js";
+import { fetchWeeks, openDatabase } from "../shared/database.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
 import { mountSelection, readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
 import { drawnScopeAndWeeks, dropThinGroups, hiddenText, restingCountText } from "../figures/figure_rows.js";
@@ -22,7 +22,6 @@ const SECTIONS = Object.freeze([
 
 const PAGE_FILE = "figures.html"; // the page's own file, which the header marks as active
 const DATA_FOLDER = "data/"; // the data files, relative to the page
-const WEEKS_FILE = "data/weeks.json"; // the weeks the data hold, read before DuckDB is opened
 
 const EMPTY_SELECTION_NOTE = "Pick at least one week to draw this figure.";
 const NO_ROWS_NOTE = "No rows for this selection.";
@@ -40,7 +39,6 @@ async function startPage() {
   const page = { weeks, cards: await placeCards(), opening: openWithColours(), latestRun: 0 };
   const picker = document.querySelector("#selection");
   mountSelection(picker, weeks, selection, (chosen) => changeSelection(page, chosen));
-  showUnknownWeeks(picker, selection);
   await drawSelection(page, selection);
 }
 
@@ -140,27 +138,4 @@ async function openWithColours() {
     categories: assignColours(categories.map((row) => row.category)),
   });
   return { database, colours };
-}
-
-/** Add to the picker a note naming the weeks or the month the URL asked for that the data do not hold. */
-function showUnknownWeeks(picker, selection) {
-  const unknown = [...selection.unknownWeeks];
-  if (selection.unknownMonth !== null) {
-    unknown.push(selection.unknownMonth);
-  }
-  if (unknown.length > 0) {
-    const note = document.createElement("p");
-    note.className = "note";
-    note.textContent = `The data hold no week for ${unknown.join(", ")}; showing the weeks ticked above.`;
-    picker.append(note);
-  }
-}
-
-/** The weeks of `data/weeks.json`, oldest first. */
-async function fetchWeeks() {
-  const response = await fetch(WEEKS_FILE);
-  if (!response.ok) {
-    throw new Error(`Could not fetch ${WEEKS_FILE}: ${response.status} ${response.statusText}`);
-  }
-  return response.json();
 }

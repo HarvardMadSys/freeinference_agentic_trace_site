@@ -4,15 +4,16 @@ import {
   readAddress, requestParameters, selectionParameters, viewParameters, VIEW_NAMES,
 } from "../session/address.js";
 import { mountContextView } from "../session/context.js";
-import { mountFacts, sessionFacts } from "../session/facts.js";
+import { sessionFacts } from "../session/facts.js";
 import { mountRequestsView } from "../session/requests.js";
 import { mountTimelineView } from "../session/timeline.js";
-import { shortSessionId } from "../session/tree.js";
 import { OPEN_REQUEST_EVENT } from "../session/view_chart.js";
 import { assignColours, showError, showLoading, showNote } from "../shared/charts.js";
 import { openDatabase } from "../shared/database.js";
+import { shortSessionId } from "../shared/format.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
 import { selectionQuery } from "../shared/selection.js";
+import { statStrip } from "../shared/tiles.js";
 
 // The title of each view's tab.
 const VIEW_TITLES = Object.freeze({ requests: "Requests", context: "Context", timeline: "Timeline" });
@@ -49,7 +50,7 @@ async function openSession(address) {
   const topLevel = session.tree.find((agent) => agent.depth === 0);
   page.title.textContent = `Session ${shortSessionId(topLevel.session_id)}`;
   page.sessionId.textContent = topLevel.session_id;
-  mountFacts(page.facts, sessionFacts(session.tree, session.requests));
+  page.facts.replaceChildren(statStrip(sessionFacts(session.tree, session.requests)));
   const shownView = { stop: showView(address.view, session, address) };
   mountViewTabs(page.tabs, address.view, (view) => switchView(shownView, view, session, address));
   page.view.addEventListener(OPEN_REQUEST_EVENT, (event) => openRequest(shownView, session, address, event.detail));

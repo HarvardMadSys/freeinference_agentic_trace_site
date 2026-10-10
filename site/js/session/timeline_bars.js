@@ -8,9 +8,8 @@
  */
 
 import { agentLabel, agentsInStartOrder, callsByRequest, requestKey } from "./tree.js";
-import { elapsedSeconds } from "./view_chart.js";
 import { assignColours, OTHER_SERIES } from "../shared/charts.js";
-import { formatSeconds } from "../shared/format.js";
+import { elapsedSeconds, formatSeconds, MILLISECONDS_PER_SECOND } from "../shared/format.js";
 
 /**
  * What a wait can wait for, in the order that gives each its colour, with the name a legend and tooltip give it; the
@@ -41,8 +40,6 @@ export const BAND_SPANS = Object.freeze({ request: [0.12, 0.6], tool: [0.66, 0.8
 
 // The share of a row from its top where the pointer passes from the request band to the tool band: between the two.
 const BAND_BOUNDARY = 0.63;
-
-const MILLISECONDS_PER_SECOND = 1000;
 
 /** A map from each wait cause to its colour, in the order of `WAIT_CAUSES`. */
 export function waitColours() {

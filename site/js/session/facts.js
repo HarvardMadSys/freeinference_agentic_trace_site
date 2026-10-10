@@ -7,15 +7,9 @@
  * `session/session_requests`.
  */
 
-import { formatCount, formatSeconds, formatShare, formatTokens } from "../shared/format.js";
+import { cachedShare, formatCount, formatOptionalShare, formatSeconds, formatTokens, utcMinute } from "../shared/format.js";
 
-// A cached share with no cache-reporting input is not a number; the tile shows this instead.
-const NO_SHARE = "—";
-
-// The characters of an ISO 8601 time that make up "YYYY-MM-DDTHH:MM".
-const MINUTE_LENGTH = 16;
-
-/** The tiles of the stat strip, in order: `[{ label, value, detail }]`, every value and detail a string. */
+/** The tiles of the stat strip, in order, as `statStrip` draws them: `[{ label, value, detail }]`, every field a string. */
 export function sessionFacts(tree, requests) {
   const topLevel = tree.find((session) => session.depth === 0);
   const totals = treeTotals(tree);
@@ -30,7 +24,7 @@ export function sessionFacts(tree, requests) {
     { label: "Subagents", value: formatCount(topLevel.subagents), detail: "at every depth" },
     { label: "Tool calls", value: formatCount(topLevel.tool_calls), detail: inSubagents(subagentToolCalls) },
     { label: "Input tokens", value: formatTokens(totals.inputTokens), detail: "every agent" },
-    { label: "Cached share", value: cachedShare(totals), detail: `${formatTokens(totals.cachedTokens)} cached tokens` },
+    { label: "Cached share", value: treeCachedShare(totals), detail: `${formatTokens(totals.cachedTokens)} cached tokens` },
     { label: "Output tokens", value: formatTokens(totals.outputTokens), detail: "every agent" },
   ];
 }
@@ -44,33 +38,6 @@ export function requestsPerModel(requests) {
   const models = [...counts.keys()].sort((first, second) => first.localeCompare(second));
   models.sort((first, second) => counts.get(second) - counts.get(first));
   return models.map((model) => ({ model, requests: counts.get(model) }));
-}
-
-/** A time in milliseconds since the epoch as its UTC minute: "2026-08-09 14:03". */
-export function utcMinute(milliseconds) {
-  return new Date(milliseconds).toISOString().slice(0, MINUTE_LENGTH).replace("T", " ");
-}
-
-/** Fill `container` with a stat strip of `facts`, one tile each. */
-export function mountFacts(container, facts) {
-  const strip = document.createElement("div");
-  strip.className = "stat-strip";
-  for (const fact of facts) {
-    strip.append(factTile(fact));
-  }
-  container.replaceChildren(strip);
-}
-
-function factTile({ label, value, detail }) {
-  const tile = document.createElement("div");
-  tile.className = "stat";
-  for (const [className, text] of [["stat-label", label], ["stat-value", value], ["stat-detail", detail]]) {
-    const line = document.createElement("div");
-    line.className = className;
-    line.textContent = text;
-    tile.append(line);
-  }
-  return tile;
 }
 
 function modelsFact(requests) {
@@ -91,11 +58,9 @@ function treeTotals(tree) {
   return totals;
 }
 
-function cachedShare(totals) {
-  if (totals.reportedInputTokens === 0) {
-    return NO_SHARE;
-  }
-  return formatShare(totals.cachedTokens / totals.reportedInputTokens);
+// The tree's cached share as the tile writes it; "—" when no agent's provider reported cache reads.
+function treeCachedShare(totals) {
+  return formatOptionalShare(cachedShare(totals.cachedTokens, totals.reportedInputTokens));
 }
 
 function inSubagents(count) {

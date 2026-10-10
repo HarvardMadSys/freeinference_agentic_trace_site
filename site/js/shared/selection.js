@@ -64,6 +64,15 @@ export function scopesOf(scope) {
   return [...SCOPE_MEMBERS[knownScope(scope)]];
 }
 
+/** The note naming the weeks and the month the URL asked for that `weeks.json` does not hold; "" when it named none. */
+export function unknownSelectionNote(selection) {
+  const unknown = [...selection.unknownWeeks];
+  if (selection.unknownMonth !== null) {
+    unknown.push(`month ${selection.unknownMonth}`);
+  }
+  return unknown.length === 0 ? "" : `Not in the data, so not selected: ${unknown.join(", ")}.`;
+}
+
 /** The weeks grouped by the month of their Sunday, months oldest first: `[{ month, weeks: [entry…] }]`. */
 export function weeksByMonth(weeks) {
   const groups = [];
@@ -79,7 +88,7 @@ export function weeksByMonth(weeks) {
 }
 
 /**
- * Draw the week picker and scope switch in `container`.
+ * Draw the week picker and scope switch in `container`, with `unknownSelectionNote` under them when it has one.
  * Every change redraws them and calls `onChange(selection)`; unticking the last week gives a selection with no week.
  */
 export function mountSelection(container, weeks, selection, onChange) {
@@ -92,6 +101,12 @@ export function mountSelection(container, weeks, selection, onChange) {
   }
   weekControls.append(allWeeksGroup(picker));
   container.replaceChildren(weekControls, scopeGroup(picker));
+  const note = document.createElement("p");
+  note.className = "note";
+  note.textContent = unknownSelectionNote(selection);
+  if (note.textContent !== "") {
+    container.append(note);
+  }
   restoreFocus(container, focusedChoice);
 }
 

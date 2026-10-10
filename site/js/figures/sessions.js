@@ -13,6 +13,7 @@ import {
   AXIS_STYLE,
   chartFrame,
   colourScale,
+  distinct,
   drawBars,
   drawCdf,
   GRID_STYLE,
@@ -21,7 +22,7 @@ import {
   TIP_STYLE,
   TOKEN_PART_COLOURS,
 } from "../shared/charts.js";
-import { formatCount, formatSeconds, formatShare, formatTokens } from "../shared/format.js";
+import { formatCount, formatSeconds, formatShare, formatTokens, monthAndDay } from "../shared/format.js";
 import { cdfSeries, sparseTickFormat } from "./figure_rows.js";
 
 // The series of the requests-per-session CDF, by their name in the query, with the name each is drawn under.
@@ -151,7 +152,7 @@ async function drawTokenSplit(rows, body) {
     xLabel: "Week",
     yLabel: "Share of tokens",
     format: formatShare,
-    xTickFormat: sparseTickFormat(distinctValues(rows, "week"), monthAndDay, MAX_BAR_LABELS),
+    xTickFormat: sparseTickFormat(distinct(rows.map((row) => row.week)), monthAndDay, MAX_BAR_LABELS),
   });
 }
 
@@ -167,7 +168,7 @@ async function drawContextShare(rows, body) {
     xLabel: "Input tokens, from",
     yLabel: "Share of input",
     format: formatShare,
-    xTickFormat: sparseTickFormat(distinctValues(rows, "bin_start"), formatTokens, MAX_BAR_LABELS),
+    xTickFormat: sparseTickFormat(distinct(rows.map((row) => row.bin_start)), formatTokens, MAX_BAR_LABELS),
   });
 }
 
@@ -224,14 +225,4 @@ function growthTipText(point) {
 /** The token part colours as a map from part to colour, as the chart helpers take them. */
 function tokenPartColours() {
   return new Map(Object.entries(TOKEN_PART_COLOURS));
-}
-
-/** The distinct values of `row[column]`, in the rows' order: a bar chart's bars. */
-function distinctValues(rows, column) {
-  return [...new Set(rows.map((row) => row[column]))];
-}
-
-/** "2026-08-09" → "08-09": a week's Sunday on a crowded axis. */
-function monthAndDay(week) {
-  return week.slice(5);
 }

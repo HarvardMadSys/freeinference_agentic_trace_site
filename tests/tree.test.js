@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  agentLabel, agentsInStartOrder, agentTree, callsByRequest, largestRequestTokens, requestKey, shortSessionId,
+  agentLabel, agentsInStartOrder, agentTree, callsByRequest, largestRequestTokens, requestKey,
 } from "../site/js/session/tree.js";
 
 // The fixture's tree: `root` spawns `child` and `sibling` from step 1, and `child` spawns `grandchild` from step 0.
@@ -26,11 +26,6 @@ const REQUESTS = [
 function outline(agent) {
   return [agent.session.session_id, agent.rows.map((row) => [row.request.step, row.subagents.map(outline)])];
 }
-
-test("a session's short name is the first eight characters of its id", () => {
-  assert.equal(shortSessionId("740dd162030203354c9e55d40fb3a2d5"), "740dd162");
-  assert.equal(shortSessionId("tree"), "tree");
-});
 
 test("each subagent sits under the row of the step that spawned it, nested to any depth", () => {
   assert.deepEqual(outline(agentTree(SESSIONS, REQUESTS)), [

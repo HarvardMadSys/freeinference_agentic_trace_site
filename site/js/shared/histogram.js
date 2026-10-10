@@ -5,6 +5,7 @@
  * the percentiles, the row count and the maximum, and draws them.
  */
 
+import { AXIS_STYLE, chartFrame, DASH, GRID_STYLE, renderFigure } from "./charts.js";
 import { formatCount } from "./format.js";
 
 // The columns of a distribution query's rows: where a bin starts, where it ends, and how many rows (requests or
@@ -22,10 +23,10 @@ const PERCENTILE_LINES = [
   { percentile: "p95", colour: "var(--series-8)", labelRow: 1 },
 ];
 
-const CHART_HEIGHT = 220; // every card has the same height, so a grid of cards lines up
-const FALLBACK_WIDTH = 480; // the width drawn when the container has not been laid out yet
+// A card's chart differs from the shared frame in these: a lower chart, room above it for two rows of percentile
+// labels, room left of it for a count of seven digits with its separators, and less below it.
+const CARD_FRAME = Object.freeze({ height: 220, marginTop: 32, marginLeft: 60, marginBottom: 28 });
 const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars
-const PERCENTILE_DASH = "4 3"; // dash and gap lengths of a percentile line, in pixels
 const PERCENTILE_HALO_WIDTH = 4; // a surface-coloured line under each dashed line, so it shows over a bar of its own colour
 const PERCENTILE_LINE_WIDTH = 2; // pixels; thin lines, as every chart draws them
 const LABEL_GAP = 4; // pixels between the top of the chart and the lower row of percentile labels
@@ -61,49 +62,31 @@ export function drawableBins(card) {
 
 /** Draw the distribution card into `container`, replacing what it held. */
 export async function mountHistogram(container, card) {
-  container.replaceChildren();
-  const figure = document.createElement("div");
-  figure.className = "figure";
-  figure.innerHTML = `
-    <h3 class="figure-title"></h3>
-    <p class="figure-definition"></p>
-    <div class="figure-body"></div>
-    <p class="figure-caption"></p>`;
-  figure.querySelector(".figure-title").textContent = card.title;
-  figure.querySelector(".figure-definition").textContent = card.logScale ? `${card.definition} Log scale.` : card.definition;
-  figure.querySelector(".figure-caption").textContent = subtitle(card);
-  container.append(figure);
-
-  const body = figure.querySelector(".figure-body");
+  const definition = card.logScale ? `${card.definition} Log scale.` : card.definition;
+  const body = renderFigure(container, { title: card.title, definition, caption: subtitle(card) });
   if (card.count === 0) {
     body.append(emptyNote());
     return;
   }
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("./libraries.js");
-  const width = body.clientWidth || FALLBACK_WIDTH;
-  body.append(histogramChart(Plot, card, width));
+  body.append(histogramChart(Plot, card, body));
   body.after(percentileLegend());
 }
 
-function histogramChart(Plot, card, width) {
+function histogramChart(Plot, card, body) {
   const countLabel = card.countLabel ?? DEFAULT_COUNT_LABEL;
   return Plot.plot({
-    width,
-    height: CHART_HEIGHT,
-    marginTop: 32,
-    marginLeft: 60, // room for a count of seven digits with its separators
-    marginRight: 24,
-    marginBottom: 28,
-    style: { color: "var(--chart-label)", background: "transparent" },
+    ...chartFrame(body),
+    ...CARD_FRAME,
     x: { type: card.logScale ? "log" : "linear" },
     y: { label: countLabel },
     marks: [
-      Plot.gridY({ stroke: "var(--chart-grid)", strokeOpacity: 1 }),
-      Plot.axisX({ stroke: "var(--chart-axis)", tickFormat: card.format, label: null }),
-      Plot.axisY({ stroke: "var(--chart-axis)", tickFormat: formatCount }),
+      Plot.gridY(GRID_STYLE),
+      Plot.axisX({ ...AXIS_STYLE, tickFormat: card.format, label: null }),
+      Plot.axisY({ ...AXIS_STYLE, tickFormat: formatCount }),
       Plot.rectY(drawableBins(card), { x1: "x0", x2: "x1", y: "count", fill: "var(--series-1)", inset: BAR_INSET }),
-      Plot.ruleY([0], { stroke: "var(--chart-axis)" }),
+      Plot.ruleY([0], AXIS_STYLE),
       ...percentileMarks(Plot, card),
       Plot.tip(drawableBins(card), Plot.pointerX({ x1: "x0", x2: "x1", y: "count", title: (bin) => binDescription(card, bin, countLabel) })),
     ],
@@ -116,7 +99,7 @@ function percentileMarks(Plot, card) {
     const position = [{ value: card.percentiles[line.percentile], label: line.percentile }];
     const labelOffset = -LABEL_GAP - line.labelRow * LABEL_ROW_HEIGHT;
     marks.push(Plot.ruleX(position, { x: "value", stroke: "var(--color-surface)", strokeWidth: PERCENTILE_HALO_WIDTH }));
-    marks.push(Plot.ruleX(position, { x: "value", stroke: line.colour, strokeWidth: PERCENTILE_LINE_WIDTH, strokeDasharray: PERCENTILE_DASH }));
+    marks.push(Plot.ruleX(position, { x: "value", stroke: line.colour, strokeWidth: PERCENTILE_LINE_WIDTH, strokeDasharray: DASH }));
     marks.push(Plot.text(position, { x: "value", text: "label", frameAnchor: "top", lineAnchor: "bottom", dy: labelOffset }));
   }
   return marks;
@@ -133,7 +116,7 @@ function percentileLegend() {
     const item = document.createElement("span");
     item.className = "legend-item";
     item.innerHTML = `<svg class="legend-dash" viewBox="0 0 18 8" aria-hidden="true">
-      <line x1="0" y1="4" x2="18" y2="4" stroke="${line.colour}" stroke-width="2" stroke-dasharray="${PERCENTILE_DASH}" />
+      <line x1="0" y1="4" x2="18" y2="4" stroke="${line.colour}" stroke-width="2" stroke-dasharray="${DASH}" />
     </svg>`;
     item.append(line.percentile);
     legend.append(item);
