@@ -243,6 +243,12 @@ runs it.
   it merges only a thin idle-gap bin (under 20 rows) into the next one.
 - **Token split by week** shows plain token shares; the paper's cost split
   weights cached, uncached and output tokens by price.
+- **Input tokens per week** (the Explore trend) sums the sessions table's
+  `reported_input_tokens` and `cached_tokens` and takes uncached as their
+  difference, rather than summing each request's clipped `uncached_tokens`.
+  Measured over the 16 weeks the two differ by 63 tokens in one week (out of
+  4.7 billion), and the session-level sum reads under 1 MB where the
+  request-level sum reads 26 MB.
 - **Token split by week** replaces the paper's per-session rank-binned stack
   with one bar per selected week.
 
