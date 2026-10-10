@@ -48,13 +48,13 @@ in a browser at 360 px and at desktop width, in light and dark mode.
   - `is_trusted_ttft, n_tool_calls`.
 
   Verify against hand-computed values for the fixture's sessions, including `depth` 2.
-- [ ] 3.3 `site_data/sessions.py` and `site_data/tool_calls.py` write the columns of `site-data`. Verify that:
+- [x] 3.3 `site_data/sessions.py` and `site_data/tool_calls.py` write the columns of `site-data`. Verify that:
   - per-session totals equal the sums of the session's requests;
   - `subagents` counts every depth;
   - `main_model` breaks ties by name;
   - every tool call joins exactly one request.
-- [ ] 3.4 `site_data/simulation.py` and `weeks.json`: the tallies with `week` and `active_token_seconds` added, and `{week, last_day, month, simulated}`. Verify the fixture's unsimulated week is marked and a week starting 2026-05-31 has month `2026-05`.
-- [ ] 3.5 `site_data/__main__.py`:
+- [x] 3.4 `site_data/simulation.py` and `weeks.json`: the tallies with `week` and `active_token_seconds` added, and `{week, last_day, month, simulated}`. Verify the fixture's unsimulated week is marked and a week starting 2026-05-31 has month `2026-05`.
+- [x] 3.5 `site_data/__main__.py`:
   - takes `--release`, `--simulation` and `--out`;
   - sorts by week, root session, session and step;
   - writes with `ROWS_PER_GROUP = 10_000`;
@@ -62,7 +62,7 @@ in a browser at 360 px and at desktop width, in light and dark mode.
   - prints each file's rows and size.
 
   Verify that two runs give identical bytes, that a corrupted fixture table stops the run with the week named, and that each row group's statistics cover a single week's range.
-- [ ] 3.6 Run `make data` on the full release and record the run time, each file's size and the largest file in `design.md`. Verify no file exceeds 100 MB.
+- [x] 3.6 Run `make data` on the full release and record the run time, each file's size and the largest file in `design.md`. Verify no file exceeds 100 MB.
 
 ## 4. Shared browser modules
 
