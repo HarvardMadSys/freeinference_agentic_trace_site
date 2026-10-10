@@ -363,15 +363,18 @@ code,
   cursor: pointer;
 }
 
-.figure-body svg,
+/* Plot paints its tooltip and text halos in --plot-background; give it the card's surface in both modes. */
+.figure-body svg {
+  max-width: 100%;
+  height: auto;
+  --plot-background: var(--color-surface);
+}
+
+/* Plot wraps a chart in a figure when it has a legend; the browser's default figure margin would shrink the chart. */
 .figure-body figure {
   max-width: 100%;
   height: auto;
-}
-
-/* Plot paints its tooltip and text halos in --plot-background; give it the card's surface in both modes. */
-.figure-body svg {
-  --plot-background: var(--color-surface);
+  margin: 0;
 }
 
 .legend {
@@ -392,11 +395,6 @@ code,
 .legend-dash {
   width: 1.125rem;
   height: 0.5rem;
-}
-
-/* Plot wraps a chart in a figure when it has a legend; the browser's default figure margin would shrink the chart. */
-.figure-body figure {
-  margin: 0;
 }
 
 .figure-caption {

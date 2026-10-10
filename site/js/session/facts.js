@@ -13,13 +13,14 @@ import { cachedShare, formatCount, formatOptionalShare, formatSeconds, formatTok
 export function sessionFacts(tree, requests) {
   const topLevel = tree.find((session) => session.depth === 0);
   const totals = treeTotals(tree);
+  const subagentTurns = totals.turns - topLevel.user_steps;
   const subagentToolCalls = totals.toolCalls - topLevel.tool_calls;
   return [
     { label: "Harness", value: topLevel.harness, detail: `${topLevel.scope} scope` },
     modelsFact(requests),
     { label: "Started", value: utcMinute(topLevel.first_start_ms), detail: "UTC" },
     { label: "Duration", value: formatSeconds(topLevel.duration_s), detail: "of the top-level session" },
-    { label: "Turns", value: formatCount(topLevel.user_steps), detail: "of the top-level session" },
+    { label: "Turns", value: formatCount(topLevel.user_steps), detail: inSubagents(subagentTurns) },
     { label: "Requests", value: formatCount(topLevel.requests), detail: inSubagents(topLevel.subagent_requests) },
     { label: "Subagents", value: formatCount(topLevel.subagents), detail: "at every depth" },
     { label: "Tool calls", value: formatCount(topLevel.tool_calls), detail: inSubagents(subagentToolCalls) },
@@ -47,8 +48,9 @@ function modelsFact(requests) {
 }
 
 function treeTotals(tree) {
-  const totals = { toolCalls: 0, inputTokens: 0, cachedTokens: 0, outputTokens: 0, reportedInputTokens: 0 };
+  const totals = { turns: 0, toolCalls: 0, inputTokens: 0, cachedTokens: 0, outputTokens: 0, reportedInputTokens: 0 };
   for (const session of tree) {
+    totals.turns += session.user_steps;
     totals.toolCalls += session.tool_calls;
     totals.inputTokens += session.input_tokens;
     totals.cachedTokens += session.cached_tokens;

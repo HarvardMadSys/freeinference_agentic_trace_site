@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { formatSeconds, formatTokens } from "../site/js/shared/format.js";
-import { binsFromRows, drawableBins, subtitle } from "../site/js/shared/histogram.js";
+import { binsFromRows, cardDefinition, drawableBins, subtitle } from "../site/js/shared/histogram.js";
 
 const TOKENS_CARD = {
   title: "Input tokens per request",
@@ -57,4 +57,9 @@ test("a log card draws only the bins that start above 0, a linear card every bin
   ];
   assert.deepEqual(drawableBins({ ...TOKENS_CARD, bins, logScale: true }), [{ x0: 2, x1: 4, count: 1 }]);
   assert.deepEqual(drawableBins({ ...TOKENS_CARD, bins, logScale: false }), bins);
+});
+
+test("a card's definition ends with its scale, log or linear", () => {
+  assert.equal(cardDefinition({ definition: "Tokens of each request.", logScale: true }), "Tokens of each request. Log scale.");
+  assert.equal(cardDefinition({ definition: "Cached over input.", logScale: false }), "Cached over input. Linear scale.");
 });

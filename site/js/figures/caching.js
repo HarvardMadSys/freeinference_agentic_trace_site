@@ -3,8 +3,7 @@
  * cache, after an idle gap and after each kind of context change, and what the cache simulation says each TTL and
  * eviction policy would keep.
  *
- * Each figure is `{ name, title, definition, query, binColumn, seriesOverSameRows, isSimulation, draw }`, as in the
- * Sessions section; `binColumn` is null when every row is a bin of its own, and a figure that `isSimulation` draws
+ * Each figure is a figure entry, whose fields CONTRIBUTING.md defines; a figure that `isSimulation` draws
  * the simulation's Agentic rows whatever scope is selected.
  */
 

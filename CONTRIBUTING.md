@@ -26,7 +26,11 @@ binding, and `make test` checks the countable ones.
 - **SQL is a literal.** Every query is one `.sql` file under `site/queries/`.
   No SQL is written in JavaScript, and no query is assembled from strings. A
   query reads the selection from the tables `selected_weeks`,
-  `selected_scopes` and `selected_session`, and from nothing else.
+  `selected_scopes` and `selected_session`, and from nothing else. The one
+  exception is `session/session_root.sql`, run through `runQueryWith` with
+  the session id from the URL as its one `?` parameter: it finds the
+  session's week and top-level session, which `selected_session` is then
+  filled with.
 - **Every definition comes from the pipeline.** The browser filters, groups,
   counts, sums and takes quantiles. It never decides what a turn, a scope, a
   wait or a cache hit is; `site_data` computes those by calling the pipeline's
@@ -40,29 +44,42 @@ binding, and `make test` checks the countable ones.
 ## How the site is put together
 
 ```
-page (html)  →  js/pages/<page>.js  →  shared modules  →  queries/<page>/<name>.sql  →  site/data/*.parquet
+page (html)  →  js/pages/<page>.js  →  section modules and js/shared/  →  queries/<page>/<name>.sql  →  site/data/*.parquet
 ```
+
+```
+js/pages/             one module per page
+js/shared/            what every page uses: the database, the selection, formatting, charts, the table, the stat strip
+js/explore/           the Explore page's sections
+js/figures/           the Paper figures page: one module per section, listing its figure entries
+js/session/           the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
+js/session_requests/  the Session page's Requests view
+js/session_charts/    the Session page's Context and Timeline views
+```
+
+A folder holds one purpose and at most nine modules; `make test` counts them.
 
 - An HTML file is a shell: a header, titled sections with ids, a footer, and
   one `<script type="module">`. It holds no data and no inline script.
 - The page module mounts the header and footer, reads the selection from the
   URL, opens the database, and fills each section.
-- `shared/database.js` opens DuckDB once, registers the Parquet files as the
-  views `requests`, `tool_calls`, `sessions` and `simulation`, and runs a
-  query by name: `runQuery("explore/request_count")` fetches
-  `queries/explore/request_count.sql`.
-- `shared/selection.js` owns the week picker, the scope switch and the URL,
-  fills the selection tables, and emits `change`.
-- A figure is `{ name, title, definition, draw }`, listed in its section's
-  module under `js/figures/`. `name` is both the query's file name and the
-  figure's element id.
+- `shared/database.js` fetches `weeks.json`, opens DuckDB once, registers
+  the Parquet files as the views `requests`, `tool_calls`, `sessions` and
+  `simulation`, and runs a query by name: `runQuery("explore/request_count")`
+  fetches `queries/explore/request_count.sql`.
+- `shared/selection.js` owns the week picker, the scope switch and the URL
+  keys that hold them, and calls the page back with each new selection; the
+  page fills the selection tables with it.
+- A figure is a figure entry (below), listed in its section's module under
+  `js/figures/`.
 
 ## Patterns to copy
 
 **A query** (`site/queries/explore/request_count.sql`):
 
 ```sql
--- The number of requests of the top-level sessions in the selected weeks and scope.
+-- The number of requests of the top-level sessions in the selected weeks and scope. No page runs it: it is the
+-- example query of CONTRIBUTING.md, and tests/test_queries.py checks the count against the fixture.
 SELECT count(*) AS requests
 FROM requests
 WHERE is_top_level
@@ -82,15 +99,42 @@ with one `test()` per behaviour.
 a module docstring stating the definition, a frozen dataclass for anything
 that crosses a boundary, and functions that each do one job.
 
-**A figure entry** (to be listed in `js/figures/<section>.js`):
+**A figure entry** (listed in `js/figures/<section>.js`'s `FIGURES`). Every
+figure of the Paper figures page is one frozen object with these fields; the
+page draws its card, runs its query, hides its thin bins, writes its caption
+and calls `draw`:
+
+- `name`: the figure's id, also the id of its card on the page.
+- `title`: the card's heading.
+- `definition`: one sentence saying what is drawn, and where the site draws
+  more simply than the paper, how.
+- `query`: the query it draws, as `runQuery` names it (`"figures/<name>"`).
+- `binColumn`: the column naming the bin or series each row belongs to, every
+  row of a bin carrying the bin's count in `rows`; a bin under
+  `MIN_ROWS_PER_BIN` is hidden whole. `null` when every row is a bin of its own.
+- `seriesOverSameRows` (optional): true when every series is drawn from the
+  same rows, so the caption counts them once rather than summing the series.
+- `seriesNouns` (optional): when the series count different things, each
+  series' name with the plural noun of what it counts; the caption then gives
+  each count ("84,239 turns · 12,002 sessions").
+- `isSimulation` (optional): true for a figure of the cache simulation, which
+  covers the Agentic scope and the simulated weeks only; the caption says so.
+- `isWide` (optional): true for a figure that takes the whole width of its
+  section's grid, such as a table.
+- `draw(rows, body, colours)`: draws the rows left after thin bins are hidden
+  into `body`; `colours` holds the model and category colours every figure
+  shares (`{ models, categories }`, each a Map from name to colour).
 
 ```js
-{
+Object.freeze({
   name: "tokens_per_request_cdf",
   title: "Tokens per request",
   definition: "CDF over requests of input, uncached input and output tokens.",
-  draw(rows, container) { ... },
-}
+  query: "figures/tokens_per_request_cdf",
+  binColumn: "series",
+  seriesOverSameRows: true,
+  draw: drawTokensPerRequest,
+}),
 ```
 
 ## JavaScript style

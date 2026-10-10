@@ -42,6 +42,11 @@ export function subtitle(card) {
   return `n = ${formatCount(card.count)} · p50 ${card.format(p50)} · p90 ${card.format(p90)} · max ${card.format(card.max)}`;
 }
 
+/** The card's definition followed by its scale: "… Log scale." or "… Linear scale.". */
+export function cardDefinition(card) {
+  return `${card.definition} ${card.logScale ? "Log" : "Linear"} scale.`;
+}
+
 /** The bins `{ x0, x1, count }` of a distribution query's rows, in the rows' order. */
 export function binsFromRows(rows) {
   // DuckDB returns 64-bit integers as BigInt, which Plot's scales do not accept.
@@ -62,8 +67,7 @@ export function drawableBins(card) {
 
 /** Draw the distribution card into `container`, replacing what it held. */
 export async function mountHistogram(container, card) {
-  const definition = card.logScale ? `${card.definition} Log scale.` : card.definition;
-  const body = renderFigure(container, { title: card.title, definition, caption: subtitle(card) });
+  const body = renderFigure(container, { title: card.title, definition: cardDefinition(card), caption: subtitle(card) });
   if (card.count === 0) {
     body.append(emptyNote());
     return;

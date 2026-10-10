@@ -1,11 +1,7 @@
 /**
  * The Sessions section of the Paper figures page: how long sessions are, and how their tokens are spent.
  *
- * Each figure is `{ name, title, definition, query, binColumn, seriesOverSameRows, seriesNouns, draw }`: `name` is
- * the figure's id and element id, `query` the query it draws, `binColumn` the column naming the bin or series each
- * row belongs to (a bin under the page's row threshold is hidden whole), `seriesOverSameRows` whether every
- * series is drawn from the same rows, `seriesNouns` what each series counts when they count different things, and
- * `draw(rows, body, colours)` draws the rows into `body`.
+ * Each figure is a figure entry, whose fields CONTRIBUTING.md defines.
  */
 
 import {

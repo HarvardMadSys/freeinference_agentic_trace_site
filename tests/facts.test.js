@@ -27,7 +27,7 @@ test("a session's subagents and their requests are given apart from the top-leve
   assert.deepEqual(values["Requests"], ["30", "+ 40 in subagents"]);
   assert.deepEqual(values["Subagents"], ["3", "at every depth"]);
   assert.deepEqual(values["Tool calls"], ["25", "+ 7 in subagents"]);
-  assert.deepEqual(values["Turns"], ["4", "of the top-level session"]);
+  assert.deepEqual(values["Turns"], ["4", "+ 1 in subagents"]);
 });
 
 test("token totals and the cached share cover every agent", () => {
@@ -39,6 +39,7 @@ test("token totals and the cached share cover every agent", () => {
 
 test("a session without subagents gives no subagent detail", () => {
   const values = factValues([{ ...TOP_LEVEL, subagents: 0, subagent_requests: 0 }], [{ model: "model-x" }]);
+  assert.deepEqual(values["Turns"], ["4", ""]);
   assert.deepEqual(values["Requests"], ["30", ""]);
   assert.deepEqual(values["Tool calls"], ["25", ""]);
 });

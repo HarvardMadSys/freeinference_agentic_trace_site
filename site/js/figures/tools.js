@@ -2,9 +2,8 @@
  * The Tools section of the Paper figures page: which tools agents call, how many at once, how long each one waits
  * and how much each one returns.
  *
- * Each figure is `{ name, title, definition, query, binColumn, isWide, draw }`, as in the Sessions section: every row
- * of a tool query is one category or one number of calls, its count in `rows`, so a thin one is hidden whole; a
- * figure that `isWide` takes the whole width of its section's grid.
+ * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Every row of a tool query is one category or
+ * one number of calls, its count in `rows`, so a thin one is hidden whole.
  */
 
 import { AXIS_STYLE, assignColours, chartFrame, colourScale, drawBars, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
