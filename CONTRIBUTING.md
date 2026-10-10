@@ -97,6 +97,12 @@ that crosses a boundary, and functions that each do one job.
 
 - ES modules only. `import { thing } from "./module.js"`, with the `.js`
   extension; namespace imports only for a library in `libraries.js`.
+- Nothing outside `libraries.js` imports it statically: node cannot load
+  the CDN's `https://` modules, so a module that did would be untestable.
+  A function that draws or opens the database loads what it needs where it
+  needs it, `const { Plot } = await import("./libraries.js");`, with a
+  one-line comment saying why. The module's pure functions then stay
+  testable with `node --test`.
 - Static markup is an `innerHTML` template; interactive elements are built
   with `document.createElement` so listeners attach to the element, not to a
   string. Text that comes from data goes through `textContent` or a template
