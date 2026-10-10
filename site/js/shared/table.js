@@ -40,7 +40,8 @@ export function pageRows(rows, pageNumber, rowsPerPage) {
 
 /**
  * Fill `container` with an optional summary line, one page of `rows` as a table, and a pager.
- * `columns` is `[{ key, title, format, isNumber }]`; `sort` is `{ key, direction }`.
+ * `columns` is `[{ key, title, format, isNumber, href }]`; `href(row)`, when given, makes the cell a link to that
+ * address. `sort` is `{ key, direction }`.
  * Clicking a header calls `onSort(key)`, a pager button `onPage(pageNumber)`, a row `onRowClick(row)`.
  */
 export function mountTable(container, { columns, rows, sort, pageNumber, summary, onSort, onPage, onRowClick }) {
@@ -56,6 +57,12 @@ export function mountTable(container, { columns, rows, sort, pageNumber, summary
     container.append(summaryLine(summary));
   }
   container.append(wrap, pager(page, onPage));
+}
+
+/** What a cell of `column` shows for `row`: `{ text, href }`, the formatted value and its link address, or null for none. */
+export function cellContent(column, row) {
+  const format = column.format ?? String;
+  return { text: format(row[column.key]), href: column.href ? column.href(row) : null };
 }
 
 function compareValues(first, second, sign) {
@@ -138,8 +145,12 @@ function bodyRow(columns, row, onRowClick) {
   const tableRow = document.createElement("tr");
   for (const column of columns) {
     const cell = document.createElement("td");
-    const format = column.format ?? String;
-    cell.textContent = format(row[column.key]);
+    const content = cellContent(column, row);
+    if (content.href === null) {
+      cell.textContent = content.text;
+    } else {
+      cell.append(cellLink(content));
+    }
     if (column.isNumber) {
       cell.classList.add("is-number");
     }
@@ -150,6 +161,15 @@ function bodyRow(columns, row, onRowClick) {
     tableRow.addEventListener("click", () => onRowClick(row));
   }
   return tableRow;
+}
+
+function cellLink(content) {
+  const link = document.createElement("a");
+  link.href = content.href;
+  link.textContent = content.text;
+  // The link opens its address itself, in this tab or a new one; the row's own click must not open it again.
+  link.addEventListener("click", (event) => event.stopPropagation());
+  return link;
 }
 
 function pager(page, onPage) {

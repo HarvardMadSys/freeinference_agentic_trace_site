@@ -3,7 +3,7 @@
  * each a histogram of the bins its `<name>_bins` query computed, with the exact percentiles, count and
  * maximum of its `<name>_stats` query. A card whose queries fail shows its error in its own place.
  *
- * A section's `context` is what the page gives every section: `{ database, selection, weeks, onWeekClick, replaceQuery }`.
+ * A section's `context` is what the page gives every section; see `pages/explore.js`.
  */
 
 import { showError, showLoading } from "../shared/charts.js";

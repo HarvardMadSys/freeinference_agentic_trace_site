@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { cachedShare, headlineTiles, modelShares } from "../site/js/explore/headline.js";
+import { headlineTiles, modelShares } from "../site/js/explore/headline.js";
 
 const HEADLINE_ROW = {
   sessions: 12002,
@@ -32,9 +32,7 @@ test("the tiles show every headline number in its format, the cached share last"
   }
 });
 
-test("the cached share is cached over reported input, and missing when no input was reported", () => {
-  assert.equal(cachedShare(150, 200), 0.75);
-  assert.equal(cachedShare(0, 0), null);
+test("the cached share tile is a dash when no input was reported", () => {
   assert.equal(headlineTiles({ ...HEADLINE_ROW, reported_input_tokens: 0, cached_tokens: 0 }).at(-1).value, "—");
 });
 

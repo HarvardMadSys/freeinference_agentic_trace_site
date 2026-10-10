@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { filterRows, pageRows, ROWS_PER_PAGE, searchRows, sortRows } from "../site/js/shared/table.js";
+import { cellContent, filterRows, pageRows, ROWS_PER_PAGE, searchRows, sortRows } from "../site/js/shared/table.js";
 
 const SESSIONS = [
   { id: "a1", harness: "claude-code", requests: 12 },
@@ -121,4 +121,18 @@ test("an empty array has one empty page", () => {
 
 test("a page holds fifty rows", () => {
   assert.equal(ROWS_PER_PAGE, 50);
+});
+
+test("a cell shows its formatted value, with no link unless the column gives one", () => {
+  const column = { key: "requests", title: "Requests", format: (value) => `${value} requests` };
+  assert.deepEqual(cellContent(column, SESSIONS[0]), { text: "12 requests", href: null });
+});
+
+test("a cell without a format shows its value as text", () => {
+  assert.deepEqual(cellContent({ key: "requests", title: "Requests" }, SESSIONS[0]), { text: "12", href: null });
+});
+
+test("a column with an href links each cell to the address it gives for the row", () => {
+  const column = { key: "id", title: "Session", href: (row) => `session.html?id=${row.id}` };
+  assert.deepEqual(cellContent(column, SESSIONS[1]), { text: "B2", href: "session.html?id=B2" });
 });

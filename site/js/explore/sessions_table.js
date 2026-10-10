@@ -4,15 +4,15 @@
  * URL keys `search`, `harness`, `model`, `min_requests`, `sort`, `direction` and `page`, read back on every
  * change; the selection's keys are never touched. A row click opens the Session page.
  *
- * A section's `context` is what the page gives every section:
- * `{ database, selection, weeks, onWeekClick, replaceQuery }`, where `replaceQuery(params)` writes the address bar.
+ * A section's `context` is what the page gives every section; see `pages/explore.js`. This one writes its state
+ * with `context.replaceQuery(params)`.
  */
 
 import { showError, showLoading } from "../shared/charts.js";
 import { formatCount, formatOptionalShare, formatSeconds, formatTokens } from "../shared/format.js";
 import { selectionQuery, writeSelection } from "../shared/selection.js";
 import { filterRows, mountTable, searchRows, sortRows } from "../shared/table.js";
-import { cachedShare } from "./headline.js";
+import { cachedShare } from "./cached_share.js";
 
 // The table's sort when the URL names none: most input first.
 const DEFAULT_SORT = Object.freeze({ key: "input_tokens", direction: "descending" });
@@ -24,20 +24,21 @@ const SHORT_ID_LENGTH = 8;
 const MISSING_TEXT = "—";
 
 // The table's columns: the row key each shows, its title, how its value is written, and whether it is a number.
+// The session column gets its link when the table is drawn, since the link carries the selection.
 const COLUMNS = Object.freeze([
-  { key: "session_id", title: "Session", format: shortId },
-  { key: "week", title: "Week" },
-  { key: "first_start_ms", title: "Started (UTC)", format: startedText },
-  { key: "harness", title: "Harness" },
-  { key: "main_model", title: "Main model", format: textOrMissing },
-  { key: "requests", title: "Requests", format: formatCount, isNumber: true },
-  { key: "turns", title: "Turns", format: formatCount, isNumber: true },
-  { key: "subagents", title: "Subagents", format: formatCount, isNumber: true },
-  { key: "tool_calls", title: "Tool calls", format: formatCount, isNumber: true },
-  { key: "duration_s", title: "Duration", format: formatSeconds, isNumber: true },
-  { key: "input_tokens", title: "Input tokens", format: formatTokens, isNumber: true },
-  { key: "cached_share", title: "Cached share", format: formatOptionalShare, isNumber: true },
-  { key: "peak_prompt_tokens", title: "Peak prompt", format: formatTokens, isNumber: true },
+  Object.freeze({ key: "session_id", title: "Session", format: shortId }),
+  Object.freeze({ key: "week", title: "Week" }),
+  Object.freeze({ key: "first_start_ms", title: "Started (UTC)", format: startedText }),
+  Object.freeze({ key: "harness", title: "Harness" }),
+  Object.freeze({ key: "main_model", title: "Main model", format: textOrMissing }),
+  Object.freeze({ key: "requests", title: "Requests", format: formatCount, isNumber: true }),
+  Object.freeze({ key: "turns", title: "Turns", format: formatCount, isNumber: true }),
+  Object.freeze({ key: "subagents", title: "Subagents", format: formatCount, isNumber: true }),
+  Object.freeze({ key: "tool_calls", title: "Tool calls", format: formatCount, isNumber: true }),
+  Object.freeze({ key: "duration_s", title: "Duration", format: formatSeconds, isNumber: true }),
+  Object.freeze({ key: "input_tokens", title: "Input tokens", format: formatTokens, isNumber: true }),
+  Object.freeze({ key: "cached_share", title: "Cached share", format: formatOptionalShare, isNumber: true }),
+  Object.freeze({ key: "peak_prompt_tokens", title: "Peak prompt", format: formatTokens, isNumber: true }),
 ]);
 
 /** Show the loading state in `container`. */
@@ -45,18 +46,36 @@ export function layoutSessionsTable(container) {
   showLoading(container);
 }
 
-/** Load the selection's sessions and draw the controls and the table into `container`, or the error if the query fails. */
+/**
+ * Lay out a fresh place in `container`, load the selection's sessions and draw the controls and the table into it,
+ * or the error if the query fails. A run that a newer one replaced draws into a place no longer on the page.
+ */
 export async function runSessionsTable(container, context) {
-  showLoading(container);
-  await drawSessions(container, context).catch((error) => showError(container, error));
+  const place = document.createElement("div");
+  showLoading(place);
+  container.replaceChildren(place);
+  await drawSessions(place, context).catch((error) => showError(place, error));
 }
 
-async function drawSessions(container, context) {
+/** The table's columns for `context`: the session column links each row to its Session page. */
+export function linkedColumns(context) {
+  const columns = [];
+  for (const column of COLUMNS) {
+    if (column.key === "session_id") {
+      columns.push({ ...column, href: (row) => sessionLink(row, context.selection, context.weeks) });
+    } else {
+      columns.push(column);
+    }
+  }
+  return columns;
+}
+
+async function drawSessions(place, context) {
   const queryRows = await context.database.runQuery("explore/sessions_of_selection");
   const rows = queryRows.map(withCachedShare);
   const tablePlace = document.createElement("div");
   const view = { rows, tablePlace, context };
-  container.replaceChildren(sectionTitle(), controlsRow(view), tablePlace);
+  place.replaceChildren(sectionTitle(), controlsRow(view), tablePlace);
   drawTable(view);
 }
 
@@ -207,7 +226,7 @@ function drawTable(view) {
   const state = currentState();
   const shown = shownSessions(view.rows, state);
   mountTable(view.tablePlace, {
-    columns: COLUMNS,
+    columns: linkedColumns(view.context),
     rows: shown,
     sort: state.sort,
     pageNumber: state.pageNumber,

@@ -5,9 +5,11 @@
  * loads, then opens the database, fills the selection tables and runs every section. A change of the
  * selection, from the picker or a trend bar, rewrites the URL, refills the tables and runs every section again.
  *
- * `page` is what the page owns: `{ weeks, selection, database }`, the entries of `weeks.json`, the current
- * selection and the open database (null until it opens). A section runs as `run(container, context)` with
- * `context = { database, selection, weeks, onWeekClick, replaceQuery }`, and lays out fresh places in its
+ * `page` is what the page owns: `{ weeks, selection, database, orders }`, the entries of `weeks.json`, the
+ * current selection, the open database and the colour orders (both null until the database opens). `orders` is
+ * `{ harnesses, models }`, the promised rows of `setup/harness_order` and `setup/model_order`, run once per load.
+ * A section runs as `run(container, context)` with
+ * `context = { database, orders, selection, weeks, onWeekClick, replaceQuery }`, and lays out fresh places in its
  * container each time, so a run that a newer one replaced draws into places no longer on the page.
  */
 
@@ -48,7 +50,8 @@ async function start() {
     showErrorInEverySection(error);
     return;
   }
-  const page = { weeks, selection: readSelection(new URLSearchParams(window.location.search), weeks), database: null };
+  const selection = readSelection(new URLSearchParams(window.location.search), weeks);
+  const page = { weeks, selection, database: null, orders: null };
   renderPageHeader(page);
   mountPicker(page);
   showUnknownChoices(page.selection);
@@ -59,6 +62,12 @@ async function start() {
     showErrorInEverySection(error);
     return;
   }
+  // The orders cover every week and scope, so they do not change with the selection; a section awaits its own.
+  page.orders = {
+    harnesses: page.database.runQuery("setup/harness_order"),
+    models: page.database.runQuery("setup/model_order"),
+  };
+  // The visitor may have changed the selection while the database opened; this runs the latest one.
   await runEverySection(page);
 }
 
@@ -79,6 +88,10 @@ async function runEverySection(page) {
     return;
   }
   layoutEverySection();
+  // Before the database opens there is nothing to run: `start` runs the latest selection once it has opened.
+  if (page.database === null) {
+    return;
+  }
   try {
     await page.database.setSelection(selection);
   } catch (error) {
@@ -91,6 +104,7 @@ async function runEverySection(page) {
   }
   const context = {
     database: page.database,
+    orders: page.orders,
     selection,
     weeks: page.weeks,
     onWeekClick: (week) => selectWeek(page, week),

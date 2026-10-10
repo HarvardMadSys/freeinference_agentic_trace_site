@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import {
   choices,
+  linkedColumns,
   nextSort,
   readTableState,
   sessionLink,
@@ -125,4 +126,13 @@ test("a session's cached share is cached over reported input, and missing with n
 test("a filter's choices are the rows' distinct values and the current one, sorted, without nulls", () => {
   assert.deepEqual(choices(SESSIONS, "main_model", ""), ["deepseek", "glm"]);
   assert.deepEqual(choices(SESSIONS, "harness", "kilo"), ["codex", "kilo", "pi"]);
+});
+
+test("the session column links each row to its Session page, as the row click does", () => {
+  const selection = { weeks: ["2026-08-09"], scope: "All", unknownWeeks: [], unknownMonth: null };
+  const columns = linkedColumns({ selection, weeks: WEEKS });
+  const row = { week: "2026-08-09", session_id: "aaaa1111-x" };
+  const sessionColumn = columns.find((column) => column.key === "session_id");
+  assert.equal(sessionColumn.href(row), sessionLink(row, selection, WEEKS));
+  assert.equal(columns.filter((column) => column.href !== undefined).length, 1);
 });

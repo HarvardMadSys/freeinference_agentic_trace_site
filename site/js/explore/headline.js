@@ -3,11 +3,12 @@
  * on hover, and the model mix: each model's share of their requests, largest first, coloured by the
  * global model order so a model has the same colour on every page.
  *
- * A section's `context` is what the page gives every section: `{ database, selection, weeks, onWeekClick, replaceQuery }`.
+ * A section's `context` is what the page gives every section; see `pages/explore.js`.
  */
 
 import { assignColours, showError, showLoading, showNote } from "../shared/charts.js";
 import { formatCount, formatOptionalShare, formatShare, formatTokens } from "../shared/format.js";
+import { cachedShare } from "./cached_share.js";
 
 // Each headline number read straight from the query's one row: its label, column, format and definition.
 const HEADLINE_NUMBERS = Object.freeze([
@@ -62,11 +63,6 @@ export function headlineTiles(row) {
   return tiles;
 }
 
-/** Cached over reported input tokens; null when no input was reported, since a share of nothing has no value. */
-export function cachedShare(cachedTokens, reportedInputTokens) {
-  return reportedInputTokens > 0 ? cachedTokens / reportedInputTokens : null;
-}
-
 /** Each model's row `{ model, requests, share }`, in the rows' order, its share of every row's requests. */
 export function modelShares(rows) {
   let total = 0;
@@ -87,7 +83,7 @@ async function drawNumbers(place, context) {
 }
 
 async function drawModelMix(place, context) {
-  const orderRows = await context.database.runQuery("setup/model_order");
+  const orderRows = await context.orders.models;
   const rows = await context.database.runQuery("explore/model_mix");
   if (rows.length === 0) {
     showNote(place, "No requests in the selected weeks and scope.");

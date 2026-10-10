@@ -3,7 +3,7 @@
  * whether the provider reports cache reads, over every week whatever the selection. The selected weeks'
  * bars are drawn solid, the others faint, and a click on a bar selects its week alone.
  *
- * A section's `context` is what the page gives every section: `{ database, selection, weeks, onWeekClick, replaceQuery }`.
+ * A section's `context` is what the page gives every section; see `pages/explore.js`.
  */
 
 import { OTHER_SERIES, TOKEN_PART_COLOURS, captionText, drawBars, renderFigure, showError, showLoading } from "../shared/charts.js";
@@ -82,7 +82,7 @@ export function columnTotal(rows, column) {
 }
 
 async function drawSessionsPerWeek(place, context) {
-  const harnessRows = await context.database.runQuery("setup/harness_order");
+  const harnessRows = await context.orders.harnesses;
   const rows = await context.database.runQuery("explore/sessions_per_week_by_harness");
   const body = renderFigure(place, {
     title: "Sessions per week",
