@@ -49,6 +49,7 @@ EXPECTED_COLUMNS = {
                                          "median_output_tokens"],
     "figures/context_share_by_role": ["bin_start", "role", "share", "rows"],
     "figures/ttft_cdf_by_model": ["series", "x", "share", "rows"],
+    "figures/ttft_median_by_model": ["model", "rows", "median_ttft_s"],
     "figures/tool_overview": ["category", "rows", "share_of_calls", "sessions", "failed_share", "median_latency_ms",
                               "median_result_tokens"],
     "figures/calls_per_request": ["tool_calls", "rows", "share"],

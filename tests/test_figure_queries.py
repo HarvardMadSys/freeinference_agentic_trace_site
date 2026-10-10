@@ -134,6 +134,15 @@ def test_the_ttft_cdf_keeps_only_trusted_ttfts(connection: duckdb.DuckDBPyConnec
     assert rows.rows.unique().tolist() == [11]
 
 
+def test_the_ttft_median_counts_only_trusted_ttfts(connection: duckdb.DuckDBPyConnection,
+                                                   fixture_weeks: list[str]) -> None:
+    # The same eleven trusted TTFTs of `model-x` as the CDF's, in the Agentic scope.
+    site_database.select_weeks(connection, fixture_weeks, site_database.SCOPES_OF["Agentic"])
+    rows = site_database.run_query(connection, "figures/ttft_median_by_model")
+    assert rows.model.tolist() == ["model-x"]
+    assert rows.rows.tolist() == [11]
+
+
 
 # every depth: read 6, bash 6 (*Build/Test), task 3 (Subagent), edit 1. A tie is broken by name, and "*" sorts first.
 def test_the_category_order_counts_every_call_largest_first(connection: duckdb.DuckDBPyConnection) -> None:
