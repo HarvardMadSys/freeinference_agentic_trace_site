@@ -41,3 +41,10 @@ test("the row given is not changed", () => {
   plainRow(row);
   assert.equal(row.requests, 7n);
 });
+
+test("a dollar sign in the data URL is kept as it is", () => {
+  assert.equal(
+    withDataUrl(VIEW_STATEMENT, "https://example.org/a$'b/data/"),
+    "FROM read_parquet('https://example.org/a$'b/data/requests.parquet');",
+  );
+});
