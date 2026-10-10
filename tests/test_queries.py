@@ -77,7 +77,8 @@ CDF_POINTS = 201  # every CDF series has this many points, its share running eve
 # two equal values with a rounding error of about one unit in the last place, which no chart can show.
 CDF_ROUNDING = 1e-12
 
-# The queries that give the global orders fixing every chart's colours, each with its columns.
+# The columns of the setup queries that fix a colour order, by name. They read no selection: an order is the same on
+# every page and for every selection, so a name keeps its colour.
 COLOUR_ORDER_COLUMNS = {
     "setup/model_order": ["model", "requests"],
     "setup/category_order": ["category", "calls"],
@@ -305,3 +306,22 @@ def test_the_tree_s_requests_and_tool_calls_are_those_of_every_session_in_it(
 def test_a_session_of_another_week_selects_nothing(connection: duckdb.DuckDBPyConnection) -> None:
     site_database.select_session(connection, SECOND_SUNDAY, SELECTED_SESSION)
     assert len(site_database.run_query(connection, "session/session_tree")) == 0
+
+
+@pytest.mark.parametrize("name", sorted(COLOUR_ORDER_COLUMNS))
+def test_a_colour_order_returns_its_columns(connection: duckdb.DuckDBPyConnection, name: str) -> None:
+    rows = site_database.run_query(connection, name)
+    assert list(rows.columns) == COLOUR_ORDER_COLUMNS[name]
+
+
+# The fixture's calls by category, counted by hand from `fixture_release.REQUESTS` over both weeks, every scope and
+# every depth: read 6, bash 6 (*Build/Test), task 3 (Subagent), edit 1. A tie is broken by name, and "*" sorts first.
+def test_the_category_order_counts_every_call_largest_first(connection: duckdb.DuckDBPyConnection) -> None:
+    rows = site_database.run_query(connection, "setup/category_order")
+    assert rows.values.tolist() == [["*Build/Test", 6], ["Read", 6], ["Subagent", 3], ["Edit", 1]]
+
+
+def test_the_category_order_ignores_the_selection(connection: duckdb.DuckDBPyConnection) -> None:
+    site_database.select_weeks(connection, [SECOND_SUNDAY], site_database.SCOPES_OF["SWE-Bench"])
+    site_database.select_session(connection, SECOND_SUNDAY, "mutation")
+    assert len(site_database.run_query(connection, "setup/category_order")) == 4

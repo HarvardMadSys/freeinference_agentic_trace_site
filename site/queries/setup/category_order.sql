@@ -1,8 +1,7 @@
--- One row per tool category, with its calls in top-level sessions over every week and scope, largest first (ties by
--- name): the global order that gives each category the same colour on every chart, whatever the selection.
+-- One row per tool category: its number of tool calls over every week and scope, largest first; the order that fixes each category's colour.
+-- Every call counts, subagents' included, so every category a page can draw has a place in the order.
 SELECT category,
        count(*) AS calls
 FROM tool_calls
-WHERE is_top_level
 GROUP BY category
 ORDER BY calls DESC, category;

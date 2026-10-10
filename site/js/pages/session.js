@@ -4,7 +4,7 @@ import { readAddress, selectionParameters, viewParameters, VIEW_NAMES } from "..
 import { mountFacts, sessionFacts } from "../session/facts.js";
 import { mountRequestsView } from "../session/requests.js";
 import { shortSessionId } from "../session/tree.js";
-import { showError, showLoading, showNote } from "../shared/charts.js";
+import { assignColours, showError, showLoading, showNote } from "../shared/charts.js";
 import { openDatabase } from "../shared/database.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
 import { selectionQuery } from "../shared/selection.js";
@@ -27,10 +27,7 @@ const page = {
 };
 showLoading(page.facts);
 showLoading(page.view);
-openSession(readAddress(parameters)).catch((error) => {
-  showError(page.facts, error);
-  page.view.hidden = true;
-});
+openSession(readAddress(parameters)).catch(showFailure);
 
 /** Load the session the address names and fill the page; a note when it names no session of its week. */
 async function openSession(address) {
@@ -48,14 +45,21 @@ async function openSession(address) {
   page.title.textContent = `Session ${shortSessionId(topLevel.session_id)}`;
   page.sessionId.textContent = topLevel.session_id;
   mountFacts(page.facts, sessionFacts(session.tree, session.requests));
+  const shownView = { stop: showView(address.view, session, address) };
+  mountViewTabs(page.tabs, address.view, (view) => switchView(shownView, view, session, address));
+}
+
+/** Stop the view shown and show `view` instead; `shownView.stop` stops whichever view is shown. */
+function switchView(shownView, view, session, address) {
+  shownView.stop();
   // A tab's link names no step, so a view chosen by its tab points at no request.
-  mountViewTabs(page.tabs, address.view, (view) => showView(view, session, { ...address, step: null }));
-  showView(address.view, session, address);
+  shownView.stop = showView(view, session, { ...address, step: null });
 }
 
 /**
- * `{ tree, requests, toolCalls }`: the rows of the tree holding the session `address.id`, whether that is the
- * top-level session or one of its subagents; null when the id is unknown or belongs to another week.
+ * `{ tree, requests, toolCalls, categoryColours }`: the rows of the tree holding the session `address.id`, whether
+ * that is the top-level session or one of its subagents, and the site-wide colour of each tool category; null when
+ * the id is unknown or belongs to another week.
  */
 async function loadSession(database, address) {
   const roots = await database.runQueryWith("session/session_root", [address.id]);
@@ -63,41 +67,49 @@ async function loadSession(database, address) {
     return null;
   }
   await database.setSession({ week: address.week, rootSessionId: roots[0].root_session_id });
-  const [tree, requests, toolCalls] = await Promise.all([
+  const [tree, requests, toolCalls, categoryRows] = await Promise.all([
     database.runQuery("session/session_tree"),
     database.runQuery("session/session_requests"),
     database.runQuery("session/session_tool_calls"),
+    database.runQuery("setup/category_order"),
   ]);
-  return { tree, requests, toolCalls };
+  const categoryColours = assignColours(categoryRows.map((row) => row.category));
+  return { tree, requests, toolCalls, categoryColours };
 }
 
-/** Draw the view `view` of the loaded session into the view section, pointing at the address's session and step. */
+/**
+ * Draw the view `view` of the loaded session into the view section, pointing at the address's session and step.
+ * Return a function that stops the view, to call before another replaces it.
+ */
 function showView(view, session, address) {
   if (view === "requests") {
-    const options = { focusSessionId: address.id, focusStep: address.step };
-    mountRequestsView(page.view, session.tree, session.requests, session.toolCalls, options);
-    return;
+    const options = { focusSessionId: address.id, focusStep: address.step, categoryColours: session.categoryColours };
+    return mountRequestsView(page.view, session.tree, session.requests, session.toolCalls, options);
   }
   showNote(page.view, `The ${VIEW_TITLES[view]} view is not drawn yet.`);
+  return () => undefined;
 }
 
 /** Fill `container` with one tab per view; a click shows that view in place and writes it into the URL. */
 function mountViewTabs(container, activeView, onChoose) {
   const tabs = VIEW_NAMES.map((view) => viewTab(view, activeView));
   for (const tab of tabs) {
-    tab.addEventListener("click", (event) => {
-      if (opensElsewhere(event)) {
-        return;
-      }
-      event.preventDefault();
-      history.replaceState(null, "", tab.href);
-      for (const other of tabs) {
-        markActive(other, other === tab);
-      }
-      onChoose(tab.dataset.view);
-    });
+    tab.addEventListener("click", (event) => chooseTab(event, tab, tabs, onChoose));
   }
   container.replaceChildren(...tabs);
+}
+
+/** Show `tab`'s view in place and write it into the URL; a click that opens the link elsewhere is left alone. */
+function chooseTab(event, tab, tabs, onChoose) {
+  if (opensElsewhere(event)) {
+    return;
+  }
+  event.preventDefault();
+  history.replaceState(null, "", tab.href);
+  for (const other of tabs) {
+    markActive(other, other === tab);
+  }
+  onChoose(tab.dataset.view);
 }
 
 function viewTab(view, activeView) {
@@ -122,6 +134,12 @@ function markActive(tab, isActive) {
 /** A click with a modifier key or another button opens the link in a new tab or window, as the browser does. */
 function opensElsewhere(event) {
   return event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey;
+}
+
+/** Show the error that stopped the session from loading in place of the facts, and hide the view. */
+function showFailure(error) {
+  showError(page.facts, error);
+  page.view.hidden = true;
 }
 
 function showNotFound(text) {

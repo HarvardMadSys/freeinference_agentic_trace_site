@@ -7,26 +7,27 @@
  * changes size, since expanding a group or opening details moves the rows.
  */
 
-import { drawBrackets, MAX_LANES } from "./brackets.js";
-import { requestDetails } from "./details.js";
+import { drawBrackets, MAX_LANES } from "./request_brackets.js";
+import { requestDetails } from "./request_details.js";
 import { overlapGroups } from "./overlaps.js";
 import { requestRow } from "./request_row.js";
 import { requestLegend } from "./request_legend.js";
-import { agentTree, callsByRequest, categoryOrder, largestRequestTokens, requestKey, shortSessionId } from "./tree.js";
-import { assignColours } from "../shared/charts.js";
+import { agentTree, callsByRequest, largestRequestTokens, requestKey, shortSessionId } from "./tree.js";
 import { formatCount, formatSeconds, formatTokens } from "../shared/format.js";
 
 // How long a row the URL points at stays highlighted, in milliseconds.
 const HIGHLIGHT_MS = 2500;
 
 /**
- * Draw the Requests view into `container`. `tree`, `requests` and `toolCalls` are the rows of the session queries.
- * `options` is `{ focusSessionId, focusStep }`: the session the URL names, whose group (when it is a subagent) is
- * expanded and scrolled into view, and a step of that session to scroll to and highlight, or null.
+ * Draw the Requests view into `container` and return a function that stops it watching the list's size, to call
+ * before the view is replaced. `tree`, `requests` and `toolCalls` are the rows of the session queries. `options` is
+ * `{ focusSessionId, focusStep, categoryColours }`: the session the URL names, whose group (when it is a subagent)
+ * is expanded and scrolled into view; a step of that session to scroll to and highlight, or null; and the site-wide
+ * map from each tool category to its colour.
  */
 export function mountRequestsView(container, tree, requests, toolCalls, options) {
   const calls = callsByRequest(toolCalls);
-  const categoryColours = assignColours(categoryOrder(toolCalls));
+  const categoryColours = options.categoryColours;
   const topLevel = tree.find((session) => session.depth === 0);
   const layout = { originMs: topLevel.first_start_ms, largestTokens: largestRequestTokens(requests), categoryColours };
   const list = document.createElement("div");
@@ -37,12 +38,13 @@ export function mountRequestsView(container, tree, requests, toolCalls, options)
   bracketNote.className = "figure-caption";
   container.replaceChildren(
     requestToolbar(list, tree.length > 1),
-    requestLegend(requests, categoryColours),
+    requestLegend(requests, toolCalls, categoryColours),
     bracketNote,
     list,
   );
-  watchBrackets(list, overlapGroups(requests), requests, rowsByKey, bracketNote);
+  const stopBrackets = watchBrackets(list, overlapGroups(requests), requests, rowsByKey, bracketNote);
   focusAddress(container, list, rowsByKey, options);
+  return stopBrackets;
 }
 
 /**
@@ -133,10 +135,13 @@ function toggleDetails(row, request, calls) {
   }
 }
 
-/** Draw the overlap brackets now and whenever the list's size changes, and say how many found no lane. */
+/**
+ * Draw the overlap brackets now and whenever the list's size changes, and say how many found no lane.
+ * Return a function that stops the redrawing.
+ */
 function watchBrackets(list, groups, requests, rowsByKey, note) {
   if (groups.length === 0) {
-    return;
+    return () => undefined;
   }
   list.classList.add("has-brackets");
   const gutter = document.createElement("div");
@@ -146,7 +151,9 @@ function watchBrackets(list, groups, requests, rowsByKey, note) {
   const anchorOf = (index) => visibleAnchor(rowsByKey.get(keys[index]));
   const redraw = () => showUndrawn(note, drawBrackets(gutter, list, groups, anchorOf));
   // The observer also calls `redraw` once when it starts, after the list's first layout.
-  new ResizeObserver(redraw).observe(list);
+  const observer = new ResizeObserver(redraw);
+  observer.observe(list);
+  return () => observer.disconnect();
 }
 
 function showUndrawn(note, undrawn) {

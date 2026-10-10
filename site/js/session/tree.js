@@ -44,16 +44,6 @@ export function callsByRequest(toolCalls) {
   return calls;
 }
 
-/** The tool categories of `toolCalls`, most calls first and by name on a tie: the order colours are given in. */
-export function categoryOrder(toolCalls) {
-  const counts = new Map();
-  for (const call of toolCalls) {
-    counts.set(call.category, (counts.get(call.category) ?? 0) + 1);
-  }
-  const categories = [...counts.keys()].sort((first, second) => first.localeCompare(second));
-  return categories.sort((first, second) => counts.get(second) - counts.get(first));
-}
-
 /** The largest input plus output tokens of one request, at least 1: the token count a full-width bar stands for. */
 export function largestRequestTokens(requests) {
   let largest = 1;

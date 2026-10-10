@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  agentTree, callsByRequest, categoryOrder, largestRequestTokens, requestKey, shortSessionId,
+  agentTree, callsByRequest, largestRequestTokens, requestKey, shortSessionId,
 } from "../site/js/session/tree.js";
 
 // The fixture's tree: `root` spawns `child` and `sibling` from step 1, and `child` spawns `grandchild` from step 0.
@@ -69,11 +69,6 @@ test("tool calls are grouped by their request, in the order given", () => {
   assert.deepEqual(grouped.get(requestKey("a", 0)), [calls[0], calls[1]]);
   assert.deepEqual(grouped.get(requestKey("b", 0)), [calls[2]]);
   assert.equal(grouped.get(requestKey("a", 1)), undefined);
-});
-
-test("categories are ordered by their number of calls, then by name", () => {
-  const calls = ["Read", "Edit", "Read", "Bash", "Bash", "Read"].map((category) => ({ category }));
-  assert.deepEqual(categoryOrder([...calls, { category: "Agent" }]), ["Read", "Bash", "Agent", "Edit"]);
 });
 
 test("a full bar stands for the largest input plus output of one request", () => {

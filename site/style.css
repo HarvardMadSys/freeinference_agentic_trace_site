@@ -645,8 +645,13 @@ button.is-primary {
   font-weight: 600;
 }
 
-/* The list of request rows; with overlap brackets, its left padding is the gutter they are drawn in. */
+/*
+ * The list of request rows; with overlap brackets, its left padding is the gutter they are drawn in.
+ * --bar-track is the width of a full bar: fixed, not a share of the row, so a token count is drawn the same
+ * length in every row however deep its subagent group is indented.
+ */
 .request-list {
+  --bar-track: 20rem;
   position: relative;
   margin-top: 0.75rem;
 }
@@ -672,10 +677,13 @@ button.is-primary {
   border-radius: 2px 0 0 2px;
 }
 
-/* One request: label, elapsed time, token bar and tool-call chips on one line; a button, so a key opens it too. */
+/*
+ * One request: label, elapsed time, token bar and tool-call chips on one line; a button, so a key opens it too.
+ * The chips take what the indent leaves; the label, elapsed time and bar columns are fixed.
+ */
 .request-row {
   display: grid;
-  grid-template-columns: 6rem 8rem minmax(4rem, 1fr) minmax(0, 14rem);
+  grid-template-columns: 6rem 8rem var(--bar-track) minmax(0, 1fr);
   align-items: center;
   gap: 0.25rem 0.75rem;
   width: 100%;
@@ -795,6 +803,30 @@ button.is-primary {
   font-size: 0.8125rem;
 }
 
+/*
+ * Below the width the one-line row needs, a row's label and elapsed time share a line and the bar and chips go
+ * below. The bar track narrows to fit a depth-4 row on a 360px screen; max-width only guards a deeper one.
+ */
+@media (max-width: 58rem) {
+  .request-list {
+    --bar-track: 12rem;
+  }
+
+  .request-row {
+    grid-template-columns: auto 1fr;
+  }
+
+  .request-bar {
+    grid-column: 1 / -1;
+    width: var(--bar-track);
+    max-width: 100%;
+  }
+
+  .request-chips {
+    grid-column: 1 / -1;
+  }
+}
+
 /* ---------- Small screens ---------- */
 
 @media (max-width: 40rem) {
@@ -814,19 +846,10 @@ button.is-primary {
     grid-template-columns: 1fr;
   }
 
-  /* A row's label and elapsed time share a line; the bar and the chips take the full width below. */
-  .request-row {
-    grid-template-columns: auto 1fr;
-  }
-
-  .request-bar,
-  .request-chips {
-    grid-column: 1 / -1;
-  }
-
-  /* Nested groups indent less, so a depth-4 subagent still has room for its bars. */
+  /* Nested groups indent less, so a depth-4 subagent still has room for a full bar. */
   .group-rows {
     margin-left: 0.25rem;
+    padding-left: 0.25rem;
   }
 
   .details {

@@ -2,15 +2,16 @@
 
 import { OTHER_SERIES, TOKEN_PART_COLOURS } from "../shared/charts.js";
 
-// The name the legend gives every category past the eighth, which all share the Other colour.
+// The name the legend gives every category past the eighth, which all share the Other colour. It is not charts.js's
+// "Other": the data has a tool category of that name, which holds its own colour.
 const OTHER_CATEGORIES = "Other categories";
 
 /**
  * The legend's two lines, `{ tokens, categories }`, each `[{ name, colour }]`: the bar parts (with "no cache
- * report" only when a request has no cache reads), then each category of `categoryColours` in its order, the
- * categories folded into the Other colour as one entry.
+ * report" only when a request has no cache reads), then the categories of `toolCalls` in the site-wide order of
+ * `categoryColours`, the ones folded into the Other colour as one entry.
  */
-export function legendEntries(requests, categoryColours) {
+export function legendEntries(requests, toolCalls, categoryColours) {
   const tokens = [
     { name: "cached input", colour: TOKEN_PART_COLOURS.cached },
     { name: "uncached input", colour: TOKEN_PART_COLOURS.uncached },
@@ -19,21 +20,28 @@ export function legendEntries(requests, categoryColours) {
   if (requests.some((request) => request.cache_read_tokens === null)) {
     tokens.push({ name: "input, no cache report", colour: OTHER_SERIES });
   }
+  const called = new Set(toolCalls.map((call) => call.category));
   const categories = [];
+  let hasFolded = false;
   for (const [category, colour] of categoryColours) {
-    if (colour !== OTHER_SERIES) {
+    if (!called.has(category)) {
+      continue;
+    }
+    if (colour === OTHER_SERIES) {
+      hasFolded = true;
+    } else {
       categories.push({ name: category, colour });
     }
   }
-  if ([...categoryColours.values()].includes(OTHER_SERIES)) {
+  if (hasFolded) {
     categories.push({ name: OTHER_CATEGORIES, colour: OTHER_SERIES });
   }
   return { tokens, categories };
 }
 
-/** The legend for `requests` and the chip colours `categoryColours`, as one element. */
-export function requestLegend(requests, categoryColours) {
-  const { tokens, categories } = legendEntries(requests, categoryColours);
+/** The legend for `requests`, their `toolCalls` and the chip colours `categoryColours`, as one element. */
+export function requestLegend(requests, toolCalls, categoryColours) {
+  const { tokens, categories } = legendEntries(requests, toolCalls, categoryColours);
   const legend = document.createElement("div");
   legend.append(legendLine("Tokens", tokens));
   if (categories.length > 0) {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { assignLanes } from "../site/js/session/brackets.js";
+import { assignLanes } from "../site/js/session/request_brackets.js";
 
 test("brackets that do not cross share the first lane", () => {
   assert.deepEqual(assignLanes([{ top: 0, bottom: 10 }, { top: 20, bottom: 30 }], 6), [0, 0]);

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { detailFacts } from "../site/js/session/details.js";
+import { detailFacts } from "../site/js/session/request_details.js";
 
 const REQUEST = {
   model: "model-x", provider: "A", prompt_tokens: 3_000, cache_read_tokens: 2_000, uncached_tokens: 1_000,
