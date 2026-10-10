@@ -15,12 +15,154 @@
     </section>
     <section id="definitions" class="card" aria-labelledby="definitions-heading">
       <h2 id="definitions-heading">Definitions</h2>
+      <p>These are the pipeline's definitions. Each is computed by the pipeline's own functions when the site's data are built; the pages only filter, count, sum and take quantiles of the results.</p>
+
+      <h3>Sessions and requests</h3>
+      <dl>
+        <dt id="request">Request</dt>
+        <dd>One call to an LLM through the FreeInference gateway: an input of messages in, a response out. Its start is its arrival at the gateway and its end its completion.</dd>
+
+        <dt id="session">Session</dt>
+        <dd>A chain of requests from one account, each continuing an earlier one: it replays a tool-call id that request emitted, or that request's answer reappears in its last assistant message. The release keeps agent sessions, which have at least one tool step and at least two user steps (a SWE-bench run needs only the tool step). A session lies within one week; one that continues into the next week is released there as a new session.</dd>
+
+        <dt id="top-level-session">Top-level session</dt>
+        <dd>A session that no other session spawned: it has no parent session. The top-level sessions are the population every count, figure and table on this site is drawn from; a subagent's requests are counted only where a page says so.</dd>
+
+        <dt id="subagent">Subagent</dt>
+        <dd>A session started by a tool call of category Subagent in another session, matched to the session whose first user message repeats the call's delegation prompt. Its depth is 1 under a top-level session, 2 under a subagent, and so on. A top-level session's subagents are those at every depth; the top-level session and each of its subagents are its agents.</dd>
+
+        <dt id="account">Account</dt>
+        <dd>The FreeInference account that sent a session's requests, released only as a hashed id. Accounts are counted as distinct ids.</dd>
+
+        <dt id="harness">Harness</dt>
+        <dd>The agent program that sent a session's requests, such as claude-code or codex, recognised from its first request's prompt or user agent. <code>eval:swe-bench</code> is the SWE-bench benchmark scaffold.</dd>
+
+        <dt id="scope">Scope</dt>
+        <dd>A session's scope is SWE-Bench when its harness is the SWE-bench scaffold, and Agentic otherwise; All is the two together. The paper uses the Agentic scope unless it says otherwise.</dd>
+
+        <dt id="model">Model and provider</dt>
+        <dd>The model a request asked for, and the upstream provider that served it, released as an anonymous letter.</dd>
+
+        <dt id="main-model">Main model</dt>
+        <dd>The model of most of a session's own requests, the first in name order on a tie.</dd>
+
+        <dt id="step">Step, user step and tool step</dt>
+        <dd>A request's position in its session, counted from 0. A user step is a request whose new input is a user message; a tool step is one whose new input is tool results. A session's first request is always a user step.</dd>
+
+        <dt id="turn">Turn</dt>
+        <dd>A user step and the tool steps after it, numbered from 1 in each session. A turn's duration is its last completion minus its first arrival.</dd>
+
+        <dt id="session-duration">Session duration</dt>
+        <dd>A session's last completion minus its first arrival, over its own requests.</dd>
+
+        <dt id="messages">Messages and roles</dt>
+        <dd>The messages of a request's input; the tool definitions are not a message. The input's tokens by role are counted for the system, user, assistant and tool-result messages and for the tool definitions with the <code>o200k_base</code> tokenizer, not the provider's, so they need not add up to the input tokens.</dd>
+
+        <dt id="finish-reason">Finish reason</dt>
+        <dd>Why the response ended: <code>stop</code>, <code>length</code>, <code>tool_calls</code>, <code>content_filter</code> or <code>other</code>.</dd>
+      </dl>
+
+      <h3>Tokens and caching</h3>
+      <dl>
+        <dt id="input-tokens">Input tokens (prompt tokens)</dt>
+        <dd>The tokens of a request's input, as its provider counted them.</dd>
+
+        <dt id="cached-tokens">Cached and uncached tokens</dt>
+        <dd>Cached tokens are the input tokens the provider reported reading from its cache; they are missing where the provider reports no cache reads. Uncached tokens are the input minus the cached tokens, at least 0, and exist only where the provider reports cache reads.</dd>
+
+        <dt id="output-tokens">Output tokens</dt>
+        <dd>The tokens of a request's response, as its provider counted them.</dd>
+
+        <dt id="hit-ratio">Hit ratio and cached share</dt>
+        <dd>A request's hit ratio, or cached fraction, is its cached over its input tokens, at most 1, where it has an input and its provider reports cache reads; it is missing otherwise. The cached share of a set of requests is their cached tokens over their input tokens, counting only the requests whose provider reports cache reads.</dd>
+
+        <dt id="peak-prompt-tokens">Peak prompt tokens</dt>
+        <dd>The largest input of any one of a session's own requests, in tokens.</dd>
+
+        <dt id="transition">Transition: append, mutation, switch</dt>
+        <dd>How a request's input relates to the previous step's. It is a switch when the two requests' models or providers differ; an append when every message of the earlier input is, unchanged, at the same position of the later one; and a mutation otherwise. A session's first request has none.</dd>
+
+        <dt id="context-mutation">Context mutation and its cause</dt>
+        <dd>A request whose transition is a mutation: the agent rewrote context it had already sent, and a prefix cache loses what follows the change. Its cause is the first of these that holds where the two inputs first differ: <code>compaction</code> (history replaced by a summary), <code>tool_definitions</code> (the tool list changed), <code>system_prompt</code>, <code>dropped_turns</code> (turns removed and the rest moved up), <code>injection</code> (a message inserted), <code>tool_result</code>, or <code>other</code>.</dd>
+      </dl>
+
+      <h3>Time</h3>
+      <dl>
+        <dt id="wait">Wait, and what a request waited for</dt>
+        <dd>A request's wait is its arrival minus the previous request's completion in the same session; a session's first request has none. A user step waited for the user. A tool step waited for a subagent when the previous request made a Subagent call, for the ask-user tool (a person answering a question) when it made an Ask User call, and for a tool otherwise.</dd>
+
+        <dt id="idle-gap">Idle gap</dt>
+        <dd>A request's arrival minus the latest completion among the same account's earlier requests at the same provider, in any session and any week: how long that provider's cache went unused by the account. It is kept for requests with a hit ratio whose account's previous request at that provider also reported cache reads. The idle-gap bins are 26 bins from 10 s to 1 h, each 1.25 times as wide as the one before; gaps under 10 s count as 10 s and gaps over 1 h are dropped.</dd>
+
+        <dt id="ttft">TTFT</dt>
+        <dd>Time to first token: from a request's arrival at the gateway to the first token of its response. A TTFT is trusted when it is positive and under 95% of the request's latency, its end minus its start; figures of TTFT use trusted ones only.</dd>
+      </dl>
+
+      <h3>Tools</h3>
+      <dl>
+        <dt id="tool-call">Tool call</dt>
+        <dd>One call to a tool that a request's response emitted; a response may emit several, in order. A tool name used by fewer than three accounts is released as <code>other</code>, with its category kept.</dd>
+
+        <dt id="category">Category</dt>
+        <dd>The kind of tool a call used: Read, Edit, Write, Browser, MCP, Ask User or Subagent; for a shell call, the purpose of its command, marked <code>*</code> (*Interpreter, *Search, *File Ops, *Git/VCS, *Network, *Wait/Poll, *Build/Test, *Packages); and Other for a call that no tool family or shell purpose places.</dd>
+
+        <dt id="outcome">Outcome</dt>
+        <dd>Whether a call succeeded, decided from the strongest evidence at the start of its result: <code>ok</code>, <code>error</code>, <code>denied</code> or <code>timeout</code>; missing when no result carried the call's id. A failed call is one whose outcome is error, denied or timeout.</dd>
+
+        <dt id="latency">Latency</dt>
+        <dd>The wait after a call's request until the session's next request; the calls of one response share it. The session timeline therefore starts each call at its request's end.</dd>
+
+        <dt id="result-tokens">Result tokens</dt>
+        <dd>The tokens of the result that answered a call, counted with <code>o200k_base</code>. The result's text is never released.</dd>
+      </dl>
+
+      <h3>Weeks and statistics</h3>
+      <dl>
+        <dt id="week">Week</dt>
+        <dd>Sunday to Saturday, named by its Sunday. The release, the site's data and the cache simulation are each built one week at a time.</dd>
+
+        <dt id="month">Month</dt>
+        <dd>A week's month is the month of its Sunday, so a week that spans two months belongs to the first. Selecting a month selects its weeks.</dd>
+
+        <dt id="cdf">CDF and percentiles</dt>
+        <dd>A CDF plots, for each value, the share of rows at or below it. Medians and other percentiles are exact quantiles of the selected rows, not estimates from bins.</dd>
+      </dl>
+
+      <h3>Cache simulation</h3>
+      <dl>
+        <dt id="cache-simulation">Cache simulation</dt>
+        <dd>A replay of a prefix cache over the 16-token blocks of every request's input, one week and one scope at a time, each week starting with an empty cache. A request reads its blocks when it arrives and writes them when it completes; a read is a hit when the gap since the block's previous read completed is at most the TTL and no eviction signal removed the block first. The simulated hit ratio is hit tokens over hit and missed tokens.</dd>
+
+        <dt id="ttl">TTL</dt>
+        <dd>The longest gap after which the simulated cache can still serve a block.</dd>
+
+        <dt id="policy">Policy</dt>
+        <dd>What, besides the TTL, evicts a block: for <code>ttl_only</code>, nothing; for <code>reclaim_mutate</code>, the session's next request arriving without the block; for <code>reclaim_dead</code>, the session's last request completing; for <code>reclaim_both</code>, either.</dd>
+
+        <dt id="token-seconds">Active, reusable and dead token-seconds</dt>
+        <dd>Tokens times the seconds they are held. Active token-seconds are those of the blocks of requests in flight. A block held in the cache after a request completes is reusable when the block is read again later in the week, whether or not that read hits, and dead when it is never read again.</dd>
+      </dl>
+
+      <h3>Where the site draws more simply than the paper</h3>
+      <ul>
+        <li>Bins are fixed: powers of two of a request's messages or input tokens, and the pipeline's idle-gap bins. The paper fits its size bins to the data.</li>
+        <li>A bin with fewer than 50 rows is hidden, and the figure says how many were; the paper merges a thin bin into the next one.</li>
+        <li>The token split is drawn as one bar per selected week; the paper splits each session's cost and stacks sessions in bins of their rank.</li>
+      </ul>
     </section>
     <section id="how-built" class="card" aria-labelledby="how-built-heading">
       <h2 id="how-built-heading">How the data were built</h2>
+      <p>The site draws the v1 release of the FreeInference agentic trace, published on Hugging Face one week at a time: anonymous JSONL traces, one top-level session per line with each subagent nested under the call that spawned it, and Parquet tables of the sessions, requests and tool calls. The release holds no message text, prompt text, tool results or raw identifiers: accounts and sessions are hashed, providers are letters, and a tool call's arguments keep their structure with every value replaced by its type.</p>
+      <p><code>make data</code> reads every week of the release and of the pipeline's cache simulation, checks each week against its manifest with the pipeline's reader, and writes <code>requests.parquet</code>, <code>tool_calls.parquet</code>, <code>sessions.parquet</code>, <code>simulation.parquet</code> and <code>weeks.json</code>. The Parquet files hold the release's columns the pages draw, never its block ids, and columns computed by the pipeline's own functions: each row's week and scope, whether its session is top-level, its top-level session and depth; each request's turn, uncached tokens, hit ratio, wait, idle gap and idle-gap bin, whether its TTFT is trusted, and how many tool calls it emitted; and each session's totals over its own requests. The idle gap looks back across weeks, so it is computed over every week together. <code>weeks.json</code> lists the weeks and says which ones the cache simulation covers.</p>
+      <p>In the browser, DuckDB-WASM queries those files over HTTP, reading only the columns and weeks a chart needs. It only filters, counts, sums and takes quantiles; it never decides what a turn, a scope, a wait or a cache hit is. With every week selected and the Agentic scope, every number a figure shares with the paper equals the paper's.</p>
     </section>
     <section id="links" class="card" aria-labelledby="links-heading">
       <h2 id="links-heading">Links</h2>
+      <ul>
+        <li>The paper: <a href="https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace#citation"><cite>From Requests to Sessions: A Large-Scale Characterization of Human-Driven Agentic Workloads</cite></a>, cited on the dataset card.</li>
+        <li>The dataset: <a href="https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace">harvardMadsys/freeinference_agentic_trace</a> on Hugging Face, with the traces, the Parquet tables and how to download and query them.</li>
+        <li>The pipeline: <a href="https://github.com/HarvardMadSys/freeinference_agentic_trace">HarvardMadSys/freeinference_agentic_trace</a>, the code that reads the release, replays its prefix cache and reproduces the paper's figures.</li>
+      </ul>
     </section>
   </main>
   <footer id="site-footer" class="site-footer"></footer>

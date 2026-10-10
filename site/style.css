@@ -267,6 +267,28 @@ code,
   gap: 1rem;
 }
 
+/* Running text and definition lists, kept to a readable line length. */
+.prose p,
+.prose ul,
+.prose dl {
+  max-width: 44rem;
+  overflow-wrap: anywhere;
+}
+
+.prose h3 {
+  margin-top: 1.5rem;
+}
+
+.prose dt {
+  font-weight: 600;
+  margin-top: 0.75rem;
+}
+
+.prose dd {
+  margin: 0.125rem 0 0;
+  color: var(--color-text-muted);
+}
+
 /* ---------- Stat tiles ---------- */
 
 .stat-strip {
