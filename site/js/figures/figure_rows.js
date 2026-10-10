@@ -1,6 +1,6 @@
 /**
  * What the Paper figures page does to a figure's rows before drawing them: thin bins hidden, the caption's row
- * count and its note on hidden bins, and a CDF query's points grouped into series.
+ * count and its note on hidden bins, a CDF query's points grouped into series, and the labels of a crowded axis.
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
  * a CDF series). Every row of a bin carries the bin's count, the number of rows of the data it rests on, in the
@@ -56,13 +56,13 @@ export function hiddenText(hidden, binColumn) {
 }
 
 /**
- * The series of a CDF query's rows `{ series, x, share }`, in the order of `labels` (a map from a series' name in
- * the rows to the name it is drawn under), as `[{ name, points: [{ x, share }] }]`. A series with no rows is left
- * out. An `x` below `floor` is drawn at `floor`, so a zero has a place on a log axis.
+ * The series of a CDF query's rows `{ series, x, share }`, in the order of `names` (series names in the rows), as
+ * `[{ name, points: [{ x, share }] }]`; a series is drawn under `labels[name]` when given, else under its own name.
+ * A series with no rows is left out. An `x` below `floor` is drawn at `floor`, so a zero has a place on a log axis.
  */
-export function cdfSeries(rows, labels, floor = -Infinity) {
+export function cdfSeries(rows, names, { labels = {}, floor = -Infinity } = {}) {
   const series = [];
-  for (const [name, label] of Object.entries(labels)) {
+  for (const name of names) {
     const points = [];
     for (const row of rows) {
       if (row.series === name) {
@@ -70,10 +70,20 @@ export function cdfSeries(rows, labels, floor = -Infinity) {
       }
     }
     if (points.length > 0) {
-      series.push({ name: label, points });
+      series.push({ name: Object.hasOwn(labels, name) ? labels[name] : name, points });
     }
   }
   return series;
+}
+
+/**
+ * A tick format for a crowded band axis: `format(value)` for every `step`-th of `values` (in axis order, first
+ * included), the step chosen so at most `maxLabels` are written, and "" for the rest.
+ */
+export function sparseTickFormat(values, format, maxLabels) {
+  const step = Math.max(1, Math.ceil(values.length / maxLabels));
+  const labelled = new Set(values.filter((value, index) => index % step === 0));
+  return (value) => (labelled.has(value) ? format(value) : "");
 }
 
 // Each bin's name and count, `[{ name, count }]`, in the order the bins first appear in the rows.

@@ -40,19 +40,33 @@ EXPECTED_COLUMNS = {
                                       "turns", "subagents", "tool_calls", "duration_s", "input_tokens",
                                       "reported_input_tokens", "cached_tokens", "peak_prompt_tokens"],
     "figures/requests_per_session_cdf": ["series", "x", "share", "rows"],
+    "figures/duration_cdf": ["series", "x", "share", "rows"],
+    "figures/tokens_per_request_cdf": ["series", "x", "share", "rows"],
+    "figures/token_split_by_week": ["week", "part", "share", "rows"],
+    "figures/token_growth_by_messages": ["bin_start", "rows", "median_cached_tokens", "median_uncached_tokens",
+                                         "median_output_tokens"],
+    "figures/context_share_by_role": ["bin_start", "role", "share", "rows"],
+    "figures/ttft_cdf_by_model": ["series", "x", "share", "rows"],
 }
 
 
 # The CDF queries, each with the series it draws: one row per series and point.
 CDF_SERIES = {
     "figures/requests_per_session_cdf": ["requests", "tool_steps", "user_steps"],
+    "figures/duration_cdf": ["session", "turn"],
+    "figures/tokens_per_request_cdf": ["input", "output", "uncached"],
+    "figures/ttft_cdf_by_model": ["model-x", "model-y"],
 }
 CDF_POINTS = 201  # every CDF series has this many points, its share running evenly from 0 to 1
+# How far a CDF's x may fall from one point to the next, relative to its value: quantile_cont interpolates between
+# two equal values with a rounding error of about one unit in the last place, which no chart can show.
+CDF_ROUNDING = 1e-12
 
 # The queries that give the global orders fixing every chart's colours, each with its columns.
 COLOUR_ORDER_COLUMNS = {
     "setup/model_order": ["model", "requests"],
     "setup/category_order": ["category", "calls"],
+}
 
 # The `?` parameters of the queries that take them, in order, by the query's name.
 QUERY_PARAMETERS: dict[str, list] = {}
@@ -149,7 +163,8 @@ def test_a_cdf_runs_from_0_to_1_in_even_steps_with_x_never_falling(connection: d
     assert sorted(rows.series.unique()) == CDF_SERIES[name]
     for series, points in rows.groupby("series"):
         assert points.share.tolist() == pytest.approx([step / (CDF_POINTS - 1) for step in range(CDF_POINTS)]), series
-        assert points.x.is_monotonic_increasing, series
+        steps = points.x.diff().dropna()
+        assert (steps >= -CDF_ROUNDING * points.x.abs().iloc[1:]).all(), series
         assert points.rows.nunique() == 1, series
 
 
@@ -187,3 +202,56 @@ def test_the_colour_orders_ignore_the_selection(connection: duckdb.DuckDBPyConne
     site_database.select_weeks(connection, [], [])
     for name in COLOUR_ORDER_COLUMNS:
         assert not site_database.run_query(connection, name).empty, name
+
+
+def test_the_token_split_counts_only_requests_whose_provider_reports_cache_reads(
+        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+    # In the SWE-Bench scope, `swe-bench` runs at a provider that reports no cache reads; `idle-benchmark`, in the
+    # second week, reads none of its 600 input tokens from cache and writes 100 output tokens.
+    site_database.select_weeks(connection, fixture_weeks, site_database.SCOPES_OF["SWE-Bench"])
+    rows = site_database.run_query(connection, "figures/token_split_by_week")
+    shares = dict(zip(rows.part, rows.share))
+    assert rows.week.unique().tolist() == [SECOND_SUNDAY]
+    assert rows.rows.unique().tolist() == [1]
+    assert shares == pytest.approx({"cached": 0.0, "uncached": 600 / 700, "output": 100 / 700})
+
+
+def test_each_week_s_token_parts_sum_to_one(connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    rows = site_database.run_query(connection, "figures/token_split_by_week")
+    assert rows.groupby("week").share.sum().tolist() == pytest.approx([1.0, 1.0])
+
+
+# The fixture's requests have 2 * step + 2 messages, so steps 0, 1 and 2, 3 and 4 fall in the bins from 2, 4 and 8
+# messages. Of its sixteen top-level requests, the two of `swe-bench` report no cache reads; of the other fourteen,
+# five are at step 0, seven at step 1 or 2, and two (`tree-root`'s, with 3,000 and 4,000 cached of 4,000 and 5,000
+# input tokens) at step 3 or 4.
+GROWTH_BIN_ROWS = {2: 5, 4: 7, 8: 2}
+
+
+def test_token_growth_bins_by_powers_of_two_of_messages(connection: duckdb.DuckDBPyConnection,
+                                                        fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    rows = site_database.run_query(connection, "figures/token_growth_by_messages")
+    assert dict(zip(rows.bin_start, rows.rows)) == GROWTH_BIN_ROWS
+    last_bin = rows[rows.bin_start == 8].iloc[0]
+    assert (last_bin.median_cached_tokens, last_bin.median_uncached_tokens) == (3500, 1000)
+
+
+def test_each_input_bin_s_role_shares_sum_to_one(connection: duckdb.DuckDBPyConnection,
+                                                 fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    rows = site_database.run_query(connection, "figures/context_share_by_role")
+    assert sorted(rows.role.unique()) == ["assistant", "system", "tool", "tool_definitions", "user"]
+    assert rows.groupby("bin_start").share.sum().tolist() == pytest.approx([1.0] * rows.bin_start.nunique())
+    assert rows.drop_duplicates("bin_start").rows.sum() == 16  # every top-level request has role tokens
+
+
+def test_the_ttft_cdf_keeps_only_trusted_ttfts(connection: duckdb.DuckDBPyConnection,
+                                               fixture_weeks: list[str]) -> None:
+    # The Agentic scope's thirteen top-level requests all run on `model-x`; `tree-root`'s step 2 has a TTFT of 99%
+    # of its latency and its step 3 none, so eleven TTFTs are trusted.
+    site_database.select_weeks(connection, fixture_weeks, site_database.SCOPES_OF["Agentic"])
+    rows = site_database.run_query(connection, "figures/ttft_cdf_by_model")
+    assert rows.series.unique().tolist() == ["model-x"]
+    assert rows.rows.unique().tolist() == [11]

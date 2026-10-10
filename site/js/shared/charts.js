@@ -43,18 +43,26 @@ const KEY_SEPARATOR = "\u0000";
 
 const CHART_HEIGHT = 240; // every chart has the same height, so a grid of figures lines up
 const FALLBACK_WIDTH = 480; // the width drawn when the body has not been laid out yet
-const LINE_WIDTH = 2; // pixels; thin lines, as every chart draws them
+/** The width of every chart's lines, in pixels: thin lines. */
+export const LINE_WIDTH = 2;
 const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars and segments
 const MEDIAN_DASH = "4 3"; // dash and gap lengths of the median gridline, in pixels
 const MEDIAN_SHARE = 0.5; // the share of rows at which a CDF crosses its median
 
 // The Plot options every chart shares, so every chart has the same ink.
-const PLOT_STYLE = { color: "var(--chart-label)", background: "transparent" };
-const PLOT_MARGINS = { marginTop: 24, marginRight: 24, marginBottom: 36, marginLeft: 52 };
-const GRID_STYLE = { stroke: "var(--chart-grid)", strokeOpacity: 1 };
-const AXIS_STYLE = { stroke: "var(--chart-axis)" };
-// Plot paints a tooltip in a white box by default; the surface token keeps it readable in dark mode.
-const TIP_STYLE = { fill: "var(--color-surface)" };
+const PLOT_STYLE = Object.freeze({ color: "var(--chart-label)", background: "transparent" });
+const PLOT_MARGINS = Object.freeze({ marginTop: 24, marginRight: 24, marginBottom: 36, marginLeft: 52 });
+/** The options of every chart's grid lines. */
+export const GRID_STYLE = Object.freeze({ stroke: "var(--chart-grid)", strokeOpacity: 1 });
+/** The options of every chart's axes. */
+export const AXIS_STYLE = Object.freeze({ stroke: "var(--chart-axis)" });
+/** The options of every chart's tooltip: Plot's white box would be unreadable in dark mode, so it takes the surface colour. */
+export const TIP_STYLE = Object.freeze({ fill: "var(--color-surface)" });
+
+/** The Plot options every chart starts from: its margins, its height, the width of `body`, and its ink. */
+export function chartFrame(body) {
+  return { ...PLOT_MARGINS, width: chartWidth(body), height: CHART_HEIGHT, style: PLOT_STYLE };
+}
 
 /** A map from each distinct name, in the given order, to its series colour; the ninth name and beyond map to `OTHER_SERIES`. */
 export function assignColours(names) {
@@ -146,21 +154,19 @@ export function renderFigure(container, { title, definition, caption }) {
 
 /**
  * Draw into `body` one line per series of `series`, `[{ name, points: [{ x, share }] }]`, with share running 0 to 1.
- * Colours follow the series' order, and every series past the eighth draws in the Other colour; `format` writes an x value in the tooltip.
+ * Colours come from `colours` (a map from series name to colour, as `assignColours` gives) when given; otherwise they
+ * follow the series' order, every series past the eighth in the Other colour. `format` writes an x value in the tooltip.
  */
-export async function drawCdf(body, series, { xLabel, logX = false, format = String }) {
+export async function drawCdf(body, series, { xLabel, logX = false, format = String, colours }) {
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("./libraries.js");
   const points = cdfPoints(series);
-  const colours = assignColours(series.map((one) => one.name));
+  const names = series.map((one) => one.name);
   const chart = Plot.plot({
-    ...PLOT_MARGINS,
-    width: chartWidth(body),
-    height: CHART_HEIGHT,
-    style: PLOT_STYLE,
+    ...chartFrame(body),
     x: { type: logX ? "log" : "linear" },
     y: { domain: [0, 1] },
-    color: colourScale(colours, [...colours.keys()], true),
+    color: colourScale(colours ?? assignColours(names), names, true),
     marks: [
       Plot.gridX(GRID_STYLE),
       Plot.gridY(GRID_STYLE),
@@ -234,8 +240,8 @@ function barColours(names) {
   return colours;
 }
 
-// Plot's colour scale for the `shown` names, each in its assigned colour, with a legend when `hasLegend`.
-function colourScale(colours, shown, hasLegend) {
+/** Plot's colour scale for the `shown` names, each in its colour from the map `colours`, with a legend when `hasLegend`. */
+export function colourScale(colours, shown, hasLegend) {
   return {
     type: "ordinal",
     domain: shown,

@@ -4,6 +4,8 @@ import { test } from "node:test";
 import {
   assignColours,
   captionText,
+  chartFrame,
+  colourScale,
   dropThinBins,
   foldToOther,
   MIN_ROWS_PER_BIN,
@@ -111,4 +113,21 @@ test("a caption over several weeks gives their count", () => {
 
 test("a caption over one week names its Sunday", () => {
   assert.equal(captionText({ rows: 4100, scope: "All", weeks: ["2026-08-09"] }), "4,100 rows · All · 1 week (2026-08-09)");
+});
+
+test("every chart starts from the same frame, as wide as its body", () => {
+  const frame = chartFrame({ clientWidth: 300 });
+  assert.equal(frame.width, 300);
+  assert.equal(frame.height, chartFrame({ clientWidth: 600 }).height);
+  assert.equal(chartFrame({ clientWidth: 0 }).width, 480); // a body not yet laid out gets the fallback width
+});
+
+test("a colour scale keeps each shown name's colour from the map, in the order shown", () => {
+  const colours = assignColours(["m1", "m2", "m3"]);
+  assert.deepEqual(colourScale(colours, ["m3", "m1"], true), {
+    type: "ordinal",
+    domain: ["m3", "m1"],
+    range: ["var(--series-3)", "var(--series-1)"],
+    legend: true,
+  });
 });

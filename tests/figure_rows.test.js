@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { cdfSeries, dropThinGroups, hiddenText, restingRowCount } from "../site/js/figures/figure_rows.js";
+import { cdfSeries, dropThinGroups, hiddenText, restingRowCount, sparseTickFormat } from "../site/js/figures/figure_rows.js";
 
 // Two CDF series of two points each: `requests` over 120 sessions, `tool_steps` over 30.
 const CDF_ROWS = [
@@ -48,15 +48,29 @@ test("the hidden note names what was hidden, in the singular or the plural", () 
   assert.equal(hiddenText(1, "week"), "1 week hidden (fewer than 50 rows each)");
 });
 
-test("CDF rows become series in the labels' order, under their labels, with a missing series left out", () => {
-  const labels = { tool_steps: "Tool steps", user_steps: "User steps", requests: "Requests" };
-  assert.deepEqual(cdfSeries(CDF_ROWS, labels), [
-    { name: "Tool steps", points: [{ x: 0, share: 0 }, { x: 12, share: 1 }] },
-    { name: "Requests", points: [{ x: 3, share: 0 }, { x: 40, share: 1 }] },
+test("CDF rows become series in the order of the names given, with a missing series left out", () => {
+  assert.deepEqual(cdfSeries(CDF_ROWS, ["tool_steps", "user_steps", "requests"]), [
+    { name: "tool_steps", points: [{ x: 0, share: 0 }, { x: 12, share: 1 }] },
+    { name: "requests", points: [{ x: 3, share: 0 }, { x: 40, share: 1 }] },
   ]);
 });
 
+test("a CDF series is drawn under its label where it has one", () => {
+  const series = cdfSeries(CDF_ROWS, ["requests", "tool_steps"], { labels: { tool_steps: "Tool steps" } });
+  assert.deepEqual(series.map((one) => one.name), ["requests", "Tool steps"]);
+});
+
 test("a CDF value below the floor is drawn at the floor", () => {
-  const [toolSteps] = cdfSeries(CDF_ROWS, { tool_steps: "Tool steps" }, 1);
+  const [toolSteps] = cdfSeries(CDF_ROWS, ["tool_steps"], { floor: 1 });
   assert.deepEqual(toolSteps.points, [{ x: 1, share: 0 }, { x: 12, share: 1 }]);
+});
+
+test("a crowded axis labels every step-th value from the first, at most the number asked", () => {
+  const format = sparseTickFormat(["a", "b", "c", "d", "e", "f", "g"], (value) => value.toUpperCase(), 3);
+  assert.deepEqual(["a", "b", "c", "d", "e", "f", "g"].map(format), ["A", "", "", "D", "", "", "G"]);
+});
+
+test("an axis with room for every value labels them all", () => {
+  const format = sparseTickFormat([1, 2, 4], String, 6);
+  assert.deepEqual([1, 2, 4].map(format), ["1", "2", "4"]);
 });

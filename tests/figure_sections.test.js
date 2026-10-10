@@ -8,7 +8,15 @@ import { FIGURES } from "../site/js/figures/sessions.js";
 const QUERIES_FOLDER = new URL("../site/queries/", import.meta.url);
 
 // The Sessions figures the page draws, in order.
-const SESSIONS_FIGURE_NAMES = ["requests_per_session_cdf"];
+const SESSIONS_FIGURE_NAMES = [
+  "requests_per_session_cdf",
+  "duration_cdf",
+  "tokens_per_request_cdf",
+  "token_split_by_week",
+  "token_growth_by_messages",
+  "context_share_by_role",
+  "ttft_cdf_by_model",
+];
 
 test("the Sessions section lists its figures in order, and the list cannot be changed", () => {
   assert.deepEqual(FIGURES.map((figure) => figure.name), SESSIONS_FIGURE_NAMES);
