@@ -67,7 +67,7 @@ in a browser at 360 px and at desktop width, in light and dark mode.
 ## 4. Shared browser modules
 
 - [ ] 4.1 `site/js/shared/database.js`: one DuckDB per page, views over the four Parquet URLs, and `runQuery(name)` fetching `queries/<name>.sql`. Verify a test page runs `queries/request_count.sql` and shows the fixture's count.
-- [ ] 4.2 `site/js/shared/selection.js`:
+- [x] 4.2 `site/js/shared/selection.js`:
   - reads and writes `weeks`, `month` and `scope` in the URL, ignoring unknown weeks;
   - fills `selected_weeks` and `selected_scopes`;
   - draws the picker grouped by month, and the scope switch.
