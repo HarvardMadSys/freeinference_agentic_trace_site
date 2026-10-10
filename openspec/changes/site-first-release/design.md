@@ -91,7 +91,8 @@ it needs, so most selections fetch a few MB. The cost is DuckDB-WASM itself
 ### 2. One file per kind of row, sorted by week, root session and step
 
 `requests.parquet` holds every week, sorted by `week`, `root_session_id`,
-`session_id` and `step`, in row groups of `ROWS_PER_GROUP = 10_000`.
+`session_id` and `step`, written one week at a time in row groups of
+`ROWS_PER_GROUP = 100_000`, so a row group never spans two weeks.
 
 - DuckDB skips row groups whose `week` or `root_session_id` range excludes
   the selection.
@@ -105,13 +106,27 @@ Alternatives considered:
   cannot list files over HTTP, so every page would first fetch a file list
   and register each file: a step with no gain at 40 MB.
 - *pyarrow's default row group size.* Its default (about a million rows)
-  would put several weeks in one group and defeat the skipping. 10,000
-  matches the release's own row group size.
+  would put several weeks in one group and defeat the skipping.
+- *The release's own 10,000-row groups.* DuckDB-WASM reads a Parquet file
+  over HTTP with one synchronous ranged request per column chunk, so small
+  groups mean many round trips. Measured on the 16-week data against a
+  range-capable local server, the Explore page's one-week and all-weeks
+  counts together made 314 ranged reads of `requests.parquet` with
+  10,000-row groups (6.8 MB; 15 s for the all-weeks load) and 56 with
+  100,000-row groups (1.4 MB; 5.3 s including DuckDB's start-up). A week
+  has between 7,000 and 190,000 requests, so it still fills one or two
+  groups, and a session's whole tree sits in one of them.
+
+DuckDB-WASM is pinned to 1.29.0. Measured the same way, 1.30.0 to 1.32.0
+answer the same count with one un-ranged GET of the whole file (a
+`count(*)` on a 1.8 GB file on Hugging Face started a full download), while
+1.29.0 reads 1.2 MB in ranges. The browser itself passes `Range` headers,
+so the change is in the library; re-measure before raising the version.
 
 Measured on the 16-week release: `make data` takes 18.9 s and 5.1 GB of
 memory at its peak, and writes 73.1 MB: `requests.parquet` 62.4 MB,
 `tool_calls.parquet` about 9 MB, the sessions and simulation files under
-1 MB. The requests file is larger than the 40 MB of the release's own
+1 MB (59.2 and 7.7 MB with 100,000-row groups). The requests file is larger than the 40 MB of the release's own
 columns because of the derived columns: `hit_ratio` alone is 10.2 MB, and
 `wait_s`, `idle_gap_s` and `uncached_tokens` another 11.6 MB. They are kept,
 because the browser must not re-implement a pipeline definition; the levers,
