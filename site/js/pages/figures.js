@@ -16,6 +16,7 @@ import { dropThinGroups, hiddenText, restingCountText } from "../figures/figure_
 // exports its figures as `FIGURES`, so each is imported by its path rather than under a second name.
 const SECTIONS = Object.freeze([
   Object.freeze({ selector: "#figures-sessions", module: "../figures/sessions.js" }),
+  Object.freeze({ selector: "#figures-tools", module: "../figures/tools.js" }),
 ]);
 
 const PAGE_FILE = "figures.html"; // the page's own file, which the header marks as active
@@ -120,6 +121,7 @@ async function placeCards() {
       const card = document.createElement("article");
       card.className = "card";
       card.id = figure.name;
+      card.classList.toggle("is-wide", figure.isWide === true); // a wide table takes the grid's whole width
       grid.append(card);
       cards.push({ figure, card });
     }

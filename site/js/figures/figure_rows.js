@@ -18,6 +18,7 @@ const COUNT_COLUMN = "rows";
 const HIDDEN_NOUNS = Object.freeze({
   series: ["series", "series"],
   week: ["week", "weeks"],
+  category: ["category", "categories"],
 });
 const DEFAULT_HIDDEN_NOUN = ["bin", "bins"];
 

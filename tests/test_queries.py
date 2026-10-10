@@ -11,6 +11,8 @@ import site_database
 # The columns of a distribution card's two queries: its bins, and its count, maximum and percentiles.
 BIN_COLUMNS = ["bin_start", "bin_end", "rows"]
 STATS_COLUMNS = ["count", "max", "p50", "p75", "p90", "p95"]
+# The columns of a quantile-range figure's query: per category, its count and five percentiles.
+PERCENTILE_RANGE_COLUMNS = ["category", "rows", "p5", "p25", "p50", "p75", "p95"]
 
 # The columns each query returns, in order, by the query's name. Every query file outside `setup/` has an entry.
 EXPECTED_COLUMNS = {
@@ -47,6 +49,11 @@ EXPECTED_COLUMNS = {
                                          "median_output_tokens"],
     "figures/context_share_by_role": ["bin_start", "role", "share", "rows"],
     "figures/ttft_cdf_by_model": ["series", "x", "share", "rows"],
+    "figures/tool_overview": ["category", "rows", "share_of_calls", "sessions", "failed_share", "median_latency_ms",
+                              "median_result_tokens"],
+    "figures/calls_per_request": ["tool_calls", "rows", "share"],
+    "figures/latency_by_category": PERCENTILE_RANGE_COLUMNS,
+    "figures/result_tokens_by_category": PERCENTILE_RANGE_COLUMNS,
     "session/session_root": ["root_session_id", "week"],
     "session/session_tree": [
         "session_id", "parent_session_id", "spawned_by_step", "depth", "harness", "scope", "main_model", "user_id",

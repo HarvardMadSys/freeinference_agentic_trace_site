@@ -267,6 +267,16 @@ code,
   gap: 1rem;
 }
 
+/* A figure's card may shrink below its content, so a wide table scrolls inside the card, not the page. */
+.figure-section .card {
+  min-width: 0;
+}
+
+/* A figure too wide for one column of the grid, such as a table of seven columns, takes the whole row. */
+.figure-section .card.is-wide {
+  grid-column: 1 / -1;
+}
+
 /* Running text and definition lists, kept to a readable line length. */
 .prose p,
 .prose ul,
@@ -546,6 +556,11 @@ button.is-primary {
   color: var(--color-text-faint);
   cursor: pointer;
   user-select: none;
+}
+
+/* A table that does not sort: its headings are not buttons. */
+.data-table.is-static th {
+  cursor: default;
 }
 
 .data-table th.is-sorted {

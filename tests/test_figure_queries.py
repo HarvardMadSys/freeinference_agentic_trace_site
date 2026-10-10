@@ -1,6 +1,7 @@
 """The Paper figures page's queries on the fixture data: the CDFs' shape, the colour orders, and each figure's rows."""
 
 import duckdb
+import pandas
 import pytest
 
 import fixture_release
@@ -140,3 +141,53 @@ def test_the_category_order_counts_every_call_largest_first(connection: duckdb.D
     assert rows.values.tolist() == [["*Build/Test", 6], ["Read", 6], ["Subagent", 3], ["Edit", 1]]
 
 
+# The fixture's top-level tool calls over both weeks and every scope, counted by hand from `fixture_release.REQUESTS`:
+# `tree-root` read, task, task, edit and bash; `swe-bench` bash twice; `idle-week-1` read, read and bash; `mutation`
+# bash and read. The two `task` calls are one request's, so Subagent has no single-call latency.
+TOOL_CALLS_BY_CATEGORY = {"*Build/Test": 5, "Read": 4, "Subagent": 2, "Edit": 1}
+SESSIONS_BY_CATEGORY = {"*Build/Test": 4, "Read": 3, "Subagent": 1, "Edit": 1}
+# Read's single calls wait 10 s (`tree-root` step 0), 20 s and 5 s (`idle-week-1` steps 0 and 1) and 170 s
+# (`mutation` step 1) before the next request.
+MEDIAN_READ_LATENCY_MS = 15_000
+PERCENTILE_COLUMNS = ["p5", "p25", "p50", "p75", "p95"]
+
+
+def test_the_tool_overview_counts_calls_and_sessions_per_category_and_its_shares_sum_to_one(
+        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    rows = site_database.run_query(connection, "figures/tool_overview").set_index("category")
+    assert rows.rows.to_dict() == TOOL_CALLS_BY_CATEGORY
+    assert rows.sessions.to_dict() == SESSIONS_BY_CATEGORY
+    assert rows.share_of_calls.sum() == pytest.approx(1.0)
+    assert rows.failed_share.tolist() == [0.0] * len(rows)  # every fixture call's outcome is `ok`
+    assert rows.median_latency_ms["Read"] == MEDIAN_READ_LATENCY_MS
+    assert pandas.isna(rows.median_latency_ms["Subagent"])
+    assert rows.median_result_tokens.tolist() == [fixture_release.TOOL_RESULT_TOKENS] * len(rows)
+
+
+def test_calls_per_request_counts_the_requests_that_emitted_calls(connection: duckdb.DuckDBPyConnection,
+                                                                   fixture_weeks: list[str]) -> None:
+    # Eleven top-level requests emitted calls: `tree-root`'s step 1 two, the other ten one each.
+    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    rows = site_database.run_query(connection, "figures/calls_per_request")
+    assert rows.values.tolist() == [["1", 10, pytest.approx(10 / 11)], ["2", 1, pytest.approx(1 / 11)]]
+
+
+@pytest.mark.parametrize("name", ["figures/latency_by_category", "figures/result_tokens_by_category"])
+def test_a_category_s_percentiles_never_fall(connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str],
+                                            name: str) -> None:
+    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    rows = site_database.run_query(connection, name)
+    assert not rows.empty
+    for row in rows.itertuples():
+        percentiles = [getattr(row, column) for column in PERCENTILE_COLUMNS]
+        assert percentiles == sorted(percentiles), row.category
+
+
+def test_latency_counts_only_calls_that_were_their_request_s_only_call(connection: duckdb.DuckDBPyConnection,
+                                                                       fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    rows = site_database.run_query(connection, "figures/latency_by_category").set_index("category")
+    assert "Subagent" not in rows.index
+    assert rows.rows["Read"] == 4
+    assert rows.p50["Read"] == MEDIAN_READ_LATENCY_MS
