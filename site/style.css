@@ -332,6 +332,31 @@ code,
   height: auto;
 }
 
+/* Plot paints its tooltip and text halos in --plot-background; give it the card's surface in both modes. */
+.figure-body svg {
+  --plot-background: var(--color-surface);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: var(--chart-label);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.legend-dash {
+  width: 1.125rem;
+  height: 0.5rem;
+}
+
 .figure-caption {
   font-size: 0.75rem;
   color: var(--color-text-faint);
