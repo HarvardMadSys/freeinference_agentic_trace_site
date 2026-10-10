@@ -8,8 +8,28 @@ import pytest
 import fixture_release
 import site_database
 
+# The columns of a distribution card's two queries: its bins, and its count, maximum and percentiles.
+BIN_COLUMNS = ["bin_start", "bin_end", "rows"]
+STATS_COLUMNS = ["count", "max", "p50", "p75", "p90", "p95"]
+
 # The columns each query returns, in order, by the query's name. Every query file outside `setup/` has an entry.
 EXPECTED_COLUMNS = {
+    "explore/cached_fraction_bins": BIN_COLUMNS,
+    "explore/cached_fraction_stats": STATS_COLUMNS,
+    "explore/input_tokens_bins": BIN_COLUMNS,
+    "explore/input_tokens_stats": STATS_COLUMNS,
+    "explore/output_tokens_bins": BIN_COLUMNS,
+    "explore/output_tokens_stats": STATS_COLUMNS,
+    "explore/requests_per_session_bins": BIN_COLUMNS,
+    "explore/requests_per_session_stats": STATS_COLUMNS,
+    "explore/session_duration_bins": BIN_COLUMNS,
+    "explore/session_duration_stats": STATS_COLUMNS,
+    "explore/subagents_per_session_bins": BIN_COLUMNS,
+    "explore/subagents_per_session_stats": STATS_COLUMNS,
+    "explore/turns_per_session_bins": BIN_COLUMNS,
+    "explore/turns_per_session_stats": STATS_COLUMNS,
+    "explore/uncached_tokens_bins": BIN_COLUMNS,
+    "explore/uncached_tokens_stats": STATS_COLUMNS,
     "explore/headline_numbers": ["sessions", "accounts", "requests", "input_tokens", "output_tokens", "tool_calls",
                                  "subagents", "reported_input_tokens", "cached_tokens"],
     "explore/input_tokens_per_week": ["week", "requests", "cached_tokens", "uncached_tokens", "unreported_tokens"],

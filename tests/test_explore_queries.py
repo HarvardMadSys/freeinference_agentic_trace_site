@@ -6,7 +6,11 @@ The fixture's top-level sessions are `tree-root` (claude-code), `swe-bench` (eva
 two eval:swe-bench sessions are the SWE-Bench scope, the rest Agentic.
 """
 
+import pathlib
+import statistics
+
 import duckdb
+import pandas
 import pytest
 
 import fixture_release
@@ -128,3 +132,93 @@ def test_the_model_order_counts_every_week_and_scope(connection: duckdb.DuckDBPy
         {"model": "model-x", "requests": 14},
         {"model": "model-y", "requests": 2},
     ]
+
+
+# Each distribution card: the data file it reads, of requests or of sessions, and the column it takes.
+DISTRIBUTION_CARDS = {
+    "input_tokens": ("requests.parquet", "prompt_tokens"),
+    "uncached_tokens": ("requests.parquet", "uncached_tokens"),
+    "output_tokens": ("requests.parquet", "completion_tokens"),
+    "cached_fraction": ("requests.parquet", "hit_ratio"),
+    "requests_per_session": ("sessions.parquet", "requests"),
+    "turns_per_session": ("sessions.parquet", "user_steps"),
+    "subagents_per_session": ("sessions.parquet", "subagents"),
+    "session_duration": ("sessions.parquet", "duration_s"),
+}
+
+
+def top_level_values(data_directory: pathlib.Path, card: str, weeks: list[str], scope: str) -> list[float]:
+    """The card's values over the top-level rows of `weeks` and `scope`, read with pandas; missing values left out."""
+    file_name, column = DISTRIBUTION_CARDS[card]
+    rows = pandas.read_parquet(data_directory / file_name)
+    if file_name == "requests.parquet":
+        top_level = rows.is_top_level
+    else:
+        top_level = rows.parent_session_id.isna()
+    chosen = rows[top_level & rows.week.isin(weeks) & rows.scope.isin(site_database.SCOPES_OF[scope])]
+    return chosen[column].dropna().tolist()
+
+
+@pytest.mark.parametrize("scope", ["All", "Agentic"])
+@pytest.mark.parametrize("card", sorted(DISTRIBUTION_CARDS))
+def test_a_card_s_median_count_and_maximum_are_those_of_its_values(connection: duckdb.DuckDBPyConnection,
+                                                                    data_directory: pathlib.Path,
+                                                                    fixture_weeks: list[str], card: str,
+                                                                    scope: str) -> None:
+    select(connection, fixture_weeks, scope)
+    stats = records(connection, f"explore/{card}_stats")[0]
+    values = top_level_values(data_directory, card, fixture_weeks, scope)
+    assert stats["p50"] == pytest.approx(statistics.median(values))
+    assert stats["count"] == len(values)
+    assert stats["max"] == pytest.approx(max(values))
+    assert stats["p50"] <= stats["p75"] <= stats["p90"] <= stats["p95"] <= stats["max"]
+
+
+# The first week's top-level input tokens: `tree-root` 1,000 to 5,000, `swe-bench` 800 and 1,000, `idle-week-1`
+# 1,000, 1,200 and 1,400; sorted, the middle two are 1,200 and 1,400.
+def test_one_week_s_input_tokens_median_is_counted_by_hand(connection: duckdb.DuckDBPyConnection) -> None:
+    select(connection, [FIRST_SUNDAY], "All")
+    assert records(connection, "explore/input_tokens_stats")[0]["p50"] == 1_300
+
+
+@pytest.mark.parametrize("card", sorted(DISTRIBUTION_CARDS))
+def test_a_card_s_bins_hold_every_value_once_smallest_first(connection: duckdb.DuckDBPyConnection,
+                                                           fixture_weeks: list[str], card: str) -> None:
+    select(connection, fixture_weeks, "All")
+    bins = records(connection, f"explore/{card}_bins")
+    stats = records(connection, f"explore/{card}_stats")[0]
+    assert sum(row["rows"] for row in bins) == stats["count"]
+    starts = [row["bin_start"] for row in bins]
+    assert starts == sorted(starts)
+    for row in bins:
+        assert row["bin_start"] < row["bin_end"]
+
+
+# `tree-root` has 5 requests (in [4, 8)), `idle-week-1` and `mutation` 3 (in [2, 4)), `swe-bench` and
+# `idle-week-2` 2 (in [2, 4)), `idle-benchmark` 1 (in [1, 2)).
+def test_the_log_bins_are_powers_of_two(connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+    select(connection, fixture_weeks, "All")
+    assert records(connection, "explore/requests_per_session_bins") == [
+        {"bin_start": 1, "bin_end": 2, "rows": 1},
+        {"bin_start": 2, "bin_end": 4, "rows": 4},
+        {"bin_start": 4, "bin_end": 8, "rows": 1},
+    ]
+
+
+# Five top-level sessions spawned nothing and `tree-root` spawned three.
+def test_a_value_of_0_falls_in_the_first_bin(connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+    select(connection, fixture_weeks, "All")
+    assert records(connection, "explore/subagents_per_session_bins") == [
+        {"bin_start": 0, "bin_end": 1, "rows": 5},
+        {"bin_start": 2, "bin_end": 4, "rows": 1},
+    ]
+
+
+def test_the_cached_fraction_has_twenty_bins_of_a_twentieth_with_1_in_the_last(
+        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+    select(connection, fixture_weeks, "All")
+    bins = records(connection, "explore/cached_fraction_bins")
+    for row in bins:
+        assert row["bin_end"] - row["bin_start"] == pytest.approx(0.05)
+    assert bins[0]["bin_start"] == 0  # the first requests of most sessions read nothing from the cache
+    assert bins[-1]["bin_end"] <= 1

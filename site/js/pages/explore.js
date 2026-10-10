@@ -15,6 +15,7 @@ import { showError, showNote } from "../shared/charts.js";
 import { openDatabase } from "../shared/database.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
 import { mountSelection, readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
+import { layoutDistributions, runDistributions } from "../explore/distributions.js";
 import { layoutHeadline, runHeadline } from "../explore/headline.js";
 import { layoutTrends, runTrends } from "../explore/trends.js";
 
@@ -28,6 +29,7 @@ const NO_WEEK_NOTE = "Pick at least one week to see its numbers.";
 const SECTIONS = Object.freeze([
   Object.freeze({ id: "trends", layout: layoutTrends, run: runTrends }),
   Object.freeze({ id: "headline", layout: layoutHeadline, run: runHeadline }),
+  Object.freeze({ id: "distributions", layout: layoutDistributions, run: runDistributions }),
 ]);
 
 start();

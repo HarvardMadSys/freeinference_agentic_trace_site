@@ -7,10 +7,11 @@
 
 import { formatCount } from "./format.js";
 
-// The columns of a distribution query's rows: where a bin starts, where it ends, and how many rows fall in it.
+// The columns of a distribution query's rows: where a bin starts, where it ends, and how many rows (requests or
+// sessions, as the card counts) fall in it.
 const BIN_START_COLUMN = "bin_start";
 const BIN_END_COLUMN = "bin_end";
-const BIN_COUNT_COLUMN = "requests";
+const BIN_COUNT_COLUMN = "rows";
 
 // The percentiles drawn as dashed lines, each in the colour it has on every card.
 // Neighbouring percentiles put their labels on alternate rows, so two close lines keep readable labels.
@@ -50,6 +51,14 @@ export function binsFromRows(rows) {
   }));
 }
 
+/**
+ * The bins a card's chart draws: every bin on a linear scale; on a log scale only those starting above 0, since a
+ * log axis has no place for 0 and an undrawn bin must not stretch the count axis. The subtitle still counts every row.
+ */
+export function drawableBins(card) {
+  return card.logScale ? card.bins.filter((bin) => bin.x0 > 0) : card.bins;
+}
+
 /** Draw the distribution card into `container`, replacing what it held. */
 export async function mountHistogram(container, card) {
   container.replaceChildren();
@@ -83,7 +92,7 @@ function histogramChart(Plot, card, width) {
     width,
     height: CHART_HEIGHT,
     marginTop: 32,
-    marginLeft: 48,
+    marginLeft: 60, // room for a count of seven digits with its separators
     marginRight: 24,
     marginBottom: 28,
     style: { color: "var(--chart-label)", background: "transparent" },
@@ -93,10 +102,10 @@ function histogramChart(Plot, card, width) {
       Plot.gridY({ stroke: "var(--chart-grid)", strokeOpacity: 1 }),
       Plot.axisX({ stroke: "var(--chart-axis)", tickFormat: card.format, label: null }),
       Plot.axisY({ stroke: "var(--chart-axis)", tickFormat: formatCount }),
-      Plot.rectY(card.bins, { x1: "x0", x2: "x1", y: "count", fill: "var(--series-1)", inset: BAR_INSET }),
+      Plot.rectY(drawableBins(card), { x1: "x0", x2: "x1", y: "count", fill: "var(--series-1)", inset: BAR_INSET }),
       Plot.ruleY([0], { stroke: "var(--chart-axis)" }),
       ...percentileMarks(Plot, card),
-      Plot.tip(card.bins, Plot.pointerX({ x1: "x0", x2: "x1", y: "count", title: (bin) => binDescription(card, bin, countLabel) })),
+      Plot.tip(drawableBins(card), Plot.pointerX({ x1: "x0", x2: "x1", y: "count", title: (bin) => binDescription(card, bin, countLabel) })),
     ],
   });
 }

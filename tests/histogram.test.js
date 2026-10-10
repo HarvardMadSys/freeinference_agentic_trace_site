@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { formatSeconds, formatTokens } from "../site/js/shared/format.js";
-import { binsFromRows, subtitle } from "../site/js/shared/histogram.js";
+import { binsFromRows, drawableBins, subtitle } from "../site/js/shared/histogram.js";
 
 const TOKENS_CARD = {
   title: "Input tokens per request",
@@ -37,8 +37,8 @@ test("the subtitle of a card with no rows is just n = 0", () => {
 
 test("bins keep the rows' order and become numbers", () => {
   const rows = [
-    { bin_start: 2048, bin_end: 4096, requests: 7n },
-    { bin_start: 1024, bin_end: 2048, requests: 1532n },
+    { bin_start: 2048, bin_end: 4096, rows: 7n },
+    { bin_start: 1024, bin_end: 2048, rows: 1532n },
   ];
   assert.deepEqual(binsFromRows(rows), [
     { x0: 2048, x1: 4096, count: 7 },
@@ -48,4 +48,13 @@ test("bins keep the rows' order and become numbers", () => {
 
 test("no rows give no bins", () => {
   assert.deepEqual(binsFromRows([]), []);
+});
+
+test("a log card draws only the bins that start above 0, a linear card every bin", () => {
+  const bins = [
+    { x0: 0, x1: 1, count: 5 },
+    { x0: 2, x1: 4, count: 1 },
+  ];
+  assert.deepEqual(drawableBins({ ...TOKENS_CARD, bins, logScale: true }), [{ x0: 2, x1: 4, count: 1 }]);
+  assert.deepEqual(drawableBins({ ...TOKENS_CARD, bins, logScale: false }), bins);
 });
