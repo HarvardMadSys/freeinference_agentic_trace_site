@@ -3,7 +3,8 @@
  * `simulation`, the selection tables every query reads, and queries run by name.
  *
  * A query's name is its path under `site/queries/` without `.sql`: `runQuery("explore/request_count")`
- * runs `queries/explore/request_count.sql`, fetched relative to the page.
+ * runs `queries/explore/request_count.sql`, fetched relative to the page. `runQueryWith(name, parameters)`
+ * runs a query that takes `?` parameters.
  */
 
 import { scopesOf } from "./selection.js";
@@ -86,7 +87,17 @@ class Database {
   /** The rows of the query `name`, as plain objects whose integers and decimals are numbers. */
   async runQuery(name) {
     const result = await this.#connection.query(await this.#statementText(name));
-    return result.toArray().map((row) => plainRow(row.toJSON()));
+    return plainRows(result);
+  }
+
+  /** The rows of the query `name` run with `parameters` in place of its `?` placeholders, in order; as `runQuery`. */
+  async runQueryWith(name, parameters) {
+    const statement = await this.#connection.prepare(await this.#statementText(name));
+    try {
+      return plainRows(await statement.query(...parameters));
+    } finally {
+      await statement.close();
+    }
   }
 
   /**
@@ -170,6 +181,11 @@ async function connectToDuckDB() {
   URL.revokeObjectURL(workerUrl);
   await database.open({ query: QUERY_CONFIG });
   return database.connect();
+}
+
+/** The rows of a DuckDB result as plain objects whose integers and decimals are numbers. */
+function plainRows(result) {
+  return result.toArray().map((row) => plainRow(row.toJSON()));
 }
 
 /** The text of `queries/<name>.sql`, fetched relative to the page; throws naming the file if it cannot be fetched. */

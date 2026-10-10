@@ -47,6 +47,21 @@ EXPECTED_COLUMNS = {
                                          "median_output_tokens"],
     "figures/context_share_by_role": ["bin_start", "role", "share", "rows"],
     "figures/ttft_cdf_by_model": ["series", "x", "share", "rows"],
+    "session/session_root": ["root_session_id", "week"],
+    "session/session_tree": [
+        "session_id", "parent_session_id", "spawned_by_step", "depth", "harness", "scope", "main_model", "user_id",
+        "requests", "user_steps", "tool_calls", "first_start_ms", "duration_s", "input_tokens",
+        "reported_input_tokens", "cached_tokens", "output_tokens", "subagents", "subagent_requests",
+    ],
+    "session/session_requests": [
+        "session_id", "step", "turn", "step_trigger", "start_ms", "end_ms", "ttft_ms", "model", "provider",
+        "prompt_tokens", "cache_read_tokens", "uncached_tokens", "completion_tokens", "system_tokens", "user_tokens",
+        "assistant_tokens", "tool_tokens", "tool_definition_tokens", "n_messages", "finish_reason", "transition",
+        "cause", "waited_for", "wait_s", "n_tool_calls",
+    ],
+    "session/session_tool_calls": [
+        "session_id", "step", "call_index", "name", "category", "outcome", "result_tokens", "latency_ms",
+    ],
 }
 
 
@@ -69,7 +84,9 @@ COLOUR_ORDER_COLUMNS = {
 }
 
 # The `?` parameters of the queries that take them, in order, by the query's name.
-QUERY_PARAMETERS: dict[str, list] = {}
+QUERY_PARAMETERS: dict[str, list] = {
+    "session/session_root": ["tree-grandchild"],
+}
 
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
@@ -255,3 +272,36 @@ def test_the_ttft_cdf_keeps_only_trusted_ttfts(connection: duckdb.DuckDBPyConnec
     rows = site_database.run_query(connection, "figures/ttft_cdf_by_model")
     assert rows.series.unique().tolist() == ["model-x"]
     assert rows.rows.unique().tolist() == [11]
+
+
+def test_a_subagent_s_root_is_its_top_level_session(connection: duckdb.DuckDBPyConnection) -> None:
+    rows = site_database.run_query(connection, "session/session_root", ["tree-grandchild"])
+    assert rows.values.tolist() == [[SELECTED_SESSION, FIRST_SUNDAY]]
+
+
+def test_an_unknown_id_has_no_root(connection: duckdb.DuckDBPyConnection) -> None:
+    rows = site_database.run_query(connection, "session/session_root", ["no-such-session"])
+    assert len(rows) == 0
+
+
+def test_the_tree_holds_the_session_and_its_subagents_at_every_depth(connection: duckdb.DuckDBPyConnection) -> None:
+    site_database.select_session(connection, FIRST_SUNDAY, SELECTED_SESSION)
+    rows = site_database.run_query(connection, "session/session_tree")
+    assert rows.session_id.tolist() == ["tree-root", "tree-child", "tree-sibling", "tree-grandchild"]
+    assert rows.depth.tolist() == [0, 1, 1, 2]
+
+
+# `tree-root` 5 requests, `tree-child` 2, `tree-sibling` 2 and `tree-grandchild` 1, with 5, 2, 2 and 0 tool calls.
+def test_the_tree_s_requests_and_tool_calls_are_those_of_every_session_in_it(
+        connection: duckdb.DuckDBPyConnection) -> None:
+    site_database.select_session(connection, FIRST_SUNDAY, SELECTED_SESSION)
+    requests = site_database.run_query(connection, "session/session_requests")
+    tool_calls = site_database.run_query(connection, "session/session_tool_calls")
+    assert requests.session_id.value_counts().to_dict() == {
+        "tree-root": 5, "tree-child": 2, "tree-sibling": 2, "tree-grandchild": 1}
+    assert tool_calls.session_id.value_counts().to_dict() == {"tree-root": 5, "tree-child": 2, "tree-sibling": 2}
+
+
+def test_a_session_of_another_week_selects_nothing(connection: duckdb.DuckDBPyConnection) -> None:
+    site_database.select_session(connection, SECOND_SUNDAY, SELECTED_SESSION)
+    assert len(site_database.run_query(connection, "session/session_tree")) == 0

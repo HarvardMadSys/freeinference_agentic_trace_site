@@ -571,6 +571,27 @@ button.is-primary {
 
 /* ---------- Session views ---------- */
 
+/* The Session page's stat strip holds a dozen tiles, so its tiles are narrower and its values smaller. */
+.session-facts .stat-strip {
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 0.75rem;
+}
+
+.session-facts .stat {
+  padding: 0.75rem 1rem;
+}
+
+.session-facts .stat-value {
+  font-size: 1.25rem;
+}
+
+/* The full id under a session's title: long and unbroken, so it may wrap anywhere. */
+.session-id {
+  margin: 0;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
 .view-tabs {
   display: flex;
   gap: 0.25rem;
