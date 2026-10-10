@@ -1,20 +1,21 @@
 /**
  * The week picker, the scope switch, and the URL keys `weeks`, `month` and `scope` that hold their choice.
  *
- * A selection is `{ weeks, scope, unknownWeeks }`: the selected Sundays oldest first, one scope, and the
- * weeks the URL named that `weeks.json` does not hold. `weeks` below is the array `weeks.json` holds,
- * oldest first: `{ week, last_day, month, simulated }`.
+ * A selection is `{ weeks, scope, unknownWeeks, unknownMonth }`: the selected Sundays oldest first, one
+ * scope, the weeks the URL named that `weeks.json` does not hold, and the month the URL named that holds
+ * no week (or null). `weeks` below is the array `weeks.json` holds, oldest first:
+ * `{ week, last_day, month, simulated }`.
  */
 
 // The scope a page shows when the URL names none, or names one that does not exist.
 const DEFAULT_SCOPE = "Agentic";
 
 // Each scope a visitor can choose, with the scopes of the data it covers.
-const SCOPE_MEMBERS = {
+const SCOPE_MEMBERS = Object.freeze({
   Agentic: ["Agentic"],
   "SWE-Bench": ["SWE-Bench"],
   All: ["Agentic", "SWE-Bench"],
-};
+});
 
 // The value of the URL key `weeks` that selects every week.
 const ALL_WEEKS = "all";
@@ -26,24 +27,23 @@ export function readSelection(params, weeks) {
   const selected = known.filter((week) => requested.includes(week));
   return {
     weeks: selected.length > 0 ? selected : latestWeek(weeks),
-    scope: chosenScope(params),
+    scope: knownScope(params.get("scope")),
     unknownWeeks: unique(requested.filter((week) => !known.includes(week))),
+    unknownMonth: unknownMonth(params, weeks),
   };
 }
 
-/** A copy of `params` with the selection written in its shortest form and every other key untouched. */
+/**
+ * A copy of `params` with the selection written in its shortest form and every other key untouched.
+ * A selection with no week writes neither `weeks` nor `month`, so the URL opens on the default.
+ */
 export function writeSelection(params, selection, weeks) {
   const written = new URLSearchParams(params);
   written.delete("weeks");
   written.delete("month");
   written.delete("scope");
-  const month = wholeMonth(selection.weeks, weeks);
-  if (holdsAll(selection.weeks, weeks.map((entry) => entry.week))) {
-    written.set("weeks", ALL_WEEKS);
-  } else if (month !== null) {
-    written.set("month", month);
-  } else {
-    written.set("weeks", selection.weeks.join(","));
+  if (selection.weeks.length > 0) {
+    writeWeeks(written, selection.weeks, weeks);
   }
   if (selection.scope !== DEFAULT_SCOPE) {
     written.set("scope", selection.scope);
@@ -51,9 +51,16 @@ export function writeSelection(params, selection, weeks) {
   return written;
 }
 
-/** The scopes of the data a chosen scope covers: what fills `selected_scopes`. */
+/** The query string of `params` for the address bar: "?" and the keys, commas left plain; "" for no keys. */
+export function selectionQuery(params) {
+  // A comma needs no escaping in a query string and reads back the same, so `weeks=a,b` stays readable.
+  const query = params.toString().replaceAll("%2C", ",");
+  return query === "" ? "" : `?${query}`;
+}
+
+/** The scopes of the data a chosen scope covers: what fills `selected_scopes`; an unknown scope covers the default's. */
 export function scopesOf(scope) {
-  return [...SCOPE_MEMBERS[scope]];
+  return [...SCOPE_MEMBERS[knownScope(scope)]];
 }
 
 /** The weeks grouped by the month of their Sunday, months oldest first: `[{ month, weeks: [entry…] }]`. */
@@ -72,7 +79,7 @@ export function weeksByMonth(weeks) {
 
 /**
  * Draw the week picker and scope switch in `container`.
- * Every change redraws them and calls `onChange(selection)`; a change that would leave no week selected is refused.
+ * Every change redraws them and calls `onChange(selection)`; unticking the last week gives a selection with no week.
  */
 export function mountSelection(container, weeks, selection, onChange) {
   const picker = { container, weeks, selection, onChange };
@@ -106,8 +113,15 @@ function latestWeek(weeks) {
   return weeks.slice(-1).map((entry) => entry.week);
 }
 
-function chosenScope(params) {
-  const scope = params.get("scope");
+function unknownMonth(params, weeks) {
+  const month = params.get("month");
+  if (params.has("weeks") || month === null || month === "") {
+    return null;
+  }
+  return weeks.some((entry) => entry.month === month) ? null : month;
+}
+
+function knownScope(scope) {
   return Object.hasOwn(SCOPE_MEMBERS, scope) ? scope : DEFAULT_SCOPE;
 }
 
@@ -117,6 +131,17 @@ function unique(values) {
 
 function holdsAll(selectedWeeks, someWeeks) {
   return someWeeks.every((week) => selectedWeeks.includes(week));
+}
+
+function writeWeeks(written, selectedWeeks, weeks) {
+  const month = wholeMonth(selectedWeeks, weeks);
+  if (holdsAll(selectedWeeks, weeks.map((entry) => entry.week))) {
+    written.set("weeks", ALL_WEEKS);
+  } else if (month !== null) {
+    written.set("month", month);
+  } else {
+    written.set("weeks", selectedWeeks.join(","));
+  }
 }
 
 function wholeMonth(selectedWeeks, weeks) {
@@ -213,13 +238,10 @@ function choose(picker, chosenWeeks, scope) {
   const next = {
     weeks: picker.weeks.map((entry) => entry.week).filter((week) => chosenWeeks.includes(week)),
     scope,
+    // After a change the URL no longer names what was unknown.
     unknownWeeks: [],
+    unknownMonth: null,
   };
-  if (next.weeks.length === 0) {
-    // At least one week stays selected: redraw the unchanged selection, which re-ticks the pill.
-    mountSelection(picker.container, picker.weeks, picker.selection, picker.onChange);
-    return;
-  }
   mountSelection(picker.container, picker.weeks, next, picker.onChange);
   picker.onChange(next);
 }
@@ -235,10 +257,14 @@ function restoreFocus(container, choice) {
   }
 }
 
+/** "2026-05" → "May 2026". */
 function monthName(month) {
-  return new Date(`${month}-01T00:00:00Z`).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+  const firstDay = new Date(`${month}-01T00:00:00Z`);
+  return firstDay.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
 }
 
+/** "2026-05-31" → "May 31". */
 function dayName(sunday) {
-  return new Date(`${sunday}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  const day = new Date(`${sunday}T00:00:00Z`);
+  return day.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 }
