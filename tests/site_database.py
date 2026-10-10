@@ -1,11 +1,13 @@
 """The site's database in Python DuckDB, set up and filled by the same `.sql` files the browser runs.
 
-`site/js/shared/database.js` opens the browser's database by running every
-`site/queries/setup/create_*.sql` statement, with `{data_url}` replaced by the
-data folder's URL, and fills the selection tables through the `clear_*` and
+`site/js/shared/database.js` opens the browser's database by running the
+`site/queries/setup/create_*.sql` statements in its own order, the four views
+(with `{data_url}` replaced by the data folder's URL) and then the three
+selection tables, and fills the selection tables through the `clear_*` and
 `insert_*` statements, one parameterised insert per value. The functions here
-do the same with a local data folder, so a test runs a query exactly as a page
-runs it. A query's name is its path under `site/queries/` without `.sql`.
+run the same statements in the browser's order with a local data folder, so a
+test runs a query exactly as a page runs it. A query's name is its path under
+`site/queries/` without `.sql`.
 """
 
 import pathlib
@@ -16,7 +18,24 @@ import pandas
 QUERIES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site" / "queries"
 SETUP_FOLDER = QUERIES_FOLDER / "setup"  # the statements that create and fill the views and selection tables
 DATA_URL_PLACEHOLDER = "{data_url}"  # stands for the data folder in a view statement, as in database.js
-CREATE_STATEMENT_PATTERN = "create_*.sql"  # the setup files that create a view or a selection table
+
+# The statements that register each data file as a view, in the order database.js runs them.
+VIEW_STATEMENTS = [
+    "setup/create_view_requests",
+    "setup/create_view_tool_calls",
+    "setup/create_view_sessions",
+    "setup/create_view_simulation",
+]
+
+# The statements that make the empty selection tables, run after the views, in the order database.js runs them.
+SELECTION_TABLE_STATEMENTS = [
+    "setup/create_selected_weeks",
+    "setup/create_selected_scopes",
+    "setup/create_selected_session",
+]
+
+# The scopes of the data each scope a visitor can choose covers, as `scopesOf` in selection.js gives them.
+SCOPES_OF = {"Agentic": ["Agentic"], "SWE-Bench": ["SWE-Bench"], "All": ["Agentic", "SWE-Bench"]}
 
 
 def statement_text(name: str) -> str:
@@ -25,11 +44,12 @@ def statement_text(name: str) -> str:
 
 
 def open_site_database(data_directory: pathlib.Path) -> duckdb.DuckDBPyConnection:
-    """An in-memory database with the four views over `data_directory` and the empty selection tables."""
+    """A new in-memory database: the four views over `data_directory`, then the empty selection tables."""
     connection = duckdb.connect()
-    for path in sorted(SETUP_FOLDER.glob(CREATE_STATEMENT_PATTERN)):
-        statement = path.read_text().replace(DATA_URL_PLACEHOLDER, str(data_directory))
-        connection.execute(statement)
+    for name in VIEW_STATEMENTS:
+        connection.execute(statement_text(name).replace(DATA_URL_PLACEHOLDER, str(data_directory)))
+    for name in SELECTION_TABLE_STATEMENTS:
+        connection.execute(statement_text(name))
     return connection
 
 

@@ -1,13 +1,11 @@
 """Every query of the site, run as the browser runs it on data built from the fixture release, returns its columns."""
 
 import collections.abc
-import json
 import pathlib
+import re
 
 import duckdb
 import pytest
-
-import site_data.__main__
 
 import fixture_release
 import site_database
@@ -20,20 +18,14 @@ EXPECTED_COLUMNS = {
 # The `?` parameters of the queries that take them, in order, by the query's name.
 QUERY_PARAMETERS: dict[str, list] = {}
 
-SCOPES = ["Agentic", "SWE-Bench"]  # every scope of the data; the scope "All" selects both
+FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
+SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
+ALL_SCOPES = site_database.SCOPES_OF["All"]  # every scope of the data
 SESSION_QUERIES_FOLDER = "session/"  # queries of the Session page, which read the selected session
-SELECTED_SESSION = "tree-root"  # the fixture's session with a tree of subagents
-SELECTED_SESSION_WEEK = fixture_release.FIRST_WEEK.split("_")[0]  # its week's Sunday
+SELECTED_SESSION = "tree-root"  # the fixture's first-week session with a tree of subagents
 
-
-@pytest.fixture(scope="session")
-def data_directory(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
-    """The site's data folder, built once from the fixture release."""
-    root = tmp_path_factory.mktemp("site")
-    fixture_release.write_fixture_release(root / "release", root / "simulation")
-    site_data.__main__.main(["--release", str(root / "release"), "--simulation", str(root / "simulation"),
-                             "--out", str(root / "data")])
-    return root / "data"
+# The browser's database module, whose lists of setup statements the tests compare with the helper's.
+DATABASE_MODULE = site_database.QUERIES_FOLDER.parent / "js" / "shared" / "database.js"
 
 
 @pytest.fixture
@@ -44,22 +36,33 @@ def connection(data_directory: pathlib.Path) -> collections.abc.Iterator[duckdb.
     database.close()
 
 
-def fixture_weeks(data_directory: pathlib.Path) -> list[str]:
-    """The Sunday of every week in the data folder's `weeks.json`, oldest first."""
-    entries = json.loads((data_directory / "weeks.json").read_text())
-    return [entry["week"] for entry in entries]
+def browser_statement_names(constant: str) -> list[str]:
+    """The quoted statement names, in order, of the list `const <constant> = Object.freeze([...]);` in database.js."""
+    declaration = re.search(rf"const {constant} = Object\.freeze\(\[(.*?)\]\);", DATABASE_MODULE.read_text(), re.DOTALL)
+    assert declaration is not None, f"{DATABASE_MODULE.name} declares no {constant}"
+    return re.findall(r'"([^"]+)"', declaration.group(1))
 
 
-def test_the_fixture_has_two_weeks(data_directory: pathlib.Path) -> None:
-    assert fixture_weeks(data_directory) == ["2026-05-31", "2026-06-07"]
+def test_the_setup_statements_run_in_the_browser_s_order() -> None:
+    assert site_database.VIEW_STATEMENTS == browser_statement_names("VIEW_STATEMENTS")
+    assert site_database.SELECTION_TABLE_STATEMENTS == browser_statement_names("SELECTION_TABLE_STATEMENTS")
+
+
+def test_every_create_statement_on_disk_is_run() -> None:
+    on_disk = {f"setup/{path.stem}" for path in site_database.SETUP_FOLDER.glob("create_*.sql")}
+    assert on_disk == {*site_database.VIEW_STATEMENTS, *site_database.SELECTION_TABLE_STATEMENTS}
+
+
+def test_the_fixture_has_two_weeks(fixture_weeks: list[str]) -> None:
+    assert fixture_weeks == [FIRST_SUNDAY, SECOND_SUNDAY]
 
 
 @pytest.mark.parametrize("name", sorted(EXPECTED_COLUMNS))
-def test_a_query_returns_its_columns(connection: duckdb.DuckDBPyConnection, data_directory: pathlib.Path,
+def test_a_query_returns_its_columns(connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str],
                                      name: str) -> None:
-    site_database.select_weeks(connection, fixture_weeks(data_directory), SCOPES)
+    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
     if name.startswith(SESSION_QUERIES_FOLDER):
-        site_database.select_session(connection, SELECTED_SESSION_WEEK, SELECTED_SESSION)
+        site_database.select_session(connection, FIRST_SUNDAY, SELECTED_SESSION)
     rows = site_database.run_query(connection, name, QUERY_PARAMETERS.get(name))
     assert list(rows.columns) == EXPECTED_COLUMNS[name]
 
@@ -75,35 +78,33 @@ def test_every_parameterised_query_is_listed() -> None:
 
 def test_every_query_file_starts_with_a_comment() -> None:
     for path in sorted(site_database.QUERIES_FOLDER.rglob("*.sql")):
-        first_line = path.read_text().splitlines()[0]
-        assert first_line.startswith("--"), f"{path.relative_to(site_database.QUERIES_FOLDER)} starts with {first_line!r}"
+        name = path.relative_to(site_database.QUERIES_FOLDER)
+        lines = path.read_text().splitlines()
+        assert lines, f"{name} is empty; its first line must be a -- comment saying what one row is"
+        assert lines[0].startswith("--"), f"{name} starts with {lines[0]!r}, not a -- comment"
 
 
 # Top-level requests of the fixture, counted by hand from `fixture_release.REQUESTS`: in the Agentic scope
 # `tree-root` 5, `idle-week-1` 3, `mutation` 3 and `idle-week-2` 2; in the SWE-Bench scope `swe-bench` 2 and
 # `idle-benchmark` 1. The subagents `tree-child`, `tree-sibling` and `tree-grandchild` are not top-level.
-@pytest.mark.parametrize(("scopes", "top_level_requests"), [
-    (["Agentic"], 13),
-    (["SWE-Bench"], 3),
-    (SCOPES, 16),
-])
+@pytest.mark.parametrize(("scope", "top_level_requests"), [("Agentic", 13), ("SWE-Bench", 3), ("All", 16)])
 def test_the_request_count_is_the_number_of_top_level_requests(connection: duckdb.DuckDBPyConnection,
-                                                               data_directory: pathlib.Path, scopes: list[str],
+                                                               fixture_weeks: list[str], scope: str,
                                                                top_level_requests: int) -> None:
-    site_database.select_weeks(connection, fixture_weeks(data_directory), scopes)
+    site_database.select_weeks(connection, fixture_weeks, site_database.SCOPES_OF[scope])
     rows = site_database.run_query(connection, "explore/request_count")
     assert rows.requests.tolist() == [top_level_requests]
 
 
 def test_a_new_selection_replaces_the_previous_one(connection: duckdb.DuckDBPyConnection,
-                                                   data_directory: pathlib.Path) -> None:
-    site_database.select_weeks(connection, fixture_weeks(data_directory), SCOPES)
-    site_database.select_weeks(connection, [SELECTED_SESSION_WEEK], ["Agentic"])
+                                                   fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    site_database.select_weeks(connection, [FIRST_SUNDAY], site_database.SCOPES_OF["Agentic"])
     rows = site_database.run_query(connection, "explore/request_count")
     assert rows.requests.tolist() == [8]  # `tree-root` 5 and `idle-week-1` 3, the first week's Agentic sessions
 
 
 def test_a_new_session_replaces_the_previous_one(connection: duckdb.DuckDBPyConnection) -> None:
-    site_database.select_session(connection, fixture_release.SECOND_WEEK.split("_")[0], "mutation")
-    site_database.select_session(connection, SELECTED_SESSION_WEEK, SELECTED_SESSION)
-    assert connection.table("selected_session").fetchall() == [(SELECTED_SESSION_WEEK, SELECTED_SESSION)]
+    site_database.select_session(connection, SECOND_SUNDAY, "mutation")
+    site_database.select_session(connection, FIRST_SUNDAY, SELECTED_SESSION)
+    assert connection.table("selected_session").fetchall() == [(FIRST_SUNDAY, SELECTED_SESSION)]
