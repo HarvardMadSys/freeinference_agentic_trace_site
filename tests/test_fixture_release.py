@@ -39,11 +39,14 @@ def test_the_two_subagents_overlap_in_time(tmp_path: pathlib.Path) -> None:
     assert sibling.start_ms < child.end_ms and child.start_ms < sibling.end_ms
 
 
-def test_every_tool_step_has_a_tool_call(tmp_path: pathlib.Path) -> None:
+def test_a_step_is_tool_triggered_exactly_when_the_step_before_called_tools(tmp_path: pathlib.Path) -> None:
     release = loaded_fixture(tmp_path)
-    tool_steps = release.requests[release.requests.step_trigger == "tool"][["session_id", "step"]]
-    called = release.tool_calls[["session_id", "step"]].drop_duplicates()
-    assert len(tool_steps.merge(called)) == len(tool_steps) == 9
+    called = set(zip(release.tool_calls.session_id, release.tool_calls.step))
+    for session_id, step, step_trigger in zip(release.requests.session_id, release.requests.step,
+                                              release.requests.step_trigger):
+        if step > 0:
+            assert (step_trigger == "tool") == ((session_id, step - 1) in called), (session_id, step)
+    assert (release.requests.step_trigger == "tool").sum() == 11
 
 
 def test_only_the_benchmark_session_reports_no_cache_reads(tmp_path: pathlib.Path) -> None:

@@ -17,8 +17,8 @@ counted in the first bin and one over the last edge in none.
 import pandas
 
 from paper.metrics import gaps, latency, tokens, turns
-from release import population, reader
-from site_data import session_tree
+from release import population, schema
+from site_data import loading, session_tree
 
 # The reader's flattened role tokens, and the site's name for each.
 ROLE_TOKEN_COLUMNS = {
@@ -36,24 +36,22 @@ COLUMNS = [
     "cause", "scope", "is_top_level", "root_session_id", "depth", "turn", "uncached_tokens", "hit_ratio", "wait_s",
     "idle_gap_s", "idle_gap_bin", "is_trusted_ttft", "n_tool_calls",
 ]
-# Integer columns with missing values: no TTFT reported, no cache reads reported, no idle-gap bin.
-NULLABLE_INTEGER_COLUMNS = ["ttft_ms", "cache_read_tokens", "uncached_tokens", "idle_gap_bin"]
 
 
-def requests_frame(release: reader.Release) -> pandas.DataFrame:
-    """The site's requests, in session and step order, from a release whose frames carry `week`."""
+def requests_frame(release: loading.WeekTaggedRelease) -> pandas.DataFrame:
+    """The site's requests, in session and step order."""
     requests = release.requests.sort_values(["session_id", "step"], ignore_index=True)
     requests = with_sessions(requests, release.sessions)
     requests["turn"] = turns.turn_numbers(requests)
     requests["wait_s"] = turns.waits(requests)
-    requests["uncached_tokens"] = tokens.uncached_tokens(requests)
+    requests["uncached_tokens"] = tokens.uncached_tokens(requests).astype("Int64")
     requests["hit_ratio"] = gaps.hit_ratio(requests)
     requests["is_trusted_ttft"] = latency.is_trusted_ttft(requests)
     requests["idle_gap_s"] = top_level_idle_gaps(requests)
     requests["idle_gap_bin"] = idle_gap_bins(requests.idle_gap_s)
     requests["n_tool_calls"] = tool_call_counts(requests, release.tool_calls)
-    requests = requests.rename(columns=ROLE_TOKEN_COLUMNS)[COLUMNS]
-    return requests.astype({column: "Int64" for column in NULLABLE_INTEGER_COLUMNS})
+    requests = loading.with_nullable_integers(requests, schema.REQUESTS_SCHEMA)
+    return requests.rename(columns=ROLE_TOKEN_COLUMNS)[COLUMNS]
 
 
 def with_sessions(requests: pandas.DataFrame, sessions: pandas.DataFrame) -> pandas.DataFrame:

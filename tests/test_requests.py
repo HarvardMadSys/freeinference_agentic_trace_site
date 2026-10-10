@@ -55,8 +55,8 @@ def test_a_tool_step_continues_its_turn_after_a_wait(tmp_path: pathlib.Path) -> 
 
 def test_a_user_step_starts_the_next_turn_and_step_0_has_no_wait(tmp_path: pathlib.Path) -> None:
     site_requests = fixture_requests(tmp_path)
-    assert site_requests.turn[("tree-root", 4)] == 2
-    assert pandas.isna(site_requests.wait_s[("tree-root", 0)])
+    assert site_requests.turn[("idle-week-2", 1)] == 2
+    assert pandas.isna(site_requests.wait_s[("idle-week-2", 0)])
 
 
 def test_the_nested_subagent_is_two_below_its_root(tmp_path: pathlib.Path) -> None:

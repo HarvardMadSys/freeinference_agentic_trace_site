@@ -8,8 +8,10 @@ Eight sessions, twenty requests and sixteen tool calls:
 - `idle-week-1` and `idle-week-2` belong to one user at one provider, so the
   second's first request has an idle gap that crosses the week boundary.
 
-Every tool-triggered request emits at least one tool call. Times are given in
-seconds after the Sunday 00:00 UTC of the session's week.
+A request is tool-triggered exactly when the request before it called tools,
+so a call's latency is always time spent on tools, never a person's idle time;
+a session may end on a call. Times are given in seconds after the Sunday
+00:00 UTC of the session's week.
 """
 
 import dataclasses
@@ -89,11 +91,12 @@ SESSIONS = (
 )
 
 REQUESTS = (
+    # session_id, step, start_s, end_s, step_trigger, waited_for, prompt_tokens, cache_read_tokens, calls
     FixtureRequest("tree-root", 0, 1_000, 1_010, "user", None, 1_000, 0, ("read",), ttft_ms=2_000),
     FixtureRequest("tree-root", 1, 1_020, 1_030, "tool", "tool", 2_000, 1_000, ("task", "task")),
     FixtureRequest("tree-root", 2, 1_100, 1_110, "tool", "subagent", 3_000, 2_000, ("edit",), ttft_ms=9_900),
     FixtureRequest("tree-root", 3, 1_120, 1_130, "tool", "tool", 4_000, 3_000, ("bash",), ttft_ms=None),
-    FixtureRequest("tree-root", 4, 1_300, 1_310, "user", "user", 5_000, 4_000),
+    FixtureRequest("tree-root", 4, 1_300, 1_310, "tool", "tool", 5_000, 4_000),
     FixtureRequest("tree-child", 0, 1_031, 1_040, "user", None, 500, 0, ("task",)),
     FixtureRequest("tree-child", 1, 1_060, 1_070, "tool", "subagent", 800, 500, ("read",)),
     FixtureRequest("tree-sibling", 0, 1_032, 1_045, "user", None, 500, 0, ("read",)),
@@ -107,7 +110,7 @@ REQUESTS = (
     FixtureRequest("mutation", 0, 1_000, 1_010, "user", None, 2_000, 0, ("bash",)),
     FixtureRequest("mutation", 1, 1_020, 1_030, "tool", "tool", 1_500, 0, ("read",),
                    transition="mutation", cause="compaction"),
-    FixtureRequest("mutation", 2, 1_200, 1_210, "user", "user", 1_800, 1_500),
+    FixtureRequest("mutation", 2, 1_200, 1_210, "tool", "tool", 1_800, 1_500),
     FixtureRequest("idle-week-2", 0, 4_200, 4_210, "user", None, 1_000, 800, provider="B"),
     FixtureRequest("idle-week-2", 1, 4_300, 4_310, "user", "user", 1_200, 1_000, provider="B"),
 )
@@ -130,7 +133,7 @@ def write_week(week_directory: pathlib.Path) -> None:
     requests = [request for request in REQUESTS if request.session_id in session_weeks]
     tables = {
         schema.SESSIONS_FILE: sessions_table(sessions),
-        schema.REQUESTS_FILE: requests_table(requests, week_start_ms(week_directory.name)),
+        schema.REQUESTS_FILE: requests_table(requests, week_start_ms(week_directory)),
         schema.TOOL_CALLS_FILE: tool_calls_table(requests),
     }
     files = {}
@@ -140,9 +143,9 @@ def write_week(week_directory: pathlib.Path) -> None:
     (week_directory / schema.TABLES_FILE).write_text(json.dumps(record, indent=2) + "\n")
 
 
-def week_start_ms(week: str) -> int:
+def week_start_ms(week_directory: pathlib.Path) -> int:
     """The Sunday 00:00 UTC a week folder is named by, in milliseconds since the epoch."""
-    sunday = datetime.datetime.fromisoformat(week[: len("YYYY-MM-DD")]).replace(tzinfo=datetime.UTC)
+    sunday = datetime.datetime.fromisoformat(reader.week_sunday(week_directory)).replace(tzinfo=datetime.UTC)
     return int(sunday.timestamp()) * schema.MILLISECONDS_PER_SECOND
 
 
