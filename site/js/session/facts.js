@@ -2,8 +2,9 @@
  * The Session page's stat strip: what kind of session it is, when it ran, how much it did and how much it cached.
  *
  * Turns, requests and tool calls are the top-level session's own, with its subagents' given apart; token totals
- * cover every agent of the tree, and the cached share is their cached tokens over their cache-reporting input. `tree` holds rows of `session/session_tree` (the top-level session has depth 0)
- * and `requests` rows of `session/session_requests`.
+ * cover every agent of the tree, and the cached share is their cached tokens over their cache-reporting input.
+ * `tree` holds rows of `session/session_tree` (the top-level session has depth 0) and `requests` rows of
+ * `session/session_requests`.
  */
 
 import { formatCount, formatSeconds, formatShare, formatTokens } from "../shared/format.js";
@@ -18,6 +19,7 @@ const MINUTE_LENGTH = 16;
 export function sessionFacts(tree, requests) {
   const topLevel = tree.find((session) => session.depth === 0);
   const totals = treeTotals(tree);
+  const subagentToolCalls = totals.toolCalls - topLevel.tool_calls;
   return [
     { label: "Harness", value: topLevel.harness, detail: `${topLevel.scope} scope` },
     modelsFact(requests),
@@ -26,7 +28,7 @@ export function sessionFacts(tree, requests) {
     { label: "Turns", value: formatCount(topLevel.user_steps), detail: "of the top-level session" },
     { label: "Requests", value: formatCount(topLevel.requests), detail: inSubagents(topLevel.subagent_requests) },
     { label: "Subagents", value: formatCount(topLevel.subagents), detail: "at every depth" },
-    { label: "Tool calls", value: formatCount(topLevel.tool_calls), detail: inSubagents(totals.toolCalls - topLevel.tool_calls) },
+    { label: "Tool calls", value: formatCount(topLevel.tool_calls), detail: inSubagents(subagentToolCalls) },
     { label: "Input tokens", value: formatTokens(totals.inputTokens), detail: "every agent" },
     { label: "Cached share", value: cachedShare(totals), detail: `${formatTokens(totals.cachedTokens)} cached tokens` },
     { label: "Output tokens", value: formatTokens(totals.outputTokens), detail: "every agent" },

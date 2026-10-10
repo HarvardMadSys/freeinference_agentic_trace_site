@@ -2,6 +2,7 @@
 
 import { readAddress, selectionParameters, viewParameters, VIEW_NAMES } from "../session/address.js";
 import { mountFacts, sessionFacts } from "../session/facts.js";
+import { mountRequestsView } from "../session/requests.js";
 import { shortSessionId } from "../session/tree.js";
 import { showError, showLoading, showNote } from "../shared/charts.js";
 import { openDatabase } from "../shared/database.js";
@@ -31,7 +32,7 @@ openSession(readAddress(parameters)).catch((error) => {
   page.view.hidden = true;
 });
 
-/** Load the session the address names and fill the page; a note instead when the address names no session of its week. */
+/** Load the session the address names and fill the page; a note when it names no session of its week. */
 async function openSession(address) {
   if (address.week === null || address.id === null) {
     showNotFound("This link names no session. Open one from the sessions table of the Explore page.");
@@ -47,7 +48,8 @@ async function openSession(address) {
   page.title.textContent = `Session ${shortSessionId(topLevel.session_id)}`;
   page.sessionId.textContent = topLevel.session_id;
   mountFacts(page.facts, sessionFacts(session.tree, session.requests));
-  mountViewTabs(page.tabs, address.view, (view) => showView(view, session, address));
+  // A tab's link names no step, so a view chosen by its tab points at no request.
+  mountViewTabs(page.tabs, address.view, (view) => showView(view, session, { ...address, step: null }));
   showView(address.view, session, address);
 }
 
@@ -69,8 +71,13 @@ async function loadSession(database, address) {
   return { tree, requests, toolCalls };
 }
 
-/** Draw the view `view` of the loaded session into the view section. */
+/** Draw the view `view` of the loaded session into the view section, pointing at the address's session and step. */
 function showView(view, session, address) {
+  if (view === "requests") {
+    const options = { focusSessionId: address.id, focusStep: address.step };
+    mountRequestsView(page.view, session.tree, session.requests, session.toolCalls, options);
+    return;
+  }
   showNote(page.view, `The ${VIEW_TITLES[view]} view is not drawn yet.`);
 }
 
