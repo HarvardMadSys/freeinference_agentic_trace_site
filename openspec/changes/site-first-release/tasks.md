@@ -125,7 +125,7 @@ in a browser at 360 px and at desktop width, in light and dark mode.
 
 ## 8. Deploy
 
-- [ ] 8.1 `make deploy`: copy `site/` to an orphan `gh-pages` commit and force-push it. Verify the branch holds one commit after two deploys.
+- [x] 8.1 `make deploy`: copy `site/` to an orphan `gh-pages` commit and force-push it. Verify the branch holds one commit after two deploys.
 - [ ] 8.2 Check the deployed site end to end:
   - every page at 360 px and at desktop width, in light and dark mode;
   - Parquet responses are `206`;
