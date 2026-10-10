@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { ganttBars, ganttRows, undrawnCounts, WAIT_OPACITY } from "../site/js/session/timeline_bars.js";
+import {
+  barAt, ganttBars, ganttRows, placedInRow, pointerPlace, requestPartEntries, undrawnCounts, waitEntries, WAIT_OPACITY,
+} from "../site/js/session/timeline_bars.js";
 import { assignColours } from "../site/js/shared/charts.js";
 
 // The fixture's tree: `root` spawns `child` and `sibling` from step 1, whose requests overlap; `child` spawns
@@ -55,15 +57,15 @@ test("the overlapping subagents sit on separate rows at overlapping times", () =
 test("a request splits at its time to first token into two bars", () => {
   const first = barsOf((bar) => bar.sessionId === "root" && bar.step === 0 && bar.band === "request");
   assert.deepEqual(first.map((bar) => [bar.x1, bar.x2, bar.colour]), [
-    [0, 2, "var(--series-1)"],
-    [2, 10, "var(--series-7)"],
+    [0, 2, "var(--color-text-muted)"],
+    [2, 10, "var(--color-text-faint)"],
   ]);
   assert.match(first[0].tip, /^main · step 0 · turn 1\ntime to first token 2s\nrest 8s$/);
 });
 
 test("a request without a time to first token is one bar", () => {
   const unreported = barsOf((bar) => bar.step === 2 && bar.opacity === 1);
-  assert.deepEqual(unreported.map((bar) => [bar.x1, bar.x2, bar.colour]), [[100, 110, "var(--series-other)"]]);
+  assert.deepEqual(unreported.map((bar) => [bar.x1, bar.x2, bar.colour]), [[100, 110, "var(--color-text-faint)"]]);
 });
 
 test("a tool call runs from its request's end for its latency, in the tool band, coloured by category", () => {
@@ -96,4 +98,61 @@ test("tool calls without a positive latency and waits under zero are counted as 
   assert.deepEqual(undrawnCounts(overlapping, CALLS), { toolCalls: 1, waits: 1 });
   const bars = ganttBars(TREE, overlapping, CALLS, COLOURS);
   assert.equal(bars.filter((bar) => bar.step === 3 && bar.opacity === WAIT_OPACITY).length, 0);
+});
+
+test("a bar sits in its band of its row: requests and waits above, tool calls below", () => {
+  const request = placedInRow({ row: 2, band: "request" });
+  const tool = placedInRow({ row: 2, band: "tool" });
+  assert.ok(request.y1 >= 2 && request.y2 <= tool.y1 && tool.y2 <= 3);
+});
+
+test("the upper part of a row is its request band, the lower its tool band", () => {
+  assert.deepEqual(pointerPlace(2.3), { row: 2, band: "request" });
+  assert.deepEqual(pointerPlace(2.8), { row: 2, band: "tool" });
+});
+
+test("the pointer finds a long wait by its span, not by the nearest middle", () => {
+  const waited = [
+    request("root", 0, 1_000, 1_010),
+    request("root", 1, 2_210, 2_220, { waited_for: "user", wait_s: 1_200 }),
+  ];
+  const bars = ganttBars(TREE, waited, [], COLOURS);
+  // At 100 s the pointer is 90 s past step 0's end but 510 s short of the wait's middle; it is over the wait.
+  const pointed = barAt(bars, { x: 100, row: 0, band: "request", toleranceSeconds: 1 });
+  assert.equal(pointed.opacity, WAIT_OPACITY);
+  assert.equal(pointed.step, 1);
+});
+
+test("the pointer reaches a bar too thin to hold it, within the tolerance, and nothing beyond", () => {
+  const bars = [{ row: 0, band: "tool", x1: 50, x2: 50.01, step: 3 }];
+  assert.equal(barAt(bars, { x: 50.5, row: 0, band: "tool", toleranceSeconds: 1 }).step, 3);
+  assert.equal(barAt(bars, { x: 52, row: 0, band: "tool", toleranceSeconds: 1 }), null);
+  assert.equal(barAt(bars, { x: 50.005, row: 0, band: "request", toleranceSeconds: 1 }), null);
+  assert.equal(barAt(bars, { x: 50.005, row: 1, band: "tool", toleranceSeconds: 1 }), null);
+});
+
+test("of overlapping bars, the pointer finds the one drawn last, on top", () => {
+  const bars = [
+    { row: 0, band: "tool", x1: 0, x2: 10, step: 1 },
+    { row: 0, band: "tool", x1: 0, x2: 4, step: 2 },
+  ];
+  assert.equal(barAt(bars, { x: 2, row: 0, band: "tool", toleranceSeconds: 0 }).step, 2);
+  assert.equal(barAt(bars, { x: 6, row: 0, band: "tool", toleranceSeconds: 0 }).step, 1);
+});
+
+test("the legend's request parts are ink tones, the rest naming a request with no time to first token", () => {
+  const reported = requestPartEntries([request("root", 0, 1_000, 1_010)]);
+  assert.deepEqual(reported, [
+    { name: "time to first token", colour: "var(--color-text-muted)" },
+    { name: "rest of the request", colour: "var(--color-text-faint)" },
+  ]);
+  const unreported = requestPartEntries(REQUESTS);
+  assert.equal(unreported[1].name, "rest of the request, or all of one with no time to first token");
+});
+
+test("the legend lists only the waits present, lighter, in the wait causes' colours", () => {
+  assert.deepEqual(waitEntries(REQUESTS), [
+    { name: "tools", colour: "var(--series-2)", opacity: WAIT_OPACITY },
+    { name: "subagents", colour: "var(--series-3)", opacity: WAIT_OPACITY },
+  ]);
 });

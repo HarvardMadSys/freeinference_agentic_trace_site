@@ -9,7 +9,7 @@
 
 import { agentLabel, agentsInStartOrder, callsByRequest, requestKey } from "./tree.js";
 import { elapsedSeconds } from "./view_chart.js";
-import { assignColours, OTHER_SERIES, SERIES_SLOTS } from "../shared/charts.js";
+import { assignColours, OTHER_SERIES } from "../shared/charts.js";
 import { formatSeconds } from "../shared/format.js";
 
 /** What a wait can wait for, in the order that gives each its colour, with the name a legend and tooltip give it. */
@@ -20,15 +20,24 @@ export const WAIT_CAUSES = Object.freeze({
   ask_user_tool: "an ask-user tool",
 });
 
-/** The colour of each part of a request's bar: time to first token, the rest, and a request with no TTFT. */
+/**
+ * The colour of each part of a request's bar: time to first token, the rest, and a request with no TTFT as one bar.
+ * They are ink tones, not series colours, so that on the timeline a colour always means a tool category or a wait.
+ */
 export const REQUEST_PART_COLOURS = Object.freeze({
-  ttft: SERIES_SLOTS[0],
-  decode: SERIES_SLOTS[6],
-  whole: OTHER_SERIES,
+  ttft: "var(--color-text-muted)",
+  decode: "var(--color-text-faint)",
+  whole: "var(--color-text-faint)",
 });
 
 /** The opacity of a wait's bar: lighter than a request's, since nothing ran. */
 export const WAIT_OPACITY = 0.35;
+
+/** Where each band sits in its row, as shares of the row from its top: requests and waits, then tool calls below. */
+export const BAND_SPANS = Object.freeze({ request: [0.12, 0.6], tool: [0.66, 0.88] });
+
+// The share of a row from its top where the pointer passes from the request band to the tool band: between the two.
+const BAND_BOUNDARY = 0.63;
 
 const MILLISECONDS_PER_SECOND = 1000;
 
@@ -122,6 +131,69 @@ function toolBars(call, request, place, categoryColours) {
   const latency = `latency ${formatSeconds(end - start)}`;
   const tip = `${call.name} · ${call.category}\n${latency}\nafter ${place.label} step ${place.step}`;
   return [bar(place, "tool", start, end, categoryColours.get(call.category) ?? OTHER_SERIES, tip)];
+}
+
+/** `bar` with `y1` and `y2`, the top and bottom of its band in its agent's row, row 0 spanning 0 to 1. */
+export function placedInRow(bar) {
+  const [top, bottom] = BAND_SPANS[bar.band];
+  return { ...bar, y1: bar.row + top, y2: bar.row + bottom };
+}
+
+/** `{ row, band }` under a pointer at `y` rows from the top: the upper part of a row is its request band. */
+export function pointerPlace(y) {
+  const row = Math.floor(y);
+  return { row, band: y - row < BAND_BOUNDARY ? "request" : "tool" };
+}
+
+/**
+ * The bar under a pointer at `x` seconds in `row` and `band`: the last drawn of the bars there whose span holds x,
+ * which is the one on top; otherwise the nearest within `toleranceSeconds`, so a bar under a pixel wide can still be
+ * pointed at; otherwise null.
+ */
+export function barAt(bars, { x, row, band, toleranceSeconds }) {
+  let holding = null;
+  let nearest = null;
+  let nearestDistance = toleranceSeconds;
+  for (const bar of bars) {
+    if (bar.row !== row || bar.band !== band) {
+      continue;
+    }
+    if (bar.x1 <= x && x < bar.x2) {
+      holding = bar;
+      continue;
+    }
+    const distance = Math.max(bar.x1 - x, x - bar.x2);
+    if (distance <= nearestDistance) {
+      nearest = bar;
+      nearestDistance = distance;
+    }
+  }
+  return holding ?? nearest;
+}
+
+/**
+ * The legend entries of a request's parts, `[{ name, colour }]`: time to first token and the rest, the rest naming
+ * the whole request with no TTFT when `requests` has one, since both are drawn in the same tone.
+ */
+export function requestPartEntries(requests) {
+  const hasUnreported = requests.some((request) => request.ttft_ms === null);
+  const rest = hasUnreported ? "rest of the request, or all of one with no time to first token" : "rest of the request";
+  return [
+    { name: "time to first token", colour: REQUEST_PART_COLOURS.ttft },
+    { name: rest, colour: REQUEST_PART_COLOURS.decode },
+  ];
+}
+
+/** The legend entries of the waits `requests` has, `[{ name, colour, opacity }]`, in the order of `WAIT_CAUSES`. */
+export function waitEntries(requests) {
+  const colours = waitColours();
+  const entries = [];
+  for (const [cause, name] of Object.entries(WAIT_CAUSES)) {
+    if (requests.some((request) => request.waited_for === cause)) {
+      entries.push({ name, colour: colours.get(cause), opacity: WAIT_OPACITY });
+    }
+  }
+  return entries;
 }
 
 function hasLatency(call) {

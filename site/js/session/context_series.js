@@ -8,11 +8,17 @@
 
 import { agentLabel, agentsInStartOrder } from "./tree.js";
 import { elapsedSeconds } from "./view_chart.js";
-import { assignColours, OTHER_SERIES, TOKEN_PART_COLOURS } from "../shared/charts.js";
+import { assignColours, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../shared/charts.js";
 import { formatElapsed, formatTokens } from "../shared/format.js";
 
 /** The two ways the area can split the top-level session's input: into cached and uncached tokens, or by role. */
 export const AREA_SPLITS = Object.freeze({ tokens: "Cached and uncached", roles: "By role" });
+
+/**
+ * The colour of each agent's line: the top-level session's, and every subagent's. The subagents' slot is one neither
+ * split of the area uses, so a subagent's line never reads as a part of the top-level session's input.
+ */
+export const AGENT_LINE_COLOURS = Object.freeze({ main: SERIES_SLOTS[0], subagents: SERIES_SLOTS[6] });
 
 // The transitions a marker points out: the context was rewritten, or the request went to another model.
 const MARKED_TRANSITIONS = Object.freeze(["mutation", "switch"]);

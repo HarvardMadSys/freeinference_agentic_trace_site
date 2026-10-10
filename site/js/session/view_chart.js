@@ -78,6 +78,12 @@ export function listenForRequestClick(body, chart) {
   chart.addEventListener("click", () => openPointedRequest(chart));
 }
 
+/** Send `OPEN_REQUEST_EVENT` up from `element` for the request of `datum`, a value with `sessionId` and `step`. */
+export function sendOpenRequest(element, datum) {
+  const detail = { sessionId: datum.sessionId, step: datum.step };
+  element.dispatchEvent(new CustomEvent(OPEN_REQUEST_EVENT, { bubbles: true, detail }));
+}
+
 async function drawWithPlot(container, draw, signal) {
   try {
     // Plot is loaded here, not at the top of a view's module, so node can test the views' pure functions.
@@ -94,9 +100,7 @@ async function drawWithPlot(container, draw, signal) {
 
 function openPointedRequest(chart) {
   // Plot keeps the datum under the pointer, the one its tooltip shows, as the chart's `value`; null when there is none.
-  if (!chart.value) {
-    return;
+  if (chart.value) {
+    sendOpenRequest(chart, chart.value);
   }
-  const detail = { sessionId: chart.value.sessionId, step: chart.value.step };
-  chart.dispatchEvent(new CustomEvent(OPEN_REQUEST_EVENT, { bubbles: true, detail }));
 }

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  areaParts, areaRows, pointTip, requestPoints, trajectoryPoints, transitionMarks, turnStarts,
+  AGENT_LINE_COLOURS, areaParts, areaRows, pointTip, requestPoints, trajectoryPoints, transitionMarks, turnStarts,
 } from "../site/js/session/context_series.js";
 
 // The fixture's `mutation` session: step 1 rewrites its context by compaction, step 3 starts a second turn.
@@ -94,4 +94,13 @@ test("a tooltip gives the agent, step, turn, time and tokens", () => {
   const points = requestPoints(TREE, REQUESTS);
   assert.equal(pointTip(points[2]), "main · step 2 · turn 1\n+03:20\n1.8k input tokens: 1.5k cached, 300 uncached");
   assert.equal(pointTip(points[3]), "main · step 3 · turn 2\n+05:00\n1.9k input tokens, no cache report");
+});
+
+test("the top-level line is the first series and subagents' lines a slot neither area split uses", () => {
+  assert.equal(AGENT_LINE_COLOURS.main, "var(--series-1)");
+  assert.equal(AGENT_LINE_COLOURS.subagents, "var(--series-7)");
+  for (const split of ["tokens", "roles"]) {
+    const areaColours = areaParts(TREE, REQUESTS, split).map((part) => part.colour);
+    assert.ok(!areaColours.includes(AGENT_LINE_COLOURS.subagents), split);
+  }
 });

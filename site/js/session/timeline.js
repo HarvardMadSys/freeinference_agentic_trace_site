@@ -7,20 +7,16 @@
 
 import { categoryEntries, legendLine } from "./legend.js";
 import {
-  ganttBars, ganttRows, REQUEST_PART_COLOURS, undrawnCounts, WAIT_CAUSES, WAIT_OPACITY, waitColours,
+  ganttBars, ganttRows, placedInRow, requestPartEntries, undrawnCounts, waitEntries,
 } from "./timeline_bars.js";
-import {
-  elapsedTicks, listenForRequestClick, scrollBox, startChartView, tickCount, viewChartWidth,
-} from "./view_chart.js";
-import { AXIS_STYLE, chartFrame, GRID_STYLE, renderFigure, TIP_STYLE } from "../shared/charts.js";
+import { pointerFrame } from "./timeline_pointer.js";
+import { elapsedTicks, startChartView, tickCount, viewChartWidth } from "./view_chart.js";
+import { AXIS_STYLE, chartFrame, GRID_STYLE, renderFigure } from "../shared/charts.js";
 import { formatElapsed, formatQuantity } from "../shared/format.js";
 
 const ROW_HEIGHT = 24; // pixels per agent row
-const MAX_HEIGHT = 600; // the tallest chart, in pixels; a tree of more agents gets thinner rows
+const MAX_HEIGHT = 800; // the tallest chart, in pixels: the tallest tree in the data (41 agents) keeps 18-px rows
 const MARGINS = Object.freeze({ marginTop: 16, marginRight: 24, marginBottom: 40, marginLeft: 92 });
-
-// Where each band sits in its row, as shares of the row from its top: requests and waits, and below them tool calls.
-const BAND_SPANS = Object.freeze({ request: [0.12, 0.6], tool: [0.66, 0.88] });
 
 // The sentence the caption must hold: the data has no tool call start times.
 const TOOL_START_NOTE = "A tool call's start is taken as its request's end.";
@@ -41,15 +37,15 @@ function drawTimelineView(Plot, container, tree, requests, toolCalls, { category
     definition:
       "One row per agent. Each request is split into time to first token and the rest; each tool call runs from " +
       "its request's end for its latency, in the thin band below; a lighter bar is a wait before a request, " +
-      "coloured by what it waited for. Click a bar to open its request.",
+      "coloured by what it waited for. Requests are drawn in ink tones, so a colour is a tool category or a wait. " +
+      "Click a bar to open its request.",
     caption: timelineCaption(tree, requests, toolCalls),
   });
   container.replaceChildren(figure);
   const rows = ganttRows(tree);
-  const bars = ganttBars(tree, requests, toolCalls, categoryColours).map((bar) => placedInRow(bar));
+  const bars = ganttBars(tree, requests, toolCalls, categoryColours).map(placedInRow);
   const chart = ganttChart(Plot, body, rows, bars);
-  listenForRequestClick(body, chart);
-  body.append(scrollBox(chart), ...timelineLegend(requests, toolCalls, categoryColours));
+  body.append(pointerFrame(chart, bars, rows.length), ...timelineLegend(requests, toolCalls, categoryColours));
 }
 
 /** The Gantt chart of `bars` over `rows`: row 0 at the top, each bar in its band of its row. */
@@ -68,9 +64,8 @@ function ganttChart(Plot, body, rows, bars) {
     opacity: { type: "identity" },
     marks: [
       Plot.gridX(GRID_STYLE),
-      Plot.rect(bars, {
-        x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: "colour", fillOpacity: "opacity", title: "tip", tip: TIP_STYLE,
-      }),
+      // The tooltip and the click come from `pointerFrame`, which finds a bar by its span rather than its middle.
+      Plot.rect(bars, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: "colour", fillOpacity: "opacity" }),
       Plot.axisX({
         ...AXIS_STYLE, ticks: elapsedTicks(maxElapsed, tickCount(width)), tickFormat: formatElapsed,
         label: "Time since the session's first request",
@@ -81,12 +76,6 @@ function ganttChart(Plot, body, rows, bars) {
       }),
     ],
   });
-}
-
-/** `bar` with `y1` and `y2`, the top and bottom of its band in its agent's row. */
-function placedInRow(bar) {
-  const [top, bottom] = BAND_SPANS[bar.band];
-  return { ...bar, y1: bar.row + top, y2: bar.row + bottom };
 }
 
 function timelineCaption(tree, requests, toolCalls) {
@@ -109,20 +98,8 @@ function timelineCaption(tree, requests, toolCalls) {
 
 /** The legend's lines: a request's parts, the waits this session has, and the categories of its tool calls. */
 function timelineLegend(requests, toolCalls, categoryColours) {
-  const parts = [
-    { name: "time to first token", colour: REQUEST_PART_COLOURS.ttft },
-    { name: "rest of the request", colour: REQUEST_PART_COLOURS.decode },
-  ];
-  if (requests.some((request) => request.ttft_ms === null)) {
-    parts.push({ name: "no time to first token", colour: REQUEST_PART_COLOURS.whole });
-  }
-  const colours = waitColours();
-  const waits = [];
-  for (const [cause, name] of Object.entries(WAIT_CAUSES)) {
-    if (requests.some((request) => request.waited_for === cause)) {
-      waits.push({ name, colour: colours.get(cause), opacity: WAIT_OPACITY });
-    }
-  }
+  const parts = requestPartEntries(requests);
+  const waits = waitEntries(requests);
   const lines = [legendLine("Requests", parts)];
   if (waits.length > 0) {
     lines.push(legendLine("Waits for", waits));

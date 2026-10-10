@@ -6,19 +6,17 @@
  */
 
 import {
-  AREA_SPLITS, areaParts, areaRows, pointTip, requestPoints, trajectoryPoints, transitionMarks, turnStarts,
+  AGENT_LINE_COLOURS, AREA_SPLITS, areaParts, areaRows, pointTip, requestPoints, trajectoryPoints, transitionMarks,
+  turnStarts,
 } from "./context_series.js";
 import { legendLine } from "./legend.js";
 import {
   elapsedTicks, listenForRequestClick, scrollBox, startChartView, tickCount, viewChartWidth,
 } from "./view_chart.js";
 import {
-  assignColours, AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, SERIES_SLOTS, TIP_STYLE, renderFigure,
+  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, SERIES_SLOTS, TIP_STYLE, renderFigure,
 } from "../shared/charts.js";
 import { formatElapsed, formatQuantity, formatTokens } from "../shared/format.js";
-
-// The colour of each agent's line: the top-level session's, then every subagent's.
-const AGENT_KINDS = Object.freeze(["main", "subagents"]);
 
 // Subagents' lines are drawn a little lighter, so the top-level session's line reads above them where they cross.
 const SUBAGENT_LINE_OPACITY = 0.8;
@@ -93,7 +91,6 @@ function chooseSplit(group, chosenPill, drawSplit, split) {
 /** Draw the chart for `split` into `boxes.chartBox` and its legend into `boxes.legend`. */
 function drawChart(Plot, boxes, tree, requests, split) {
   const parts = areaParts(tree, requests, split);
-  const agentColours = assignColours(AGENT_KINDS);
   const points = requestPoints(tree, requests);
   const trajectories = trajectoryPoints(tree, requests);
   const marks = transitionMarks(points);
@@ -111,7 +108,7 @@ function drawChart(Plot, boxes, tree, requests, split) {
         x: "elapsed", y: "tokens", fill: "part", z: "part", order: parts.map((part) => part.name), curve: "step-after",
       }),
       Plot.ruleX(turnStarts(tree, requests), { ...AXIS_STYLE, strokeDasharray: TURN_DASH }),
-      agentLines(Plot, trajectories, agentColours),
+      agentLines(Plot, trajectories),
       Plot.dot(marks, { x: "elapsed", y: "inputTokens", r: TRANSITION_DOT_RADIUS, fill: TRANSITION_COLOUR }),
       Plot.axisX({ ...AXIS_STYLE, ticks: elapsedTicks(maxElapsed, tickCount(width)), tickFormat: formatElapsed,
         label: "Time since the session's first request" }),
@@ -121,24 +118,24 @@ function drawChart(Plot, boxes, tree, requests, split) {
   });
   listenForRequestClick(boxes.body, chart);
   boxes.chartBox.replaceChildren(scrollBox(chart));
-  boxes.legend.replaceChildren(...contextLegend(parts, tree, agentColours, marks.length > 0));
+  boxes.legend.replaceChildren(...contextLegend(parts, tree, marks.length > 0));
 }
 
 /** One line per agent, stepping at each request: the top-level session's first, then the subagents', lighter. */
-function agentLines(Plot, trajectories, agentColours) {
+function agentLines(Plot, trajectories) {
   const lineOptions = { x: "elapsed", y: "inputTokens", z: "sessionId", curve: "step-after", strokeWidth: LINE_WIDTH };
   return [
     Plot.line(trajectories.filter((point) => !point.isTopLevel), {
-      ...lineOptions, stroke: agentColours.get("subagents"), strokeOpacity: SUBAGENT_LINE_OPACITY,
+      ...lineOptions, stroke: AGENT_LINE_COLOURS.subagents, strokeOpacity: SUBAGENT_LINE_OPACITY,
     }),
-    Plot.line(trajectories.filter((point) => point.isTopLevel), { ...lineOptions, stroke: agentColours.get("main") }),
+    Plot.line(trajectories.filter((point) => point.isTopLevel), { ...lineOptions, stroke: AGENT_LINE_COLOURS.main }),
   ];
 }
 
-function contextLegend(parts, tree, agentColours, hasMarks) {
-  const lines = [{ name: "main", colour: agentColours.get("main") }];
+function contextLegend(parts, tree, hasMarks) {
+  const lines = [{ name: "main", colour: AGENT_LINE_COLOURS.main }];
   if (tree.length > 1) {
-    lines.push({ name: "subagents", colour: agentColours.get("subagents"), opacity: SUBAGENT_LINE_OPACITY });
+    lines.push({ name: "subagents", colour: AGENT_LINE_COLOURS.subagents, opacity: SUBAGENT_LINE_OPACITY });
   }
   if (hasMarks) {
     lines.push({ name: "mutation or switch", colour: TRANSITION_COLOUR });
