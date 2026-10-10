@@ -42,8 +42,9 @@ The Explore page SHALL show one histogram card for each of: input tokens per
 request, uncached input tokens per request, output tokens per request,
 requests per session, turns per session, subagents per session, session
 duration, and cached fraction per request. Each card SHALL:
-- draw its bins on a log scale where the values span more than two orders of
-  magnitude, and say so on the card;
+- draw its bins on a log scale where the quantity spans more than two orders
+  of magnitude (token counts, counts per session, durations), on a linear
+  scale otherwise (the cached fraction), and say which on the card;
 - mark the 50th, 75th, 90th and 95th percentiles as dashed lines in fixed
   colours, with a legend;
 - give `n`, the median, the 90th percentile and the maximum under its title;

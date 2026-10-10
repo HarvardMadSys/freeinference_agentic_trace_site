@@ -74,7 +74,7 @@ in a browser at 360 px and at desktop width, in light and dark mode.
 
   Verify `tests/selection.test.js` (`node --test`) covers parsing, the default, an unknown week, and a month that covers two weeks.
 - [ ] 4.3 `site/js/shared/table.js`: sort, substring search, filters and pages as plain functions over an array, and a renderer with a row-click callback. Verify `tests/table.test.js` covers sort order, a second click reversing it, the search, combined filters and page boundaries.
-- [ ] 4.4 `site/js/shared/histogram.js`: the distribution card, with log or linear bins, percentile lines, a subtitle and bin tooltips. Verify `tests/histogram.test.js` checks the log-scale rule (values spanning more than two orders of magnitude) and the subtitle text.
+- [ ] 4.4 `site/js/shared/histogram.js`: the distribution card, drawing bins a query computed on a log or linear scale, with percentile lines, a subtitle and bin tooltips. Verify `tests/histogram.test.js` checks the subtitle text and the bins' conversion from query rows.
 - [ ] 4.5 `site/js/shared/charts.js` and `site/style.css`:
   - fixed colours per model, category, policy and token part;
   - a CDF helper;
