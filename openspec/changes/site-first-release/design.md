@@ -108,10 +108,18 @@ Alternatives considered:
   would put several weeks in one group and defeat the skipping. 10,000
   matches the release's own row group size.
 
-Rebuilding every week is a concatenation of 40 MB plus the pipeline's
-per-request definitions over 1.2 M rows, which should take well under a
-minute. If it does not, measure and record before splitting the build by
-week.
+Measured on the 16-week release: `make data` takes 18.9 s and 5.1 GB of
+memory at its peak, and writes 73.1 MB: `requests.parquet` 62.4 MB,
+`tool_calls.parquet` about 9 MB, the sessions and simulation files under
+1 MB. The requests file is larger than the 40 MB of the release's own
+columns because of the derived columns: `hit_ratio` alone is 10.2 MB, and
+`wait_s`, `idle_gap_s` and `uncached_tokens` another 11.6 MB. They are kept,
+because the browser must not re-implement a pipeline definition; the levers,
+when the file nears the host's 100 MB limit (at the current growth, about
+eight more weeks), are splitting the file by week, or defining `hit_ratio`
+once in the `requests` view and guarding it with the parity test. The
+string columns are already dictionary-encoded and the 10,000-row groups
+cost about 5 % over 100,000-row groups.
 
 ### 3. Every definition is computed in Python by the pipeline
 
