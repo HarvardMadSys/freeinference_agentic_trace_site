@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  agentTree, callsByRequest, largestRequestTokens, requestKey, shortSessionId,
+  agentLabel, agentsInStartOrder, agentTree, callsByRequest, largestRequestTokens, requestKey, shortSessionId,
 } from "../site/js/session/tree.js";
 
 // The fixture's tree: `root` spawns `child` and `sibling` from step 1, and `child` spawns `grandchild` from step 0.
@@ -75,4 +75,14 @@ test("a full bar stands for the largest input plus output of one request", () =>
   const requests = [{ prompt_tokens: 100, completion_tokens: 50 }, { prompt_tokens: 120, completion_tokens: 10 }];
   assert.equal(largestRequestTokens(requests), 150);
   assert.equal(largestRequestTokens([]), 1);
+});
+
+test("an agent is named main at the top level and sub with its short id below", () => {
+  assert.equal(agentLabel({ session_id: "740dd162030203354c9e55d40fb3a2d5", parent_session_id: null }), "main");
+  assert.equal(agentLabel({ session_id: "5478226ab25bd5e4c254bb945ba7068b", parent_session_id: "x" }), "sub 5478226a");
+});
+
+test("the agents run top-level first, then every subagent by first start, whatever its depth", () => {
+  const order = agentsInStartOrder(SESSIONS).map((session) => session.session_id);
+  assert.deepEqual(order, ["root", "child", "sibling", "grandchild"]);
 });

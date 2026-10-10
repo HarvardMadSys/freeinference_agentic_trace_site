@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { readAddress, selectionParameters, viewParameters } from "../site/js/session/address.js";
+import { readAddress, requestParameters, selectionParameters, viewParameters } from "../site/js/session/address.js";
 
 test("the address names the week, the session, the view and the step", () => {
   const params = new URLSearchParams("week=2026-08-09&id=abc&view=timeline&step=12");
@@ -33,4 +33,11 @@ test("a view's parameters keep the session and the selection, set the view and d
   const params = new URLSearchParams("week=2026-08-09&id=abc&step=3&scope=All");
   assert.equal(viewParameters(params, "timeline").toString(), "week=2026-08-09&id=abc&scope=All&view=timeline");
   assert.equal(params.get("step"), "3");
+});
+
+test("a request's parameters open the Requests view at that session's step, keeping the week and the selection", () => {
+  const params = new URLSearchParams("week=2026-08-09&id=root&view=timeline&scope=All");
+  const opened = requestParameters(params, "child", 4);
+  assert.equal(opened.toString(), "week=2026-08-09&id=child&view=requests&scope=All&step=4");
+  assert.deepEqual(readAddress(opened), { week: "2026-08-09", id: "child", view: "requests", step: 4 });
 });

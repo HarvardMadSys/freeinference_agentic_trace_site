@@ -1,9 +1,13 @@
 /** The Session page: one session and its subagents, in the Requests, Context and Timeline views. */
 
-import { readAddress, selectionParameters, viewParameters, VIEW_NAMES } from "../session/address.js";
+import {
+  readAddress, requestParameters, selectionParameters, viewParameters, VIEW_NAMES,
+} from "../session/address.js";
+import { mountContextView } from "../session/context.js";
 import { mountFacts, sessionFacts } from "../session/facts.js";
 import { mountRequestsView } from "../session/requests.js";
 import { shortSessionId } from "../session/tree.js";
+import { OPEN_REQUEST_EVENT } from "../session/view_chart.js";
 import { assignColours, showError, showLoading, showNote } from "../shared/charts.js";
 import { openDatabase } from "../shared/database.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
@@ -47,6 +51,7 @@ async function openSession(address) {
   mountFacts(page.facts, sessionFacts(session.tree, session.requests));
   const shownView = { stop: showView(address.view, session, address) };
   mountViewTabs(page.tabs, address.view, (view) => switchView(shownView, view, session, address));
+  page.view.addEventListener(OPEN_REQUEST_EVENT, (event) => openRequest(shownView, session, address, event.detail));
 }
 
 /** Stop the view shown and show `view` instead; `shownView.stop` stops whichever view is shown. */
@@ -54,6 +59,19 @@ function switchView(shownView, view, session, address) {
   shownView.stop();
   // A tab's link names no step, so a view chosen by its tab points at no request.
   shownView.stop = showView(view, session, { ...address, step: null });
+}
+
+/**
+ * Show the Requests view at the request `{ sessionId, step }` a chart's click names, and write it into the URL; the
+ * session id may be a subagent's, whose group the Requests view then expands.
+ */
+function openRequest(shownView, session, address, { sessionId, step }) {
+  history.replaceState(null, "", selectionQuery(requestParameters(parameters, sessionId, step)));
+  for (const tab of page.tabs.querySelectorAll(".view-tab")) {
+    markActive(tab, tab.dataset.view === "requests");
+  }
+  shownView.stop();
+  shownView.stop = showView("requests", session, { ...address, id: sessionId, step });
 }
 
 /**
@@ -82,12 +100,15 @@ async function loadSession(database, address) {
  * Return a function that stops the view, to call before another replaces it.
  */
 function showView(view, session, address) {
-  if (view === "requests") {
-    const options = { focusSessionId: address.id, focusStep: address.step, categoryColours: session.categoryColours };
-    return mountRequestsView(page.view, session.tree, session.requests, session.toolCalls, options);
+  if (view === "context") {
+    return mountContextView(page.view, session.tree, session.requests);
   }
-  showNote(page.view, `The ${VIEW_TITLES[view]} view is not drawn yet.`);
-  return () => undefined;
+  if (view === "timeline") {
+    showNote(page.view, `The ${VIEW_TITLES[view]} view is not drawn yet.`);
+    return () => undefined;
+  }
+  const options = { focusSessionId: address.id, focusStep: address.step, categoryColours: session.categoryColours };
+  return mountRequestsView(page.view, session.tree, session.requests, session.toolCalls, options);
 }
 
 /** Fill `container` with one tab per view; a click shows that view in place and writes it into the URL. */

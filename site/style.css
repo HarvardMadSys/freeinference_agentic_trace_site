@@ -827,6 +827,18 @@ button.is-primary {
   }
 }
 
+/* ---------- Context and Timeline views ---------- */
+
+/* A chart wider than the screen scrolls sideways at its own size, rather than shrinking its text away. */
+.chart-scroll {
+  overflow-x: auto;
+}
+
+.figure-body .chart-scroll svg,
+.figure-body .chart-scroll figure {
+  max-width: none;
+}
+
 /* ---------- Small screens ---------- */
 
 @media (max-width: 40rem) {

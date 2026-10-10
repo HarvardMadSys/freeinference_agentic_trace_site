@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { formatCount, formatElapsed, formatOptionalShare, formatSeconds, formatShare, formatTokens } from "../site/js/shared/format.js";
+import {
+  formatCount, formatElapsed, formatOptionalShare, formatQuantity, formatSeconds, formatShare, formatTokens,
+} from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
   assert.equal(formatCount(1186582), "1,186,582");
@@ -35,4 +37,10 @@ test("an optional share is a percentage, or a dash when it is missing", () => {
   assert.equal(formatOptionalShare(0.632), "63.2%");
   assert.equal(formatOptionalShare(0), "0.0%");
   assert.equal(formatOptionalShare(null), "—");
+});
+
+test("a quantity names its noun, singular for exactly one", () => {
+  assert.equal(formatQuantity(1, "agent", "agents"), "1 agent");
+  assert.equal(formatQuantity(0, "agent", "agents"), "0 agents");
+  assert.equal(formatQuantity(5040, "request", "requests"), "5,040 requests");
 });

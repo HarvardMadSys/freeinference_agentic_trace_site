@@ -15,6 +15,11 @@ export function formatCount(count) {
   return count.toLocaleString("en-US");
 }
 
+/** A count and its noun, singular for one: (1, "agent", "agents") → "1 agent"; (1186582, …) → "1,186,582 agents". */
+export function formatQuantity(count, singular, plural) {
+  return `${formatCount(count)} ${count === 1 ? singular : plural}`;
+}
+
 /** A token total in B, M or k with one decimal: 129087 → "129.1k"; under a thousand, the count itself. */
 export function formatTokens(tokens) {
   for (const [size, suffix] of TOKEN_UNITS) {

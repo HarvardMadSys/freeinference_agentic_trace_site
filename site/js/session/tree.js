@@ -13,6 +13,18 @@ export function shortSessionId(sessionId) {
   return sessionId.slice(0, SHORT_ID_LENGTH);
 }
 
+/** An agent's name in the Context and Timeline views: "main" at the top level, "sub <short id>" for a subagent. */
+export function agentLabel(session) {
+  return session.parent_session_id === null ? "main" : `sub ${shortSessionId(session.session_id)}`;
+}
+
+/** The agents of a tree in the order the views list them: the top-level session, then every subagent by first start. */
+export function agentsInStartOrder(sessions) {
+  const topLevel = sessions.filter((session) => session.parent_session_id === null);
+  const subagents = sessions.filter((session) => session.parent_session_id !== null).sort(byFirstStart);
+  return [...topLevel, ...subagents];
+}
+
 /** The text key of one request of the tree: its session id and step, as "<session_id>/<step>". */
 export function requestKey(sessionId, step) {
   return `${sessionId}/${step}`;

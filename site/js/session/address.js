@@ -47,3 +47,12 @@ export function viewParameters(params, view) {
   viewParams.delete("step");
   return viewParams;
 }
+
+/** A copy of `params` that opens the Requests view at the request `step` of the session `sessionId`. */
+export function requestParameters(params, sessionId, step) {
+  const requestParams = new URLSearchParams(params);
+  requestParams.set("id", sessionId);
+  requestParams.set("view", "requests");
+  requestParams.set("step", String(step));
+  return requestParams;
+}
