@@ -6,7 +6,7 @@ in a browser at 360 px and at desktop width, in light and dark mode.
 
 ## 1. Repository
 
-- [ ] 1.1 Create the layout of `site-repository`:
+- [x] 1.1 Create the layout of `site-repository`:
   - `README.md`: what the site is; `make data`, `make serve`, `make deploy`.
   - `Makefile`.
   - `pyproject.toml`: the pipeline as a path dependency and pyarrow, with
@@ -14,7 +14,7 @@ in a browser at 360 px and at desktop width, in light and dark mode.
   - `.gitignore`: `site/data/`, `.venv/`.
 
   Verify `make setup && make test` runs with zero tests and exits 0.
-- [ ] 1.2 Add `tests/test_repository.py`, which checks that:
+- [x] 1.2 Add `tests/test_repository.py`, which checks that:
   - functions are ≤ 50 lines and modules ≤ 300 lines, in Python and JS;
   - no Python import is aliased;
   - no CDN URL appears outside `site/js/shared/libraries.js`;
@@ -22,7 +22,7 @@ in a browser at 360 px and at desktop width, in light and dark mode.
   - nothing under `site/data/` is tracked.
 
   Verify each check fails on a deliberately bad file, then passes.
-- [ ] 1.3 Write `site/js/shared/libraries.js`, exporting DuckDB-WASM and Observable Plot from jsDelivr at exact versions (the newest release at least two weeks old). Verify a blank page that imports it logs both versions in the browser console.
+- [x] 1.3 Write `site/js/shared/libraries.js`, exporting DuckDB-WASM and Observable Plot from jsDelivr at exact versions (the newest release at least two weeks old). Verify a blank page that imports it logs both versions in the browser console.
 
 ## 2. Range-request probe
 

@@ -7,7 +7,7 @@ PIPELINE ?= ../freeinference-agentic-pipeline
 RELEASE ?= $(PIPELINE)/data/v1/release
 SIMULATION ?= $(PIPELINE)/data/v1/simulation
 
-.PHONY: setup data serve test
+.PHONY: setup setup-browser data serve test
 
 # Create the virtual environment; install the pipeline's package from its
 # repository, then this package with its test tools.
@@ -16,6 +16,11 @@ setup:
 	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install -e $(PIPELINE)
 	$(PYTHON) -m pip install -e '.[test]'
+
+# A headless Chromium for checking pages: used by hand and by browser checks, not by make test.
+setup-browser:
+	$(PYTHON) -m pip install -e '.[browser]'
+	$(PYTHON) -m playwright install chromium
 
 # Build site/data from the release.
 data:

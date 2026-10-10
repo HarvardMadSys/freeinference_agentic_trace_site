@@ -140,7 +140,10 @@ make serve     # then open http://localhost:8000
 
 Before committing anything that touches a page: open it at 360 px wide and
 at desktop width, in light and dark mode; check the console is clean; check
-that the selection survives a reload and a link to another page.
+that the selection survives a reload and a link to another page. `make
+setup-browser` installs a headless Chromium; a short Playwright script from
+the virtual environment (`.venv/bin/python`) can open `http://localhost:8000`,
+collect the console and take the screenshots.
 
 One task per commit, `make test` green at every commit. Commit messages say
 what changed and why in one line, and end with the attribution line the
