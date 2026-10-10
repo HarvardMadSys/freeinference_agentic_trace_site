@@ -84,7 +84,7 @@ in a browser at 360 px and at desktop width, in light and dark mode.
 
   Verify the same name gets the same colour across two calls, and the header carries the selection.
 - [x] 4.6 `site/about.html`: definitions in the pipeline's words, how the data were built, and links. Verify every term used in the captions of `explore-page`, `figures-page` and `session-page` is defined there.
-- [ ] 4.7 `tests/test_queries.py`: build the fixture data, create the three selection tables in Python DuckDB, run every `site/queries/*.sql`, and check each returns its expected columns. Verify it fails on a query that reads a column the data lack.
+- [x] 4.7 `tests/test_queries.py`: build the fixture data, create the three selection tables in Python DuckDB, run every `site/queries/*.sql`, and check each returns its expected columns. Verify it fails on a query that reads a column the data lack.
 
 ## 5. Explore page
 
