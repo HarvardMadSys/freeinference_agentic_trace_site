@@ -88,30 +88,30 @@ in a browser at 360 px and at desktop width, in light and dark mode.
 
 ## 5. Explore page
 
-- [ ] 5.1 `site/index.html` and `js/pages/explore.js` with the weekly trend bars (`sessions_per_week_by_harness.sql`, `input_tokens_per_week.sql`). Verify that a bar click selects one week and changes the URL, and that the layout and picker draw before DuckDB loads.
-- [ ] 5.2 Headline numbers and model mix (`headline_numbers.sql`, `model_mix.sql`). Verify on the fixture that the counts equal the release's top-level totals under scope `All`.
-- [ ] 5.3 Eight distribution cards (one query each, returning bins and exact percentiles). Verify on the fixture that each card's median equals a hand-computed median.
-- [ ] 5.4 Sessions table (`sessions_of_selection.sql`) with search, filters, sort and page in the URL. Verify that a search by an id prefix finds the session, that the filter count shows matching over total, and that a row click opens `session.html?week=…&id=…`.
+- [x] 5.1 `site/index.html` and `js/pages/explore.js` with the weekly trend bars (`sessions_per_week_by_harness.sql`, `input_tokens_per_week.sql`). Verify that a bar click selects one week and changes the URL, and that the layout and picker draw before DuckDB loads.
+- [x] 5.2 Headline numbers and model mix (`headline_numbers.sql`, `model_mix.sql`). Verify on the fixture that the counts equal the release's top-level totals under scope `All`.
+- [x] 5.3 Eight distribution cards (one query each, returning bins and exact percentiles). Verify on the fixture that each card's median equals a hand-computed median.
+- [x] 5.4 Sessions table (`sessions_of_selection.sql`) with search, filters, sort and page in the URL. Verify that a search by an id prefix finds the session, that the filter count shows matching over total, and that a row click opens `session.html?week=…&id=…`.
 
 ## 6. Paper figures page
 
-- [ ] 6.1 `site/figures.html` and `js/pages/figures.js` run each section's figures and redraw them on a selection change. Each figure shows its rows, scope and weeks, and hides thin bins with a note. Verify with a stub section of one figure.
-- [ ] 6.2 Sessions section: `js/figures/sessions.js` and the seven queries of `figures-page`. Verify each query on the fixture and each chart in the browser.
+- [x] 6.1 `site/figures.html` and `js/pages/figures.js` run each section's figures and redraw them on a selection change. Each figure shows its rows, scope and weeks, and hides thin bins with a note. Verify with a stub section of one figure.
+- [x] 6.2 Sessions section: `js/figures/sessions.js` and the seven queries of `figures-page`. Verify each query on the fixture and each chart in the browser.
 - [ ] 6.3 Tools section: four queries. Verify the overview table's shares sum to 1 and its percentiles are in order.
 - [ ] 6.4 Prefix-caching section: four queries, with the simulation charts captioned "Agentic" under any scope. Verify that one week's simulated hit ratio equals hit over hit plus miss from that week's tallies.
 - [ ] 6.5 `tests/test_paper_parity.py`: with all weeks and `Agentic`, run the queries on the full site data and compare every shared number with the paper's `numbers.json`. When the full data are absent, skip with a message. Verify it passes on the full release.
 
 ## 7. Session page
 
-- [ ] 7.1 `site/session.html` and `js/pages/session.js` with `session_requests.sql`, `session_tool_calls.sql` and `session_tree.sql`:
+- [x] 7.1 `site/session.html` and `js/pages/session.js` with `session_requests.sql`, `session_tool_calls.sql` and `session_tree.sql`:
   - the stat strip;
   - "not found";
   - a subagent's id opening its top-level session;
   - the `view` and `step` URL parameters.
 
   Verify on the fixture's nested subagent and on an unknown id.
-- [ ] 7.2 `js/session/overlaps.js`: groups of requests whose intervals overlap. Verify `tests/overlaps.test.js` covers touching intervals (not an overlap), nesting, and three-way overlap.
-- [ ] 7.3 Requests view (`js/session/requests.js`):
+- [x] 7.2 `js/session/overlaps.js`: groups of requests whose intervals overlap. Verify `tests/overlaps.test.js` covers touching intervals (not an overlap), nesting, and three-way overlap.
+- [x] 7.3 Requests view (`js/session/requests.js`):
   - bars split into cached, uncached and output;
   - tool-call chips;
   - collapsible subagent groups, with expand all and collapse all;
