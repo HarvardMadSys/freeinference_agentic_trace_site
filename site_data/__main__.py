@@ -19,7 +19,7 @@ from pyarrow import compute, parquet
 from release import reader
 from site_data import loading, paths, requests, sessions, simulation, tool_calls, weeks
 
-ROWS_PER_GROUP = 10_000  # a row group holds one week's rows only, so a query filtered by week skips the others
+ROWS_PER_GROUP = 100_000  # a row group holds one week's rows only, so a query filtered by week skips the others; large, so a query makes few ranged reads
 COMPRESSION = "zstd"  # small files that DuckDB-WASM reads
 BYTES_PER_MB = 1_000_000  # sizes are printed in decimal megabytes, the unit of the host's file size limit
 # Each file's row order: by week, then by root session where the rows have one, so a query filtered by either
