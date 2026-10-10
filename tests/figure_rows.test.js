@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import {
   cdfSeries,
+  drawnScopeAndWeeks,
   dropThinGroups,
   hiddenText,
   restingCountText,
@@ -88,4 +89,38 @@ test("a crowded axis labels every step-th value from the first, at most the numb
 test("an axis with room for every value labels them all", () => {
   const format = sparseTickFormat([1, 2, 4], String, 6);
   assert.deepEqual([1, 2, 4].map(format), ["1", "2", "4"]);
+});
+
+test("with no bin column every row is a bin of its own, hidden alone and counted alone", () => {
+  const rows = [
+    { provider: "A", idle_gap_bin: 0, rows: 400 },
+    { provider: "A", idle_gap_bin: 1, rows: 49 },
+    { provider: "B", idle_gap_bin: 0, rows: 60 },
+  ];
+  assert.deepEqual(dropThinGroups(rows, null), { rows: [rows[0], rows[2]], hidden: 1 });
+  assert.equal(restingRowCount(rows, { binColumn: null }), 509);
+  assert.equal(hiddenText(2, null), "2 bins hidden (fewer than 50 rows each)");
+});
+
+// Three weeks of `weeks.json`, the last not simulated.
+const WEEK_ENTRIES = [
+  { week: "2026-08-02", simulated: true },
+  { week: "2026-08-09", simulated: true },
+  { week: "2026-08-16", simulated: false },
+];
+
+test("a figure draws the selection's scope and weeks", () => {
+  const selection = { scope: "All", weeks: ["2026-08-09", "2026-08-16"] };
+  assert.deepEqual(drawnScopeAndWeeks({}, selection, WEEK_ENTRIES), selection);
+});
+
+test("a simulation figure draws the Agentic scope in the selected weeks that were simulated, and says so", () => {
+  const figure = { isSimulation: true };
+  assert.deepEqual(drawnScopeAndWeeks(figure, { scope: "Agentic", weeks: ["2026-08-09", "2026-08-16"] }, WEEK_ENTRIES), {
+    scope: "Agentic",
+    weeks: ["2026-08-09"],
+  });
+  const underAll = drawnScopeAndWeeks(figure, { scope: "SWE-Bench", weeks: ["2026-08-02"] }, WEEK_ENTRIES);
+  assert.equal(underAll.scope, "Agentic only, the scope the simulation covers");
+  assert.deepEqual(underAll.weeks, ["2026-08-02"]);
 });

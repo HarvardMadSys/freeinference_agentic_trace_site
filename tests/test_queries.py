@@ -54,6 +54,10 @@ EXPECTED_COLUMNS = {
     "figures/calls_per_request": ["tool_calls", "rows", "share"],
     "figures/latency_by_category": PERCENTILE_RANGE_COLUMNS,
     "figures/result_tokens_by_category": PERCENTILE_RANGE_COLUMNS,
+    "figures/hit_ratio_by_idle_gap": ["provider", "idle_gap_bin", "rows", "median_hit_ratio"],
+    "figures/hit_ratio_by_transition": ["transition", "rows", "mean_hit_ratio"],
+    "figures/simulated_hit_ratio_by_ttl": ["policy", "ttl", "hit_ratio", "rows"],
+    "figures/dead_over_active_by_policy": ["policy", "ttl", "dead_over_active", "rows"],
     "session/session_root": ["root_session_id", "week"],
     "session/session_tree": [
         "session_id", "parent_session_id", "spawned_by_step", "depth", "harness", "scope", "main_model", "user_id",

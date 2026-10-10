@@ -4,8 +4,8 @@
  * axis.
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
- * a CDF series). Every row of a bin carries the bin's count, the number of rows of the data it rests on, in the
- * column `rows`. These are plain functions, tested with `node --test`.
+ * a CDF series), or, when `binColumn` is null, each row alone. Every row of a bin carries the bin's count, the number
+ * of rows of the data it rests on, in the column `rows`. These are plain functions, tested with `node --test`.
  */
 
 import { dropThinBins, MIN_ROWS_PER_BIN } from "../shared/charts.js";
@@ -19,8 +19,13 @@ const HIDDEN_NOUNS = Object.freeze({
   series: ["series", "series"],
   week: ["week", "weeks"],
   category: ["category", "categories"],
+  transition: ["transition", "transitions"],
+  policy: ["policy", "policies"],
 });
 const DEFAULT_HIDDEN_NOUN = ["bin", "bins"];
+
+// The one scope the cache simulation was run for: a simulation figure draws it whatever scope is selected.
+const SIMULATED_SCOPE = "Agentic";
 
 /**
  * `{ rows, hidden }`: the rows of the bins whose count is at least `MIN_ROWS_PER_BIN`, in their order, and how
@@ -29,7 +34,7 @@ const DEFAULT_HIDDEN_NOUN = ["bin", "bins"];
 export function dropThinGroups(rows, binColumn) {
   const { rows: keptBins, hidden } = dropThinBins(binCounts(rows, binColumn), "count");
   const keptNames = new Set(keptBins.map((bin) => bin.name));
-  return { rows: rows.filter((row) => keptNames.has(row[binColumn])), hidden };
+  return { rows: rows.filter((row, index) => keptNames.has(binName(row, index, binColumn))), hidden };
 }
 
 /**
@@ -64,6 +69,23 @@ export function restingCountText(rows, figure) {
     }
   }
   return parts.length > 0 ? parts.join(" · ") : "0 rows";
+}
+
+/**
+ * `{ scope, weeks }`: the scope and the weeks (Sundays) a figure's rows come from. That is the selection's, except
+ * for a simulation figure (`isSimulation`), whose rows are the simulated scope's in the selected weeks the simulation
+ * covers, by `weekEntries` (the entries of `weeks.json`); its scope then says so when another scope is selected.
+ */
+export function drawnScopeAndWeeks(figure, selection, weekEntries) {
+  if (figure.isSimulation !== true) {
+    return { scope: selection.scope, weeks: selection.weeks };
+  }
+  const simulated = new Set(weekEntries.filter((entry) => entry.simulated).map((entry) => entry.week));
+  const weeks = selection.weeks.filter((week) => simulated.has(week));
+  if (selection.scope === SIMULATED_SCOPE) {
+    return { scope: SIMULATED_SCOPE, weeks };
+  }
+  return { scope: `${SIMULATED_SCOPE} only, the scope the simulation covers`, weeks };
 }
 
 /** The caption's note on hidden bins: "2 bins hidden (fewer than 50 rows each)"; "" when none is hidden. */
@@ -110,8 +132,13 @@ export function sparseTickFormat(values, format, maxLabels) {
 // Each bin's name and count, `[{ name, count }]`, in the order the bins first appear in the rows.
 function binCounts(rows, binColumn) {
   const counts = new Map();
-  for (const row of rows) {
-    counts.set(row[binColumn], row[COUNT_COLUMN]);
+  for (let index = 0; index < rows.length; index += 1) {
+    counts.set(binName(rows[index], index, binColumn), rows[index][COUNT_COLUMN]);
   }
   return [...counts].map(([name, count]) => ({ name, count }));
+}
+
+// The name of the bin a row belongs to: its value in the bin column, or its own position when there is none.
+function binName(row, index, binColumn) {
+  return binColumn === null ? index : row[binColumn];
 }

@@ -10,13 +10,14 @@ import { assignColours, MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, 
 import { openDatabase } from "../shared/database.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
 import { mountSelection, readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
-import { dropThinGroups, hiddenText, restingCountText } from "../figures/figure_rows.js";
+import { drawnScopeAndWeeks, dropThinGroups, hiddenText, restingCountText } from "../figures/figure_rows.js";
 
 // Each section of the page: the element its figures go in, and the module listing them. Every section module
 // exports its figures as `FIGURES`, so each is imported by its path rather than under a second name.
 const SECTIONS = Object.freeze([
   Object.freeze({ selector: "#figures-sessions", module: "../figures/sessions.js" }),
   Object.freeze({ selector: "#figures-tools", module: "../figures/tools.js" }),
+  Object.freeze({ selector: "#figures-caching", module: "../figures/caching.js" }),
 ]);
 
 const PAGE_FILE = "figures.html"; // the page's own file, which the header marks as active
@@ -86,7 +87,7 @@ async function drawFigure(page, { database, colours }, { figure, card }, body, r
       return; // a newer selection has replaced this run; its own run draws the figure
     }
     const { rows: shown, hidden } = dropThinGroups(rows, figure.binColumn);
-    writeCaption(card, figure, shown, hidden, run.selection);
+    writeCaption(card, figure, shown, hidden, drawnScopeAndWeeks(figure, run.selection, page.weeks));
     if (rows.length === 0) {
       showNote(body, NO_ROWS_NOTE);
     } else if (shown.length === 0) {
@@ -101,9 +102,9 @@ async function drawFigure(page, { database, colours }, { figure, card }, body, r
   }
 }
 
-/** Write a figure's caption: the rows it rests on, the scope and the weeks, and how many bins were hidden. */
-function writeCaption(card, figure, shownRows, hidden, selection) {
-  const parts = [restingCountText(shownRows, figure), selection.scope, weeksText(selection.weeks)];
+/** Write a figure's caption: the rows it rests on, the scope and the weeks they come from, and how many bins were hidden. */
+function writeCaption(card, figure, shownRows, hidden, { scope, weeks }) {
+  const parts = [restingCountText(shownRows, figure), scope, weeksText(weeks)];
   const hiddenNote = hiddenText(hidden, figure.binColumn);
   if (hiddenNote !== "") {
     parts.push(hiddenNote);

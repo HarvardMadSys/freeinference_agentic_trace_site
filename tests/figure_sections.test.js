@@ -22,6 +22,12 @@ const SECTION_FIGURES = {
     "latency_by_category",
     "result_tokens_by_category",
   ],
+  "../site/js/figures/caching.js": [
+    "hit_ratio_by_idle_gap",
+    "hit_ratio_by_transition",
+    "simulated_hit_ratio_by_ttl",
+    "dead_over_active_by_policy",
+  ],
 };
 
 // The figures of every section, as each module exports them, each list with its module's path.
@@ -59,7 +65,7 @@ test("every figure has a title, a one-sentence definition, a bin column and a dr
       assert.ok(figure.title.length > 0, figure.name);
       assert.ok(figure.definition.endsWith("."), figure.name);
       assert.equal(figure.definition.split(". ").length, 1, `${figure.name}: one sentence`);
-      assert.equal(typeof figure.binColumn, "string", figure.name);
+      assert.ok(typeof figure.binColumn === "string" || figure.binColumn === null, figure.name);
       assert.equal(typeof figure.draw, "function", figure.name);
     }
   }
