@@ -1,7 +1,5 @@
 """Every query of the site, run as the browser runs it on data built from the fixture release, returns its columns."""
 
-import collections.abc
-import pathlib
 import re
 
 import duckdb
@@ -12,7 +10,9 @@ import site_database
 
 # The columns each query returns, in order, by the query's name. Every query file outside `setup/` has an entry.
 EXPECTED_COLUMNS = {
+    "explore/input_tokens_per_week": ["week", "requests", "cached_tokens", "uncached_tokens", "unreported_tokens"],
     "explore/request_count": ["requests"],
+    "explore/sessions_per_week_by_harness": ["week", "harness", "sessions"],
 }
 
 # The `?` parameters of the queries that take them, in order, by the query's name.
@@ -26,14 +26,6 @@ SELECTED_SESSION = "tree-root"  # the fixture's first-week session with a tree o
 
 # The browser's database module, whose lists of setup statements the tests compare with the helper's.
 DATABASE_MODULE = site_database.QUERIES_FOLDER.parent / "js" / "shared" / "database.js"
-
-
-@pytest.fixture
-def connection(data_directory: pathlib.Path) -> collections.abc.Iterator[duckdb.DuckDBPyConnection]:
-    """A fresh database over the fixture's data folder, with empty selection tables."""
-    database = site_database.open_site_database(data_directory)
-    yield database
-    database.close()
 
 
 def browser_statement_names(constant: str) -> list[str]:

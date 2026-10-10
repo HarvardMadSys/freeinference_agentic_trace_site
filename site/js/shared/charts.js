@@ -177,22 +177,26 @@ export async function drawCdf(body, series, { xLabel, logX = false, format = Str
 /**
  * Draw into `body` one bar per row of `rows`: `row[x]` along the axis, `row[y]` its height, coloured by `row[fill]`.
  * Series colours follow `order` (a fixed order of fill values, largest first) or the rows' order; series past the
- * eighth fold into "Other", summed into one bar per x. Bars stack when `stacked`; `format` writes a y value on the axis
- * and in the tooltip; `xTickFormat`, when given, writes the x axis's ticks.
+ * eighth fold into "Other", summed into one bar per x. `colours`, when given, is a Map from each fill value to its
+ * colour, used instead. Bars stack when `stacked`; `format` writes a y value on the axis and in the tooltip;
+ * `xTickFormat`, when given, writes the x axis's ticks; `xDomain`, when given, lists every x value in order, so one
+ * with no rows keeps its place; `fillOpacity`, when given, is each bar's opacity, a number or a function of its row.
+ * Returns the chart's element.
  */
-export async function drawBars(body, rows, { x, y, fill, order, stacked = false, xLabel, yLabel, format = formatCount, xTickFormat }) {
+export async function drawBars(body, rows, options) {
+  const { x, y, fill, order, stacked = false, xLabel, yLabel, format = formatCount, xTickFormat, xDomain, fillOpacity } = options;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("./libraries.js");
   const names = distinct(order ?? rows.map((row) => row[fill]));
   const foldedRows = sumFolded(foldToOther(rows, fill, names), { x, y, fill });
-  const colours = barColours(names);
+  const colours = options.colours ?? barColours(names);
   const shown = [...colours.keys()].filter((name) => foldedRows.some((row) => row[fill] === name));
   const chart = Plot.plot({
     ...PLOT_MARGINS,
     width: chartWidth(body),
     height: CHART_HEIGHT,
     style: PLOT_STYLE,
-    x: { type: "band", domain: distinct(foldedRows.map((row) => row[x])) },
+    x: { type: "band", domain: xDomain ?? distinct(foldedRows.map((row) => row[x])) },
     color: colourScale(colours, shown, shown.length > 1),
     marks: [
       Plot.gridY(GRID_STYLE),
@@ -202,6 +206,7 @@ export async function drawBars(body, rows, { x, y, fill, order, stacked = false,
         x,
         ...barHeight(y, stacked),
         fill,
+        fillOpacity,
         order: shown, // the stacking order, bottom up; unused when the bars do not stack
         inset: BAR_INSET,
         title: (row) => barTipText(row, { x, y, fill, yLabel, format }),
@@ -211,6 +216,7 @@ export async function drawBars(body, rows, { x, y, fill, order, stacked = false,
     ],
   });
   body.replaceChildren(chart);
+  return chart;
 }
 
 function distinct(values) {

@@ -348,6 +348,11 @@ code,
   min-height: 12rem;
 }
 
+/* A chart a click acts on, such as a trend bar that selects its week. */
+.figure-body.is-clickable {
+  cursor: pointer;
+}
+
 .figure-body svg,
 .figure-body figure {
   max-width: 100%;

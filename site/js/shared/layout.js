@@ -5,6 +5,8 @@
  * keeps the chosen weeks and scope.
  */
 
+import { selectionQuery } from "./selection.js";
+
 const PAGES = [
   { file: "index.html", title: "Explore" },
   { file: "figures.html", title: "Paper figures" },
@@ -21,7 +23,7 @@ const EXTERNAL_LINKS = [
  * `activeFile` is the page's own file name; `selection` is the URLSearchParams every link carries.
  */
 export function renderHeader(container, activeFile, selection) {
-  const query = selection.size > 0 ? `?${selection}` : "";
+  const query = selectionQuery(selection);
   const links = PAGES.map((page) => navigationLink(page, activeFile, query)).join("");
   container.innerHTML = `
     <div class="header-inner">
