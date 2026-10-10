@@ -33,7 +33,7 @@ in a browser at 360 px and at desktop width, in light and dark mode.
 
 ## 3. Site data
 
-- [ ] 3.1 Add `tests/fixture_release.py`. It writes a two-week release in the pipeline's layout, with valid `manifest.json` and `tables.json`, and a simulation folder for one week. The release holds seven sessions:
+- [x] 3.1 Add `tests/fixture_release.py`. It writes a two-week release in the pipeline's layout, with valid `manifest.json` and `tables.json`, and a simulation folder for one week. The release holds seven sessions:
   - one with a subagent that has its own subagent;
   - two subagents whose requests overlap;
   - one SWE-Bench session;
@@ -41,7 +41,7 @@ in a browser at 360 px and at desktop width, in light and dark mode.
   - one user whose idle gap crosses the week boundary.
 
   Verify `release.reader.load` reads it.
-- [ ] 3.2 `site_data/requests.py` writes the release's request columns with the role tokens flattened, plus these columns, each from the pipeline's function:
+- [x] 3.2 `site_data/requests.py` writes the release's request columns with the role tokens flattened, plus these columns, each from the pipeline's function:
   - `week, scope, is_top_level, root_session_id, depth, turn`;
   - `uncached_tokens, hit_ratio, wait_s`;
   - `idle_gap_s, idle_gap_bin`, with the idle gap computed over all weeks;
