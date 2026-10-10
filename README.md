@@ -29,7 +29,7 @@ make setup    # a virtual environment with the pipeline's package and the test t
 make data     # site/data/ from the release: four Parquet files and weeks.json
 make serve    # http://localhost:8000
 make test     # the Python tests and the node tests
-make deploy   # publish site/ as the only commit of gh-pages on origin, force-pushed
+make deploy   # publish site/ as the only commit of gh-pages on origin, force-pushed (git 2.42 or later)
 ```
 
 `make data` reads the release and the cache simulation built by the pipeline
