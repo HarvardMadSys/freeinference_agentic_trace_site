@@ -251,6 +251,14 @@ runs it.
   request-level sum reads 26 MB.
 - **Token split by week** replaces the paper's per-session rank-binned stack
   with one bar per selected week.
+- **Turn duration** is computed in SQL (`figures/duration_cdf.sql`) from the
+  pipeline's `turn` column as the turn's last end minus its first start, the
+  definition of the pipeline's `turns.turn_durations`; the parity test guards
+  it through the median turn duration.
+- **Failed tool calls** are those whose outcome is in a list written in
+  `figures/tool_overview.sql`; `tests/test_pipeline_mirrors.py` checks the list
+  against the pipeline's `tools.FAILED_OUTCOMES`, as it checks the idle-gap
+  edges, TTLs, policies, wait causes and scopes the browser holds a copy of.
 
 Each of these is stated in the figure's definition. The parity test compares
 only the numbers the site and the paper share (medians, totals, shares),

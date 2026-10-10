@@ -10,7 +10,8 @@
 // The scope a page shows when the URL names none, or names one that does not exist.
 const DEFAULT_SCOPE = "Agentic";
 
-// Each scope a visitor can choose, with the scopes of the data it covers.
+// Each scope a visitor can choose, with the scopes of the data it covers; the pipeline's scopes, checked by
+// tests/test_pipeline_mirrors.py.
 const SCOPE_MEMBERS = Object.freeze({
   Agentic: ["Agentic"],
   "SWE-Bench": ["SWE-Bench"],

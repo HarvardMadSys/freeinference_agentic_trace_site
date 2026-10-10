@@ -13,7 +13,8 @@ import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
 import { sparseTickFormat } from "./figure_rows.js";
 
 // The idle-gap bins mirror the pipeline's `gaps.IDLE_GAP_EDGES_S`: 26 bins between 27 geometric edges from 10 s to
-// one hour, each 1.25 times as wide as the one before.
+// one hour, each 1.25 times as wide as the one before. tests/test_pipeline_mirrors.py checks these three constants,
+// the TTLs and the policies against the pipeline.
 const FIRST_IDLE_GAP_EDGE_S = 10;
 const LAST_IDLE_GAP_EDGE_S = 3600;
 const IDLE_GAP_BINS = 26;

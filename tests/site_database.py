@@ -34,7 +34,8 @@ SELECTION_TABLE_STATEMENTS = [
     "setup/create_selected_session",
 ]
 
-# The scopes of the data each scope a visitor can choose covers, as `scopesOf` in selection.js gives them.
+# The scopes of the data each scope a visitor can choose covers, as `scopesOf` in selection.js gives them;
+# checked against the pipeline's scopes by test_pipeline_mirrors.py.
 SCOPES_OF = {"Agentic": ["Agentic"], "SWE-Bench": ["SWE-Bench"], "All": ["Agentic", "SWE-Bench"]}
 
 

@@ -12,7 +12,10 @@ import { elapsedSeconds } from "./view_chart.js";
 import { assignColours, OTHER_SERIES } from "../shared/charts.js";
 import { formatSeconds } from "../shared/format.js";
 
-/** What a wait can wait for, in the order that gives each its colour, with the name a legend and tooltip give it. */
+/**
+ * What a wait can wait for, in the order that gives each its colour, with the name a legend and tooltip give it; the
+ * keys are the release's `waited_for` values, checked by tests/test_pipeline_mirrors.py.
+ */
 export const WAIT_CAUSES = Object.freeze({
   user: "the user",
   tool: "tools",
