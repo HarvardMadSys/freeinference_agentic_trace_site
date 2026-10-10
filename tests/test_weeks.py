@@ -1,7 +1,9 @@
-"""The index of weeks: folder names become entries, and a week is simulated when its tallies exist."""
+"""The index of weeks: folder names become entries, and a week is simulated when its files match its traces."""
 
 import json
 import pathlib
+
+from simulation import weekly_files
 
 from site_data import weeks
 
@@ -25,12 +27,23 @@ def test_an_entry_names_the_folder_it_was_read_from(tmp_path: pathlib.Path) -> N
     assert weeks.folder_name(weeks.week_entry(week_directory, tmp_path / "simulation")) == "2026-05-31_2026-06-06"
 
 
-def test_a_week_is_simulated_when_its_tallies_exist(tmp_path: pathlib.Path) -> None:
+def test_a_week_is_simulated_when_its_tallies_and_totals_were_computed_from_its_traces(tmp_path: pathlib.Path) -> None:
     week_directory = make_week(tmp_path / "release", "2026-08-30_2026-09-05")
-    tallies = tmp_path / "simulation" / "2026-08-30_2026-09-05" / weeks.SIMULATED_MARKER_FILE
-    tallies.parent.mkdir(parents=True)
-    tallies.write_bytes(b"")
+    simulated_week = tmp_path / "simulation" / "2026-08-30_2026-09-05"
+    simulated_week.mkdir(parents=True)
+    weekly_files.record_sources(simulated_week, week_directory, [weekly_files.TALLIES_FILE])
+    assert not weeks.week_entry(week_directory, tmp_path / "simulation").simulated  # the totals are not recorded
+    weekly_files.record_sources(simulated_week, week_directory, [weekly_files.TOTALS_FILE])
     assert weeks.week_entry(week_directory, tmp_path / "simulation").simulated
+
+
+def test_a_week_simulated_from_older_traces_is_not_simulated(tmp_path: pathlib.Path) -> None:
+    week_directory = make_week(tmp_path / "release", "2026-08-30_2026-09-05")
+    simulated_week = tmp_path / "simulation" / "2026-08-30_2026-09-05"
+    simulated_week.mkdir(parents=True)
+    weekly_files.record_sources(simulated_week, week_directory, list(weeks.SIMULATION_FILES))
+    (week_directory / "manifest.json").write_text('{"files": {}}')  # the week's traces changed since
+    assert not weeks.week_entry(week_directory, tmp_path / "simulation").simulated
 
 
 def test_the_index_lists_every_week_oldest_first(tmp_path: pathlib.Path) -> None:

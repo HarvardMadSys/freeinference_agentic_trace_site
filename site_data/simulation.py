@@ -15,8 +15,19 @@ import pandas
 from simulation import weekly_files
 from site_data import weeks
 
-# The frame's columns in order.
-COLUMNS = ["week", "scope", "policy", "ttl", *weekly_files.TALLY_COLUMNS, "active_token_seconds"]
+# The frame's columns in order, with the types the simulation writes them in.
+COLUMN_TYPES = {
+    "week": "str",
+    "scope": "str",
+    "policy": "str",
+    "ttl": "str",
+    "hit_tokens": "int64",
+    "miss_tokens": "int64",
+    "reusable_token_seconds": "float64",
+    "dead_token_seconds": "float64",
+    "active_token_seconds": "float64",
+}
+COLUMNS = list(COLUMN_TYPES)
 
 
 def simulation_frame(simulation_directory: pathlib.Path, entries: list[weeks.WeekEntry]) -> pandas.DataFrame:
@@ -26,8 +37,16 @@ def simulation_frame(simulation_directory: pathlib.Path, entries: list[weeks.Wee
         if entry.simulated:
             weekly.append(week_tallies(simulation_directory / weeks.folder_name(entry), entry.week))
     if not weekly:
-        return pandas.DataFrame(columns=COLUMNS)
+        return no_rows()
     return pandas.concat(weekly, ignore_index=True)
+
+
+def no_rows() -> pandas.DataFrame:
+    """The frame without rows, its columns typed as a simulated week's are, so its file has the same schema."""
+    empty_columns = {}
+    for column, column_type in COLUMN_TYPES.items():
+        empty_columns[column] = pandas.Series(dtype=column_type)
+    return pandas.DataFrame(empty_columns)
 
 
 def week_tallies(simulated_week: pathlib.Path, week: str) -> pandas.DataFrame:

@@ -20,7 +20,7 @@ COLUMNS = [
 
 
 def tool_calls_frame(release: loading.WeekTaggedRelease, requests: pandas.DataFrame) -> pandas.DataFrame:
-    """The site's tool calls, in week, session, step and call order; every call must join exactly one request."""
+    """The site's tool calls, in the release's order; every call must join exactly one request."""
     request_columns = requests[[*REQUEST_KEY, "scope", "is_top_level", "root_session_id"]]
     calls = release.tool_calls.merge(
         request_columns, on=REQUEST_KEY, how="left", validate="many_to_one", indicator="joined")
@@ -29,5 +29,4 @@ def tool_calls_frame(release: loading.WeekTaggedRelease, requests: pandas.DataFr
         first = unjoined.iloc[0]
         raise ValueError(f"{len(unjoined)} tool calls join no request, the first at step {first.step} of session "
                          f"{first.session_id} in the week of {first.week}")
-    calls = loading.with_nullable_integers(calls, schema.TOOL_CALLS_SCHEMA)
-    return calls.sort_values([*REQUEST_KEY, "call_index"], ignore_index=True)[COLUMNS]
+    return loading.with_nullable_integers(calls, schema.TOOL_CALLS_SCHEMA)[COLUMNS]

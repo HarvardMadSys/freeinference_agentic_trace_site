@@ -1,19 +1,22 @@
 """Build the site's data folder: `python -m site_data --release <dir> --simulation <dir> --out <dir>`.
 
 Every week is loaded, checked and turned into rows before any file is
-written, so a corrupted week stops the run with the data folder untouched.
-Each Parquet file is sorted by week and then by root session, so a session's
-tree sits together, and is written one week at a time, so no row group holds
-two weeks. `weeks.json` is written last.
+written, so a corrupted week stops the run, with its message and exit status
+1, and the data folder untouched. Each Parquet file is sorted, here and only
+here, by week and then by root session, so a session's tree sits together, and
+is written one week at a time, so no row group holds two weeks. `weeks.json`
+is written last.
 """
 
 import argparse
 import pathlib
+import sys
 
 import pandas
 import pyarrow
 from pyarrow import compute, parquet
 
+from release import reader
 from site_data import loading, paths, requests, sessions, simulation, tool_calls, weeks
 
 ROWS_PER_GROUP = 10_000  # a row group holds one week's rows only, so a query filtered by week skips the others
@@ -32,9 +35,14 @@ SORT_ORDERS = {
 def main(arguments: list[str] | None = None) -> None:
     """Write the four Parquet files and `weeks.json` into the output folder, and print each file's rows and size."""
     options = parsed_arguments(arguments)
-    entries = weeks.weeks_index(options.release, options.simulation)
-    release = loading.load_release(options.release, entries)
+    try:
+        entries = weeks.weeks_index(options.release, options.simulation)
+        release = loading.load_release(options.release, entries)
+    except reader.ReleaseError as error:
+        print(error, file=sys.stderr)
+        raise SystemExit(1)
     frames = site_frames(release, options.simulation, entries)
+    del release  # the frames hold every row the files need; the release's own copy is not written
     options.out.mkdir(parents=True, exist_ok=True)
     for file_name, frame in frames.items():
         sorted_frame = frame.sort_values(SORT_ORDERS[file_name], ignore_index=True)

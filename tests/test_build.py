@@ -1,11 +1,11 @@
 """The data step on the fixture release: what it writes, in what order, and that a corrupted week stops it."""
 
+import json
 import pathlib
 
 import pandas
 import pytest
 from pyarrow import parquet
-from release import reader
 
 import site_data.__main__
 
@@ -40,21 +40,50 @@ def test_every_file_is_written_and_its_rows_printed(tmp_path: pathlib.Path, caps
     assert printed[-1].startswith("weeks.json: 2 rows, ")
 
 
+def mark_first_week_simulated_from_older_traces(tmp_path: pathlib.Path) -> None:
+    """Record in the first week's `sources.json` a manifest sha256 that is not its current manifest's."""
+    sources_path = tmp_path / "simulation" / fixture_release.SIMULATED_WEEK / "sources.json"
+    sources = json.loads(sources_path.read_text())
+    for file_name in sources:
+        sources[file_name] = {"manifest.json": "0" * 64}
+    sources_path.write_text(json.dumps(sources))
+
+
+def test_a_week_simulated_from_older_traces_is_published_without_simulation_rows(tmp_path: pathlib.Path) -> None:
+    current = build(tmp_path, "current")
+    assert [entry["simulated"] for entry in json.loads((current / "weeks.json").read_text())] == [True, False]
+    assert len(pandas.read_parquet(current / "simulation.parquet")) == 4
+    mark_first_week_simulated_from_older_traces(tmp_path)
+    stale = build(tmp_path, "stale")
+    assert [entry["simulated"] for entry in json.loads((stale / "weeks.json").read_text())] == [False, False]
+    assert len(pandas.read_parquet(stale / "simulation.parquet")) == 0
+
+
+def test_a_simulation_without_rows_has_the_columns_and_types_of_one_with_rows(tmp_path: pathlib.Path) -> None:
+    populated = parquet.read_schema(build(tmp_path, "populated") / "simulation.parquet")
+    mark_first_week_simulated_from_older_traces(tmp_path)
+    empty = parquet.read_schema(build(tmp_path, "empty") / "simulation.parquet")
+    assert empty.equals(populated, check_metadata=False)
+
+
 def test_two_runs_write_identical_files(tmp_path: pathlib.Path) -> None:
     first, second = build(tmp_path, "first"), build(tmp_path, "second")
     for file_name in [*PARQUET_FILES, "weeks.json"]:
         assert (first / file_name).read_bytes() == (second / file_name).read_bytes(), file_name
 
 
-def test_a_corrupted_week_stops_the_run_before_anything_is_written(tmp_path: pathlib.Path) -> None:
+def test_a_corrupted_week_stops_the_run_before_anything_is_written(tmp_path: pathlib.Path,
+                                                                   capsys: pytest.CaptureFixture) -> None:
     fixture_release.write_fixture_release(tmp_path / "release", tmp_path / "simulation")
     table_path = tmp_path / "release" / "2026-06-07_2026-06-13" / "requests.parquet"
     contents = bytearray(table_path.read_bytes())
     contents[len(contents) // 2] ^= 0xFF
     table_path.write_bytes(bytes(contents))
     (tmp_path / "out").mkdir()
-    with pytest.raises(reader.ReleaseError, match="2026-06-07_2026-06-13/requests.parquet differs"):
+    with pytest.raises(SystemExit) as stop:
         build(tmp_path)
+    assert stop.value.code == 1
+    assert "2026-06-07_2026-06-13/requests.parquet differs" in capsys.readouterr().err
     assert list((tmp_path / "out").iterdir()) == []
 
 

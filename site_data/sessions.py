@@ -37,7 +37,7 @@ COLUMNS = [
 
 
 def sessions_frame(release: loading.WeekTaggedRelease, requests: pandas.DataFrame) -> pandas.DataFrame:
-    """The site's sessions, by week and session id, from the release and the site's requests."""
+    """The site's sessions, in the release's order, from the release and the site's requests."""
     totals = request_totals(requests)
     totals["main_model"] = main_models(requests)
     sessions = release.sessions[RELEASE_COLUMNS].merge(
@@ -48,8 +48,7 @@ def sessions_frame(release: loading.WeekTaggedRelease, requests: pandas.DataFram
     subagents = subagent_totals(totals)
     sessions["subagents"] = sessions.session_id.map(subagents.subagents).fillna(0).astype(int)
     sessions["subagent_requests"] = sessions.session_id.map(subagents.subagent_requests).fillna(0).astype(int)
-    sessions = loading.with_nullable_integers(sessions, schema.SESSIONS_SCHEMA)
-    return sessions.sort_values(["week", "session_id"], ignore_index=True)[COLUMNS]
+    return loading.with_nullable_integers(sessions, schema.SESSIONS_SCHEMA)[COLUMNS]
 
 
 def request_totals(requests: pandas.DataFrame) -> pandas.DataFrame:
