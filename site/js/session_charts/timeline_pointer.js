@@ -4,7 +4,7 @@
  */
 
 import { barAt, pointerPlace } from "./timeline_bars.js";
-import { scrollBox, sendOpenRequest } from "./view_chart.js";
+import { scrollBox, sendOpenRequest } from "../session/view_chart.js";
 
 // How near, in pixels, the pointer must come to a bar that holds no point under it, such as one under a pixel wide.
 const POINTER_REACH_PX = 3;

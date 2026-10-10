@@ -6,7 +6,7 @@
  * `tree` holds rows of `session/session_tree`, `requests` rows of `session/session_requests`.
  */
 
-import { agentLabel, agentsInStartOrder } from "./tree.js";
+import { agentLabel, agentsInStartOrder } from "../session/tree.js";
 import { assignColours, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../shared/charts.js";
 import { elapsedSeconds, formatElapsed, formatTokens } from "../shared/format.js";
 

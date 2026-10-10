@@ -7,7 +7,7 @@
  * `session/session_tool_calls`. A tool call's start is not in the data; it is taken as its request's end.
  */
 
-import { agentLabel, agentsInStartOrder, callsByRequest, requestKey } from "./tree.js";
+import { agentLabel, agentsInStartOrder, callsByRequest, requestKey } from "../session/tree.js";
 import { assignColours, OTHER_SERIES } from "../shared/charts.js";
 import { elapsedSeconds, formatSeconds, MILLISECONDS_PER_SECOND } from "../shared/format.js";
 

@@ -9,10 +9,10 @@
 
 import { drawBrackets, MAX_LANES } from "./request_brackets.js";
 import { requestDetails } from "./request_details.js";
-import { overlapGroups } from "./overlaps.js";
+import { overlapGroups } from "../session/overlaps.js";
 import { requestRow } from "./request_row.js";
 import { requestLegend } from "./request_legend.js";
-import { agentTree, callsByRequest, largestRequestTokens, requestKey } from "./tree.js";
+import { agentTree, callsByRequest, largestRequestTokens, requestKey } from "../session/tree.js";
 import { formatCount, formatSeconds, formatTokens, shortSessionId } from "../shared/format.js";
 
 // How long a row the URL points at stays highlighted, in milliseconds.

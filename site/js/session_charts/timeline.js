@@ -5,12 +5,12 @@
  * for. A click on a bar opens its request in the Requests view.
  */
 
-import { categoryEntries, legendLine } from "./legend.js";
+import { categoryEntries, legendLine } from "../session/legend.js";
 import {
   ganttBars, ganttRows, placedInRow, requestPartEntries, undrawnCounts, waitEntries,
 } from "./timeline_bars.js";
 import { pointerFrame } from "./timeline_pointer.js";
-import { elapsedTicks, startChartView, tickCount, viewChartWidth } from "./view_chart.js";
+import { elapsedTicks, startChartView, tickCount, viewChartWidth } from "../session/view_chart.js";
 import { AXIS_STYLE, chartFrame, GRID_STYLE, renderFigure } from "../shared/charts.js";
 import { formatElapsed, formatQuantity } from "../shared/format.js";
 

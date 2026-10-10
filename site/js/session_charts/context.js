@@ -9,10 +9,10 @@ import {
   AGENT_LINE_COLOURS, AREA_SPLITS, areaParts, areaRows, pointTip, requestPoints, trajectoryPoints, transitionMarks,
   turnStarts,
 } from "./context_series.js";
-import { legendLine } from "./legend.js";
+import { legendLine } from "../session/legend.js";
 import {
   elapsedTicks, listenForRequestClick, scrollBox, startChartView, tickCount, viewChartWidth,
-} from "./view_chart.js";
+} from "../session/view_chart.js";
 import {
   AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, SERIES_SLOTS, TIP_STYLE, renderFigure,
 } from "../shared/charts.js";

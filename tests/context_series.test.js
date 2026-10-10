@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import {
   AGENT_LINE_COLOURS, areaParts, areaRows, pointTip, requestPoints, trajectoryPoints, transitionMarks, turnStarts,
-} from "../site/js/session/context_series.js";
+} from "../site/js/session_charts/context_series.js";
 
 // The fixture's `mutation` session: step 1 rewrites its context by compaction, step 3 starts a second turn.
 const TREE = [

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { barParts, barWidth, elapsedRange, rowLabel } from "../site/js/session/request_row.js";
+import { barParts, barWidth, elapsedRange, rowLabel } from "../site/js/session_requests/request_row.js";
 
 const REQUEST = {
   step: 3, turn: 2, step_trigger: "tool", start_ms: 61_000, end_ms: 75_500,

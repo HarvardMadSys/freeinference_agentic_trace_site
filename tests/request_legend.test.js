@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { legendEntries } from "../site/js/session/request_legend.js";
+import { legendEntries } from "../site/js/session_requests/request_legend.js";
 import { assignColours } from "../site/js/shared/charts.js";
 
 // A site-wide order of ten categories: the last two fold into the Other colour.

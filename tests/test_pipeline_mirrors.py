@@ -13,7 +13,7 @@ import site_database
 
 SITE_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site"
 CACHING_MODULE = SITE_FOLDER / "js" / "figures" / "caching.js"  # the idle-gap bins, the TTLs and the policies
-TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session" / "timeline_bars.js"  # the wait causes
+TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the wait causes
 SELECTION_MODULE = SITE_FOLDER / "js" / "shared" / "selection.js"  # the scopes and the release scopes each holds
 TOOL_OVERVIEW_QUERY = SITE_FOLDER / "queries" / "figures" / "tool_overview.sql"  # the failed outcomes
 EDGE_TOLERANCE = 1e-9  # relative; the browser computes the geometric edges itself, so they agree only to rounding

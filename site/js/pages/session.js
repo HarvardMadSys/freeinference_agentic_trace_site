@@ -3,10 +3,10 @@
 import {
   readAddress, requestParameters, selectionParameters, viewParameters, VIEW_NAMES,
 } from "../session/address.js";
-import { mountContextView } from "../session/context.js";
+import { mountContextView } from "../session_charts/context.js";
 import { sessionFacts } from "../session/facts.js";
-import { mountRequestsView } from "../session/requests.js";
-import { mountTimelineView } from "../session/timeline.js";
+import { mountRequestsView } from "../session_requests/requests.js";
+import { mountTimelineView } from "../session_charts/timeline.js";
 import { OPEN_REQUEST_EVENT } from "../session/view_chart.js";
 import { assignColours, showError, showLoading, showNote } from "../shared/charts.js";
 import { openDatabase } from "../shared/database.js";
