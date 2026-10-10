@@ -9,8 +9,8 @@ import json
 import pathlib
 
 from release import reader
+from site_data import paths
 
-WEEKS_FILE = "weeks.json"  # the index, read by every page before DuckDB loads
 SIMULATED_MARKER_FILE = "tallies.parquet"  # a simulated week's folder holds this file
 
 
@@ -44,6 +44,6 @@ def weeks_index(release_directory: pathlib.Path, simulation_directory: pathlib.P
 
 def write_weeks_file(entries: list[WeekEntry], out_directory: pathlib.Path) -> pathlib.Path:
     """Write the index as `weeks.json` and return its path."""
-    path = out_directory / WEEKS_FILE
+    path = out_directory / paths.WEEKS_FILE
     path.write_text(json.dumps([dataclasses.asdict(entry) for entry in entries], indent=2) + "\n")
     return path
