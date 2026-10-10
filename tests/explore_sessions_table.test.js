@@ -105,7 +105,16 @@ test("a second click on the sorted column reverses it; a new column sorts number
 test("a row opens the Session page with its week and id, and the selection", () => {
   const row = { week: "2026-08-09", session_id: "aaaa1111-x" };
   const selection = { weeks: ["2026-08-09"], scope: "All", unknownWeeks: [], unknownMonth: null };
-  assert.equal(sessionLink(row, selection, WEEKS), "session.html?week=2026-08-09&id=aaaa1111-x&weeks=2026-08-09&scope=All");
+  const link = sessionLink(row, new URLSearchParams(), selection, WEEKS);
+  assert.equal(link, "session.html?week=2026-08-09&id=aaaa1111-x&weeks=2026-08-09&scope=All");
+});
+
+test("a row's link carries the table's sort, direction and page, so the way back reopens the table as it was", () => {
+  const row = { week: "2026-08-09", session_id: "aaaa1111-x" };
+  const selection = { weeks: ["2026-08-09"], scope: "Agentic", unknownWeeks: [], unknownMonth: null };
+  const exploreParams = new URLSearchParams("month=2026-08&sort=duration_s&direction=ascending&page=2");
+  const link = sessionLink(row, exploreParams, selection, WEEKS);
+  assert.equal(link, "session.html?week=2026-08-09&id=aaaa1111-x&sort=duration_s&direction=ascending&page=2&weeks=2026-08-09");
 });
 
 test("a session's cached share is cached over reported input, and missing with none reported", () => {
@@ -120,9 +129,10 @@ test("a filter's choices are the rows' distinct values and the current one, sort
 
 test("the session column links each row to its Session page, as the row click does", () => {
   const selection = { weeks: ["2026-08-09"], scope: "All", unknownWeeks: [], unknownMonth: null };
-  const columns = linkedColumns({ selection, weeks: WEEKS });
+  const exploreParams = new URLSearchParams("page=2");
+  const columns = linkedColumns({ selection, weeks: WEEKS }, exploreParams);
   const row = { week: "2026-08-09", session_id: "aaaa1111-x" };
   const sessionColumn = columns.find((column) => column.key === "session_id");
-  assert.equal(sessionColumn.href(row), sessionLink(row, selection, WEEKS));
+  assert.equal(sessionColumn.href(row), sessionLink(row, exploreParams, selection, WEEKS));
   assert.equal(columns.filter((column) => column.href !== undefined).length, 1);
 });

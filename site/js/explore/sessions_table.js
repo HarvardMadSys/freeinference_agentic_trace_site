@@ -52,12 +52,15 @@ export async function runSessionsTable(container, context) {
   await drawSessions(place, context).catch((error) => showError(place, error));
 }
 
-/** The table's columns for `context`: the session column links each row to its Session page. */
-export function linkedColumns(context) {
+/**
+ * The table's columns for `context`: the session column links each row to its Session page, carrying
+ * `exploreParams`, the Explore page's URL keys, so the link back to Explore reopens the table as it was.
+ */
+export function linkedColumns(context, exploreParams) {
   const columns = [];
   for (const column of COLUMNS) {
     if (column.key === "session_id") {
-      columns.push({ ...column, href: (row) => sessionLink(row, context.selection, context.weeks) });
+      columns.push({ ...column, href: (row) => sessionLink(row, exploreParams, context.selection, context.weeks) });
     } else {
       columns.push(column);
     }
@@ -132,10 +135,19 @@ export function nextSort(sort, key) {
   return { key, direction: column.isNumber ? "descending" : "ascending" };
 }
 
-/** The Session page's address for `row`: its week and id, then the selection's keys. */
-export function sessionLink(row, selection, weeks) {
-  const params = writeSelection(new URLSearchParams({ week: row.week, id: row.session_id }), selection, weeks);
-  return `session.html${selectionQuery(params)}`;
+/**
+ * The Session page's address for `row`: its week and id, then every other key of `exploreParams` (the table's
+ * search, filters, sort and page), then the selection's keys. The Session page passes the keys it does not read
+ * on to its link back to Explore.
+ */
+export function sessionLink(row, exploreParams, selection, weeks) {
+  const params = new URLSearchParams({ week: row.week, id: row.session_id });
+  for (const [key, value] of exploreParams) {
+    if (!params.has(key)) {
+      params.append(key, value);
+    }
+  }
+  return `session.html${selectionQuery(writeSelection(params, selection, weeks))}`;
 }
 
 /** A copy of a session row with its cached share, null when none of its input was reported. */
@@ -209,17 +221,18 @@ function sortBy(view, key) {
 }
 
 function drawTable(view) {
+  const exploreParams = new URLSearchParams(window.location.search);
   const state = currentState();
   const shown = shownSessions(view.rows, state);
   mountTable(view.tablePlace, {
-    columns: linkedColumns(view.context),
+    columns: linkedColumns(view.context, exploreParams),
     rows: shown,
     sort: state.sort,
     pageNumber: state.pageNumber,
     summary: `${formatCount(shown.length)} of ${formatCount(view.rows.length)} sessions`,
     onSort: (key) => sortBy(view, key),
     onPage: (pageNumber) => changeTable(view, { ...currentState(), pageNumber }),
-    onRowClick: (row) => window.location.assign(sessionLink(row, view.context.selection, view.context.weeks)),
+    onRowClick: (row) => window.location.assign(sessionLink(row, exploreParams, view.context.selection, view.context.weeks)),
   });
 }
 
