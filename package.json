@@ -1,0 +1,6 @@
+{
+  "name": "freeinference-site",
+  "private": true,
+  "type": "module",
+  "description": "Sets ES modules for `node --test`. The site has no npm dependencies; its libraries come from a CDN."
+}

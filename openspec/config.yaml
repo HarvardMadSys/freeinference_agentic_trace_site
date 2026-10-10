@@ -1,0 +1,36 @@
+schema: spec-driven
+
+# Project context, shown to AI when creating artifacts.
+context: |
+  The FreeInference trace site: a public, static, lightweight website that
+  lets anyone browse the FreeInference agentic trace week by week. A small
+  Python step turns the pipeline's per-week release into a few Parquet files;
+  plain HTML pages and ES modules query them in the browser with DuckDB-WASM
+  and draw them with Observable Plot. There is no server and no front-end
+  build step. The pipeline repository (freeinference-agentic-pipeline) owns
+  every definition; this site imports them and only filters, counts and
+  draws.
+
+  Engineering rules (binding; see openspec/specs/site-repository):
+  - It MUST NOT be complicated. Simple, readable and maintainable first.
+  - No premature optimisation: plainest correct code; speed up only after a
+    measured run shows it is too slow, and record the measurement.
+  - No framework, no bundler, no npm runtime dependency: plain HTML, CSS and
+    ES modules; libraries are loaded from a CDN at pinned versions.
+  - Names are words; a one-letter name is only a loop index; imports without
+    aliases (Python) and named imports (JS).
+  - A function is at most 50 lines, a module at most 300.
+  - SQL is a literal, one query per file, with no string assembly.
+  - Every module is tested; make test passes at every commit.
+
+rules:
+  proposal:
+    - Say why and what in plain words; do not repeat the spec's rules.
+    - Prefer the simpler definition; say what it moves.
+  design:
+    - Open with the engineering rules above, then decisions and alternatives.
+    - Any speed-up must cite a measurement.
+  specs:
+    - Define behaviour, not implementation tricks.
+  tasks:
+    - One task per unit of work, each with how it is verified.

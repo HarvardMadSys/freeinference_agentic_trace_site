@@ -1,0 +1,6 @@
+.venv/
+site/data/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.claude/
