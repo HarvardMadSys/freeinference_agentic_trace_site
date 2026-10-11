@@ -8,7 +8,7 @@ measurement goes into `design.md`.
 
 ## 0. Before
 
-- [ ] 0.1 Archive `one-page-all-weeks` and `ship-the-data`, carrying their two unticked deploy checks into task 8.1 here.
+- [x] 0.1 Archive `one-page-all-weeks` and `ship-the-data`, carrying their two unticked deploy checks into task 8.1 here.
 - [ ] 0.2 Aesthetic review: a reviewer goes through every page at desktop and 360 px, light and dark, and writes `design-review.md` beside this file: per page and per card, what to change so that a figure card is a title and one short caption with the definition and row count behind a control, a chart carries no text its axes and legend give, and spacing, sizes and type are consistent.
 
 ## 1. Site data
