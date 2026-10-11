@@ -22,7 +22,8 @@ const EXTERNAL_LINKS = [
 
 /**
  * Fill `container` with the site header.
- * `activeFile` is the page's own file name; `selection` is the URLSearchParams every link carries.
+ * `activeFile` is the page's own file name; `selection` is the URLSearchParams every link carries. A link to a section
+ * of the page itself is its anchor alone, so following it scrolls the page rather than loading it again.
  */
 export function renderHeader(container, activeFile, selection) {
   const query = selectionQuery(selection);
@@ -44,7 +45,8 @@ export function renderFooter(container) {
 
 // A link to a section of a page is never marked active: the page's own link is.
 function navigationLink(page, activeFile, query) {
-  const isActive = page.file === activeFile && page.anchor === "";
-  const className = isActive ? "nav-link is-active" : "nav-link";
-  return `<a class="${className}" href="${page.file}${query}${page.anchor}">${page.title}</a>`;
+  const isSamePage = page.file === activeFile;
+  const className = isSamePage && page.anchor === "" ? "nav-link is-active" : "nav-link";
+  const href = isSamePage && page.anchor !== "" ? page.anchor : `${page.file}${query}${page.anchor}`;
+  return `<a class="${className}" href="${href}">${page.title}</a>`;
 }

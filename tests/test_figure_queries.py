@@ -148,8 +148,9 @@ def test_the_category_order_counts_every_call_largest_first(connection: duckdb.D
     assert rows.values.tolist() == [["*Build/Test", 6], ["Read", 6], ["Subagent", 3], ["Edit", 1]]
 
 
-# The fixture's two `task` calls (Subagent) are one request's, so Subagent has no single-call latency. Read's single calls wait 10 s (`tree-root` step 0), 20 s and 5 s (`idle-week-1` steps 0 and 1) and 170 s
-# (`mutation` step 1) before the next request.
+# The fixture's two `task` calls (Subagent) are one request's, so Subagent has no single-call latency. Read's single
+# calls wait 10 s (`tree-root` step 0), 20 s and 5 s (`idle-week-1` steps 0 and 1) and 170 s (`mutation` step 1)
+# before the next request.
 MEDIAN_READ_LATENCY_MS = 15_000
 PERCENTILE_COLUMNS = ["p5", "p25", "p50", "p75", "p95"]
 

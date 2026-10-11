@@ -3,16 +3,15 @@
  * the sessions table of the selected weeks and harnesses.
  *
  * The page draws its header, pickers, figure cards and every section's loading state from `weeks.json` and
- * `harnesses.json`,
- * writing the URL's selection back in its shortest form, then gives the database the selection and runs every
- * section: from the precomputed answers for the default selection, in DuckDB for any other. A change of the
+ * `harnesses.json`, writing the URL's selection back in its shortest form, then gives the database the selection and
+ * runs every section: from the precomputed answers for the default selection, in DuckDB for any other. A change of the
  * selection, from the pickers or a trend bar, rewrites the URL, gives the database the new selection and runs every
  * section again. Once the first run has drawn, the database streams the weeks' rows in, and the picker's note counts
  * the weeks streamed.
  *
  * `page` is what the page owns: `{ weeks, harnesses, selection, database, orders, figures, latestRun, streamedWeeks }`,
  * the entries of `weeks.json` and `harnesses.json`, the current selection, the database, the colour orders, the
- * figures' cards and places (`explore/figure_sections.js`), the number of the latest run of the sections, so a run a
+ * promised figures' cards and places (`explore/figure_sections.js`), placed after the pickers are drawn, the number of the latest run of the sections, so a run a
  * newer one replaced stops before it draws, and the Sundays streamed in so far (null when the page does not stream).
  * `orders` is `{ harnesses, models, categories }`, the promised rows of `setup/harness_order`, `setup/model_order` and
  * `setup/category_order`, asked for once. A section runs as `run(container, context)` with
@@ -26,7 +25,7 @@ import { renderFooter, renderHeader } from "../shared/layout.js";
 import { readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
 import { layoutDistributions, runDistributions } from "../explore/distributions.js";
 import {
-  layoutFigures, mountFigureSections, runFigures, showErrorInFigures, showNoteInFigures,
+  layoutFigures, mountFigureSections, runFigures, showErrorInFigureSections, showErrorInFigures, showNoteInFigures,
 } from "../explore/figure_sections.js";
 import { layoutHeadline, runHeadline } from "../explore/headline.js";
 import { mountSelection, showStreamedWeeks } from "../explore/selection_pickers.js";
@@ -61,6 +60,7 @@ async function start() {
     renderHeader(document.querySelector("#site-header"), PAGE_FILE, new URLSearchParams());
     showError(document.querySelector("#selection"), error);
     showErrorInEverySection(error);
+    showErrorInFigureSections(error);
     return;
   }
   const params = new URLSearchParams(window.location.search);
@@ -77,12 +77,12 @@ async function start() {
     order.catch(() => undefined);
   }
   const streamedWeeks = STREAM_ROWS_AFTER_DRAW ? [] : null;
-  const figures = await mountFigureSections();
-  const page = { weeks, harnesses, selection, database, orders, figures, latestRun: 0, streamedWeeks };
+  const page = { weeks, harnesses, selection, database, orders, figures: null, latestRun: 0, streamedWeeks };
   // The URL is written back in its shortest form: a key that says the default, or names no known week, goes.
   replaceQuery(writeSelection(params, selection, weeks, harnesses));
-  renderPageHeader(page);
   mountPicker(page);
+  // The pickers are drawn first; the figure modules load and their cards are placed after.
+  page.figures = mountFigureSections();
   await runEverySection(page);
   scrollToAnchor();
   await database.streamRows((progress) => showStreamed(page, progress.streamedWeeks));
@@ -96,21 +96,22 @@ async function runEverySection(page) {
   page.latestRun += 1;
   const run = page.latestRun;
   const selection = page.selection;
+  const figures = await page.figures;
   if (selection.weeks.length === 0 || selection.harnesses.length === 0) {
     const note = selection.weeks.length === 0 ? NO_WEEK_NOTE : NO_HARNESS_NOTE;
     showNoteInEverySection(note);
-    showNoteInFigures(page.figures, note);
+    showNoteInFigures(figures, note);
     return;
   }
   layoutEverySection();
-  layoutFigures(page.figures);
+  layoutFigures(figures);
   try {
     await page.database.setSelection(selection);
   } catch (error) {
     if (run === page.latestRun) {
       // A newer selection's run shows its own state instead.
       showErrorInEverySection(error);
-      showErrorInFigures(page.figures, error);
+      showErrorInFigures(figures, error);
     }
     return;
   }
@@ -128,7 +129,7 @@ async function runEverySection(page) {
     replaceQuery,
   };
   const sectionRuns = SECTIONS.map((section) => section.run(sectionElement(section), context));
-  await Promise.all([...sectionRuns, runFigures(page.figures, context)]);
+  await Promise.all([...sectionRuns, runFigures(figures, context)]);
 }
 
 /**
@@ -148,14 +149,17 @@ function changeSelection(page, selection) {
   // A new selection lists other sessions, so the sessions table starts again on its first page.
   const params = writeSelection(new URLSearchParams(window.location.search), selection, page.weeks, page.harnesses);
   replaceQuery(withFirstPage(params));
-  renderPageHeader(page);
   runEverySection(page);
 }
 
-/** Write `params` to the address bar, as `selectionQuery` writes them, keeping its anchor, without reloading the page. */
+/**
+ * Write `params` to the address bar, as `selectionQuery` writes them, keeping its anchor, without reloading the page;
+ * then redraw the header, whose links carry them.
+ */
 function replaceQuery(params) {
   const { pathname, hash } = window.location;
   window.history.replaceState(null, "", `${pathname}${selectionQuery(params)}${hash}`);
+  renderPageHeader();
 }
 
 /** Select `week` alone, keeping the harnesses, as a click on its trend bar asks. */
@@ -165,10 +169,10 @@ function selectWeek(page, week) {
   mountPicker(page);
 }
 
-function renderPageHeader(page) {
-  // The header's links carry the selection alone, not the sessions table's search and sort.
-  const selectionParams = writeSelection(new URLSearchParams(), page.selection, page.weeks, page.harnesses);
-  renderHeader(document.querySelector("#site-header"), PAGE_FILE, selectionParams);
+function renderPageHeader() {
+  // The header's links carry every key of the URL, the sessions table's included, as the Session page's do: a visitor
+  // who follows Explore or About and comes back finds the table as it was.
+  renderHeader(document.querySelector("#site-header"), PAGE_FILE, new URLSearchParams(window.location.search));
 }
 
 function mountPicker(page) {

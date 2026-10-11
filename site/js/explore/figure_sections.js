@@ -46,6 +46,13 @@ export async function mountFigureSections() {
   return figures;
 }
 
+/** Show `error` in place of each figure section's cards, when the page cannot load the indexes to place them. */
+export function showErrorInFigureSections(error) {
+  for (const section of SECTIONS) {
+    showError(document.querySelector(`${section.selector} .card-grid`), error);
+  }
+}
+
 /** Lay out every figure afresh, each loading. */
 export function layoutFigures(figures) {
   for (const { body } of layOutPlaces(figures).values()) {
@@ -192,7 +199,6 @@ async function placeCards() {
       const card = document.createElement("article");
       card.className = "card";
       card.id = figure.name;
-      card.classList.toggle("is-wide", figure.isWide === true); // a wide table takes the grid's whole width
       grid.append(card);
       cards.push({ figure, card });
     }

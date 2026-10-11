@@ -137,8 +137,6 @@ and calls `draw`:
   each count ("84,239 turns · 12,002 sessions").
 - `isSimulation` (optional): true for a figure of the cache simulation, which
   covers the paper's harnesses and the simulated weeks only; the caption says so.
-- `isWide` (optional): true for a figure that takes the whole width of its
-  section's grid, such as a table.
 - `draw(rows, body, colours)`: draws the rows left after thin bins are hidden
   into `body`; `colours` holds the model and category colours every figure
   shares (`{ models, categories }`, each a Map from name to colour).

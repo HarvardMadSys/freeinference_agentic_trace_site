@@ -27,3 +27,12 @@ test("on the Explore page only the Explore link is marked active, not the links 
   const active = headerLinks("index.html", new URLSearchParams()).filter((link) => link[2]);
   assert.deepEqual(active, [["Explore", "index.html", true]]);
 });
+
+test("on the Explore page its sections are linked by anchor alone, so following one does not load the page again", () => {
+  assert.deepEqual(headerLinks("index.html", new URLSearchParams("month=2026-07&sort=requests&page=2")), [
+    ["Explore", "index.html?month=2026-07&sort=requests&page=2", true],
+    ["Figures", "#figures-sessions", false],
+    ["Sessions", "#sessions", false],
+    ["About", "about.html?month=2026-07&sort=requests&page=2", false],
+  ]);
+});
