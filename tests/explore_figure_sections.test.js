@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { figureColours } from "../site/js/explore/figure_sections.js";
+import { figureColours, figuresToStart, newFigureRun, noteVisibility } from "../site/js/explore/figure_sections.js";
 import { SERIES_SLOTS } from "../site/js/shared/charts.js";
 
 test("the figures' colours follow the model and category orders, each from the first series colour", async () => {
@@ -13,4 +13,53 @@ test("the figures' colours follow the model and category orders, each from the f
   assert.deepEqual([...colours.models], [["model-b", SERIES_SLOTS[0]], ["model-a", SERIES_SLOTS[1]]]);
   assert.deepEqual([...colours.categories], [["Read", SERIES_SLOTS[0]], ["Edit", SERIES_SLOTS[1]]]);
   assert.ok(Object.isFrozen(colours));
+});
+
+// Three figures in page order, as `figuresToStart` takes them, and a run's context it only carries.
+const FIGURE_LIST = [{ name: "first" }, { name: "second" }, { name: "third" }];
+const CONTEXT = { selection: { weeks: ["2026-07-05"], harnesses: ["hermes"] } };
+
+function names(figureList) {
+  return figureList.map((figure) => figure.name);
+}
+
+test("a new run carries its context and has started no figure", () => {
+  const run = newFigureRun(CONTEXT, false);
+  assert.equal(run.context, CONTEXT);
+  assert.equal(run.drawsAtOnce, false);
+  assert.equal(run.startedNames.size, 0);
+});
+
+test("a run that draws at once starts every figure, whether in view or not", () => {
+  const run = newFigureRun(CONTEXT, true);
+  assert.deepEqual(names(figuresToStart(run, FIGURE_LIST, new Set())), ["first", "second", "third"]);
+});
+
+test("a run that draws in view starts only the figures in view, in page order", () => {
+  const run = newFigureRun(CONTEXT, false);
+  assert.deepEqual(names(figuresToStart(run, FIGURE_LIST, new Set(["third", "first"]))), ["first", "third"]);
+  assert.deepEqual(figuresToStart(run, FIGURE_LIST, new Set()), []);
+});
+
+test("a figure already started for the run is not started again when it comes back into view", () => {
+  const run = newFigureRun(CONTEXT, false);
+  run.startedNames.add("first");
+  assert.deepEqual(names(figuresToStart(run, FIGURE_LIST, new Set(["first", "second"]))), ["second"]);
+});
+
+test("a new run, as a selection change makes, starts the figures in view again", () => {
+  const visible = new Set(["first"]);
+  const earlier = newFigureRun(CONTEXT, false);
+  earlier.startedNames.add("first");
+  assert.deepEqual(figuresToStart(earlier, FIGURE_LIST, visible), []);
+  assert.deepEqual(names(figuresToStart(newFigureRun(CONTEXT, false), FIGURE_LIST, visible)), ["first"]);
+});
+
+test("intersection entries add the cards in view and remove the cards that left it", () => {
+  const visible = new Set(["first", "second"]);
+  noteVisibility(visible, [
+    { target: { id: "second" }, isIntersecting: false },
+    { target: { id: "third" }, isIntersecting: true },
+  ]);
+  assert.deepEqual([...visible].sort(), ["first", "third"]);
 });

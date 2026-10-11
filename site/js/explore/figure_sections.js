@@ -2,13 +2,19 @@
  * The figure sections of the Explore page: the Sessions, Tools and Prefix-caching figures, each a card in its
  * section's grid, drawn for the selected weeks and harnesses, its thin bins hidden and its caption written.
  *
- * `figures` is what the page keeps of them: `{ cards, places }`, every figure with its card (`[{ figure, card }]`),
- * and the places of the latest layout by figure name (`{ body, caption }`). Each layout makes fresh places, so a run
- * that a newer one replaced draws into places no longer on the page. A run's `context` is what the page gives every
- * section; see `pages/explore.js`. Each figure shows its own loading state, error or note.
+ * With the default selection every figure is drawn at once, from its precomputed answer. With any other, a figure's
+ * query starts when its card comes into view, and a figure started for the current run is not started again.
+ *
+ * `figures` is what the page keeps of them: `{ cards, places, run, visibleNames }`, every figure with its card
+ * (`[{ figure, card }]`), the places of the latest layout by figure name (`{ body, caption }`), the current run
+ * (`newFigureRun`; null from a layout until its run starts), and the names of the figures whose cards are in view.
+ * Each layout makes fresh places, so a run that a newer one replaced draws into places no longer on the page. A run's
+ * `context` is what the page gives every section; see `pages/explore.js`. Each figure shows its own loading state,
+ * error or note.
  */
 
 import { assignColours, MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote, weeksText } from "../shared/charts.js";
+import { isDefaultSelection } from "../shared/selection.js";
 import { drawnHarnessesAndWeeks, dropThinGroups, hiddenText, restingCountText } from "../figures/figure_rows.js";
 
 // Each figure section of the page: the element its figures go in, and the module listing them. Every section module
@@ -19,12 +25,25 @@ const SECTIONS = Object.freeze([
   Object.freeze({ selector: "#figures-caching", module: "../figures/caching.js" }),
 ]);
 
+// A card counts as in view from one viewport height above the viewport to one below it, so the row of figures after
+// the visible one is drawn before it is scrolled to.
+const IN_VIEW_MARGIN = "100% 0px";
+
 const NO_ROWS_NOTE = "No rows for this selection.";
 const ALL_THIN_NOTE = `Too few rows: every bin of this selection has fewer than ${MIN_ROWS_PER_BIN} rows.`;
 
-/** Place a card for every figure of every section; return what the page keeps of the figures, nothing laid out yet. */
+/**
+ * Place a card for every figure of every section and watch which cards are in view; return what the page keeps of the
+ * figures, nothing laid out yet.
+ */
 export async function mountFigureSections() {
-  return { cards: await placeCards(), places: new Map() };
+  const figures = { cards: await placeCards(), places: new Map(), run: null, visibleNames: new Set() };
+  const onReport = (entries) => noteCardsInView(figures, entries);
+  const observer = new IntersectionObserver(onReport, { rootMargin: IN_VIEW_MARGIN });
+  for (const { card } of figures.cards) {
+    observer.observe(card);
+  }
+  return figures;
 }
 
 /** Lay out every figure afresh, each loading. */
@@ -48,10 +67,46 @@ export function showErrorInFigures(figures, error) {
   }
 }
 
-/** Draw every figure for `context`'s selection into the places of the latest layout. */
+/**
+ * Start a run of the figures for `context`'s selection, in the places of the latest layout: every figure at once for
+ * the default selection, else those in view now and the others as they come into view. Settles when the figures
+ * started now are drawn.
+ */
 export async function runFigures(figures, context) {
-  const drawings = figures.cards.map(({ figure }) => drawFigure(figure, figures.places.get(figure.name), context));
-  await Promise.all(drawings);
+  const drawsAtOnce = isDefaultSelection(context.selection, context.weeks, context.harnesses);
+  figures.run = newFigureRun(context, drawsAtOnce);
+  await Promise.all(startFigures(figures));
+}
+
+/** A run of the figures for `context`: drawn all at once when `drawsAtOnce`, else as they come into view; none started. */
+export function newFigureRun(context, drawsAtOnce) {
+  return { context, drawsAtOnce, startedNames: new Set() };
+}
+
+/**
+ * The entries of `figureList` (each with a `name`) that `run` starts now: those it has not started, and, unless it
+ * draws every figure at once, whose names are in `visibleNames`.
+ */
+export function figuresToStart(run, figureList, visibleNames) {
+  const toStart = [];
+  for (const figure of figureList) {
+    const isWanted = run.drawsAtOnce || visibleNames.has(figure.name);
+    if (isWanted && !run.startedNames.has(figure.name)) {
+      toStart.push(figure);
+    }
+  }
+  return toStart;
+}
+
+/** Keep `visibleNames` current with intersection entries: a card's id is added while it is in view, removed when not. */
+export function noteVisibility(visibleNames, entries) {
+  for (const entry of entries) {
+    if (entry.isIntersecting) {
+      visibleNames.add(entry.target.id);
+    } else {
+      visibleNames.delete(entry.target.id);
+    }
+  }
 }
 
 /** The colours every figure shares, `{ models, categories }`, each a Map from name to colour, from the colour orders. */
@@ -62,6 +117,27 @@ export async function figureColours(orders) {
     models: assignColours(models.map((row) => row.model)),
     categories: assignColours(categories.map((row) => row.category)),
   });
+}
+
+/** Note which cards are in view, then start the current run's figures that came into view. */
+function noteCardsInView(figures, entries) {
+  noteVisibility(figures.visibleNames, entries);
+  startFigures(figures);
+}
+
+/** Start drawing the figures the current run draws now, marking each started; return their drawings. */
+function startFigures(figures) {
+  const run = figures.run;
+  if (run === null) {
+    return [];
+  }
+  const figureList = figures.cards.map(({ figure }) => figure);
+  const drawings = [];
+  for (const figure of figuresToStart(run, figureList, figures.visibleNames)) {
+    run.startedNames.add(figure.name);
+    drawings.push(drawFigure(figure, figures.places.get(figure.name), run.context));
+  }
+  return drawings;
 }
 
 /** Run one figure's query and draw its rows into `place`, with its caption; its error stays in its own card. */
@@ -102,6 +178,7 @@ function layOutPlaces(figures) {
     places.set(figure.name, { body, caption: card.querySelector(".figure-caption") });
   }
   figures.places = places;
+  figures.run = null; // the run of this layout starts once the database holds its selection
   return places;
 }
 
