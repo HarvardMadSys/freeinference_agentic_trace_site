@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { drawWithLegend, isEverySeriesHidden, mountLegend, shownRows, toggledSeries } from "../site/js/explore/legend.js";
+import {
+  drawWithLegend, hasLegend, isEverySeriesHidden, mountLegend, shownRows, toggledSeries,
+} from "../site/js/explore/legend.js";
 
 /** A stand-in for a page element: children, attributes, listeners and the place before it, as the legend uses them. */
 class FakeElement {
@@ -85,6 +87,24 @@ test("every series is hidden only when each of the legend's series is", () => {
   assert.equal(isEverySeriesHidden(LEGEND.series, new Set(["hermes", "pi"])), true);
 });
 
+test("a legend of no series has no series hidden, so its chart is never replaced by the note", () => {
+  assert.equal(isEverySeriesHidden([], new Set()), false);
+});
+
+test("a legend lists two series or more", () => {
+  assert.equal(hasLegend([]), false);
+  assert.equal(hasLegend(LEGEND.series.slice(0, 1)), false);
+  assert.equal(hasLegend(LEGEND.series), true);
+});
+
+test("a legend of one series mounts no button", (context) => {
+  useFakeDocument(context);
+  const container = new FakeElement("div");
+  container.append(new FakeElement("button")); // a button of an earlier legend, which the mount clears
+  mountLegend(container, LEGEND.series.slice(0, 1), LEGEND.colours, new Set(), () => undefined);
+  assert.deepEqual(container.children, []);
+});
+
 test("the legend is one button per series, labelled and coloured, pressed unless hidden", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("div");
@@ -145,4 +165,34 @@ test("a new drawing, as a new selection makes, starts with every series shown", 
   await drawWithLegend(body, LEGEND, (hidden) => drawnWith.push([...hidden]));
   assert.deepEqual(drawnWith, [[]]);
   assert.deepEqual(body.placedBefore[0].children.map((button) => button.getAttribute("aria-pressed")), ["true", "true"]);
+});
+
+test("a chart of one series or none is drawn once with nothing hidden, with no legend placed and no note", async (context) => {
+  useFakeDocument(context);
+  for (const series of [[], LEGEND.series.slice(0, 1)]) {
+    const body = new FakeElement("div");
+    const drawnWith = [];
+    await drawWithLegend(body, { series, colours: LEGEND.colours }, (hidden) => drawnWith.push([...hidden]));
+    assert.deepEqual(drawnWith, [[]]);
+    assert.deepEqual(body.placedBefore, []);
+    assert.deepEqual(body.children, []);
+  }
+});
+
+test("a drawing after a click that fails shows its error in the chart's place", async (context) => {
+  useFakeDocument(context);
+  context.mock.method(console, "error", () => undefined); // the error is logged as well as shown; keep the run quiet
+  const body = new FakeElement("div");
+  let draws = 0;
+  async function drawChart() {
+    draws += 1;
+    if (draws > 1) {
+      throw new Error("the chart could not be drawn");
+    }
+  }
+  await drawWithLegend(body, LEGEND, drawChart);
+  body.placedBefore[0].children[0].click();
+  await settle();
+  assert.equal(body.children[0].className, "note is-error");
+  assert.equal(body.children[0].textContent, "the chart could not be drawn");
 });
