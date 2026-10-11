@@ -66,3 +66,38 @@ def test_the_cost_share_leaves_out_a_session_whose_provider_reports_no_cache_rea
 def test_the_cost_share_of_no_weeks_has_no_rows(connection: duckdb.DuckDBPyConnection) -> None:
     site_database.select_weeks(connection, [], fixture_release.EVERY_HARNESS)
     assert site_database.run_query(connection, "figures/cost_share_by_session").empty
+
+
+# The decode times, in seconds, of the paper's harnesses' eleven top-level requests with a trusted TTFT, all on
+# `model-x`: every request lasts 10 s with a 1 s TTFT but `tree-root`'s step 0 (TTFT 2 s) and `idle-week-1`'s step 2
+# (155 s); `tree-root`'s step 2 (TTFT 99% of its latency) and step 3 (no TTFT) are not trusted.
+DECODE_TIMES_S = [8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 154]
+CDF_POINTS = 201  # every CDF series has this many points, its share running evenly from 0 to 1
+
+
+def test_the_decode_cdf_runs_over_trusted_ttfts_from_the_shortest_decode_to_the_longest(
+        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
+    rows = site_database.run_query(connection, "figures/decode_cdf_by_model")
+    assert rows.series.unique().tolist() == ["model-x"]
+    assert rows.rows.unique().tolist() == [len(DECODE_TIMES_S)]
+    assert len(rows) == CDF_POINTS
+    x_by_share = dict(zip(rows.share, rows.x))
+    assert (x_by_share[0.0], x_by_share[0.5], x_by_share[1.0]) == (min(DECODE_TIMES_S), 9, max(DECODE_TIMES_S))
+
+
+def test_the_decode_cdf_draws_each_of_the_largest_models(connection: duckdb.DuckDBPyConnection,
+                                                         fixture_weeks: list[str]) -> None:
+    # With the benchmark, `swe-bench`'s two requests on `model-y`, each 10 s with a 1 s TTFT, are a second series.
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
+    rows = site_database.run_query(connection, "figures/decode_cdf_by_model")
+    model_y = rows[rows.series == "model-y"]
+    assert model_y.rows.unique().tolist() == [2]
+    assert model_y.x.tolist() == pytest.approx([9] * CDF_POINTS)  # quantile_cont interpolates between two 9s
+
+
+def test_the_decode_median_is_the_median_over_trusted_ttfts(connection: duckdb.DuckDBPyConnection,
+                                                            fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
+    rows = site_database.run_query(connection, "figures/decode_median_by_model")
+    assert rows.values.tolist() == [["model-x", len(DECODE_TIMES_S), 9.0]]

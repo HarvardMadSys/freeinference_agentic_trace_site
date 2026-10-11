@@ -1,6 +1,9 @@
-"""The site's Sessions figures that rank sessions give the paper's numbers, and its rank bins: each number such a
+"""The site's Sessions figures that rank sessions or split latency give the paper's numbers: each number such a
 figure shares with the paper's `numbers.json` is equal, and each rank bin equals the pipeline's `binning.rank_bins`
 over the same sessions.
+
+The decode time figure draws the five models with most requests, where the paper decomposes two chosen models; its
+median is compared for each of those it draws, and `decode_median_by_model` compares both.
 
 The queries run as the browser runs them, on the full site data with every week and the paper's harnesses selected,
 as `test_paper_parity.py` sets it up; like it, these tests are skipped when the full site data or `numbers.json` is
@@ -9,11 +12,13 @@ missing. The pipeline's own functions compute the rank bins from the site's requ
 
 import duckdb
 import pandas
+import pytest
 
 import site_database
 from paper.metrics import binning, tokens
 # `agentic` and `paper_numbers` are fixtures: importing them is what makes them this module's too.
-from test_paper_parity import RELATIVE_TOLERANCE, Comparison, agentic, assert_match, paper_numbers
+from test_paper_parity import (MEDIAN_SHARE, RELATIVE_TOLERANCE, TTFT_MODELS, Comparison, agentic, assert_match,
+                               cdf_point, paper_numbers)
 
 # Absolute; a bin's mean share comes out of DuckDB and of pandas with float rounding, no more.
 SHARE_TOLERANCE = 1e-9
@@ -70,3 +75,29 @@ def test_the_cost_share_bins_are_the_pipeline_s_rank_bins(agentic: duckdb.DuckDB
     site_rows = site_database.run_query(agentic, "figures/cost_share_by_session")
     shares = tokens.cost_shares_per_session(selected_requests(agentic))
     assert_bins_match(site_rows, binning.rank_bins(shares, ["cached", "uncached"]), COST_PARTS)
+
+
+def test_the_median_decode_time_of_the_paper_s_models(agentic: duckdb.DuckDBPyConnection,
+                                                      paper_numbers: dict) -> None:
+    # `figures/decode_median_by_model`'s `median_decode_s` of each model against
+    # `sessions.ttft_decomposition_<model>.median_decode_s`.
+    medians = site_database.run_query(agentic, "figures/decode_median_by_model").set_index("model").median_decode_s
+    assert_match(paper_numbers, [
+        Comparison("sessions", f"ttft_decomposition_{model}", "median_decode_s", float(medians[model]),
+                   RELATIVE_TOLERANCE)
+        for model in TTFT_MODELS])
+
+
+def test_the_decode_cdf_s_median_of_each_paper_model_it_draws(agentic: duckdb.DuckDBPyConnection,
+                                                              paper_numbers: dict) -> None:
+    # `figures/decode_cdf_by_model`'s `x` at share 0.5 of each model the paper decomposes that is among the five it
+    # draws, against `sessions.ttft_decomposition_<model>.median_decode_s`; skipped, naming the five, when none is.
+    rows = site_database.run_query(agentic, "figures/decode_cdf_by_model")
+    drawn = sorted(rows.series.unique())
+    found = [model for model in TTFT_MODELS if model in drawn]
+    if not found:
+        pytest.skip(f"the decode CDF draws none of {TTFT_MODELS}: it draws {drawn}")
+    assert_match(paper_numbers, [
+        Comparison("sessions", f"ttft_decomposition_{model}", "median_decode_s",
+                   cdf_point(rows, model, MEDIAN_SHARE), RELATIVE_TOLERANCE)
+        for model in found])

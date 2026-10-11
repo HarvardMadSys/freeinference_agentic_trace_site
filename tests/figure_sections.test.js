@@ -16,6 +16,7 @@ const SECTION_FIGURES = {
     "token_growth_by_messages",
     "context_share_by_role",
     "ttft_cdf_by_model",
+    "decode_cdf_by_model",
   ],
   "../site/js/figures/tools.js": [
     "latency_by_category",
@@ -85,6 +86,7 @@ const LONG_FORMAT_SERIES_COLUMNS = {
   context_share_by_role: "role",
   ttft_cdf_by_model: "series",
   hit_ratio_cdf_by_gap_bin: "series",
+  decode_cdf_by_model: "series",
   hit_ratio_by_idle_gap: "provider",
   gap_cdf_by_cause: "series",
   hit_ratio_cdf_by_transition: "series",

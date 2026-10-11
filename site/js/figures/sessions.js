@@ -3,7 +3,8 @@
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. A figure of more than one series colours each
  * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden. The
- * figures that rank sessions are entries of `sessions_ranked.js`, listed here in the section's order.
+ * figures that rank sessions are entries of `sessions_ranked.js`, and the decode time's of `sessions_latency.js`,
+ * listed here in the section's order.
  */
 
 import {
@@ -22,6 +23,7 @@ import {
 } from "../shared/charts.js";
 import { formatCount, formatSeconds, formatShare, formatTokens, monthAndDay } from "../shared/format.js";
 import { cdfSeries, seriesLegend, sparseTickFormat } from "./figure_rows.js";
+import { DECODE_CDF_BY_MODEL } from "./sessions_latency.js";
 import { COST_SHARE_BY_SESSION } from "./sessions_ranked.js";
 
 // The series of the requests-per-session CDF, by their name in the query, with the name each is drawn under.
@@ -127,6 +129,7 @@ export const FIGURES = Object.freeze([
     legend: ttftLegend,
     draw: drawTtftByModel,
   }),
+  DECODE_CDF_BY_MODEL,
 ]);
 
 /** The requests-per-session CDF's legend: requests, user steps and tool steps, in that order. */
