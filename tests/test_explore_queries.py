@@ -51,6 +51,21 @@ def test_sessions_per_week_cover_every_week_of_the_selected_harnesses(connection
     ]
 
 
+# Every top-level request is model-x's but `swe-bench`'s two, the benchmark's, which are model-y's.
+def test_requests_per_week_by_model_cover_every_week_and_sum_to_each_week_s_requests(
+        connection: duckdb.DuckDBPyConnection) -> None:
+    select(connection, [SECOND_SUNDAY], fixture_release.EVERY_HARNESS)  # the trend shows every week, whatever weeks are selected
+    segments = records(connection, "explore/requests_per_week_by_model")
+    assert segments == [
+        {"week": FIRST_SUNDAY, "model": "model-x", "requests": 8},
+        {"week": FIRST_SUNDAY, "model": "model-y", "requests": 2},
+        {"week": SECOND_SUNDAY, "model": "model-x", "requests": 6},
+    ]
+    for week in records(connection, "explore/input_tokens_per_week"):
+        week_segments = [segment["requests"] for segment in segments if segment["week"] == week["week"]]
+        assert sum(week_segments) == week["requests"]
+
+
 # First week: `tree-root` reads 0+1,000+2,000+3,000+4,000 cached of 15,000 input and `idle-week-1` 0+900+1,200
 # of 3,600; `swe-bench`'s 1,800 are unreported. Second week: `mutation` reads 1,500 of 5,300, `idle-week-2`
 # 1,800 of 2,200 and `idle-benchmark` 0 of 600. Uncached is input minus cached on the reporting requests.

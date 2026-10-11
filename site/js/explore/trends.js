@@ -1,6 +1,6 @@
 /**
- * The weekly trends: top-level sessions per week stacked by harness, and input tokens per week split by
- * whether the provider reports cache reads, over every week whatever the selection. The selected weeks'
+ * The weekly trends: top-level sessions per week stacked by harness, their requests per week stacked by model, and
+ * their input tokens per week split by whether the provider reports cache reads, over every week whatever the selection. The selected weeks'
  * bars are drawn solid, the others faint, and a click on a bar selects its week alone.
  *
  * A section's `context` is what the page gives every section; see `pages/explore.js`.
@@ -24,24 +24,27 @@ const TOKEN_PARTS = Object.freeze([
 // The sentence every trend's definition ends with: how the selection shows and how to change it.
 const CLICK_HINT = "Faint bars are weeks outside the selection; click a bar to select its week alone.";
 
-/** Fill `container` with the places of the two trend charts, each loading; return them as `{ sessions, tokens }`. */
+/** Fill `container` with the places of the three trend charts, each loading; return them as `{ sessions, requests, tokens }`. */
 export function layoutTrends(container) {
   const grid = document.createElement("div");
   grid.className = "card-grid";
   const sessions = document.createElement("div");
+  const requests = document.createElement("div");
   const tokens = document.createElement("div");
-  showLoading(sessions);
-  showLoading(tokens);
-  grid.append(sessions, tokens);
+  for (const place of [sessions, requests, tokens]) {
+    showLoading(place);
+  }
+  grid.append(sessions, requests, tokens);
   container.replaceChildren(grid);
-  return { sessions, tokens };
+  return { sessions, requests, tokens };
 }
 
-/** Lay out the trends in `container` and draw both charts; a chart whose query fails shows its error in its place. */
+/** Lay out the trends in `container` and draw the three charts; a chart whose query fails shows its error in its place. */
 export async function runTrends(container, context) {
   const places = layoutTrends(container);
   await Promise.all([
     drawSessionsPerWeek(places.sessions, context).catch((error) => showError(places.sessions, error)),
+    drawRequestsPerWeek(places.requests, context).catch((error) => showError(places.requests, error)),
     drawInputTokensPerWeek(places.tokens, context).catch((error) => showError(places.tokens, error)),
   ]);
 }
@@ -99,6 +102,25 @@ async function drawSessionsPerWeek(place, context) {
   listenForWeekClick(body, chart, context.onWeekClick);
 }
 
+async function drawRequestsPerWeek(place, context) {
+  const modelRows = await context.orders.models;
+  const rows = await context.database.runQuery("explore/requests_per_week_by_model");
+  const body = renderFigure(place, {
+    title: "Requests per week",
+    definition: `Requests of the top-level sessions per week, stacked by model, of the selected harnesses. ${CLICK_HINT}`,
+    caption: everyWeekCaption(columnTotal(rows, "requests"), context),
+  });
+  // The models' order, which every figure colours them by: the eight with most requests take the series colours.
+  const chart = await drawBars(body, rows, {
+    ...weekBarOptions(context),
+    y: "requests",
+    fill: "model",
+    order: modelRows.map((row) => row.model),
+    yLabel: "Requests",
+  });
+  listenForWeekClick(body, chart, context.onWeekClick);
+}
+
 async function drawInputTokensPerWeek(place, context) {
   const rows = await context.database.runQuery("explore/input_tokens_per_week");
   const body = renderFigure(place, {
@@ -119,7 +141,7 @@ async function drawInputTokensPerWeek(place, context) {
   listenForWeekClick(body, chart, context.onWeekClick);
 }
 
-// What both trend charts share: one stacked bar per week of every week, the selected weeks solid.
+// What every trend chart shares: one stacked bar per week of every week, the selected weeks solid.
 function weekBarOptions(context) {
   return {
     x: "week",
