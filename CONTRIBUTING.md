@@ -91,6 +91,9 @@ WHERE is_top_level
 
 The first line says what one row is. Columns are named in words. Every
 query is run by `tests/test_queries.py` against the fixture data.
+`make data` also runs every query under `explore/` and `figures/` once for the
+default selection and writes its answer to `site/data/all_weeks/`, so rerun
+`make data` after editing one of those queries.
 
 **A pure JavaScript module with its test** (`site/js/shared/format.js`,
 `tests/format.test.js`): exported functions with one-line JSDoc, module-level

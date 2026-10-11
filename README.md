@@ -41,6 +41,10 @@ copy of the dataset instead:
 make data RELEASE=~/freeinference_agentic_trace/release SIMULATION=~/freeinference_agentic_trace/simulation
 ```
 
+`make data` also writes `site/data/all_weeks/<page>/<query>.json`, the answer of
+every Explore and figure query for the default selection (every week, the
+paper's harnesses), so rerun it after editing one of those queries.
+
 ## Layout
 
 ```
@@ -49,7 +53,7 @@ CONTRIBUTING.md    the rules, the patterns, and how to add a query, a figure or 
 Makefile           setup · setup-browser · data · serve · test · deploy
 deploy.sh          what make deploy runs: copies site/ onto an orphan branch and force-pushes it
 serve.py           what make serve runs: a local server that answers byte-range requests, as the host does
-pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas; pytest and duckdb for tests
+pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
 package.json       sets ES modules for node --test; no dependencies
 site_data/         builds site/data/ from a release, and opens a database over it as the browser does
 site/              exactly the files that are deployed

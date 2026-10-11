@@ -6,7 +6,8 @@ written, so a corrupted week stops the run, with its message and exit status
 week, at `<kind>/week=<sunday>/rows.parquet`, without a `week` column: the
 week is the folder's name. A week's file is sorted, here and only here, by
 root session, so a session's tree sits together. The indexes `harnesses.json`
-and `weeks.json` are written last.
+and `weeks.json` are written next, and last the answers of the default
+selection, read back from the files just written (`site_data/answers.py`).
 """
 
 import argparse
@@ -17,10 +18,10 @@ import sys
 
 import pandas
 import pyarrow
-from pyarrow import compute, parquet
+from pyarrow import parquet
 
 from release import reader
-from site_data import harnesses, loading, paths, requests, sessions, simulation, tool_calls, weeks
+from site_data import answers, harnesses, loading, paths, requests, sessions, simulation, tool_calls, weeks
 
 ROWS_PER_GROUP = 100_000  # large, so a query makes few ranged reads
 COMPRESSION = "zstd"  # small files that DuckDB-WASM reads
@@ -44,8 +45,8 @@ class WrittenKind:
 
 
 def main(arguments: list[str] | None = None) -> None:
-    """Write each kind's week files, `harnesses.json` and `weeks.json` into the output folder, and print each kind's
-    rows and size over every week, and each index's."""
+    """Write each kind's week files, `harnesses.json`, `weeks.json` and the answers into the output folder, and print
+    each kind's rows and size over every week, each index's, and the answers' files and bytes."""
     options = parsed_arguments(arguments)
     try:
         entries = weeks.weeks_index(options.release, options.simulation)
@@ -62,6 +63,8 @@ def main(arguments: list[str] | None = None) -> None:
     harness_entries = harnesses.harnesses_index(frames[paths.SESSIONS_FOLDER])
     print_size(harnesses.write_harnesses_file(harness_entries, options.out), len(harness_entries))
     print_size(weeks.write_weeks_file(entries, options.out), len(entries))
+    written_answers = answers.write_answers(options.out)
+    print(f"{paths.ANSWERS_FOLDER}: {written_answers.files} files, {written_answers.bytes:,} bytes")
 
 
 def parsed_arguments(arguments: list[str] | None) -> argparse.Namespace:
@@ -89,18 +92,22 @@ def write_kind(frame: pandas.DataFrame, out_directory: pathlib.Path, kind_folder
                week_list: list[str]) -> WrittenKind:
     """Replace the kind's folder with one file per listed week, each holding that week's rows without `week`;
     every row of the frame must belong to a listed week."""
-    shutil.rmtree(out_directory / kind_folder, ignore_errors=True)  # a week no longer listed keeps no file
+    unlisted_rows = int((~frame.week.isin(week_list)).sum())
+    if unlisted_rows:
+        raise ValueError(f"{kind_folder} has {unlisted_rows} rows of weeks that have no {kind_folder} file")
+    kind_directory = out_directory / kind_folder
+    if kind_directory.exists():
+        shutil.rmtree(kind_directory)  # a week no longer listed keeps no file
     ordered = frame.sort_values(["week", *SORT_ORDERS[kind_folder]], ignore_index=True)
-    table = pyarrow.Table.from_pandas(ordered, preserve_index=False)
+    # The table is made without `week`, so the schema's pandas metadata lists only the columns the files hold.
+    table = pyarrow.Table.from_pandas(ordered.drop(columns=["week"]), preserve_index=False)
     rows, size = 0, 0
     for week in week_list:
         path = out_directory / paths.week_file(kind_folder, week)
-        week_rows = table.filter(compute.equal(table["week"], week)).drop_columns(["week"])
+        week_rows = table.filter(pyarrow.array(ordered.week == week))
         write_week_file(week_rows, path)
         rows += week_rows.num_rows
         size += path.stat().st_size
-    if rows != len(frame):
-        raise ValueError(f"{kind_folder} has {len(frame) - rows} rows of weeks that have no {kind_folder} file")
     return WrittenKind(rows=rows, bytes=size)
 
 

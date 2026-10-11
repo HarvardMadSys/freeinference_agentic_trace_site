@@ -27,6 +27,9 @@ from site_data import harnesses, paths, weeks
 QUERIES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site" / "queries"
 SETUP_FOLDER = QUERIES_FOLDER / "setup"  # the statements that create and fill the views and tables
 FILES_PLACEHOLDER = "{files}"  # stands for a view's list of quoted file names, as in database.js
+# One thread, as DuckDB-WASM runs: a sum of floats then adds its rows in the same order on every run, so a rebuilt
+# answer is the same to the last bit.
+THREADS = 1
 
 # The statement that registers each kind of row as a view, by the kind's folder, in the order database.js runs them.
 VIEW_STATEMENTS = {
@@ -45,6 +48,8 @@ SELECTION_TABLE_STATEMENTS = [
 
 # The statement that makes the table of benchmark harnesses, run after the selection tables.
 BENCHMARK_TABLE_STATEMENT = "setup/create_benchmark_harness"
+# The statement that adds one harness to the table of benchmark harnesses, run once per benchmark harness.
+BENCHMARK_INSERT_STATEMENT = "setup/insert_benchmark_harness"
 
 
 def statement_text(name: str) -> str:
@@ -53,9 +58,9 @@ def statement_text(name: str) -> str:
 
 
 def open_site_database(data_directory: pathlib.Path) -> duckdb.DuckDBPyConnection:
-    """A new in-memory database over `data_directory`: the views of its week files, the empty selection tables, and
-    the benchmark harness table filled from its `harnesses.json`."""
-    connection = duckdb.connect()
+    """A new in-memory database on `THREADS` threads over `data_directory`: the views of its week files, the empty
+    selection tables, and the benchmark harness table filled from its `harnesses.json`."""
+    connection = duckdb.connect(config={"threads": THREADS})
     entries = weeks.read_weeks_file(data_directory)
     for kind_folder, name in VIEW_STATEMENTS.items():
         week_list = weeks.weeks_with_file(entries, kind_folder)
@@ -67,7 +72,7 @@ def open_site_database(data_directory: pathlib.Path) -> duckdb.DuckDBPyConnectio
     connection.execute(statement_text(BENCHMARK_TABLE_STATEMENT))
     for entry in harnesses.read_harnesses_file(data_directory):
         if entry.benchmark:
-            connection.execute(statement_text("setup/insert_benchmark_harness"), [entry.harness])
+            connection.execute(statement_text(BENCHMARK_INSERT_STATEMENT), [entry.harness])
     return connection
 
 
