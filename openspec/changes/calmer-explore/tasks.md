@@ -10,7 +10,7 @@ Archive `one-page-all-weeks` and `ship-the-data` before this change.
 
 ## 1. Site data
 
-- [ ] 1.1 Tool calls keep `programs` from the release, a list column, null for calls that are not shell calls; the fixture release gives some calls programs; the fixture test checks a shell call's list and a native call's null.
+- [ ] 1.1 Tool calls keep `programs` and `arguments_skeleton` from the release, `programs` a list column, null for calls that are not shell calls; the fixture release gives some calls programs and every call a skeleton; the fixture test checks a shell call's list, a native call's null and a skeleton. Measure the tool-call files' size before and after.
 - [ ] 1.2 Simulation rows hold the `ttl_only` policy only, without the `policy` column, and gain the week's `span_seconds` from its totals; the fixture tests, the view statement and the answer test follow.
 
 ## 2. Selection: months, folded
@@ -25,7 +25,7 @@ Archive `one-page-all-weeks` and `ship-the-data` before this change.
 ## 4. Session page
 
 - [ ] 4.1 `database.js`: `loadWeekRows(week)` fetches the week's four files whole and swaps each into memory, a failed fetch leaving that file on HTTP ranges; the Session page calls it before its queries. Measure the request count and the time to open the largest session before and after.
-- [ ] 4.2 The details table gains a Programs column, joined by commas, blank for a call without; the chip's tooltip names them. Node test of the cell text.
+- [ ] 4.2 The details table gains a Programs column, joined by commas, blank for a call without, and under each call a monospace line of its arguments skeleton (a shell call's command; `name: <type>` pairs for any other); the chip's tooltip names the programs. Node tests of the cell and the line's text.
 
 ## 5. Type
 

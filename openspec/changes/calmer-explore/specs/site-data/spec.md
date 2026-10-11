@@ -9,10 +9,12 @@ the week's span.
 
 ### Requirement: Tool calls
 `tool_calls.parquet` SHALL hold one row per tool call with `session_id,
-step, call_index, name, category, programs, outcome, result_tokens,
-latency_ms, harness, is_top_level, root_session_id`. `programs` SHALL be
-the release's list of program labels, in the command's order, for a shell
-call, and null for any other call. It SHALL NOT hold `arguments_skeleton`.
+step, call_index, name, category, programs, arguments_skeleton, outcome,
+result_tokens, latency_ms, harness, is_top_level, root_session_id`.
+`programs` SHALL be the release's list of program labels, in the command's
+order, for a shell call, and null for any other call; `arguments_skeleton`
+SHALL be the release's, the call's arguments with every value replaced by
+its type.
 
 #### Scenario: A call joins its request
 - **WHEN** a tool call has `session_id` S and `step` 4
@@ -20,7 +22,7 @@ call, and null for any other call. It SHALL NOT hold `arguments_skeleton`.
 
 #### Scenario: A native call
 - **WHEN** a tool call is not a shell call
-- **THEN** its `programs` SHALL be null
+- **THEN** its `programs` SHALL be null and its `arguments_skeleton` SHALL still be kept
 
 ### Requirement: Simulation tallies
 `simulation.parquet` SHALL hold the cache simulation's per-week tallies of

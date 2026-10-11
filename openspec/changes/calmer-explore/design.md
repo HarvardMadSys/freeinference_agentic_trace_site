@@ -58,5 +58,11 @@ after the change.
 The release's `programs` is a list of program labels per shell call, in
 the command's order (`nc, echo, echo`), null for other calls. It is kept
 as is, as a list column; the details table shows it joined by commas, the
-chip's tooltip adds it after the category. The arguments skeleton stays
-out: it is a long string per call and would double the tool-call files.
+chip's tooltip adds it after the category. The arguments skeleton, the
+call's arguments with every value replaced by its type, is kept too and
+shown under the call's row in monospace: a shell call's as its command
+(`nc -z -w <num> <path> <num> && echo <str> || echo <str>`), any other
+call's as `name: <type>` pairs. Its size is measured when the data is
+built: 14 MB of text per week raw, a median of 67 characters and a third
+repeated, which Parquet's dictionary encoding is expected to bring to a
+few MB per week; the measurement goes in `tasks.md`.

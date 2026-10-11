@@ -64,11 +64,17 @@ Clicking a row SHALL open its details:
 - what it waited for and for how long;
 - each tool call with its name, category, programs (a shell call's, in
   the command's order, joined by commas; blank for other calls), outcome,
-  latency and result tokens.
+  latency and result tokens, and under it, in monospace, its arguments
+  skeleton: the command with every value replaced by its type for a shell
+  call, the argument names and value types for any other.
 
 #### Scenario: A shell call's programs
 - **WHEN** the visitor opens the details of a request that ran `nc -z host 80 && echo up || echo down`
-- **THEN** that call's Programs cell SHALL read `nc, echo, echo`
+- **THEN** that call's Programs cell SHALL read `nc, echo, echo`, and the line under it `nc -z -w <num> <path> <num> && echo <str> || echo <str>`
+
+#### Scenario: A native call's arguments
+- **WHEN** the details show an `apply_diff` call
+- **THEN** its Programs cell SHALL be blank and the line under it SHALL read `path: <path>, diff: <path>`
 
 #### Scenario: Expanding a subagent
 - **WHEN** the visitor clicks the group header under step 5

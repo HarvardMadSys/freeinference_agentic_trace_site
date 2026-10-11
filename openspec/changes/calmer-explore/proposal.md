@@ -27,9 +27,10 @@ ran.
   the week's four row files, one request each, into DuckDB's memory.
 - **Larger type.** The base size and the smallest sizes go up, on every
   page.
-- **Tool calls carry their programs.** The site data keeps the release's
-  `programs`, and the Session page shows them for each call, in the
-  details table and the chip's tooltip.
+- **Tool calls carry their programs and argument shapes.** The site data
+  keeps the release's `programs` and `arguments_skeleton`, and the Session
+  page shows them for each call: the programs in the details table and the
+  chip's tooltip, the skeleton on a line under the call.
 
 ## Impact
 
