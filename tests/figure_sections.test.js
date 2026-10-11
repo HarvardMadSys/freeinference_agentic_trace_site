@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { test } from "node:test";
 
+import { assignColours } from "../site/js/theme/colours.js";
+
 // The site's query folder; a figure's query `figures/<name>` is the file `figures/<name>.sql` in it.
 const QUERIES_FOLDER = new URL("../site/queries/", import.meta.url);
 
@@ -133,6 +135,30 @@ test("every legend label is capitalised, as a sentence starts", async () => {
       for (const { label } of figure.legend(rows, FIGURE_COLOURS, figure.seriesColumn).series) {
         assert.equal(label[0], label[0].toUpperCase(), `${figure.name}: ${label}`);
       }
+    }
+  }
+});
+
+// Ten names of each kind in their order over every week, so the ninth and tenth of each take the Other grey.
+const TEN_NAMES = ["n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8", "n9", "n10"];
+const TEN_OF_EACH = Object.freeze({
+  models: assignColours(TEN_NAMES),
+  categories: assignColours(TEN_NAMES),
+  providers: assignColours(TEN_NAMES),
+});
+
+// Rows naming, in `seriesColumn`, every name a legend could list: each of the ten and each series of its own colours.
+function rowsOfEverySeries(figure) {
+  const names = new Set([...TEN_NAMES, ...figure.legend([], TEN_OF_EACH, figure.seriesColumn).colours.keys()]);
+  return [...names].map((name) => ({ [figure.seriesColumn]: name }));
+}
+
+test("no two series of a figure's legend share a colour, even when the rows hold more than eight", async () => {
+  for (const { figures } of await sections()) {
+    for (const figure of figures.filter(hasLegend)) {
+      const legend = figure.legend(rowsOfEverySeries(figure), TEN_OF_EACH, figure.seriesColumn);
+      const swatches = legend.series.map((one) => legend.colours.get(one.name));
+      assert.equal(new Set(swatches).size, swatches.length, `${figure.name}: ${swatches.join(", ")}`);
     }
   }
 });

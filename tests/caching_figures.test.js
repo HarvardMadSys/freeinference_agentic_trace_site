@@ -93,5 +93,5 @@ test("the idle-gap figure lists and draws only the eight providers with most req
   for (const { name } of legend.series) {
     assert.notEqual(legend.colours.get(name), OTHER_SERIES, name);
   }
-  assert.deepEqual(drawnProviderRows(rows, legend.colours).map((row) => row.provider), providers.slice(0, 8));
+  assert.deepEqual(drawnProviderRows(rows, colours).map((row) => row.provider), providers.slice(0, 8));
 });

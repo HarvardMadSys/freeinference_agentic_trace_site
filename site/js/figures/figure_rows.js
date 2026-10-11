@@ -32,6 +32,14 @@ const DEFAULT_HIDDEN_NOUN = ["bin", "bins"];
 const SIMULATED_HARNESSES_TEXT = "the paper's harnesses only, which the simulation replays";
 
 /**
+ * The rows of a query's `rows` that `figure` draws: those its `drawnRows(rows, colours)` keeps, given the colours every
+ * figure shares, or every row for a figure without one. The caption counts these rows and their thin bins are hidden.
+ */
+export function figureDrawnRows(figure, rows, colours) {
+  return figure.drawnRows === undefined ? rows : figure.drawnRows(rows, colours);
+}
+
+/**
  * `{ rows, hidden }`: the rows of the bins whose count is at least `MIN_ROWS_PER_BIN`, in their order, and how
  * many bins were hidden.
  */

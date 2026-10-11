@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import {
   assignColours, barColours, CAUSE_COLOURS, causeColours, GAP_BIN_SLOTS, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS,
-  TRANSITION_COLOURS,
+  slottedColours, TRANSITION_COLOURS,
 } from "../site/js/theme/colours.js";
 
 const NINE_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
@@ -67,4 +67,10 @@ test("every fixed colour map is frozen, and the gap bins take six tokens, shorte
     assert.ok(Object.isFrozen(colours));
   }
   assert.deepEqual(GAP_BIN_SLOTS, [1, 2, 3, 4, 5, 6].map((slot) => `var(--gap-bin-${slot})`));
+});
+
+test("the slotted colours are the first eight names in their order, none in the Other grey", () => {
+  const slotted = slottedColours(assignColours(NINE_MODELS));
+  assert.deepEqual([...slotted.keys()], NINE_MODELS.slice(0, 8));
+  assert.ok(![...slotted.values()].includes(OTHER_SERIES));
 });

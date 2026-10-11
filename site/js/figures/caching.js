@@ -10,7 +10,7 @@
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
-import { assignColours, OTHER_SERIES, SERIES_SLOTS } from "../theme/colours.js";
+import { assignColours, SERIES_SLOTS, slottedColours } from "../theme/colours.js";
 import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
 import { GAP_FIGURES } from "./caching_gaps.js";
 import { PLAIN_NUMBER_FORMAT, seriesLegend, sparseTickFormat } from "./figure_rows.js";
@@ -56,6 +56,7 @@ export const FIGURES = Object.freeze([
     query: "figures/hit_ratio_by_idle_gap",
     binColumn: null,
     seriesColumn: "provider",
+    drawnRows: drawnProviderRows,
     legend: idleGapLegend,
     draw: drawIdleGapRetention,
   }),
@@ -110,20 +111,18 @@ export function idleGapEdgeSeconds(edge) {
  * past the eighth would take the Other colour, which a named line cannot share, so it is not drawn.
  */
 export function idleGapLegend(rows, colours, seriesColumn) {
-  const drawnColours = new Map();
+  const drawnColours = slottedColours(colours.providers);
   const labels = {};
-  for (const [provider, colour] of colours.providers) {
-    if (colour !== OTHER_SERIES) {
-      drawnColours.set(provider, colour);
-      labels[provider] = providerLabel(provider);
-    }
+  for (const provider of drawnColours.keys()) {
+    labels[provider] = providerLabel(provider);
   }
   return seriesLegend(rows, seriesColumn, drawnColours, labels);
 }
 
-/** The idle-gap rows of the providers `providerColours` (a Map from provider to colour) holds, in their order. */
-export function drawnProviderRows(rows, providerColours) {
-  return rows.filter((row) => providerColours.has(row.provider));
+/** The idle-gap rows the figure draws: those of a provider among the eight with most requests over every week. */
+export function drawnProviderRows(rows, colours) {
+  const drawnProviders = slottedColours(colours.providers);
+  return rows.filter((row) => drawnProviders.has(row.provider));
 }
 
 /** A simulation figure's legend: the eviction policies, in their order, by the names they are drawn under. */
@@ -131,21 +130,17 @@ function policyLegend(rows, colours, seriesColumn) {
   return seriesLegend(rows, seriesColumn, assignColours(Object.keys(POLICY_NAMES)), POLICY_NAMES);
 }
 
-/**
- * Draw one line per provider of its legend of its median hit ratio per idle-gap bin, on a log axis of seconds, with
- * markers; the rows of a provider the legend does not list are left out.
- */
+/** Draw one line per provider of the rows, its median hit ratio per idle-gap bin, on a log axis of seconds. */
 async function drawIdleGapRetention(rows, body, colours) {
   // Plot is loaded here, not at the top, so node can test the section's figure list.
   const { Plot } = await import("../shared/libraries.js");
-  const drawnRows = drawnProviderRows(rows, colours.series);
-  const points = drawnRows.map((row) => ({
+  const points = rows.map((row) => ({
     provider: row.provider,
     seconds: idleGapEdgeSeconds(row.idle_gap_bin + 0.5), // the bin's geometric middle
     hitRatio: row.median_hit_ratio,
     row,
   }));
-  const present = new Set(drawnRows.map((row) => row.provider));
+  const present = new Set(rows.map((row) => row.provider));
   const providers = [...colours.series.keys()].filter((provider) => present.has(provider));
   const chart = Plot.plot({
     ...chartFrame(body),

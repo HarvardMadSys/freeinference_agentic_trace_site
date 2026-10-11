@@ -20,7 +20,9 @@
 import { MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote, weeksText } from "../shared/charts.js";
 import { assignColours } from "../theme/colours.js";
 import { isDefaultSelection } from "../shared/selection.js";
-import { drawnHarnessesAndWeeks, dropThinGroups, hiddenText, restingCountText } from "../figures/figure_rows.js";
+import {
+  drawnHarnessesAndWeeks, dropThinGroups, figureDrawnRows, hiddenText, restingCountText,
+} from "../figures/figure_rows.js";
 import { drawWithLegend, shownRows } from "./legend.js";
 
 // Each figure section of the page: the element its figures go in, and the module listing them. Every section module
@@ -162,7 +164,7 @@ function startFigures(figures) {
 async function drawFigure(figure, place, context) {
   try {
     const colours = await figureColours(context.orders);
-    const rows = await context.database.runQuery(figure.query);
+    const rows = figureDrawnRows(figure, await context.database.runQuery(figure.query), colours);
     const { rows: shown, hidden } = dropThinGroups(rows, figure.binColumn);
     const drawn = drawnHarnessesAndWeeks(figure, context.selection, context.weeks, context.harnesses);
     place.caption.textContent = captionText(figure, shown, hidden, drawn);

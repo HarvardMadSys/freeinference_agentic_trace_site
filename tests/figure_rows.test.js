@@ -5,6 +5,7 @@ import {
   cdfSeries,
   drawnHarnessesAndWeeks,
   dropThinGroups,
+  figureDrawnRows,
   hiddenText,
   restingCountText,
   restingRowCount,
@@ -143,4 +144,12 @@ test("a simulation figure draws the paper's harnesses in the selected weeks that
   const underBenchmark = drawnHarnessesAndWeeks(figure, benchmarkSelection, WEEK_ENTRIES, HARNESS_ENTRIES);
   assert.equal(underBenchmark.harnesses, "the paper's harnesses only, which the simulation replays");
   assert.deepEqual(underBenchmark.weeks, ["2026-08-02"]);
+});
+
+test("a figure draws the rows its drawnRows keeps given the shared colours, or every row without one", () => {
+  const colours = { providers: new Map([["A", "red"]]) };
+  const keepsColoured = { drawnRows: (rows, shared) => rows.filter((row) => shared.providers.has(row.provider)) };
+  const rows = [{ provider: "A" }, { provider: "B" }];
+  assert.deepEqual(figureDrawnRows(keepsColoured, rows, colours), [{ provider: "A" }]);
+  assert.deepEqual(figureDrawnRows({}, rows, colours), rows);
 });

@@ -159,6 +159,11 @@ and calls `draw`:
   each series `{ name, label }`. The page draws the legend as buttons that
   hide and show a series (`explore/legend.js`), redrawing the chart from the
   rows it already has.
+- `drawnRows` (optional): `drawnRows(rows, colours)` returns the rows of the
+  query the figure draws, when it draws fewer: a line or CDF per provider or
+  model draws only those with one of the eight series colours, never one in
+  the Other grey. The caption counts these rows, and thin bins are hidden
+  among them.
 - `seriesColumn` (a figure whose rows each name their series): that column. A
   hidden series' rows are left out before `draw` is called. A figure with a
   `legend` and no `seriesColumn` holds its series in columns, and is given the
