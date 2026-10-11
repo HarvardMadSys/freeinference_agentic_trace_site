@@ -31,9 +31,6 @@ const SECTION_FIGURES = {
     "gap_cdf_by_cause",
     "mean_hit_ratio_by_cause",
     "hit_ratio_cdf_by_transition",
-    "simulated_hit_ratio_by_ttl",
-    "retained_over_active",
-    "dead_over_active_by_policy",
   ],
 };
 

@@ -269,7 +269,7 @@ which is plain HTML.
   `style.css`, assigned in that order to a chart's series and never cycled;
   a ninth series folds into "Other" (`--series-other`). A request's cached,
   uncached and output tokens are always `--token-cached`, `--token-uncached`
-  and `--token-output`. The same model, category, policy or wait cause has the
+  and `--token-output`. The same model, category, provider or wait cause has the
   same colour in every chart: a wait cause, a transition and a gap bin always
   take `--cause-*`, `--transition-*` and `--gap-bin-1` to `--gap-bin-6`, read
   through `CAUSE_COLOURS`, `TRANSITION_COLOURS` and `GAP_BIN_SLOTS` in

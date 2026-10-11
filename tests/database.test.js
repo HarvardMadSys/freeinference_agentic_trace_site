@@ -99,8 +99,8 @@ test("a missing answer file is an error naming the file", async (context) => {
   context.mock.method(globalThis, "fetch", fakeFetch({}, []));
   const database = openDatabase("http://localhost:8000/data/", WEEKS, HARNESSES);
   await database.setSelection(DEFAULT_SELECTION);
-  await assert.rejects(database.runQuery("figures/dead_over_active_by_policy"),
-    /data\/all_weeks\/figures\/dead_over_active_by_policy\.json: 404/);
+  await assert.rejects(database.runQuery("figures/duration_cdf"),
+    /data\/all_weeks\/figures\/duration_cdf\.json: 404/);
 });
 
 test("another selection, and a query before any selection, start DuckDB and fetch no answer", async (context) => {

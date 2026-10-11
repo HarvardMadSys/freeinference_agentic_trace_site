@@ -43,7 +43,6 @@ RELATIVE_TOLERANCE = 1e-6  # a median, share or ratio may differ by DuckDB's and
 MEDIAN_SHARE = 0.5  # the CDF point whose `x` is the median
 NINETIETH_PERCENTILE_SHARE = 0.9  # the CDF point whose `x` is the 90th percentile
 MILLISECONDS_PER_SECOND = 1000  # the site's latencies are in milliseconds, the paper's in seconds
-LONGEST_TTL = "1d"  # the TTL at which the paper reports dead over active cache
 TTFT_MODELS = ["minimax-m2.7", "kimi-k2.7-code"]  # the models whose TTFT the paper decomposes
 
 
@@ -127,8 +126,6 @@ PAPER_SCOPES = {
     ("sessions", "ttft_decomposition_kimi-k2.7-code"): "Agentic",
     ("tools", "latency_by_category"): "Agentic",
     ("tools", "result_tokens_by_category"): "Agentic",
-    ("prefix_caching", "retained_over_active"): "Agentic",
-    ("prefix_caching", "dead_over_active_by_policy"): "Agentic",
     ("benchmark_vs_production", "turn_duration"): "Agentic and SWE-Bench",
     ("benchmark_vs_production", "session_duration"): "Agentic and SWE-Bench",
     ("benchmark_vs_production", "input_per_request"): "Agentic and SWE-Bench",
@@ -226,20 +223,6 @@ def test_the_tool_latency_and_result_size_ranges(agentic: duckdb.DuckDBPyConnect
                        result_tokens.p50[category], RELATIVE_TOLERANCE),
         ]
     assert_match(paper_numbers, comparisons)
-
-
-def test_dead_over_active_cache_at_a_day(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
-    # `figures/dead_over_active_by_policy` at the TTL `1d`: `ttl_only`'s `dead_over_active` against
-    # `prefix_caching.retained_over_active.dead_over_active_1d`, and `ttl_only`'s over `reclaim_both`'s (how far
-    # reclaiming both lowers it) against `prefix_caching.dead_over_active_by_policy.reclaim_both_dead_fall_1d`.
-    rows = site_database.run_query(agentic, "figures/dead_over_active_by_policy")
-    at_a_day = rows[rows.ttl == LONGEST_TTL].set_index("policy").dead_over_active
-    assert_match(paper_numbers, [
-        Comparison("prefix_caching", "retained_over_active", "dead_over_active_1d", at_a_day["ttl_only"],
-                   RELATIVE_TOLERANCE),
-        Comparison("prefix_caching", "dead_over_active_by_policy", "reclaim_both_dead_fall_1d",
-                   at_a_day["ttl_only"] / at_a_day["reclaim_both"], RELATIVE_TOLERANCE),
-    ])
 
 
 def test_the_benchmark_s_medians(benchmark: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:

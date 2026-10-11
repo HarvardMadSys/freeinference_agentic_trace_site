@@ -159,10 +159,10 @@ test("a figure draws the rows its drawnRows keeps given the shared colours, or e
 });
 
 test("a simulation figure's caption names the selected weeks the simulation does not cover", () => {
-  const figure = { isSimulation: true, binColumn: "policy", seriesOverSameRows: true };
+  const figure = { isSimulation: true, binColumn: "ttl", seriesOverSameRows: true };
   const selection = { harnesses: ["hermes", "codex"], weeks: ["2026-08-02", "2026-08-09", "2026-08-16"] };
   const drawn = drawnHarnessesAndWeeks(figure, selection, WEEK_ENTRIES, HARNESS_ENTRIES);
-  const rows = [{ policy: "ttl_only", rows: 1200 }];
+  const rows = [{ ttl: "5m", rows: 1200 }];
   assert.equal(figureCaption(figure, rows, 0, drawn),
     "1,200 rows · the paper's harnesses · 2 weeks · not simulated: 2026-08-16");
 });

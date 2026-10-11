@@ -2,7 +2,7 @@
  * The site's colours as the style tokens give them.
  *
  * Every colour is a CSS variable from `style.css`, so a chart follows the page into dark mode with no JavaScript.
- * Names get colours from one fixed order, so the same model, category, provider or policy has the same colour in
+ * Names get colours from one fixed order, so the same model, category or provider has the same colour in
  * every chart, and a token part, a wait cause, a transition and a gap bin always take their own tokens. These are
  * plain constants and functions, tested with `node --test`.
  */

@@ -1,9 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import {
-  drawnProviderRows, idleGapEdgeSeconds, idleGapLegend, retainedLegend, retainedPoints,
-} from "../site/js/figures/caching.js";
+import { drawnProviderRows, idleGapEdgeSeconds, idleGapLegend } from "../site/js/figures/caching.js";
 import {
   causeLegend, gapBinColours, gapBinLegend, meanHitRatioBars, transitionLegend,
 } from "../site/js/figures/caching_gaps.js";
@@ -56,25 +54,6 @@ test("the transition legend lists appends, then mutations, each in its transitio
   assert.deepEqual(legend.series, [{ name: "append", label: "Append" }, { name: "mutation", label: "Mutation" }]);
   assert.equal(legend.colours.get("append"), "var(--transition-append)");
   assert.equal(legend.colours.get("mutation"), "var(--transition-mutation)");
-});
-
-test("the retained points are each shown series' value per TTL, in TTL order, reusable first", () => {
-  const rows = [
-    { ttl: "1h", reusable_over_active: 0.15, dead_over_active: 0.1, rows: 8 },
-    { ttl: "5m", reusable_over_active: 0.05, dead_over_active: null, rows: 8 },
-  ];
-  assert.deepEqual(retainedPoints(rows, new Set()), [
-    { series: "reusable", ttl: "5m", value: 0.05 },
-    { series: "reusable", ttl: "1h", value: 0.15 },
-    { series: "dead", ttl: "1h", value: 0.1 },
-  ]);
-  assert.deepEqual(retainedPoints(rows, new Set(["reusable"])), [{ series: "dead", ttl: "1h", value: 0.1 }]);
-});
-
-test("the retained legend lists reusable in blue and dead in red", () => {
-  const legend = retainedLegend();
-  assert.deepEqual(legend.series, [{ name: "reusable", label: "Reusable" }, { name: "dead", label: "Dead" }]);
-  assert.deepEqual([...legend.colours.values()], ["var(--series-1)", "var(--series-8)"]);
 });
 
 test("a provider keeps its colour from the provider order whichever providers the rows hold", () => {

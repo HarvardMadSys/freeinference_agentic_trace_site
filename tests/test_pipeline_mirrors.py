@@ -11,10 +11,9 @@ import pytest
 
 from paper.metrics import binning, gaps, latency, prices
 from release import population, schema
-from simulation import cache
 
 SITE_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site"
-CACHING_MODULE = SITE_FOLDER / "js" / "figures" / "caching.js"  # the idle-gap bins, the TTLs and the policies
+CACHING_MODULE = SITE_FOLDER / "js" / "figures" / "caching.js"  # the idle-gap bins
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the wait causes
 FIGURE_QUERIES = SITE_FOLDER / "queries" / "figures"  # the figure queries
 COST_SHARE_QUERY = FIGURE_QUERIES / "cost_share_by_session.sql"  # the prices
@@ -67,16 +66,6 @@ def test_the_idle_gap_edges_are_the_pipeline_s() -> None:
     assert len(browser_edges) == len(gaps.IDLE_GAP_EDGES_S)
     for browser_edge, pipeline_edge in zip(browser_edges, gaps.IDLE_GAP_EDGES_S):
         assert math.isclose(browser_edge, pipeline_edge, rel_tol=EDGE_TOLERANCE)
-
-
-def test_the_ttls_are_the_simulation_s_in_its_order() -> None:
-    body = declaration(CACHING_MODULE, r"const TTLS = Object\.freeze\(\[(.*?)\]\);").group(1)
-    pipeline_labels = [label for label, _seconds in cache.TTLS]
-    assert re.findall(r'"([^"]+)"', body) == pipeline_labels
-
-
-def test_the_policies_are_the_simulation_s_in_its_order() -> None:
-    assert javascript_object_keys(CACHING_MODULE, "POLICY_NAMES") == list(cache.POLICIES)
 
 
 def test_the_wait_causes_are_the_release_s_waited_for_values() -> None:

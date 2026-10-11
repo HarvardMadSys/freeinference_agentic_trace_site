@@ -252,13 +252,13 @@ def write_simulation(simulated_week: pathlib.Path, week_directory: pathlib.Path)
     """A few tallies and the totals of one week, with `sources.json` naming the week's manifest."""
     simulated_week.mkdir(parents=True)
     tallies = pandas.DataFrame({
-        "scope": ["Agentic", "Agentic", "Agentic", "SWE-Bench"],
-        "policy": ["ttl_only", "ttl_only", "reclaim_both", "ttl_only"],
-        "ttl": ["5m", "1h", "5m", "5m"],
-        "hit_tokens": [6_000, 8_000, 6_000, 1_000],
-        "miss_tokens": [4_000, 2_000, 4_000, 1_000],
-        "reusable_token_seconds": [1_000.0, 3_000.0, 900.0, 100.0],
-        "dead_token_seconds": [500.0, 2_000.0, 0.0, 50.0],
+        "scope": ["Agentic", "Agentic", "Agentic", "SWE-Bench", "SWE-Bench"],
+        "policy": ["ttl_only", "ttl_only", "reclaim_both", "ttl_only", "ttl_only"],
+        "ttl": ["5m", "1h", "5m", "5m", "1h"],
+        "hit_tokens": [6_000, 8_000, 6_000, 1_000, 1_500],
+        "miss_tokens": [4_000, 2_000, 4_000, 1_000, 500],
+        "reusable_token_seconds": [1_000.0, 3_000.0, 900.0, 100.0, 150.0],
+        "dead_token_seconds": [500.0, 2_000.0, 0.0, 50.0, 80.0],
     })
     totals = pandas.DataFrame({
         "scope": ["Agentic", "SWE-Bench"],

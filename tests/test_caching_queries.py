@@ -1,5 +1,5 @@
-"""The Prefix-caching figures' queries on the fixture data: hit ratios by gap, by idle gap and by transition, gaps by
-cause, and the cache simulation's ratios, which hold the paper's population whatever harnesses are selected."""
+"""The Prefix-caching figures' queries on the fixture data: hit ratios by gap, by idle gap and by transition, and gaps
+by cause."""
 
 import collections.abc
 
@@ -12,85 +12,8 @@ import site_database
 
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]  # the week the fixture did not simulate
-SIMULATION_QUERIES = ["figures/simulated_hit_ratio_by_ttl", "figures/retained_over_active",
-                      "figures/dead_over_active_by_policy"]
-# The fixture's first-week top-level requests of the paper's harnesses, which the simulation replayed: `tree-root` 5,
-# `idle-week-1` 3.
-REPLAYED_REQUESTS = 8
 CDF_POINTS = 201  # every CDF series has this many points, its share running evenly from 0 to 1
 MEDIAN_SHARE = 0.5  # the CDF point whose `x` is the median
-FIRST_WEEK_ACTIVE_TOKEN_SECONDS = 20_000.0  # the fixture's Agentic total, repeated on each of its three tally rows
-
-# A tally of the simulation as the view holds it, one row per policy and TTL of the fixture's first week.
-SIMULATION_TALLIES = """
-SELECT policy, ttl, hit_tokens, miss_tokens, dead_token_seconds
-FROM simulation
-WHERE week = ?
-ORDER BY policy, ttl
-"""
-
-
-def test_the_simulated_hit_ratio_of_a_week_is_its_hit_over_hit_and_missed_tokens(
-        connection: duckdb.DuckDBPyConnection) -> None:
-    site_database.select_weeks(connection, [FIRST_SUNDAY], fixture_release.PAPER_HARNESSES)
-    rows = site_database.run_query(connection, "figures/simulated_hit_ratio_by_ttl")
-    tallies = connection.execute(SIMULATION_TALLIES, [FIRST_SUNDAY]).df()
-    expected = tallies.hit_tokens / (tallies.hit_tokens + tallies.miss_tokens)
-    assert rows[["policy", "ttl"]].values.tolist() == tallies[["policy", "ttl"]].values.tolist()
-    assert rows.hit_ratio.tolist() == pytest.approx(expected.tolist())
-    assert rows.hit_ratio.tolist() == pytest.approx([0.6, 0.8, 0.6])  # 6,000 of 10,000; 8,000 of 10,000; 6,000 of 10,000
-
-
-def test_dead_over_active_sums_a_week_s_active_token_seconds_once(connection: duckdb.DuckDBPyConnection) -> None:
-    site_database.select_weeks(connection, [FIRST_SUNDAY], fixture_release.PAPER_HARNESSES)
-    rows = site_database.run_query(connection, "figures/dead_over_active_by_policy")
-    tallies = connection.execute(SIMULATION_TALLIES, [FIRST_SUNDAY]).df()
-    expected = tallies.dead_token_seconds / FIRST_WEEK_ACTIVE_TOKEN_SECONDS
-    assert rows.dead_over_active.tolist() == pytest.approx(expected.tolist())
-    assert rows.dead_over_active.tolist() == pytest.approx([0.0, 0.1, 0.025])
-
-
-# The TTL-only tallies of the fixture's first week, one row per TTL.
-TTL_ONLY_TALLIES = """
-SELECT ttl, reusable_token_seconds, dead_token_seconds
-FROM simulation
-WHERE week = ? AND policy = 'ttl_only'
-ORDER BY ttl
-"""
-
-
-def test_retained_over_active_is_a_week_s_ttl_only_tallies_over_its_active_token_seconds(
-        connection: duckdb.DuckDBPyConnection) -> None:
-    site_database.select_weeks(connection, [FIRST_SUNDAY], fixture_release.PAPER_HARNESSES)
-    rows = site_database.run_query(connection, "figures/retained_over_active")
-    tallies = connection.execute(TTL_ONLY_TALLIES, [FIRST_SUNDAY]).df()
-    assert rows.ttl.tolist() == tallies.ttl.tolist() == ["1h", "5m"]
-    expected_reusable = tallies.reusable_token_seconds / FIRST_WEEK_ACTIVE_TOKEN_SECONDS
-    expected_dead = tallies.dead_token_seconds / FIRST_WEEK_ACTIVE_TOKEN_SECONDS
-    assert rows.reusable_over_active.tolist() == pytest.approx(expected_reusable.tolist())
-    assert rows.dead_over_active.tolist() == pytest.approx(expected_dead.tolist())
-    assert rows.reusable_over_active.tolist() == pytest.approx([0.15, 0.05])  # 3,000 and 1,000 of 20,000
-    assert rows.dead_over_active.tolist() == pytest.approx([0.1, 0.025])  # 2,000 and 500 of 20,000
-
-
-@pytest.mark.parametrize("name", SIMULATION_QUERIES)
-@pytest.mark.parametrize("harnesses", [
-    fixture_release.PAPER_HARNESSES, fixture_release.BENCHMARK_HARNESSES, fixture_release.EVERY_HARNESS, ["pi"], []])
-def test_a_simulation_figure_holds_the_paper_s_rows_of_the_simulated_weeks_whatever_harnesses_are_selected(
-        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str], name: str, harnesses: list[str]) -> None:
-    site_database.select_weeks(connection, [FIRST_SUNDAY], fixture_release.PAPER_HARNESSES)
-    paper_population = site_database.run_query(connection, name)
-    site_database.select_weeks(connection, fixture_weeks, harnesses)
-    rows = site_database.run_query(connection, name)
-    assert rows.equals(paper_population)
-    assert rows.rows.unique().tolist() == [REPLAYED_REQUESTS]
-
-
-@pytest.mark.parametrize("name", SIMULATION_QUERIES)
-def test_a_week_the_simulation_did_not_cover_has_no_simulated_rows(connection: duckdb.DuckDBPyConnection,
-                                                                    name: str) -> None:
-    site_database.select_weeks(connection, [SECOND_SUNDAY], fixture_release.EVERY_HARNESS)
-    assert site_database.run_query(connection, name).empty
 
 
 def test_the_idle_gap_bins_hold_each_provider_s_gaps_up_to_an_hour(connection: duckdb.DuckDBPyConnection,

@@ -9,7 +9,7 @@ with the hash of each query's text in `all_weeks/queries.json`.
 REQUESTS_FOLDER = "requests"  # one row per request
 TOOL_CALLS_FOLDER = "tool_calls"  # one row per tool call
 SESSIONS_FOLDER = "sessions"  # one row per session
-SIMULATION_FOLDER = "simulation"  # one row per policy and TTL of a simulated week
+SIMULATION_FOLDER = "simulation"  # one row per scope and TTL of a simulated week
 WEEK_FOLDER_PREFIX = "week="  # a week's folder is this prefix and its Sunday, so DuckDB reads `week` from the path
 ROWS_FILE = "rows.parquet"  # the one file in a week's folder
 WEEKS_FILE = "weeks.json"  # the index of weeks, read by every page before DuckDB loads

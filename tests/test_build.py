@@ -70,7 +70,7 @@ def test_each_kind_s_rows_over_every_week_are_printed(tmp_path: pathlib.Path, ca
     assert printed[0].startswith("requests: 21 rows, ")
     assert printed[1].startswith("tool_calls: 16 rows, ")
     assert printed[2].startswith("sessions: 9 rows, ")
-    assert printed[3].startswith("simulation: 3 rows, ")
+    assert printed[3].startswith("simulation: 4 rows, ")
     assert printed[-2].startswith("weeks.json: 2 rows, ")
     assert printed[-1].startswith(f"{site_data.paths.ANSWERS_FOLDER}: {len(answer_files())} files, ")
 
@@ -87,7 +87,7 @@ def mark_first_week_simulated_from_older_traces(tmp_path: pathlib.Path) -> None:
 def test_a_week_simulated_from_older_traces_is_published_without_simulation_rows(tmp_path: pathlib.Path) -> None:
     out = build(tmp_path)
     assert [entry["simulated"] for entry in json.loads((out / "weeks.json").read_text())] == [True, False]
-    assert len(pandas.read_parquet(week_file(out, "simulation", FIRST_SUNDAY))) == 3
+    assert len(pandas.read_parquet(week_file(out, "simulation", FIRST_SUNDAY))) == 4
     mark_first_week_simulated_from_older_traces(tmp_path)
     build(tmp_path)  # into the same folder, whose simulation file of the first week is now stale
     assert [entry["simulated"] for entry in json.loads((out / "weeks.json").read_text())] == [False, False]
@@ -131,11 +131,21 @@ def test_each_week_s_file_holds_that_week_s_rows_only(tmp_path: pathlib.Path) ->
     assert set(second_week_requests.session_id) == set(second_week_ids)
 
 
-def test_no_file_holds_a_week_or_scope_column(tmp_path: pathlib.Path) -> None:
+def test_no_file_holds_a_week_column_and_only_the_simulation_s_hold_a_scope(tmp_path: pathlib.Path) -> None:
     out = build(tmp_path)
     for path in out.rglob("*.parquet"):
         names = parquet.read_schema(path).names
-        assert "week" not in names and "scope" not in names, path
+        assert "week" not in names, path
+        assert ("scope" in names) == (path.parent.parent.name == "simulation"), path
+
+
+def test_the_simulation_is_written_with_both_scopes_and_without_a_policy(tmp_path: pathlib.Path) -> None:
+    written = pandas.read_parquet(week_file(build(tmp_path), "simulation", FIRST_SUNDAY))
+    assert "policy" not in written.columns
+    assert written[["scope", "ttl", "span_seconds"]].values.tolist() == [
+        ["Agentic", "1h", 603_200.0], ["Agentic", "5m", 603_200.0],
+        ["SWE-Bench", "1h", 25.0], ["SWE-Bench", "5m", 25.0],
+    ]
 
 
 def test_requests_are_written_with_the_spec_s_columns_in_tree_order(tmp_path: pathlib.Path) -> None:

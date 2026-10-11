@@ -15,7 +15,7 @@
     </section>
     <section id="what-it-shows" class="card" aria-labelledby="what-it-shows-heading">
       <h2 id="what-it-shows-heading">What the site shows</h2>
-      <p>The site has three pages: Explore, Session and About. The Explore page shows, for the weeks and harnesses you pick, weekly trends, headline numbers, distribution cards, <a href="index.html#figures-sessions">20 figures of the paper</a> in three sections (Sessions, Tools, Prefix caching) and a table of the sessions; the Session page opens any one session.</p>
+      <p>The site has three pages: Explore, Session and About. The Explore page shows, for the weeks and harnesses you pick, weekly trends, headline numbers, distribution cards, <a href="index.html#figures-sessions">17 figures of the paper</a> in three sections (Sessions, Tools, Prefix caching) and a table of the sessions; the Session page opens any one session.</p>
       <p>The default selection is every week and every harness but <code>eval:swe-bench</code>, the SWE-bench benchmark replay: the paper's population. Its numbers are precomputed: when the site's data are built, the site's own queries are run once over every week and those harnesses, and the page reads their answers, so it draws at once without a database.</p>
       <p>Narrowing the selection, to some weeks or some harnesses, computes every number in your browser from the same queries. Once the first view is drawn, the page streams the weeks' rows into the browser one week at a time, newest first, so a narrowed selection soon reads memory instead of the network; the picker says how many weeks are in.</p>
     </section>
@@ -160,8 +160,6 @@
         <li><strong>Session time by part</strong>: model time, tool waits and human waits, where the paper also splits model time into prefill and decode.</li>
         <li><strong>Tool latency by category</strong> and <strong>Tool result size by category</strong>: percentiles per category, where the paper also marks the mean.</li>
         <li><strong>Hit ratio after an idle gap</strong>: the pipeline's fixed idle-gap bins, each drawn at its middle, a line for each of the eight providers with most requests, where the paper merges a thin bin into the next, draws each bin at its requests' median gap and shows the four providers with most idle gaps.</li>
-        <li><strong>Simulated hit ratio by TTL</strong>: the hit ratio of every policy, where the paper draws the TTL-only policy's misses as prefill against storage.</li>
-        <li><strong>Retained over active cache</strong> and <strong>Dead over active cache by policy</strong>: every TTL the simulation runs, where the paper draws the retained share, and the dead share of the TTL-only and reclaim-mutate policies, only up to a day.</li>
       </ul>
       <p>As in the paper, the hit ratio after a context change leaves out a switch to another model or provider: it is routing, not a change of context.</p>
     </section>

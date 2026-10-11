@@ -32,7 +32,7 @@ SORT_ORDERS = {
     paths.REQUESTS_FOLDER: ["root_session_id", "session_id", "step"],
     paths.TOOL_CALLS_FOLDER: ["root_session_id", "session_id", "step", "call_index"],
     paths.SESSIONS_FOLDER: ["root_session_id", "session_id"],
-    paths.SIMULATION_FOLDER: ["policy", "ttl"],
+    paths.SIMULATION_FOLDER: ["scope", "ttl"],
 }
 
 
