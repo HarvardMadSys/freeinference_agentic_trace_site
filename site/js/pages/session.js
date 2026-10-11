@@ -47,6 +47,8 @@ async function openSession(address) {
   // A session lies in one week, so the database reads that week's files alone; the others are never opened.
   const sessionWeeks = weeks.filter((entry) => entry.week === address.week);
   const database = openDatabase(new URL("data/", window.location.href).href, sessionWeeks, harnesses);
+  // The session's queries read the week's files many times over; whole, in memory, they read no HTTP ranges.
+  await database.loadWeekRows(address.week);
   const session = sessionWeeks.length === 0 ? null : await loadSession(database, address);
   if (session === null) {
     showNotFound(`Session not found in this week: no session ${address.id} in the week of ${address.week}.`);

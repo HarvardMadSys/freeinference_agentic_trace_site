@@ -89,8 +89,16 @@ each column chunk of each row group a query touches, and the Session page
 runs five queries over four files, hence about thirty-five range requests
 per session. The page now fetches its week's four files whole, one request
 each, and registers each as a buffer before its queries, so they read
-memory; a file whose fetch fails is read over HTTP ranges instead. The
-measured request count and time, before and after, go in `tasks.md`.
+memory; a file whose fetch fails is read over HTTP ranges instead.
+Measured on the largest session (5,040 requests, week of 2026-08-30) with
+the local range server and headless Chromium, to the Requests view drawn:
+before, 30 requests to `data/`, 27 of them ranges, 7.5 MB, 3.5 s (8.3 s
+with 40 ms latency and 50 Mbit/s throttled, the DuckDB library included);
+after, 17 requests, 10 of them the ranges DuckDB reads while it makes the
+views (sizes and footers) and none after the four whole files, 10.9 MB,
+3.6 s (8.3 s throttled): the round trips saved pay for the 3.4 MB more.
+Fetching the files while DuckDB starts, rather than after, measured 7.3 s
+throttled; it is not done.
 
 ## Type
 

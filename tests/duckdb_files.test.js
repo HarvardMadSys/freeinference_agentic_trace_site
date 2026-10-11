@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  fileUrl, streamingOrder, streamWeekFiles, swapFileToMemory, weekFileNames, withFileNames,
+  filesOfWeek, fileUrl, loadFilesWhole, streamingOrder, streamWeekFiles, swapFileToMemory, weekFileNames, withFileNames,
 } from "../site/js/engine/duckdb_files.js";
 
 // A view statement as the setup files write it, and two weeks as weeks.json lists them, the second not simulated.
@@ -101,6 +101,17 @@ test("the stream takes the newest week first, each week's files in the order of 
     },
   ]);
   assert.deepEqual(WEEKS.map((entry) => entry.week), ["2026-05-24", "2026-05-31"]);
+});
+
+test("one week's files are one of each kind it has, in the order of the kinds", () => {
+  assert.deepEqual(filesOfWeek(WEEKS[0], KINDS), [
+    "requests/week=2026-05-24/rows.parquet", "tool_calls/week=2026-05-24/rows.parquet",
+    "sessions/week=2026-05-24/rows.parquet", "simulation/week=2026-05-24/rows.parquet",
+  ]);
+  assert.deepEqual(filesOfWeek(WEEKS[1], KINDS), [
+    "requests/week=2026-05-31/rows.parquet", "tool_calls/week=2026-05-31/rows.parquet",
+    "sessions/week=2026-05-31/rows.parquet",
+  ]);
 });
 
 /** A stand-in for DuckDB's engine, recording each call in `calls`; `registerFileBuffer` rejects when `bufferFails`. */
@@ -243,4 +254,43 @@ test("a failed fetch stops the stream with an error naming the file", async (con
     /requests\/week=2026-05-31\/rows\.parquet: 404/,
   );
   assert.deepEqual(swapped, []);
+});
+
+test("a week's files are each fetched once, whole, and swapped in, in order", async (context) => {
+  const asked = [];
+  context.mock.method(globalThis, "fetch", bytesFetch(asked));
+  useDocument(context, fakeDocument());
+  const warn = context.mock.method(console, "warn", () => undefined);
+  const swapped = [];
+  const names = filesOfWeek(WEEKS[0], KINDS);
+  await loadFilesWhole(DATA_URL, names, async (name, bytes) => swapped.push([name, bytes.length]));
+  assert.deepEqual(asked.map((entry) => entry.url), names.map((name) => fileUrl(DATA_URL, name)));
+  assert.deepEqual(swapped, names.map((name) => [name, 3]));
+  assert.equal(warn.mock.callCount(), 0);
+});
+
+test("a file that cannot be fetched or swapped in is warned about; the files after it are swapped in", async (context) => {
+  const unfetched = "tool_calls/week=2026-05-24/rows.parquet";
+  async function fetchFailingOne(url) {
+    if (url === fileUrl(DATA_URL, unfetched)) {
+      return { ok: false, status: 503, statusText: "Service Unavailable" };
+    }
+    return { ok: true, arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer };
+  }
+  context.mock.method(globalThis, "fetch", fetchFailingOne);
+  useDocument(context, fakeDocument());
+  const warn = context.mock.method(console, "warn", () => undefined);
+  const swapped = [];
+  async function swapFailingRequests(name) {
+    if (name.startsWith("requests/")) {
+      throw new Error("out of memory"); // as swapFileToMemory throws, once the file's URL is registered again
+    }
+    swapped.push(name);
+  }
+  await loadFilesWhole(DATA_URL, filesOfWeek(WEEKS[0], KINDS), swapFailingRequests);
+  assert.deepEqual(swapped, ["sessions/week=2026-05-24/rows.parquet", "simulation/week=2026-05-24/rows.parquet"]);
+  const warnings = warn.mock.calls.map((call) => call.arguments[0]);
+  assert.equal(warnings.length, 2);
+  assert.match(warnings[0], /requests\/week=2026-05-24\/rows\.parquet over HTTP ranges: out of memory/);
+  assert.match(warnings[1], /tool_calls\/week=2026-05-24\/rows\.parquet over HTTP ranges: .*503/);
 });

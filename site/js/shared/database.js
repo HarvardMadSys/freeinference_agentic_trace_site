@@ -6,10 +6,13 @@
  * A query `answerFileFor` names a file for is answered from it, which the data step wrote by running the query. Every
  * other query runs in DuckDB, loaded the first time a query needs it, as `engine/duckdb_views.js` sets it up. After a
  * page has drawn its first view it may stream the weeks' files into memory (`streamRows`), so that a later query reads
- * memory instead of HTTP ranges, as `engine/duckdb_files.js` does it.
+ * memory instead of HTTP ranges, as `engine/duckdb_files.js` does it; a page that reads one week loads that week's
+ * files whole before its queries (`loadWeekRows`).
  */
 
-import { streamingOrder, streamWeekFiles, swapFileToMemory } from "../engine/duckdb_files.js";
+import {
+  filesOfWeek, loadFilesWhole, streamingOrder, streamWeekFiles, swapFileToMemory,
+} from "../engine/duckdb_files.js";
 import { openDuckDB, ROW_KINDS, runEach, runStatement } from "../engine/duckdb_views.js";
 import { isDefaultSelection } from "./selection.js";
 
@@ -147,6 +150,22 @@ class Database {
       // The stream only speeds up later queries, which read HTTP ranges without it; so it stops and the page goes on.
       console.warn(`Streaming the weeks' rows stopped: ${error.message}`);
     }
+  }
+
+  /**
+   * Fetch each row file of the week `week` (a Sunday of the database's weeks) whole, one request per file, into
+   * DuckDB's memory, so that the queries after it read memory; a file whose fetch fails stays on HTTP ranges, with a
+   * console warning. A page that reads one week awaits it before its queries. A week the database does not have
+   * loads nothing, and DuckDB is not started for it.
+   */
+  async loadWeekRows(week) {
+    const entry = this.#weeks.find((candidate) => candidate.week === week);
+    if (entry === undefined) {
+      return;
+    }
+    const opened = await this.#duckdb();
+    const swapIn = (name, bytes) => this.#afterEarlierChanges(() => this.#swapWhenIdle(opened, name, bytes));
+    await loadFilesWhole(this.#dataUrl, filesOfWeek(entry, ROW_KINDS), swapIn);
   }
 
   #isDefault() {

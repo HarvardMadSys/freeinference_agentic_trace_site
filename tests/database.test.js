@@ -140,3 +140,18 @@ test("a stream that cannot start DuckDB warns once and does not reject", STREAMI
   assert.match(warn.mock.calls[0].arguments[0], /^Streaming the weeks' rows stopped: /);
   assert.deepEqual(progress, []);
 });
+
+test("loading the rows of a week the database does not have fetches nothing and starts no DuckDB", async (context) => {
+  const asked = [];
+  context.mock.method(globalThis, "fetch", fakeFetch({}, asked));
+  const database = openDatabase("http://localhost:8000/data/", WEEKS, HARNESSES);
+  // node cannot load the CDN's DuckDB module, so starting DuckDB here would reject.
+  await database.loadWeekRows("2026-06-07");
+  assert.deepEqual(asked, []);
+});
+
+test("loading the rows of one of its weeks starts DuckDB, whose failure the page is given", async (context) => {
+  context.mock.method(globalThis, "fetch", fakeFetch({}, []));
+  const database = openDatabase("http://localhost:8000/data/", WEEKS, HARNESSES);
+  await assert.rejects(database.loadWeekRows("2026-05-31"), LOADING_LIBRARIES);
+});

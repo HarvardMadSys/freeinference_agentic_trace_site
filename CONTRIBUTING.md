@@ -99,7 +99,11 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   bytes in place of their URLs (`engine/duckdb_files.js`). To turn the
   stream off, set the constant `STREAM_ROWS_AFTER_DRAW` in `database.js` to
   `false`: the default view is unchanged, nothing is fetched until a
-  selection is narrowed, and a narrowed selection reads HTTP ranges.
+  selection is narrowed, and a narrowed selection reads HTTP ranges. The
+  Session page, which reads one week, instead awaits `loadWeekRows(week)`
+  before its queries: it fetches that week's files whole, one request
+  each, and hands DuckDB their bytes the same way; a file it cannot fetch
+  is read over HTTP ranges.
 - `shared/selection.js` owns the selection and the URL keys `weeks`, `month`
   and `harnesses` that hold it (none for the default: every week and the
   paper's harnesses); `explore/selection_pickers.js` draws the week and

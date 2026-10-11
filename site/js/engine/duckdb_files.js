@@ -1,8 +1,9 @@
 /**
- * The weeks' row files as DuckDB sees them, and the stream that moves them into memory.
+ * The weeks' row files as DuckDB sees them, and the fetches that move them into memory: the stream of every week's
+ * files, and one week's files loaded whole.
  *
  * A data file is `<kind>/week=<sunday>/rows.parquet` under the data folder, registered with DuckDB under that name:
- * first as a URL it reads in HTTP ranges, and, once the stream has fetched the whole file, as the file's bytes in
+ * first as a URL it reads in HTTP ranges, and, once the whole file has been fetched, as the file's bytes in
  * memory. The views name files, not URLs, so a query reads whichever the name is registered as when it runs.
  */
 
@@ -12,7 +13,7 @@ const FILES_PLACEHOLDER = "{files}";
 // The one kind of row whose files only the simulated weeks have.
 const SIMULATION_KIND = "simulation";
 
-// The priority of a streamed file's fetch: below anything the page asks for while it draws. A browser that does not
+// The priority of a whole file's fetch: below anything else the page asks for while it draws. A browser that does not
 // know the option ignores it.
 const STREAM_FETCH_PRIORITY = "low";
 
@@ -34,13 +35,18 @@ export function weekFileNames(kind, weeks) {
 export function streamingOrder(weeks, kinds) {
   const order = [];
   for (const entry of [...weeks].reverse()) {
-    const names = [];
-    for (const kind of kinds) {
-      names.push(...weekFileNames(kind, [entry]));
-    }
-    order.push({ week: entry.week, names });
+    order.push({ week: entry.week, names: filesOfWeek(entry, kinds) });
   }
   return order;
+}
+
+/** The names of the files of one week, `entry` (an entry of `weeks.json`): one of each of `kinds` it has, in order. */
+export function filesOfWeek(entry, kinds) {
+  const names = [];
+  for (const kind of kinds) {
+    names.push(...weekFileNames(kind, [entry]));
+  }
+  return names;
 }
 
 /** The absolute URL of the data file `name` in the data folder at `dataUrl`, with or without its trailing slash. */
@@ -94,6 +100,22 @@ export async function streamWeekFiles(dataUrl, order, swapIn, onProgress) {
     }
     streamedWeeks.push(week);
     onProgress({ streamedWeeks: [...streamedWeeks] });
+  }
+}
+
+/**
+ * Fetch each of the files `names` whole from the data folder at `dataUrl`, one request each and one at a time, and
+ * hand each to `swapIn(name, bytes)`. A file that cannot be fetched or swapped in is named in a console warning and
+ * left as it was registered, read over HTTP ranges; the files after it are still fetched.
+ */
+export async function loadFilesWhole(dataUrl, names, swapIn) {
+  for (const name of names) {
+    try {
+      await swapIn(name, await fetchWhileVisible(fileUrl(dataUrl, name)));
+    } catch (error) {
+      // The file in memory only spares the queries their range reads; without it they read the ranges.
+      console.warn(`Reading ${name} over HTTP ranges: ${error.message}`);
+    }
   }
 }
 
