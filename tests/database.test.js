@@ -1,12 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import {
-  answerFileFor, fileUrl, openDatabase, plainRow, weekFileNames, withFileNames,
-} from "../site/js/shared/database.js";
+import { answerFileFor, openDatabase, plainRow, STREAM_ROWS_AFTER_DRAW } from "../site/js/shared/database.js";
 
-// A view statement as the setup files write it, and two weeks as weeks.json lists them, the second not simulated.
-const VIEW_STATEMENT = "FROM read_parquet([{files}], hive_partitioning = true);";
+// Two weeks as weeks.json lists them, the second not simulated.
 const WEEKS = [
   { week: "2026-05-24", last_day: "2026-05-30", month: "2026-05", simulated: true },
   { week: "2026-05-31", last_day: "2026-06-06", month: "2026-05", simulated: false },
@@ -38,37 +35,6 @@ function fakeFetch(files, asked) {
   }
   return fetchFile;
 }
-
-test("every week has a file of requests, tool calls and sessions, named by its kind and Sunday", () => {
-  assert.deepEqual(weekFileNames("requests", WEEKS), [
-    "requests/week=2026-05-24/rows.parquet",
-    "requests/week=2026-05-31/rows.parquet",
-  ]);
-  assert.equal(weekFileNames("sessions", WEEKS).length, 2);
-});
-
-test("only a simulated week has a simulation file", () => {
-  assert.deepEqual(weekFileNames("simulation", WEEKS), ["simulation/week=2026-05-24/rows.parquet"]);
-  assert.deepEqual(weekFileNames("simulation", [WEEKS[1]]), []);
-});
-
-test("a file's URL is inside the data folder, with or without the folder's trailing slash", () => {
-  const name = "requests/week=2026-05-24/rows.parquet";
-  assert.equal(fileUrl("http://localhost:8000/data/", name), "http://localhost:8000/data/requests/week=2026-05-24/rows.parquet");
-  assert.equal(fileUrl("https://example.org/site/data", name), "https://example.org/site/data/requests/week=2026-05-24/rows.parquet");
-});
-
-test("the file names replace the placeholder, each quoted, separated by commas", () => {
-  const names = ["requests/week=2026-05-24/rows.parquet", "requests/week=2026-05-31/rows.parquet"];
-  assert.equal(
-    withFileNames(VIEW_STATEMENT, names),
-    "FROM read_parquet(['requests/week=2026-05-24/rows.parquet', 'requests/week=2026-05-31/rows.parquet'], hive_partitioning = true);",
-  );
-});
-
-test("a quote in a file name is doubled and a dollar sign is kept as it is", () => {
-  assert.equal(withFileNames("[{files}]", ["a'b$&c"]), "['a''b$&c']");
-});
 
 test("bigint values become numbers", () => {
   assert.deepEqual(plainRow({ requests: 1186582n, sessions: 0n }), { requests: 1186582, sessions: 0 });
@@ -138,10 +104,25 @@ test("a missing answer file is an error naming the file", async (context) => {
 
 test("another selection, and a query before any selection, start DuckDB and fetch no answer", async (context) => {
   const asked = [];
-  context.mock.method(globalThis, "fetch", fakeFetch({}, asked));
+  context.mock.method(globalThis, "fetch", fakeFetch({ "queries/explore/headline_numbers.sql": "SELECT 1;" }, asked));
   const narrowed = openDatabase("http://localhost:8000/data/", WEEKS, HARNESSES);
   await assert.rejects(narrowed.setSelection({ weeks: ["2026-05-24"], harnesses: ["pi"] }), LOADING_LIBRARIES);
   const unselected = openDatabase("http://localhost:8000/data/", WEEKS, HARNESSES);
   await assert.rejects(unselected.runQuery("explore/headline_numbers"), LOADING_LIBRARIES);
   assert.deepEqual(asked.filter((file) => file.startsWith("data/all_weeks/")), []);
+});
+
+test("the rows stream in after the default view is drawn", () => {
+  assert.equal(STREAM_ROWS_AFTER_DRAW, true);
+});
+
+test("a stream that cannot start DuckDB warns once and does not reject", async (context) => {
+  context.mock.method(globalThis, "fetch", fakeFetch({}, []));
+  const warn = context.mock.method(console, "warn", () => undefined);
+  const database = openDatabase("http://localhost:8000/data/", WEEKS, HARNESSES);
+  const progress = [];
+  await database.streamRows((update) => progress.push(update));
+  assert.equal(warn.mock.callCount(), 1);
+  assert.match(warn.mock.calls[0].arguments[0], /^Streaming the weeks' rows stopped: /);
+  assert.deepEqual(progress, []);
 });

@@ -5,11 +5,13 @@
  * writing the URL's selection back in its shortest form, then gives the database the selection and runs every
  * section: from the precomputed answers for the default selection, in DuckDB for any other. A change of the
  * selection, from the pickers or a trend bar, rewrites the URL, gives the database the new selection and runs every
- * section again.
+ * section again. Once the first run has drawn, the database streams the weeks' rows in, and the picker's note counts
+ * the weeks streamed.
  *
- * `page` is what the page owns: `{ weeks, harnesses, selection, database, orders, latestRun }`, the entries of
- * `weeks.json` and `harnesses.json`, the current selection, the database, the colour orders, and the number of the
- * latest run of the sections, so a run a newer one replaced stops before it draws. `orders` is
+ * `page` is what the page owns: `{ weeks, harnesses, selection, database, orders, latestRun, streamedWeeks }`, the
+ * entries of `weeks.json` and `harnesses.json`, the current selection, the database, the colour orders, the number of
+ * the latest run of the sections, so a run a newer one replaced stops before it draws, and the Sundays streamed in so
+ * far (null when the page does not stream). `orders` is
  * `{ harnesses, models }`, the promised rows of `setup/harness_order` and `setup/model_order`, asked for once. A
  * section runs as `run(container, context)` with
  * `context = { database, orders, selection, weeks, harnesses, onWeekClick, replaceQuery }`, and lays out fresh places
@@ -17,12 +19,12 @@
  */
 
 import { showError, showNote } from "../shared/charts.js";
-import { fetchHarnesses, fetchWeeks, openDatabase } from "../shared/database.js";
+import { fetchHarnesses, fetchWeeks, openDatabase, STREAM_ROWS_AFTER_DRAW } from "../shared/database.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
 import { readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
 import { layoutDistributions, runDistributions } from "../explore/distributions.js";
 import { layoutHeadline, runHeadline } from "../explore/headline.js";
-import { mountSelection } from "../explore/selection_pickers.js";
+import { mountSelection, showStreamedWeeks } from "../explore/selection_pickers.js";
 import { layoutSessionsTable, runSessionsTable, withFirstPage } from "../explore/sessions_table.js";
 import { layoutTrends, runTrends } from "../explore/trends.js";
 
@@ -64,12 +66,18 @@ async function start() {
     harnesses: database.runQuery("setup/harness_order"),
     models: database.runQuery("setup/model_order"),
   };
-  const page = { weeks, harnesses, selection, database, orders, latestRun: 0 };
+  for (const order of Object.values(orders)) {
+    // With nothing selected no section awaits the orders; a failure is shown by the sections that do, not here.
+    order.catch(() => undefined);
+  }
+  const streamedWeeks = STREAM_ROWS_AFTER_DRAW ? [] : null;
+  const page = { weeks, harnesses, selection, database, orders, latestRun: 0, streamedWeeks };
   // The URL is written back in its shortest form: a key that says the default, or names no known week, goes.
   replaceQuery(writeSelection(params, selection, weeks, harnesses));
   renderPageHeader(page);
   mountPicker(page);
   await runEverySection(page);
+  await database.streamRows((progress) => showStreamed(page, progress.streamedWeeks));
 }
 
 /**
@@ -139,7 +147,14 @@ function renderPageHeader(page) {
 
 function mountPicker(page) {
   const picker = document.querySelector("#selection");
-  mountSelection(picker, page.weeks, page.harnesses, page.selection, (selection) => changeSelection(page, selection));
+  const onChange = (selection) => changeSelection(page, selection);
+  mountSelection(picker, page.weeks, page.harnesses, page.selection, onChange, () => page.streamedWeeks);
+}
+
+/** Keep `streamedWeeks`, the Sundays streamed in so far, and rewrite the picker's count of them. */
+function showStreamed(page, streamedWeeks) {
+  page.streamedWeeks = streamedWeeks;
+  showStreamedWeeks(document.querySelector("#selection"), streamedWeeks, page.weeks);
 }
 
 function sectionElement(section) {

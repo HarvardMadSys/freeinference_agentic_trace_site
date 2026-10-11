@@ -103,6 +103,22 @@ export function computationNote(selection, weeks, harnesses) {
   return isDefaultSelection(selection, weeks, harnesses) ? DEFAULT_SELECTION_NOTE : COMPUTED_SELECTION_NOTE;
 }
 
+/**
+ * The words appended to the computation note while the page streams the weeks' rows in: "3 of 16 weeks loaded in your
+ * browser." for a selection DuckDB computes; "" for the default selection, with nothing selected, or when the page
+ * does not stream (`streamedWeeks` null). `streamedWeeks` holds the Sundays streamed in so far.
+ */
+export function streamedWeeksNote(selection, weeks, harnesses, streamedWeeks) {
+  const isComputed = computationNote(selection, weeks, harnesses) === COMPUTED_SELECTION_NOTE;
+  return isComputed && streamedWeeks !== null ? streamedWeeksText(streamedWeeks, weeks) : "";
+}
+
+/** "3 of 16 weeks loaded in your browser.": how many of the weeks of `weeks` are among `streamedWeeks`. */
+export function streamedWeeksText(streamedWeeks, weeks) {
+  const loaded = weeks.filter((entry) => streamedWeeks.includes(entry.week)).length;
+  return `${loaded} of ${weeks.length} weeks loaded in your browser.`;
+}
+
 /** The harnesses a caption names: "the paper's harnesses", "every harness", the one harness, or "3 harnesses". */
 export function harnessesText(selectedHarnesses, harnesses) {
   if (isDefaultHarnessChoice(selectedHarnesses, harnesses)) {

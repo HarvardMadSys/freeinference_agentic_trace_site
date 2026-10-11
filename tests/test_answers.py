@@ -89,12 +89,17 @@ def test_every_explore_and_figure_query_and_colour_order_has_an_answer_and_nothi
     assert written_files(data_directory) == answer_files(expected_answer_names(data_directory))
 
 
-def test_a_colour_order_reads_every_harness_whatever_the_selection(connection: duckdb.DuckDBPyConnection,
-                                                                   data_directory: pathlib.Path) -> None:
+@pytest.mark.parametrize("name", COLOUR_ORDER_QUERIES)
+def test_a_colour_order_is_its_answer_whatever_the_selection(connection: duckdb.DuckDBPyConnection,
+                                                             data_directory: pathlib.Path, name: str) -> None:
     site_database.select_weeks(connection, [FIRST_SUNDAY], ["pi"])
-    live = site_database.run_query(connection, "setup/harness_order")
-    assert live.to_dict("records") == read_answer(data_directory, "setup/harness_order")
-    assert len(live) == len(fixture_release.EVERY_HARNESS)
+    live = site_database.run_query(connection, name)
+    assert live.to_dict("records") == read_answer(data_directory, name)
+
+
+def test_the_harness_order_reads_every_harness_whatever_the_selection(connection: duckdb.DuckDBPyConnection) -> None:
+    site_database.select_weeks(connection, [FIRST_SUNDAY], ["pi"])
+    assert len(site_database.run_query(connection, "setup/harness_order")) == len(fixture_release.EVERY_HARNESS)
 
 
 def test_the_default_selection_is_every_week_and_every_harness_but_the_benchmark_s(

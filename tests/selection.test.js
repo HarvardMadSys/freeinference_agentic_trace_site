@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import {
   computationNote, defaultHarnesses, harnessesText, isDefaultSelection, readSelection, selectionQuery,
-  unknownSelectionNote, weeksByMonth, writeSelection,
+  streamedWeeksNote, streamedWeeksText, unknownSelectionNote, weeksByMonth, writeSelection,
 } from "../site/js/shared/selection.js";
 
 // Four weeks over two months, oldest first, as weeks.json holds them.
@@ -195,6 +195,24 @@ test("the default selection is precomputed, any other computed in the browser", 
 test("with no week or no harness selected there is no computation to note", () => {
   assert.equal(computationNote({ ...DEFAULT_SELECTION, weeks: [] }, WEEKS, HARNESSES), "");
   assert.equal(computationNote({ ...DEFAULT_SELECTION, harnesses: [] }, WEEKS, HARNESSES), "");
+});
+
+test("a computed selection's note counts the weeks streamed in out of every week", () => {
+  const narrowed = { ...DEFAULT_SELECTION, harnesses: ["hermes"] };
+  assert.equal(streamedWeeksNote(narrowed, WEEKS, HARNESSES, []), "0 of 4 weeks loaded in your browser.");
+  assert.equal(streamedWeeksNote(narrowed, WEEKS, HARNESSES, ["2026-06-14", "2026-06-07"]),
+    "2 of 4 weeks loaded in your browser.");
+  assert.equal(streamedWeeksText(EVERY_WEEK, WEEKS), "4 of 4 weeks loaded in your browser.");
+});
+
+test("the default selection, an empty one, or a page that does not stream count no weeks streamed", () => {
+  assert.equal(streamedWeeksNote(DEFAULT_SELECTION, WEEKS, HARNESSES, ["2026-06-14"]), "");
+  assert.equal(streamedWeeksNote({ ...DEFAULT_SELECTION, weeks: [] }, WEEKS, HARNESSES, ["2026-06-14"]), "");
+  assert.equal(streamedWeeksNote({ ...DEFAULT_SELECTION, harnesses: ["hermes"] }, WEEKS, HARNESSES, null), "");
+});
+
+test("a streamed Sunday that is not a week of weeks.json is not counted", () => {
+  assert.equal(streamedWeeksText(["2026-06-14", "2025-01-05"], WEEKS), "1 of 4 weeks loaded in your browser.");
 });
 
 test("a caption names the paper's harnesses, every harness, the one harness, or how many", () => {

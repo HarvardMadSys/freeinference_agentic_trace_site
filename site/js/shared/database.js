@@ -4,39 +4,18 @@
  * `queries/explore/request_count.sql`; `runQueryWith(name, parameters)` runs one that takes `?` parameters.
  *
  * A query `answerFileFor` names a file for is answered from it, which the data step wrote by running the query. Every
- * other query runs in DuckDB, loaded the first time a query needs it, with the weeks' files as the views `requests`,
- * `tool_calls`, `sessions` and `simulation`, the selection tables every query reads and the benchmark harness table.
- * A data file is `<kind>/week=<sunday>/rows.parquet` under the data folder, registered with DuckDB under that name as
- * a URL it reads in HTTP ranges; a view statement's `{files}` placeholder is replaced with its kind's files' names.
- * Only a simulated week has a simulation file; a kind no week has a file of gets no view (DuckDB cannot read no file).
+ * other query runs in DuckDB, loaded the first time a query needs it, as `engine/duckdb_views.js` sets it up. After a
+ * page has drawn its first view it may stream the weeks' files into memory (`streamRows`), so that a later query reads
+ * memory instead of HTTP ranges, as `engine/duckdb_files.js` does it.
  */
 
+import { streamingOrder, streamWeekFiles, swapFileToMemory } from "../engine/duckdb_files.js";
+import { openDuckDB, ROW_KINDS, runEach, runStatement } from "../engine/duckdb_views.js";
 import { isDefaultSelection } from "./selection.js";
 
-// The placeholder in a view statement that stands for its files' names, each single-quoted, separated by commas.
-const FILES_PLACEHOLDER = "{files}";
-
-// The statement making each kind of row's view, holding the files placeholder, by the kind (also its folder), in order.
-const VIEW_STATEMENTS = Object.freeze({
-  requests: "setup/create_view_requests",
-  tool_calls: "setup/create_view_tool_calls",
-  sessions: "setup/create_view_sessions",
-  simulation: "setup/create_view_simulation",
-});
-
-// The statements that make the empty selection tables, run once after the views.
-const SELECTION_TABLE_STATEMENTS = Object.freeze([
-  "setup/create_selected_weeks", "setup/create_selected_harnesses", "setup/create_selected_session",
-]);
-
-// The statement that makes the table of benchmark harnesses, run after the selection tables and filled once.
-const BENCHMARK_TABLE_STATEMENT = "setup/create_benchmark_harness";
-
-// The one kind of row whose files only the simulated weeks have.
-const SIMULATION_KIND = "simulation";
-
-// Query results give 64- and 128-bit integers (a SUM) and decimals as numbers; every count and total fits a double.
-const QUERY_CONFIG = Object.freeze({ castBigIntToDouble: true, castDecimalToDouble: true });
+// After the default view is drawn, fetch every week's rows into memory so a narrowed selection runs without range
+// reads; false leaves every narrowed selection on HTTP ranges.
+export const STREAM_ROWS_AFTER_DRAW = true;
 
 // The indexes of weeks and harnesses, relative to a page; read before any query.
 const WEEKS_FILE = "data/weeks.json";
@@ -80,45 +59,23 @@ export function answerFileFor(name, isDefault) {
   return isAnswered ? `${ANSWERS_FOLDER}${name}.json` : null;
 }
 
-/** The names of the files of the kind of row `kind`, one per week of `weeks` that has one, in their order. */
-export function weekFileNames(kind, weeks) {
-  const names = [];
-  for (const entry of weeks) {
-    if (kind !== SIMULATION_KIND || entry.simulated) {
-      names.push(`${kind}/week=${entry.week}/rows.parquet`);
-    }
-  }
-  return names;
-}
-
-/** The absolute URL of the data file `name` in the data folder at `dataUrl`, with or without its trailing slash. */
-export function fileUrl(dataUrl, name) {
-  // Without the slash, the URL resolution would put the file beside the data folder instead of in it.
-  const folderUrl = dataUrl.endsWith("/") ? dataUrl : `${dataUrl}/`;
-  return new URL(name, folderUrl).href;
-}
-
-/** `statement` with the files placeholder replaced by `fileNames`, each single-quoted (a quote doubled), comma-separated. */
-export function withFileNames(statement, fileNames) {
-  const quoted = fileNames.map((name) => `'${name.replaceAll("'", "''")}'`);
-  // A function as the replacement, so a `$` in a name is taken as it is and not as a replacement pattern.
-  return statement.replaceAll(FILES_PLACEHOLDER, () => quoted.join(", "));
-}
-
 /** A copy of `row` with every bigint value converted to a number; every other value unchanged. */
 export function plainRow(row) {
   const plain = {};
   for (const [column, value] of Object.entries(row)) {
-    // QUERY_CONFIG normally makes DuckDB return numbers already; this catches any bigint it does not.
+    // The engine's query settings normally make DuckDB return numbers already; this catches any bigint they do not.
     plain[column] = typeof value === "bigint" ? Number(value) : value;
   }
   return plain;
 }
 
+
 /**
  * The queries of one page. The selection tables are filled before a DuckDB query whenever the selection has changed
  * since they were last filled. Each statement file is fetched once and its text kept by name. `#turn` settles when the
- * last change of the tables has finished; the next waits for it, so two quick changes never mix.
+ * last change of DuckDB (a fill of the tables, or a streamed file swapped in) has finished; the next waits for it, so
+ * two quick changes never mix. A DuckDB query starts in a turn, so none starts during a swap, and a swap waits for the
+ * queries already running to finish.
  */
 class Database {
   #dataUrl;
@@ -126,8 +83,10 @@ class Database {
   #harnesses;
   #selection = null; // the selection last set, `{ weeks, harnesses }`; null before the first
   #filledSelection = null; // the selection the selection tables hold; null while they hold none
-  #opening = null; // the promised DuckDB connection, from the first time a query needed it
+  #opening = null; // the promised `{ engine, connection }` of DuckDB, from the first time a query needed it
   #statementTexts = new Map();
+  #runningQueries = new Set(); // the promised results of the DuckDB queries started and not yet settled
+  // Queries are not serialised by it, only started in it: they run side by side, as DuckDB's worker queues them anyway.
   #turn = Promise.resolve();
 
   constructor(dataUrl, weeks, harnesses) {
@@ -143,19 +102,16 @@ class Database {
       const answer = await (await fetchFile(answerFile)).json();
       return answer.map(plainRow);
     }
-    const connection = await this.#afterEarlierChanges(() => this.#connectionWithSelection());
-    return plainRows(await connection.query(await this.#statementText(name)));
+    const text = await this.#statementText(name);
+    const started = await this.#afterEarlierChanges(() => this.#startQuery(text));
+    return plainRows(await started.result);
   }
 
   /** The rows of the query `name` run in DuckDB with `parameters` in place of its `?` placeholders, in order. */
   async runQueryWith(name, parameters) {
-    const connection = await this.#connection();
-    const statement = await connection.prepare(await this.#statementText(name));
-    try {
-      return plainRows(await statement.query(...parameters));
-    } finally {
-      await statement.close();
-    }
+    const text = await this.#statementText(name);
+    const started = await this.#afterEarlierChanges(() => this.#startPreparedQuery(text, parameters));
+    return plainRows(await started.result);
   }
 
   /**
@@ -173,6 +129,25 @@ class Database {
     return this.#afterEarlierChanges(() => this.#fillSession(week, rootSessionId));
   }
 
+  /**
+   * Fetch every week's row files into DuckDB's memory, newest week first, calling `onProgress({ streamedWeeks })` after
+   * each week with the Sundays streamed so far; return at once, doing nothing, when `STREAM_ROWS_AFTER_DRAW` is false.
+   * A page calls it once, after its first view is drawn. A failure stops the stream with one console warning.
+   */
+  async streamRows(onProgress) {
+    if (!STREAM_ROWS_AFTER_DRAW) {
+      return;
+    }
+    try {
+      const { engine } = await this.#duckdb();
+      const swapIn = (name, bytes) => this.#afterEarlierChanges(() => this.#swapWhenIdle(engine, name, bytes));
+      await streamWeekFiles(this.#dataUrl, streamingOrder(this.#weeks, ROW_KINDS), swapIn, onProgress);
+    } catch (error) {
+      // The stream only speeds up later queries, which read HTTP ranges without it; so it stops and the page goes on.
+      console.warn(`Streaming the weeks' rows stopped: ${error.message}`);
+    }
+  }
+
   #isDefault() {
     return this.#selection !== null && isDefaultSelection(this.#selection, this.#weeks, this.#harnesses);
   }
@@ -185,9 +160,39 @@ class Database {
     return turn;
   }
 
+  /** Start the query `text` on the selection tables holding the latest selection: `{ result }`, as `#running` gives. */
+  async #startQuery(text) {
+    const connection = await this.#connectionWithSelection();
+    return this.#running(connection.query(text));
+  }
+
+  /** Start the query `text` with `parameters`, closing its statement after: `{ result }`, as `#running` gives. */
+  async #startPreparedQuery(text, parameters) {
+    const { connection } = await this.#duckdb();
+    const statement = await connection.prepare(text);
+    return this.#running(queryAndClose(statement, parameters));
+  }
+
+  /**
+   * `{ result }`, `result` being the promised result of a query just started, counted as running until it settles. It
+   * is wrapped so that the turn that started the query settles without waiting for it.
+   */
+  #running(result) {
+    this.#runningQueries.add(result);
+    const forget = () => this.#runningQueries.delete(result);
+    result.then(forget, forget);
+    return { result };
+  }
+
+  /** Register the file `name` as `bytes` once the running queries have settled; no query starts meanwhile. */
+  async #swapWhenIdle(engine, name, bytes) {
+    await Promise.allSettled([...this.#runningQueries]);
+    await swapFileToMemory(engine, name, bytes);
+  }
+
   /** The DuckDB connection, its selection tables holding the latest selection when one has been set. */
   async #connectionWithSelection() {
-    const connection = await this.#connection();
+    const { connection } = await this.#duckdb();
     const selection = this.#selection;
     if (selection !== null && selection !== this.#filledSelection) {
       await this.#runStatement(connection, "setup/clear_selected_weeks");
@@ -200,52 +205,23 @@ class Database {
   }
 
   async #fillSession(week, rootSessionId) {
-    const connection = await this.#connection();
+    const { connection } = await this.#duckdb();
     await this.#runStatement(connection, "setup/clear_selected_session");
     await this.#runEach(connection, "setup/insert_selected_session", [[week, rootSessionId]]);
   }
 
-  /** The DuckDB connection, opened the first time it is asked for. */
-  #connection() {
-    this.#opening ??= this.#open();
+  /** DuckDB, `{ engine, connection }`, opened over the weeks' files the first time it is asked for. */
+  #duckdb() {
+    this.#opening ??= openDuckDB(this.#dataUrl, this.#weeks, this.#harnesses, (name) => this.#statementText(name));
     return this.#opening;
   }
 
-  /** A new DuckDB connection: the views of the weeks' files, empty selection tables, the benchmark harness table. */
-  async #open() {
-    const { duckdb, engine } = await startDuckDB();
-    const connection = await engine.connect();
-    for (const [kind, name] of Object.entries(VIEW_STATEMENTS)) {
-      const fileNames = weekFileNames(kind, this.#weeks);
-      if (fileNames.length > 0) {
-        await registerFiles(engine, this.#dataUrl, fileNames, duckdb.DuckDBDataProtocol.HTTP);
-        await connection.query(withFileNames(await this.#statementText(name), fileNames));
-      }
-    }
-    for (const name of SELECTION_TABLE_STATEMENTS) {
-      await this.#runStatement(connection, name);
-    }
-    await this.#runStatement(connection, BENCHMARK_TABLE_STATEMENT);
-    const benchmarkEntries = this.#harnesses.filter((entry) => entry.benchmark);
-    await this.#runEach(connection, "setup/insert_benchmark_harness", benchmarkEntries.map((entry) => [entry.harness]));
-    return connection;
-  }
-
-  /** Run the statement `name`, which takes no parameters, on `connection`; its result is not read. */
   async #runStatement(connection, name) {
-    await connection.query(await this.#statementText(name));
+    await runStatement(connection, await this.#statementText(name));
   }
 
-  /** Run the statement `name` on `connection` once for each of `parameterLists`, a list of its `?` parameters each. */
   async #runEach(connection, name, parameterLists) {
-    const statement = await connection.prepare(await this.#statementText(name));
-    try {
-      for (const parameters of parameterLists) {
-        await statement.query(...parameters);
-      }
-    } finally {
-      await statement.close();
-    }
+    await runEach(connection, await this.#statementText(name), parameterLists);
   }
 
   /** The text of the statement `name`, fetched from `queries/<name>.sql` the first time it is asked for. */
@@ -258,29 +234,12 @@ class Database {
   }
 }
 
-/** The DuckDB-WASM module and a database of it in a worker, open and ready to connect to: `{ duckdb, engine }`. */
-async function startDuckDB() {
-  // Loaded here, not imported at the top, so node can load this module's pure functions for the tests.
-  const { loadDuckDB } = await import("./libraries.js");
-  const duckdb = await loadDuckDB();
-  const bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
-  // A worker script must come from the page's own origin, so a one-line blob imports the CDN's worker.
-  const workerScript = new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" });
-  const workerUrl = URL.createObjectURL(workerScript);
-  const worker = new Worker(workerUrl);
-  // The VoidLogger keeps DuckDB's per-query log lines out of the console.
-  const engine = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), worker);
-  await engine.instantiate(bundle.mainModule, bundle.pthreadWorker);
-  URL.revokeObjectURL(workerUrl);
-  await engine.open({ query: QUERY_CONFIG });
-  return { duckdb, engine };
-}
-
-/** Register each of `fileNames` with `engine` under its own name, as the URL of that file in the data folder. */
-async function registerFiles(engine, dataUrl, fileNames, httpProtocol) {
-  for (const name of fileNames) {
-    // HTTP, so DuckDB reads the file in ranges as it reads a URL named in a query; direct I/O off, the library's default.
-    await engine.registerFileURL(name, fileUrl(dataUrl, name), httpProtocol, false);
+/** The result of the prepared `statement` run with `parameters`; the statement is closed whatever the outcome. */
+async function queryAndClose(statement, parameters) {
+  try {
+    return await statement.query(...parameters);
+  } finally {
+    await statement.close();
   }
 }
 

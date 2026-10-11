@@ -52,6 +52,7 @@ page (html)  →  js/pages/<page>.js  →  section modules and js/shared/  →  
 ```
 js/pages/             one module per page
 js/shared/            what every page uses: the database, the selection, formatting, charts, the table, the stat strip
+js/engine/            DuckDB in the page: starting it, its views and setup, the weeks' files and their streaming in
 js/explore/           the Explore page's sections
 js/figures/           the Paper figures page: one module per section, listing its figure entries
 js/session/           the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
@@ -70,10 +71,14 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   `queries/explore/request_count.sql`. While the selection is the default, an
   Explore or figure query is answered from its file under `data/all_weeks/`
   instead, as is a colour order (`setup/*_order`) whatever the selection.
-  DuckDB loads the first time a query needs it: it registers each week's
-  Parquet files as the views `requests`, `tool_calls`, `sessions` and
-  `simulation`, fills `benchmark_harness`, and fills the selection tables
-  before a query whenever the selection has changed.
+  DuckDB loads the first time a query needs it (`engine/duckdb_views.js`):
+  it registers each week's Parquet files as the views `requests`,
+  `tool_calls`, `sessions` and `simulation`, fills `benchmark_harness`, and
+  the database fills the selection tables before a query whenever the
+  selection has changed. Once a page has drawn its first view it calls
+  `streamRows`, which fetches each week's files and hands DuckDB their
+  bytes in place of their URLs (`engine/duckdb_files.js`); the constant
+  `STREAM_ROWS_AFTER_DRAW` in `database.js` turns this off.
 - `shared/selection.js` owns the selection and the URL keys `weeks`, `month`
   and `harnesses` that hold it (none for the default: every week and the
   paper's harnesses); `explore/selection_pickers.js` draws the week and

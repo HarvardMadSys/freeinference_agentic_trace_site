@@ -8,15 +8,19 @@
 
 import { formatCount } from "../shared/format.js";
 import {
-  computationNote, defaultHarnesses, unknownSelectionNote, weeksByMonth,
+  computationNote, defaultHarnesses, streamedWeeksNote, streamedWeeksText, unknownSelectionNote, weeksByMonth,
 } from "../shared/selection.js";
+
+// The class of the words in the computation note that count the weeks streamed in, rewritten as each week arrives.
+const STREAMED_WEEKS_CLASS = "streamed-weeks";
 
 /**
  * Draw the week picker, the harness picker and the notes under them in `container`. Every change redraws them and
- * calls `onChange(selection)`; unticking the last week or harness gives a selection with none.
+ * calls `onChange(selection)`; unticking the last week or harness gives a selection with none. `streamedWeeks()`
+ * returns the Sundays the page has streamed in so far, or null when it does not stream.
  */
-export function mountSelection(container, weeks, harnesses, selection, onChange) {
-  const picker = { container, weeks, harnesses, selection, onChange };
+export function mountSelection(container, weeks, harnesses, selection, onChange, streamedWeeks = () => null) {
+  const picker = { container, weeks, harnesses, selection, onChange, streamedWeeks };
   const focusedChoice = choiceInFocus(container);
   const weekControls = controlsRow();
   for (const group of weeksByMonth(weeks)) {
@@ -25,16 +29,41 @@ export function mountSelection(container, weeks, harnesses, selection, onChange)
   weekControls.append(everyWeekGroup(picker));
   const harnessControls = controlsRow();
   harnessControls.append(harnessGroup(picker), harnessActions(picker));
-  container.replaceChildren(weekControls, harnessControls);
-  for (const text of [unknownSelectionNote(selection), computationNote(selection, weeks, harnesses)]) {
-    if (text !== "") {
-      container.append(note(text));
-    }
-  }
+  container.replaceChildren(weekControls, harnessControls, ...notes(picker));
   restoreFocus(container, focusedChoice);
 }
 
-// `picker` is `{ container, weeks, harnesses, selection, onChange }`: what one drawing of the pickers was given.
+/** Rewrite the count of weeks streamed in, in the pickers drawn in `container`, if their note shows it. */
+export function showStreamedWeeks(container, streamedWeeks, weeks) {
+  const count = container.querySelector(`.${STREAMED_WEEKS_CLASS}`);
+  if (count !== null) {
+    count.textContent = streamedWeeksText(streamedWeeks, weeks);
+  }
+}
+
+// `picker` is `{ container, weeks, harnesses, selection, onChange, streamedWeeks }`: what one drawing was given.
+
+/** The notes under the pickers: the URL's unknown names, and where the numbers come from with the weeks streamed in. */
+function notes(picker) {
+  const elements = [];
+  const unknown = unknownSelectionNote(picker.selection);
+  if (unknown !== "") {
+    elements.push(note(unknown));
+  }
+  const computation = computationNote(picker.selection, picker.weeks, picker.harnesses);
+  if (computation !== "") {
+    const element = note(computation);
+    const streamed = streamedWeeksNote(picker.selection, picker.weeks, picker.harnesses, picker.streamedWeeks());
+    if (streamed !== "") {
+      const count = document.createElement("span");
+      count.className = STREAMED_WEEKS_CLASS;
+      count.textContent = streamed;
+      element.append(" ", count);
+    }
+    elements.push(element);
+  }
+  return elements;
+}
 
 function monthGroup(picker, group) {
   const element = controlGroup(monthName(group.month));
@@ -161,7 +190,7 @@ function choose(picker, chosenWeeks, chosenHarnesses) {
     unknownMonth: null,
     unknownHarnesses: [],
   };
-  mountSelection(picker.container, picker.weeks, picker.harnesses, next, picker.onChange);
+  mountSelection(picker.container, picker.weeks, picker.harnesses, next, picker.onChange, picker.streamedWeeks);
   picker.onChange(next);
 }
 

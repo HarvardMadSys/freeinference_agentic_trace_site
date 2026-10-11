@@ -4,14 +4,15 @@
  * Every figure gets a card in its section's grid. The default selection's figures are drawn from the precomputed
  * answers; any other selection's are computed in DuckDB. A selection change rewrites the URL, gives the database the
  * new selection and redraws every figure, without reloading the page. Figures run concurrently, and each shows its
- * own loading state, error or note; a run that a newer selection has replaced is dropped.
+ * own loading state, error or note; a run that a newer selection has replaced is dropped. Once the first selection is
+ * drawn, the database streams the weeks' rows in, and the picker's note counts the weeks streamed.
  */
 
 import { assignColours, MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote, weeksText } from "../shared/charts.js";
-import { fetchHarnesses, fetchWeeks, openDatabase } from "../shared/database.js";
+import { fetchHarnesses, fetchWeeks, openDatabase, STREAM_ROWS_AFTER_DRAW } from "../shared/database.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
 import { readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
-import { mountSelection } from "../explore/selection_pickers.js";
+import { mountSelection, showStreamedWeeks } from "../explore/selection_pickers.js";
 import { drawnHarnessesAndWeeks, dropThinGroups, hiddenText, restingCountText } from "../figures/figure_rows.js";
 
 // Each section of the page: the element its figures go in, and the module listing them. Every section module
@@ -42,13 +43,33 @@ async function startPage() {
   const [weeks, harnesses] = await Promise.all([fetchWeeks(), fetchHarnesses()]);
   const selection = readSelection(new URLSearchParams(window.location.search), weeks, harnesses);
   // What the page owns: the weeks and harnesses, every figure with its card, the database with the colours every
-  // figure shares, and the number of the latest run.
+  // figure shares, the number of the latest run, and the Sundays streamed in so far (null when nothing streams).
   const opening = openWithColours(weeks, harnesses);
-  const page = { weeks, harnesses, cards: await placeCards(), opening, latestRun: 0 };
+  const streamedWeeks = STREAM_ROWS_AFTER_DRAW ? [] : null;
+  const page = { weeks, harnesses, cards: await placeCards(), opening, latestRun: 0, streamedWeeks };
   writeSelectionToPage(page, selection);
   const picker = document.querySelector("#selection");
-  mountSelection(picker, weeks, harnesses, selection, (chosen) => changeSelection(page, chosen));
+  const onChange = (chosen) => changeSelection(page, chosen);
+  mountSelection(picker, weeks, harnesses, selection, onChange, () => page.streamedWeeks);
   await drawSelection(page, selection);
+  await streamRows(page);
+}
+
+/** Stream the weeks' rows into the page's database, counting them in the picker's note. */
+async function streamRows(page) {
+  let opened;
+  try {
+    opened = await page.opening;
+  } catch {
+    return; // every figure's card already shows why the database did not open
+  }
+  await opened.database.streamRows((progress) => showStreamed(page, progress.streamedWeeks));
+}
+
+/** Keep `streamedWeeks`, the Sundays streamed in so far, and rewrite the picker's count of them. */
+function showStreamed(page, streamedWeeks) {
+  page.streamedWeeks = streamedWeeks;
+  showStreamedWeeks(document.querySelector("#selection"), streamedWeeks, page.weeks);
 }
 
 /** Write `selection` into the URL and the header's links, then redraw every figure for it. */

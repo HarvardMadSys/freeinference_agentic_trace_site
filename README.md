@@ -64,6 +64,7 @@ site/              exactly the files that are deployed
   js/shared/       the database, the selection, the libraries, formatting, charts, the histogram card, the table,
                    the stat strip, the header and footer
   js/pages/        one module per page
+  js/engine/       DuckDB in the page: starting it, its views and setup, the weeks' files and their streaming in
   js/explore/      the Explore page's sections: trends, headline, distribution cards, sessions table
   js/figures/      one module per figure section, and the row rules every figure shares
   js/session/      the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
