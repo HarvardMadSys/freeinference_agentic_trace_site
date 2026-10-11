@@ -83,7 +83,7 @@ export async function drawWithLegend(body, legend, drawChart) {
   await drawShownSeries(body, legend, hidden, drawChart);
 }
 
-/** True when `series` (`[{ name }]`) has at least one series and every one is in `hidden`, so nothing is left to draw. */
+/** True when `series` (`[{ name }]`) has a series and every one is in `hidden`, so nothing is left to draw. */
 export function isEverySeriesHidden(series, hidden) {
   return series.length > 0 && series.every((one) => hidden.has(one.name));
 }

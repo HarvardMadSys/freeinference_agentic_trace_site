@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { idleGapEdgeSeconds, idleGapLegend, retainedLegend, retainedPoints } from "../site/js/figures/caching.js";
+import {
+  drawnProviderRows, idleGapEdgeSeconds, idleGapLegend, retainedLegend, retainedPoints,
+} from "../site/js/figures/caching.js";
 import {
   causeLegend, gapBinColours, gapBinLegend, meanHitRatioBars, transitionLegend,
 } from "../site/js/figures/caching_gaps.js";
-import { causeColours } from "../site/js/theme/colours.js";
+import { assignColours, causeColours, OTHER_SERIES } from "../site/js/theme/colours.js";
 
 // The colours every figure shares, as the page gives a legend function: the providers in their fixed order.
 const FIGURE_COLOURS = Object.freeze({
@@ -80,4 +82,16 @@ test("a provider keeps its colour from the provider order whichever providers th
   assert.deepEqual(legend.series, [{ name: "A", label: "Provider A" }, { name: "C", label: "Provider C" }]);
   assert.equal(legend.colours.get("A"), "var(--series-2)");
   assert.equal(legend.colours.get("C"), "var(--series-3)");
+});
+
+test("the idle-gap figure lists and draws only the eight providers with most requests, none in the Other grey", () => {
+  const providers = ["A", "B", "C", "D", "E", "F", "G", "H", "I"];
+  const colours = { ...FIGURE_COLOURS, providers: assignColours(providers) };
+  const rows = providers.map((provider) => ({ provider, idle_gap_bin: 0 }));
+  const legend = idleGapLegend(rows, colours, "provider");
+  assert.deepEqual(legend.series.map((one) => one.name), providers.slice(0, 8));
+  for (const { name } of legend.series) {
+    assert.notEqual(legend.colours.get(name), OTHER_SERIES, name);
+  }
+  assert.deepEqual(drawnProviderRows(rows, legend.colours).map((row) => row.provider), providers.slice(0, 8));
 });

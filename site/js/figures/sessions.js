@@ -259,7 +259,8 @@ function growthPoints(rows, parts) {
 function growthTipText(point) {
   const lastMessage = 2 * point.messages - 1; // a power-of-two bin runs to one below the next power of two
   const messages = `${formatCount(point.messages)}–${formatCount(lastMessage)} messages`;
-  return `${TOKEN_PART_LABELS[point.part]}\n${messages}\nmedian ${formatTokens(point.median)} tokens\n${formatCount(point.rows)} requests`;
+  const median = `median ${formatTokens(point.median)} tokens`;
+  return `${TOKEN_PART_LABELS[point.part]}\n${messages}\n${median}\n${formatCount(point.rows)} requests`;
 }
 
 /** The token part colours as a map from part to colour, as the chart helpers take them. */

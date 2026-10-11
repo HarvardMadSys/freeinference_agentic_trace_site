@@ -10,7 +10,7 @@
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
-import { assignColours, SERIES_SLOTS } from "../theme/colours.js";
+import { assignColours, OTHER_SERIES, SERIES_SLOTS } from "../theme/colours.js";
 import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
 import { GAP_FIGURES } from "./caching_gaps.js";
 import { PLAIN_NUMBER_FORMAT, seriesLegend, sparseTickFormat } from "./figure_rows.js";
@@ -52,7 +52,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "hit_ratio_by_idle_gap",
     title: "Hit ratio after an idle gap",
-    definition: "Median hit ratio (cached over input tokens) of requests per bin of idle gap (the time since the same user's previous request at the provider finished; 26 geometric bins from 10 s to 1 h, each drawn at its middle), one line per provider, where the paper merges a bin of fewer than 20 requests into the next, draws it at its requests' median gap and shows the four providers with most idle gaps.",
+    definition: "Median hit ratio (cached over input tokens) of requests per bin of idle gap (the time since the same user's previous request at the provider finished; 26 geometric bins from 10 s to 1 h, each drawn at its middle), one line per provider, where the eight providers with most requests are drawn and the paper merges a bin of fewer than 20 requests into the next, draws it at its requests' median gap and shows the four providers with most idle gaps.",
     query: "figures/hit_ratio_by_idle_gap",
     binColumn: null,
     seriesColumn: "provider",
@@ -105,15 +105,25 @@ export function idleGapEdgeSeconds(edge) {
 }
 
 /**
- * The idle-gap figure's legend: each provider of the rows as "Provider A", in the provider order and colours every
- * chart shares, so a provider keeps its colour whatever the selection.
+ * The idle-gap figure's legend: each provider of the rows among the eight with most requests as "Provider A", in the
+ * provider order and colours every chart shares, so a provider keeps its colour whatever the selection. A provider
+ * past the eighth would take the Other colour, which a named line cannot share, so it is not drawn.
  */
 export function idleGapLegend(rows, colours, seriesColumn) {
+  const drawnColours = new Map();
   const labels = {};
-  for (const provider of colours.providers.keys()) {
-    labels[provider] = providerLabel(provider);
+  for (const [provider, colour] of colours.providers) {
+    if (colour !== OTHER_SERIES) {
+      drawnColours.set(provider, colour);
+      labels[provider] = providerLabel(provider);
+    }
   }
-  return seriesLegend(rows, seriesColumn, colours.providers, labels);
+  return seriesLegend(rows, seriesColumn, drawnColours, labels);
+}
+
+/** The idle-gap rows of the providers `providerColours` (a Map from provider to colour) holds, in their order. */
+export function drawnProviderRows(rows, providerColours) {
+  return rows.filter((row) => providerColours.has(row.provider));
 }
 
 /** A simulation figure's legend: the eviction policies, in their order, by the names they are drawn under. */
@@ -121,17 +131,22 @@ function policyLegend(rows, colours, seriesColumn) {
   return seriesLegend(rows, seriesColumn, assignColours(Object.keys(POLICY_NAMES)), POLICY_NAMES);
 }
 
-/** Draw one line per provider of its median hit ratio per idle-gap bin, on a log axis of seconds, with markers. */
+/**
+ * Draw one line per provider of its legend of its median hit ratio per idle-gap bin, on a log axis of seconds, with
+ * markers; the rows of a provider the legend does not list are left out.
+ */
 async function drawIdleGapRetention(rows, body, colours) {
   // Plot is loaded here, not at the top, so node can test the section's figure list.
   const { Plot } = await import("../shared/libraries.js");
-  const points = rows.map((row) => ({
+  const drawnRows = drawnProviderRows(rows, colours.series);
+  const points = drawnRows.map((row) => ({
     provider: row.provider,
     seconds: idleGapEdgeSeconds(row.idle_gap_bin + 0.5), // the bin's geometric middle
     hitRatio: row.median_hit_ratio,
     row,
   }));
-  const providers = [...colours.series.keys()];
+  const present = new Set(drawnRows.map((row) => row.provider));
+  const providers = [...colours.series.keys()].filter((provider) => present.has(provider));
   const chart = Plot.plot({
     ...chartFrame(body),
     x: { type: "log", domain: [FIRST_IDLE_GAP_EDGE_S, LAST_IDLE_GAP_EDGE_S] },

@@ -87,6 +87,9 @@ function hasLegend(figure) {
   return typeof figure.legend === "function";
 }
 
+// A draw function's `length` counts its parameters before the first default, so a wide-format draw function declares
+// `hidden` as a plain fourth parameter: given a default, it would not be counted and the figure would not be seen as
+// wide format.
 function isWideFormat(figure) {
   return figure.draw.length === 4;
 }

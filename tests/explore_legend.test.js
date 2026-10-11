@@ -167,7 +167,7 @@ test("a new drawing, as a new selection makes, starts with every series shown", 
   assert.deepEqual(body.placedBefore[0].children.map((button) => button.getAttribute("aria-pressed")), ["true", "true"]);
 });
 
-test("a chart of one series or none is drawn once with nothing hidden, with no legend placed and no note", async (context) => {
+test("a chart of one series or none is drawn once, nothing hidden, with no legend and no note", async (context) => {
   useFakeDocument(context);
   for (const series of [[], LEGEND.series.slice(0, 1)]) {
     const body = new FakeElement("div");

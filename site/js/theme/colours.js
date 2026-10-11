@@ -22,7 +22,7 @@ export const SERIES_SLOTS = Object.freeze([
 /** The colour of every series past the eighth, folded together as "Other". */
 export const OTHER_SERIES = "var(--series-other)";
 
-/** The name a series past the eighth takes once folded. */
+/** The name a series past the eighth takes once folded; it is here because `barColours` gives it `OTHER_SERIES`. */
 export const OTHER_NAME = "Other";
 
 /** The colour of each part of a request's tokens, the same in every chart. */

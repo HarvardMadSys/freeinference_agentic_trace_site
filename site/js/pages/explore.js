@@ -19,9 +19,10 @@
  *   draws;
  * - `streamedWeeks`, the Sundays streamed in so far (null when the page does not stream).
  * `orders` is `{ harnesses, models, categories, providers }`, the promised rows of `setup/harness_order`,
- * `setup/model_order`, `setup/category_order` and `setup/provider_order`, asked for once. A section runs as `run(container, context)` with
- * `context = { database, orders, selection, weeks, harnesses, onWeekClick, replaceQuery }`, and lays out fresh places
- * in its container each time, so a run that a newer one replaced draws into places no longer on the page.
+ * `setup/model_order`, `setup/category_order` and `setup/provider_order`, asked for once. A section runs as
+ * `run(container, context)` with `context = { database, orders, selection, weeks, harnesses, onWeekClick,
+ * replaceQuery }`, and lays out fresh places in its container each time, so a run that a newer one replaced draws into
+ * places no longer on the page.
  */
 
 import { showError, showNote } from "../shared/charts.js";
