@@ -1,4 +1,4 @@
-"""The Paper figures page's queries on the fixture data: the CDFs' shape, the colour orders, and each figure's rows."""
+"""The Explore page's figure queries on the fixture data: the CDFs' shape, the colour orders, and each figure's rows."""
 
 import duckdb
 import pytest

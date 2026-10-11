@@ -5,7 +5,7 @@ import { test } from "node:test";
 // The site's query folder; a figure's query `figures/<name>` is the file `figures/<name>.sql` in it.
 const QUERIES_FOLDER = new URL("../site/queries/", import.meta.url);
 
-// Each section module of the Paper figures page, with the figures it draws, in order.
+// Each figure section module of the Explore page, with the figures it draws, in order.
 const SECTION_FIGURES = {
   "../site/js/figures/sessions.js": [
     "requests_per_session_cdf",

@@ -15,7 +15,7 @@ and Observable Plot draws the results. There is no server and no build step.
 | Page | File | What it shows |
 |---|---|---|
 | Explore | `index.html` | Weekly trends, headline numbers, distribution cards and a searchable table of the selected weeks' sessions |
-| Paper figures | `figures.html` | The paper's figures, redrawn for the selected weeks and harnesses |
+| Paper figures | `index.html#figures-sessions` | The paper's figures, redrawn for the selected weeks and harnesses |
 | Session | `session.html` | One session and its subagents: a bar per request, context over time, and a timeline per agent |
 | About | `about.html` | Definitions, how the data were built, and links |
 
@@ -65,7 +65,7 @@ site/              exactly the files that are deployed
                    the stat strip, the header and footer
   js/pages/        one module per page
   js/engine/       DuckDB in the page: starting it, its views and setup, the weeks' files and their streaming in
-  js/explore/      the Explore page's sections: trends, headline, distribution cards, sessions table
+  js/explore/      the Explore page's sections: trends, headline, distribution cards, figure sections, sessions table
   js/figures/      one module per figure section, and the row rules every figure shares
   js/session/      the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
   js/session_requests/  the Requests view: a row per request, its details, brackets and legend

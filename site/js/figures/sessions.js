@@ -1,5 +1,5 @@
 /**
- * The Sessions section of the Paper figures page: how long sessions are, and how their tokens are spent.
+ * The Sessions section of the Explore page's figures: how long sessions are, and how their tokens are spent.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines.
  */

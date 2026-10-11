@@ -1,19 +1,21 @@
 /**
- * The Explore page: weekly trends, headline numbers, distribution cards and the sessions table of the selected weeks.
+ * The Explore page: weekly trends, headline numbers, distribution cards, the paper's figures in three sections, and
+ * the sessions table of the selected weeks and harnesses.
  *
- * The page draws its header, pickers and every section's loading state from `weeks.json` and `harnesses.json`,
+ * The page draws its header, pickers, figure cards and every section's loading state from `weeks.json` and
+ * `harnesses.json`,
  * writing the URL's selection back in its shortest form, then gives the database the selection and runs every
  * section: from the precomputed answers for the default selection, in DuckDB for any other. A change of the
  * selection, from the pickers or a trend bar, rewrites the URL, gives the database the new selection and runs every
  * section again. Once the first run has drawn, the database streams the weeks' rows in, and the picker's note counts
  * the weeks streamed.
  *
- * `page` is what the page owns: `{ weeks, harnesses, selection, database, orders, latestRun, streamedWeeks }`, the
- * entries of `weeks.json` and `harnesses.json`, the current selection, the database, the colour orders, the number of
- * the latest run of the sections, so a run a newer one replaced stops before it draws, and the Sundays streamed in so
- * far (null when the page does not stream). `orders` is
- * `{ harnesses, models }`, the promised rows of `setup/harness_order` and `setup/model_order`, asked for once. A
- * section runs as `run(container, context)` with
+ * `page` is what the page owns: `{ weeks, harnesses, selection, database, orders, figures, latestRun, streamedWeeks }`,
+ * the entries of `weeks.json` and `harnesses.json`, the current selection, the database, the colour orders, the
+ * figures' cards and places (`explore/figure_sections.js`), the number of the latest run of the sections, so a run a
+ * newer one replaced stops before it draws, and the Sundays streamed in so far (null when the page does not stream).
+ * `orders` is `{ harnesses, models, categories }`, the promised rows of `setup/harness_order`, `setup/model_order` and
+ * `setup/category_order`, asked for once. A section runs as `run(container, context)` with
  * `context = { database, orders, selection, weeks, harnesses, onWeekClick, replaceQuery }`, and lays out fresh places
  * in its container each time, so a run that a newer one replaced draws into places no longer on the page.
  */
@@ -23,6 +25,9 @@ import { fetchHarnesses, fetchWeeks, openDatabase, STREAM_ROWS_AFTER_DRAW } from
 import { renderFooter, renderHeader } from "../shared/layout.js";
 import { readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
 import { layoutDistributions, runDistributions } from "../explore/distributions.js";
+import {
+  layoutFigures, mountFigureSections, runFigures, showErrorInFigures, showNoteInFigures,
+} from "../explore/figure_sections.js";
 import { layoutHeadline, runHeadline } from "../explore/headline.js";
 import { mountSelection, showStreamedWeeks } from "../explore/selection_pickers.js";
 import { layoutSessionsTable, runSessionsTable, withFirstPage } from "../explore/sessions_table.js";
@@ -65,18 +70,21 @@ async function start() {
   const orders = {
     harnesses: database.runQuery("setup/harness_order"),
     models: database.runQuery("setup/model_order"),
+    categories: database.runQuery("setup/category_order"),
   };
   for (const order of Object.values(orders)) {
     // With nothing selected no section awaits the orders; a failure is shown by the sections that do, not here.
     order.catch(() => undefined);
   }
   const streamedWeeks = STREAM_ROWS_AFTER_DRAW ? [] : null;
-  const page = { weeks, harnesses, selection, database, orders, latestRun: 0, streamedWeeks };
+  const figures = await mountFigureSections();
+  const page = { weeks, harnesses, selection, database, orders, figures, latestRun: 0, streamedWeeks };
   // The URL is written back in its shortest form: a key that says the default, or names no known week, goes.
   replaceQuery(writeSelection(params, selection, weeks, harnesses));
   renderPageHeader(page);
   mountPicker(page);
   await runEverySection(page);
+  scrollToAnchor();
   await database.streamRows((progress) => showStreamed(page, progress.streamedWeeks));
 }
 
@@ -89,15 +97,20 @@ async function runEverySection(page) {
   const run = page.latestRun;
   const selection = page.selection;
   if (selection.weeks.length === 0 || selection.harnesses.length === 0) {
-    showNoteInEverySection(selection.weeks.length === 0 ? NO_WEEK_NOTE : NO_HARNESS_NOTE);
+    const note = selection.weeks.length === 0 ? NO_WEEK_NOTE : NO_HARNESS_NOTE;
+    showNoteInEverySection(note);
+    showNoteInFigures(page.figures, note);
     return;
   }
   layoutEverySection();
+  layoutFigures(page.figures);
   try {
     await page.database.setSelection(selection);
   } catch (error) {
     if (run === page.latestRun) {
-      showErrorInEverySection(error); // a newer selection's run shows its own state instead
+      // A newer selection's run shows its own state instead.
+      showErrorInEverySection(error);
+      showErrorInFigures(page.figures, error);
     }
     return;
   }
@@ -114,7 +127,19 @@ async function runEverySection(page) {
     onWeekClick: (week) => selectWeek(page, week),
     replaceQuery,
   };
-  await Promise.all(SECTIONS.map((section) => section.run(sectionElement(section), context)));
+  const sectionRuns = SECTIONS.map((section) => section.run(sectionElement(section), context));
+  await Promise.all([...sectionRuns, runFigures(page.figures, context)]);
+}
+
+/**
+ * Bring the section the URL's anchor names, such as `#sessions`, into view: the browser looked for it while the
+ * sections were still empty, so the page was too short to scroll to it.
+ */
+function scrollToAnchor() {
+  const target = document.getElementById(window.location.hash.slice(1));
+  if (window.location.hash !== "" && target !== null) {
+    target.scrollIntoView();
+  }
 }
 
 /** Make `selection` the page's: write it to the URL and the header's links, and run every section again. */
@@ -127,9 +152,10 @@ function changeSelection(page, selection) {
   runEverySection(page);
 }
 
-/** Write `params` to the address bar, as `selectionQuery` writes them, without reloading the page. */
+/** Write `params` to the address bar, as `selectionQuery` writes them, keeping its anchor, without reloading the page. */
 function replaceQuery(params) {
-  window.history.replaceState(null, "", `${window.location.pathname}${selectionQuery(params)}`);
+  const { pathname, hash } = window.location;
+  window.history.replaceState(null, "", `${pathname}${selectionQuery(params)}${hash}`);
 }
 
 /** Select `week` alone, keeping the harnesses, as a click on its trend bar asks. */

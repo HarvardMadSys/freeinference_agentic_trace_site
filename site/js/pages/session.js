@@ -22,7 +22,8 @@ const parameters = new URLSearchParams(window.location.search);
 const selection = selectionParameters(parameters);
 renderHeader(document.querySelector("#site-header"), "session.html", selection);
 renderFooter(document.querySelector("#site-footer"));
-document.querySelector("#back-link").href = `index.html${selectionQuery(selection)}`;
+// The link back opens the Explore page at its sessions table, with the table's search, filters, sort and page.
+document.querySelector("#back-link").href = `index.html${selectionQuery(selection)}#sessions`;
 
 const page = {
   title: document.querySelector("#session-title"),

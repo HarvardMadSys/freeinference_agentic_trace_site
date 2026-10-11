@@ -1,5 +1,5 @@
 /**
- * The Prefix-caching section of the Paper figures page: how much of a request's input the provider served from
+ * The Prefix-caching section of the Explore page's figures: how much of a request's input the provider served from
  * cache, after an idle gap and after each kind of context change, and what the cache simulation says each TTL and
  * eviction policy would keep.
  *

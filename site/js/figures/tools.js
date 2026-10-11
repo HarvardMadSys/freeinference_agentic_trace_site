@@ -1,5 +1,5 @@
 /**
- * The Tools section of the Paper figures page: how long a tool call waits and how much it returns, per category.
+ * The Tools section of the Explore page's figures: how long a tool call waits and how much it returns, per category.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Every row of a tool query is one category, its
  * count in `rows`, so a thin one is hidden whole.

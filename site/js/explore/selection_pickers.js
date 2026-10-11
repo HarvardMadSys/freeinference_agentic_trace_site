@@ -1,5 +1,5 @@
 /**
- * The selection section of the Explore and Paper figures pages: the week picker (each week, each month, every week),
+ * The selection section of the Explore page: the week picker (each week, each month, every week),
  * the harness picker (each harness, every harness, the paper's harnesses), and the notes under them.
  *
  * `weeks` and `harnesses` are the entries of `weeks.json` and `harnesses.json`; a selection is as `shared/selection.js`

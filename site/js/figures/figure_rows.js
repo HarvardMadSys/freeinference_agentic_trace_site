@@ -1,5 +1,5 @@
 /**
- * What the Paper figures page does to a figure's rows before drawing them: thin bins hidden, the caption's row
+ * What the Explore page does to a figure's rows before drawing them: thin bins hidden, the caption's row
  * count, harnesses, weeks and note on hidden bins, a CDF query's points grouped into series, and the labels of a crowded
  * axis.
  *

@@ -7,10 +7,12 @@
 
 import { selectionQuery } from "./selection.js";
 
+// The header's links: the page's file, the anchor of a section on it ("" for its top), and the link's title.
 const PAGES = [
-  { file: "index.html", title: "Explore" },
-  { file: "figures.html", title: "Paper figures" },
-  { file: "about.html", title: "About" },
+  { file: "index.html", anchor: "", title: "Explore" },
+  { file: "index.html", anchor: "#figures-sessions", title: "Figures" },
+  { file: "index.html", anchor: "#sessions", title: "Sessions" },
+  { file: "about.html", anchor: "", title: "About" },
 ];
 
 const EXTERNAL_LINKS = [
@@ -40,7 +42,9 @@ export function renderFooter(container) {
     <p>${links}</p>`;
 }
 
+// A link to a section of a page is never marked active: the page's own link is.
 function navigationLink(page, activeFile, query) {
-  const className = page.file === activeFile ? "nav-link is-active" : "nav-link";
-  return `<a class="${className}" href="${page.file}${query}">${page.title}</a>`;
+  const isActive = page.file === activeFile && page.anchor === "";
+  const className = isActive ? "nav-link is-active" : "nav-link";
+  return `<a class="${className}" href="${page.file}${query}${page.anchor}">${page.title}</a>`;
 }

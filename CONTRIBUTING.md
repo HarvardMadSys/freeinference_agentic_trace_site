@@ -54,7 +54,7 @@ js/pages/             one module per page
 js/shared/            what every page uses: the database, the selection, formatting, charts, the table, the stat strip
 js/engine/            DuckDB in the page: starting it, its views and setup, the weeks' files and their streaming in
 js/explore/           the Explore page's sections
-js/figures/           the Paper figures page: one module per section, listing its figure entries
+js/figures/           the Explore page's figures: one module per section, listing its figure entries
 js/session/           the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
 js/session_requests/  the Session page's Requests view
 js/session_charts/    the Session page's Context and Timeline views
@@ -118,7 +118,7 @@ a module docstring stating the definition, a frozen dataclass for anything
 that crosses a boundary, and functions that each do one job.
 
 **A figure entry** (listed in `js/figures/<section>.js`'s `FIGURES`). Every
-figure of the Paper figures page is one frozen object with these fields; the
+figure of the Explore page is one frozen object with these fields; the
 page draws its card, runs its query, hides its thin bins, writes its caption
 and calls `draw`:
 
