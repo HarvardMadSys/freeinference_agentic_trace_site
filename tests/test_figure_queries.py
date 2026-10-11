@@ -25,6 +25,7 @@ CDF_ROUNDING = 1e-12
 COLOUR_ORDER_COLUMNS = {
     "setup/model_order": ["model", "requests"],
     "setup/category_order": ["category", "calls"],
+    "setup/provider_order": ["provider", "requests"],
 }
 
 

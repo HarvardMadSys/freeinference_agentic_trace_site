@@ -66,6 +66,7 @@ test("a colour order is answered from its file whatever the selection", () => {
     assert.equal(answerFileFor("setup/model_order", isDefault), "data/all_weeks/setup/model_order.json");
     assert.equal(answerFileFor("setup/category_order", isDefault), "data/all_weeks/setup/category_order.json");
     assert.equal(answerFileFor("setup/harness_order", isDefault), "data/all_weeks/setup/harness_order.json");
+    assert.equal(answerFileFor("setup/provider_order", isDefault), "data/all_weeks/setup/provider_order.json");
   }
 });
 

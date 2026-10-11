@@ -121,13 +121,18 @@ export function noteVisibility(visibleNames, entries) {
   }
 }
 
-/** The colours every figure shares, `{ models, categories }`, each a Map from name to colour, from the colour orders. */
+/**
+ * The colours every figure shares, `{ models, categories, providers }`, each a Map from name to colour, from the colour
+ * orders, which do not depend on the selection.
+ */
 export async function figureColours(orders) {
   const models = await orders.models;
   const categories = await orders.categories;
+  const providers = await orders.providers;
   return Object.freeze({
     models: assignColours(models.map((row) => row.model)),
     categories: assignColours(categories.map((row) => row.category)),
+    providers: assignColours(providers.map((row) => row.provider)),
   });
 }
 
@@ -187,14 +192,15 @@ export async function drawFigureSeries(figure, rows, body, colours, hidden) {
 
 /**
  * Draw a figure's rows into `body`. A figure of more than one series (one with a `legend`) gets its legend of buttons
- * above the chart, and its draw function its legend's colours as `colours.series`.
+ * above the chart, and its draw function its legend's colours as `colours.series`. The legend function is given the
+ * figure's `seriesColumn`, undefined for a figure that holds its series in columns.
  */
 async function drawFigureRows(figure, rows, body, colours) {
   if (figure.legend === undefined) {
     await figure.draw(rows, body, colours);
     return;
   }
-  const legend = figure.legend(rows, colours);
+  const legend = figure.legend(rows, colours, figure.seriesColumn);
   const seriesColours = { ...colours, series: legend.colours };
   await drawWithLegend(body, legend, (hidden) => drawFigureSeries(figure, rows, body, seriesColours, hidden));
 }

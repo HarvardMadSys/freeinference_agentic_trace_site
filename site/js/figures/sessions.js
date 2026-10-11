@@ -126,29 +126,29 @@ export const FIGURES = Object.freeze([
 ]);
 
 /** The requests-per-session CDF's legend: requests, user steps and tool steps, in that order. */
-function requestsPerSessionLegend(rows) {
-  return seriesLegend(rows, "series", assignColours(Object.keys(SESSION_COUNT_SERIES)), SESSION_COUNT_SERIES);
+function requestsPerSessionLegend(rows, colours, seriesColumn) {
+  return seriesLegend(rows, seriesColumn, assignColours(Object.keys(SESSION_COUNT_SERIES)), SESSION_COUNT_SERIES);
 }
 
 /** The duration CDF's legend: turns, then sessions. */
-function durationLegend(rows) {
-  return seriesLegend(rows, "series", assignColours(Object.keys(DURATION_SERIES)), DURATION_SERIES);
+function durationLegend(rows, colours, seriesColumn) {
+  return seriesLegend(rows, seriesColumn, assignColours(Object.keys(DURATION_SERIES)), DURATION_SERIES);
 }
 
 /** The tokens-per-request CDF's legend: input, uncached input and output, the last two in their token colours. */
-function tokensPerRequestLegend(rows) {
+function tokensPerRequestLegend(rows, colours, seriesColumn) {
   // Input is the whole prompt, not a part of it, so it takes the fourth series colour, the first no token part uses.
-  const colours = new Map([
+  const tokenColours = new Map([
     ["input", SERIES_SLOTS[3]],
     ["uncached", TOKEN_PART_COLOURS.uncached],
     ["output", TOKEN_PART_COLOURS.output],
   ]);
-  return seriesLegend(rows, "series", colours, TOKEN_SERIES);
+  return seriesLegend(rows, seriesColumn, tokenColours, TOKEN_SERIES);
 }
 
 /** The token split's legend: the token parts, in their colours. */
-function tokenSplitLegend(rows) {
-  return seriesLegend(rows, "part", tokenPartColours());
+function tokenSplitLegend(rows, colours, seriesColumn) {
+  return seriesLegend(rows, seriesColumn, tokenPartColours());
 }
 
 /** The token growth's legend: the token parts, in their colours; each is a column of every row. */
@@ -157,8 +157,8 @@ function tokenGrowthLegend() {
 }
 
 /** The context share's legend: the roles, in their order. */
-function contextShareLegend(rows) {
-  return seriesLegend(rows, "role", assignColours(ROLES));
+function contextShareLegend(rows, colours, seriesColumn) {
+  return seriesLegend(rows, seriesColumn, assignColours(ROLES));
 }
 
 /** Draw the CDFs of requests, user steps and tool steps per session, on a log axis. */

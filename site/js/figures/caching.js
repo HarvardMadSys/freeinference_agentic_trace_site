@@ -10,7 +10,7 @@
  */
 
 import {
-  AXIS_STYLE, assignColours, chartFrame, colourScale, DASH, distinct, GRID_STYLE, LINE_WIDTH, SERIES_SLOTS,
+  AXIS_STYLE, assignColours, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, SERIES_SLOTS,
   TIP_STYLE,
 } from "../shared/charts.js";
 import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
@@ -107,19 +107,21 @@ export function idleGapEdgeSeconds(edge) {
   return FIRST_IDLE_GAP_EDGE_S * (LAST_IDLE_GAP_EDGE_S / FIRST_IDLE_GAP_EDGE_S) ** (edge / IDLE_GAP_BINS);
 }
 
-/** The idle-gap figure's legend: each provider of the rows, in their order, as "Provider A". */
-function idleGapLegend(rows) {
-  const providers = distinct(rows.map((row) => row.provider));
+/**
+ * The idle-gap figure's legend: each provider of the rows as "Provider A", in the provider order and colours every
+ * chart shares, so a provider keeps its colour whatever the selection.
+ */
+export function idleGapLegend(rows, colours, seriesColumn) {
   const labels = {};
-  for (const provider of providers) {
+  for (const provider of colours.providers.keys()) {
     labels[provider] = providerLabel(provider);
   }
-  return seriesLegend(rows, "provider", assignColours(providers), labels);
+  return seriesLegend(rows, seriesColumn, colours.providers, labels);
 }
 
 /** A simulation figure's legend: the eviction policies, in their order, by the names they are drawn under. */
-function policyLegend(rows) {
-  return seriesLegend(rows, "policy", assignColours(Object.keys(POLICY_NAMES)), POLICY_NAMES);
+function policyLegend(rows, colours, seriesColumn) {
+  return seriesLegend(rows, seriesColumn, assignColours(Object.keys(POLICY_NAMES)), POLICY_NAMES);
 }
 
 /** Draw one line per provider of its median hit ratio per idle-gap bin, on a log axis of seconds, with markers. */
@@ -132,7 +134,7 @@ async function drawIdleGapRetention(rows, body, colours) {
     hitRatio: row.median_hit_ratio,
     row,
   }));
-  const providers = distinct(points.map((point) => point.provider));
+  const providers = [...colours.series.keys()];
   const chart = Plot.plot({
     ...chartFrame(body),
     x: { type: "log", domain: [FIRST_IDLE_GAP_EDGE_S, LAST_IDLE_GAP_EDGE_S] },

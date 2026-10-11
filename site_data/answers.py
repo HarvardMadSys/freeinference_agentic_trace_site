@@ -29,9 +29,9 @@ import duckdb
 from site_data import harnesses, paths, site_database, weeks
 
 ANSWERED_PAGES = ["explore", "figures"]  # the pages whose queries are answered; `session/` is not
-# The setup queries that fix each harness's, model's and category's colour from every week and harness; answered so a
-# page draws its colours without DuckDB.
-COLOUR_ORDER_QUERIES = ["setup/category_order", "setup/harness_order", "setup/model_order"]
+# The setup queries that fix each harness's, model's, category's and provider's colour from every week and harness;
+# answered so a page draws its colours without DuckDB.
+COLOUR_ORDER_QUERIES = ["setup/category_order", "setup/harness_order", "setup/model_order", "setup/provider_order"]
 # Commas and colons without spaces: the answers are fetched by every visitor, the sessions table's above all.
 JSON_SEPARATORS = (",", ":")
 

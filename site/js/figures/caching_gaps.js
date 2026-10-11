@@ -99,18 +99,18 @@ export function causeColours() {
 }
 
 /** The gap-bin figure's legend: the bins of the rows, shortest gap first. */
-export function gapBinLegend(rows) {
-  return seriesLegend(rows, "series", gapBinColours());
+export function gapBinLegend(rows, colours, seriesColumn) {
+  return seriesLegend(rows, seriesColumn, gapBinColours());
 }
 
 /** The gap-by-cause figure's legend: the causes of the rows, in the paper's order, by the paper's names. */
-export function causeLegend(rows) {
-  return seriesLegend(rows, "series", causeColours(), CAUSE_NAMES);
+export function causeLegend(rows, colours, seriesColumn) {
+  return seriesLegend(rows, seriesColumn, causeColours(), CAUSE_NAMES);
 }
 
 /** The transition figure's legend: appends, then mutations, each in its transition colour. */
-export function transitionLegend(rows) {
-  return seriesLegend(rows, "series", new Map(Object.entries(TRANSITION_COLOURS)), TRANSITION_NAMES);
+export function transitionLegend(rows, colours, seriesColumn) {
+  return seriesLegend(rows, seriesColumn, new Map(Object.entries(TRANSITION_COLOURS)), TRANSITION_NAMES);
 }
 
 /**

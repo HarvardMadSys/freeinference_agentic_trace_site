@@ -28,7 +28,9 @@ const ANSWERS_FOLDER = "data/all_weeks/";
 const ANSWERED_PAGES = Object.freeze(["explore/", "figures/"]);
 
 // The colour orders: they read every week and harness whatever the selection, so their answers hold for any selection.
-const COLOUR_ORDER_QUERIES = Object.freeze(["setup/category_order", "setup/harness_order", "setup/model_order"]);
+const COLOUR_ORDER_QUERIES = Object.freeze([
+  "setup/category_order", "setup/harness_order", "setup/model_order", "setup/provider_order",
+]);
 
 /** The entries of `data/weeks.json`, oldest first: `{ week, last_day, month, simulated }`. */
 export async function fetchWeeks() {

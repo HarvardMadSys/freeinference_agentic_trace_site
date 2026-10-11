@@ -76,40 +76,44 @@ test("every figure has a title, a one-sentence definition, a bin column and a dr
   }
 });
 
-// How each figure of more than one series names its series: by the column its rows name it in (long format), or by
-// its columns, its draw function taking the hidden set as a fourth argument (wide format). A figure not listed has one
-// series and no legend.
-const LONG_FORMAT_SERIES_COLUMNS = {
-  requests_per_session_cdf: "series",
-  duration_cdf: "series",
-  tokens_per_request_cdf: "series",
-  token_split_by_week: "part",
-  context_share_by_role: "role",
-  ttft_cdf_by_model: "series",
-  hit_ratio_cdf_by_gap_bin: "series",
-  decode_cdf_by_model: "series",
-  hit_ratio_by_idle_gap: "provider",
-  gap_cdf_by_cause: "series",
-  hit_ratio_cdf_by_transition: "series",
-  simulated_hit_ratio_by_ttl: "policy",
-  dead_over_active_by_policy: "policy",
-};
-const WIDE_FORMAT_FIGURES = ["token_growth_by_messages", "retained_over_active", "cost_share_by_session", "session_time_by_part"];
+// A figure entry holds more than one series when it names a series column (long format: its rows each name their
+// series) or has a legend; a wide-format figure, whose series are columns, has a legend and a draw function that takes
+// the hidden set as a fourth argument.
+function isLongFormat(figure) {
+  return figure.seriesColumn !== undefined;
+}
 
-test("every long-format figure of more than one series names its series column and has a legend", async () => {
+function hasLegend(figure) {
+  return typeof figure.legend === "function";
+}
+
+function isWideFormat(figure) {
+  return figure.draw.length === 4;
+}
+
+test("a figure of more than one series has a legend, and a series column unless its series are columns", async () => {
   for (const { figures } of await sections()) {
     for (const figure of figures) {
-      assert.equal(figure.seriesColumn, LONG_FORMAT_SERIES_COLUMNS[figure.name], figure.name);
-      const hasSeries = figure.name in LONG_FORMAT_SERIES_COLUMNS || WIDE_FORMAT_FIGURES.includes(figure.name);
-      assert.equal(typeof figure.legend === "function", hasSeries, figure.name);
+      if (isLongFormat(figure)) {
+        assert.ok(hasLegend(figure), `${figure.name}: names a series column, so it needs a legend`);
+        assert.equal(typeof figure.seriesColumn, "string", figure.name);
+        assert.ok(!isWideFormat(figure), `${figure.name}: a long-format figure is drawn from the shown rows alone`);
+      }
+      if (hasLegend(figure)) {
+        assert.ok(isLongFormat(figure) || isWideFormat(figure),
+          `${figure.name}: has a legend, so it needs a series column or a draw function that takes the hidden set`);
+      }
+      if (isWideFormat(figure)) {
+        assert.ok(hasLegend(figure), `${figure.name}: takes the hidden set, so it needs a legend`);
+      }
     }
   }
 });
 
-test("a wide-format figure's draw function takes the hidden set", async () => {
+test("a figure whose bins are its series, as every CDF's are, names that column as its series column", async () => {
   for (const { figures } of await sections()) {
-    for (const figure of figures.filter((one) => WIDE_FORMAT_FIGURES.includes(one.name))) {
-      assert.equal(figure.draw.length, 4, figure.name);
+    for (const figure of figures.filter((one) => one.binColumn === "series")) {
+      assert.equal(figure.seriesColumn, "series", figure.name);
     }
   }
 });

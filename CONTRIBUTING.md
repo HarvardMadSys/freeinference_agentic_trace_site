@@ -153,7 +153,7 @@ and calls `draw`:
   each count ("84,239 turns · 12,002 sessions").
 - `isSimulation` (optional): true for a figure of the cache simulation, which
   covers the paper's harnesses and the simulated weeks only; the caption says so.
-- `legend` (a figure of more than one series): `legend(rows, colours)`
+- `legend` (a figure of more than one series): `legend(rows, colours, seriesColumn)`
   returns the series its legend lists and their colours, `{ series, colours }`,
   each series `{ name, label }`. The page draws the legend as buttons that
   hide and show a series (`explore/legend.js`), redrawing the chart from the
@@ -163,8 +163,8 @@ and calls `draw`:
   `legend` and no `seriesColumn` holds its series in columns, and is given the
   hidden series as a fourth argument instead.
 - `draw(rows, body, colours, hidden)`: draws the rows left after thin bins are
-  hidden into `body`; `colours` holds the model and category colours every
-  figure shares (`{ models, categories }`, each a Map from name to colour),
+  hidden into `body`; `colours` holds the model, category and provider colours every
+  figure shares (`{ models, categories, providers }`, each a Map from name to colour),
   and, for a figure with a `legend`, its legend's colours as `series`, which
   the chart colours its series by; `hidden`, the Set of hidden series' names,
   is given only to a figure with a `legend` and no `seriesColumn`.

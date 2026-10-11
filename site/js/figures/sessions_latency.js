@@ -35,8 +35,8 @@ export const DECODE_CDF_BY_MODEL = Object.freeze({
 });
 
 /** A per-model CDF's legend: its models, in the model order and colours every chart shares. */
-function modelCdfLegend(rows, colours) {
-  return seriesLegend(rows, "series", colours.models);
+function modelCdfLegend(rows, colours, seriesColumn) {
+  return seriesLegend(rows, seriesColumn, colours.models);
 }
 
 /** Draw the TTFT CDFs, in seconds on a log axis. */

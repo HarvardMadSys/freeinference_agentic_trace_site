@@ -105,6 +105,14 @@ def test_the_idle_gap_bins_hold_each_provider_s_gaps_up_to_an_hour(connection: d
     assert rows.idle_gap_bin.between(0, 25).all()
 
 
+# The fixture's top-level requests by provider, over both weeks and every harness: A serves `tree-root` 5 and
+# `mutation` 3, B `idle-week-1` 3, `idle-week-2` 2 and `idle-benchmark` 1, C `swe-bench` 2.
+def test_the_provider_order_counts_every_top_level_request_largest_first(connection: duckdb.DuckDBPyConnection) -> None:
+    site_database.select_weeks(connection, [SECOND_SUNDAY], ["pi"])  # the order reads no selection
+    rows = site_database.run_query(connection, "setup/provider_order")
+    assert rows.values.tolist() == [["A", 8], ["B", 6], ["C", 2]]
+
+
 def test_the_hit_ratio_cdf_after_each_transition(connection: duckdb.DuckDBPyConnection,
                                                  fixture_weeks: list[str]) -> None:
     # The paper's harnesses' nine top-level requests after a first step, those of `AGENTIC_GAPS`: `mutation`'s step 1

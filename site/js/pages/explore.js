@@ -18,8 +18,8 @@
  * - `latestRun`, the number of the latest run of the sections, so a run that a newer one replaced stops before it
  *   draws;
  * - `streamedWeeks`, the Sundays streamed in so far (null when the page does not stream).
- * `orders` is `{ harnesses, models, categories }`, the promised rows of `setup/harness_order`, `setup/model_order` and
- * `setup/category_order`, asked for once. A section runs as `run(container, context)` with
+ * `orders` is `{ harnesses, models, categories, providers }`, the promised rows of `setup/harness_order`,
+ * `setup/model_order`, `setup/category_order` and `setup/provider_order`, asked for once. A section runs as `run(container, context)` with
  * `context = { database, orders, selection, weeks, harnesses, onWeekClick, replaceQuery }`, and lays out fresh places
  * in its container each time, so a run that a newer one replaced draws into places no longer on the page.
  */
@@ -76,6 +76,7 @@ async function start() {
     harnesses: database.runQuery("setup/harness_order"),
     models: database.runQuery("setup/model_order"),
     categories: database.runQuery("setup/category_order"),
+    providers: database.runQuery("setup/provider_order"),
   };
   for (const order of Object.values(orders)) {
     // With nothing selected no section awaits the orders; a failure is shown by the sections that do, not here.
