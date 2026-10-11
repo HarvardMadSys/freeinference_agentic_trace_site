@@ -94,11 +94,12 @@ Measured on the largest session (5,040 requests, week of 2026-08-30) with
 the local range server and headless Chromium, to the Requests view drawn:
 before, 30 requests to `data/`, 27 of them ranges, 7.5 MB, 3.5 s (8.3 s
 with 40 ms latency and 50 Mbit/s throttled, the DuckDB library included);
-after, 17 requests, 10 of them the ranges DuckDB reads while it makes the
-views (sizes and footers) and none after the four whole files, 10.9 MB,
-3.6 s (8.3 s throttled): the round trips saved pay for the 3.4 MB more.
-Fetching the files while DuckDB starts, rather than after, measured 7.3 s
-throttled; it is not done.
+after, with the files downloading while DuckDB starts, 17 requests, 10.9
+MB, 3.6 s (7.3 s throttled). Ten of those requests are ranges, a few
+kilobytes each: the opener's reads of each file's size and footer, which
+remain because the opener makes the views over the files' URLs before any
+file's bytes arrive, so that a file whose fetch fails is still read; no
+query reads a range once the files are in memory.
 
 ## Type
 

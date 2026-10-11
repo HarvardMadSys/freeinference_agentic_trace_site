@@ -155,17 +155,23 @@ class Database {
   /**
    * Fetch each row file of the week `week` (a Sunday of the database's weeks) whole, one request per file, into
    * DuckDB's memory, so that the queries after it read memory; a file whose fetch fails stays on HTTP ranges, with a
-   * console warning. A page that reads one week awaits it before its queries. A week the database does not have
-   * loads nothing, and DuckDB is not started for it.
+   * console warning. The files download while DuckDB starts. A page that reads one week awaits it before its
+   * queries; it rejects when DuckDB cannot start. A week the database does not have loads nothing, and DuckDB is not
+   * started for it.
    */
   async loadWeekRows(week) {
     const entry = this.#weeks.find((candidate) => candidate.week === week);
     if (entry === undefined) {
       return;
     }
-    const opened = await this.#duckdb();
-    const swapIn = (name, bytes) => this.#afterEarlierChanges(() => this.#swapWhenIdle(opened, name, bytes));
-    await loadFilesWhole(this.#dataUrl, filesOfWeek(entry, ROW_KINDS), swapIn);
+    // Started together, as starting DuckDB and downloading the files each take seconds and neither needs the other.
+    const opening = this.#duckdb();
+    const swapIn = (name, bytes) => this.#swapAfterOpening(opening, name, bytes);
+    const loading = loadFilesWhole(this.#dataUrl, filesOfWeek(entry, ROW_KINDS), swapIn);
+    const [started] = await Promise.allSettled([opening, loading]);
+    if (started.status === "rejected") {
+      throw started.reason;
+    }
   }
 
   #isDefault() {
@@ -202,6 +208,12 @@ class Database {
     const forget = () => this.#runningQueries.delete(result);
     result.then(forget, forget);
     return { result };
+  }
+
+  /** Register the file `name` as `bytes` once DuckDB, promised by `opening`, has started; ordered as every change. */
+  async #swapAfterOpening(opening, name, bytes) {
+    const opened = await opening;
+    return this.#afterEarlierChanges(() => this.#swapWhenIdle(opened, name, bytes));
   }
 
   /** Register the file `name` as `bytes` once the running queries have settled; no query starts meanwhile. */
