@@ -84,6 +84,7 @@ tests/             what make test runs
                    site_data's steps on the fixture release, against values counted by hand
   test_queries.py, test_*_queries.py
                    every .sql file run against the fixture data, its columns and its numbers
+  test_answers.py           every answer make data writes, against its query run live with the default selection
   test_paper_parity.py      with every week selected, the numbers a figure shares with the paper's numbers.json
   test_pipeline_mirrors.py  the pipeline constants the browser holds a copy of, against the pipeline's own
   test_about_page.py        the About page's hand-written numbers, against the code's
