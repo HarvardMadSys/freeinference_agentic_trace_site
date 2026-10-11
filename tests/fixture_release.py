@@ -75,15 +75,18 @@ class FixtureTool:
     """What a tool's calls record besides their name."""
 
     category: str
+    arguments_skeleton: str  # the arguments, every value replaced by its type, as the release writes them
     programs: list[str] | None = None  # shell calls only
     parse_status: str | None = None  # shell calls only
 
 
 TOOLS = {
-    "read": FixtureTool(category="Read"),
-    "edit": FixtureTool(category="Edit"),
-    "task": FixtureTool(category="Subagent"),
-    "bash": FixtureTool(category="*Build/Test", programs=["pytest"], parse_status="success"),
+    "read": FixtureTool(category="Read", arguments_skeleton='{"path": "<path>"}'),
+    "edit": FixtureTool(category="Edit",
+                        arguments_skeleton='{"new_string": "<str>", "old_string": "<str>", "path": "<path>"}'),
+    "task": FixtureTool(category="Subagent", arguments_skeleton='{"description": "<str>", "prompt": "<str>"}'),
+    "bash": FixtureTool(category="*Build/Test", arguments_skeleton='{"command": "cd <path> && pytest <path>"}',
+                        programs=["cd", "pytest"], parse_status="success"),
 }
 
 SESSIONS = (
@@ -238,7 +241,7 @@ def tool_call_row(request: FixtureRequest, call_index: int, name: str, latency_m
         "category": tool.category,
         "programs": tool.programs,
         "parse_status": tool.parse_status,
-        "arguments_skeleton": '{"path": "str"}',
+        "arguments_skeleton": tool.arguments_skeleton,
         "outcome": "ok",
         "result_tokens": TOOL_RESULT_TOKENS,
         "latency_ms": latency_ms,

@@ -4,6 +4,7 @@ import json
 import pathlib
 
 import pandas
+import pyarrow
 import pytest
 from pyarrow import parquet
 
@@ -162,3 +163,11 @@ def test_nullable_integers_and_booleans_keep_their_types(tmp_path: pathlib.Path)
     assert str(schema.field("is_top_level").type) == "bool"
     written = pandas.read_parquet(path)
     assert written.ttft_ms.dtype == "Int64" and written.ttft_ms.isna().sum() == 1
+
+
+def test_a_call_s_programs_are_written_as_a_list_of_strings(tmp_path: pathlib.Path) -> None:
+    path = week_file(build(tmp_path), "tool_calls", FIRST_SUNDAY)
+    programs = parquet.read_schema(path).field("programs").type
+    assert pyarrow.types.is_list(programs) and pyarrow.types.is_string(programs.value_type)
+    written = pandas.read_parquet(path)
+    assert list(written.programs[written.name == "bash"].iloc[0]) == ["cd", "pytest"]

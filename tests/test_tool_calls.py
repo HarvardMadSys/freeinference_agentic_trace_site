@@ -11,8 +11,8 @@ from site_data import loading, requests, tool_calls, weeks
 import fixture_release
 
 SITE_COLUMNS = [
-    "week", "session_id", "step", "call_index", "name", "category", "outcome", "result_tokens", "latency_ms",
-    "harness", "is_top_level", "root_session_id",
+    "week", "session_id", "step", "call_index", "name", "category", "programs", "arguments_skeleton", "outcome",
+    "result_tokens", "latency_ms", "harness", "is_top_level", "root_session_id",
 ]
 
 
@@ -31,10 +31,30 @@ def fixture_calls(tmp_path: pathlib.Path) -> pandas.DataFrame:
     return calls.set_index(["session_id", "step", "call_index"], drop=False)
 
 
-def test_every_call_is_a_row_without_its_arguments_or_programs(tmp_path: pathlib.Path) -> None:
+def test_every_call_is_a_row_with_the_site_s_columns(tmp_path: pathlib.Path) -> None:
     calls = fixture_calls(tmp_path)
     assert len(calls) == 16
     assert list(calls.columns) == SITE_COLUMNS
+
+
+def test_a_shell_call_keeps_its_programs_in_the_command_s_order(tmp_path: pathlib.Path) -> None:
+    shell = fixture_calls(tmp_path).loc[("tree-root", 3, 0)]
+    assert shell["name"] == "bash"
+    assert list(shell.programs) == ["cd", "pytest"]
+    assert shell.arguments_skeleton == '{"command": "cd <path> && pytest <path>"}'
+
+
+def test_a_native_call_has_no_programs_and_keeps_its_skeleton(tmp_path: pathlib.Path) -> None:
+    native = fixture_calls(tmp_path).loc[("tree-root", 2, 0)]
+    assert native["name"] == "edit"
+    assert native.programs is None
+    assert native.arguments_skeleton == '{"new_string": "<str>", "old_string": "<str>", "path": "<path>"}'
+
+
+def test_every_call_keeps_a_skeleton_and_only_shell_calls_have_programs(tmp_path: pathlib.Path) -> None:
+    calls = fixture_calls(tmp_path)
+    assert calls.arguments_skeleton.notna().all()
+    assert sorted(calls.name[calls.programs.notna()].unique()) == ["bash"]
 
 
 def test_every_call_joins_exactly_one_request(tmp_path: pathlib.Path) -> None:

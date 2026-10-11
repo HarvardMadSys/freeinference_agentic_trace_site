@@ -1,7 +1,9 @@
 """The site's tool calls: one row per tool call of every session, subagents included.
 
-It keeps the release's call columns but `programs`, `parse_status` and
-`arguments_skeleton`, and takes from the call's request, in the site's
+It keeps the release's call columns but `parse_status`: `programs` is the
+release's list of program labels in the command's order for a shell call and
+null for any other, and `arguments_skeleton` the call's arguments with every
+value replaced by its type. It takes from the call's request, in the site's
 requests, its session's `harness`, `is_top_level` and `root_session_id`. A
 call joins its request on `week`, `session_id` and `step`.
 """
@@ -14,8 +16,8 @@ from site_data import loading
 REQUEST_KEY = ["week", "session_id", "step"]  # the columns a call shares with the request whose response made it
 # The frame's columns in order.
 COLUMNS = [
-    "week", "session_id", "step", "call_index", "name", "category", "outcome", "result_tokens", "latency_ms",
-    "harness", "is_top_level", "root_session_id",
+    "week", "session_id", "step", "call_index", "name", "category", "programs", "arguments_skeleton", "outcome",
+    "result_tokens", "latency_ms", "harness", "is_top_level", "root_session_id",
 ]
 
 

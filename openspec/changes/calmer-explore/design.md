@@ -118,5 +118,8 @@ its type. Both are kept as they are. The details table shows the programs
 joined by commas and, under each call in monospace, the skeleton: a shell
 call's command, any other call's `name: <type>` pairs; the chip's tooltip
 adds the programs after the category. The skeletons are 14 MB of text per
-week raw with a median of 67 characters and a third repeated; the
-tool-call files' size is measured when the data is built.
+week raw with a median of 67 characters and a third repeated. Measured on
+the week of 2026-08-23 (163,587 calls, written as the data step writes
+it), the two columns take the week's tool-call file from 0.99 MB to
+3.01 MB, so the sixteen weeks' tool-call files grow from 7.8 MB to about
+24 MB, about 3 MB a week.
