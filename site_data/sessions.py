@@ -1,7 +1,7 @@
 """The site's sessions: one row per session, subagents included, with totals over its own requests.
 
 Each row keeps the release's `harness`, `parent_session_id`,
-`spawned_by_step` and `user_id`, carries its `week`, and takes `scope`,
+`spawned_by_step` and `user_id`, carries its `week`, and takes
 `root_session_id` and `depth` from its requests in the site's requests.
 
 The totals count the session's own requests only, never its subagents':
@@ -29,7 +29,7 @@ from site_data import loading
 RELEASE_COLUMNS = ["week", "session_id", "harness", "parent_session_id", "spawned_by_step", "user_id"]
 # The frame's columns in order.
 COLUMNS = [
-    "week", "session_id", "harness", "scope", "parent_session_id", "spawned_by_step", "root_session_id", "depth",
+    "week", "session_id", "harness", "parent_session_id", "spawned_by_step", "root_session_id", "depth",
     "user_id", "requests", "user_steps", "tool_steps", "tool_calls", "first_start_ms", "duration_s", "input_tokens",
     "cached_tokens", "reported_input_tokens", "output_tokens", "peak_prompt_tokens", "main_model", "subagents",
     "subagent_requests",
@@ -55,7 +55,6 @@ def request_totals(requests: pandas.DataFrame) -> pandas.DataFrame:
     """Per session, indexed by session id: its place as its requests carry it, and the totals of its own requests."""
     by_session = requests.groupby("session_id")
     totals = by_session.agg(
-        scope=("scope", "first"),
         root_session_id=("root_session_id", "first"),
         depth=("depth", "first"),
         tool_calls=("n_tool_calls", "sum"),

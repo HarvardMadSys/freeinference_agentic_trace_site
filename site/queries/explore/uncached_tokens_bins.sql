@@ -1,4 +1,4 @@
--- One row per power-of-two bin of uncached input tokens per request: where it starts and ends, and how many top-level requests of the selected weeks and scope fall in it.
+-- One row per power-of-two bin of uncached input tokens per request: where it starts and ends, and how many top-level requests of the selected weeks and harnesses fall in it.
 -- The bins double in width (base 2): a value v above 0 falls in [2^floor(log2 v), 2^(floor(log2 v) + 1)); a value of 0 in [0, 1).
 -- A request whose provider reports no cache reads has no uncached tokens and is left out.
 WITH binned AS (
@@ -6,7 +6,7 @@ WITH binned AS (
     FROM requests
     WHERE is_top_level
       AND week IN (SELECT week FROM selected_weeks)
-      AND scope IN (SELECT scope FROM selected_scopes)
+      AND harness IN (SELECT harness FROM selected_harnesses)
       AND uncached_tokens IS NOT NULL
 )
 SELECT bin_start,

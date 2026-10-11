@@ -1,4 +1,4 @@
--- One row per tool category, over the tool calls of the top-level sessions of the selected weeks and scope whose
+-- One row per tool category, over the tool calls of the top-level sessions of the selected weeks and harnesses whose
 -- result was matched (so its tokens are known): the category, its `rows` (those calls), and the 5th, 25th, 50th,
 -- 75th and 95th percentile of their result tokens.
 SELECT category,
@@ -12,6 +12,6 @@ FROM tool_calls
 WHERE is_top_level
   AND result_tokens IS NOT NULL
   AND week IN (SELECT week FROM selected_weeks)
-  AND scope IN (SELECT scope FROM selected_scopes)
+  AND harness IN (SELECT harness FROM selected_harnesses)
 GROUP BY category
 ORDER BY category;

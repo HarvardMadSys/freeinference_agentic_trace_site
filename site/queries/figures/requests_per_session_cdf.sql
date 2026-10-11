@@ -1,4 +1,4 @@
--- One row per series and CDF point over the top-level sessions of the selected weeks and scope: the series
+-- One row per series and CDF point over the top-level sessions of the selected weeks and harnesses: the series
 -- `requests`, `user_steps` or `tool_steps`, the count `x` at which the share `share` of sessions is reached, and the
 -- series' `rows` (sessions). Each series has 201 points, `share` running evenly from 0 to 1 in steps of 1/200.
 WITH selected_sessions AS (
@@ -6,7 +6,7 @@ WITH selected_sessions AS (
   FROM sessions
   WHERE parent_session_id IS NULL
     AND week IN (SELECT week FROM selected_weeks)
-    AND scope IN (SELECT scope FROM selected_scopes)
+    AND harness IN (SELECT harness FROM selected_harnesses)
 ),
 series_values AS (
   SELECT 'requests' AS series, requests AS value FROM selected_sessions

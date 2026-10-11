@@ -5,6 +5,9 @@ its Sunday, so a week that spans two months belongs to the first. A week is
 simulated when the simulation's `sources.json` for it records, for both the
 tallies and the totals, the sha256 of the week's current manifest: a week
 simulated from older traces counts as not simulated.
+
+Every week has a file of requests, tool calls and sessions; only a simulated
+week has a file of simulation rows.
 """
 
 import dataclasses
@@ -62,3 +65,17 @@ def write_weeks_file(entries: list[WeekEntry], out_directory: pathlib.Path) -> p
     path = out_directory / paths.WEEKS_FILE
     path.write_text(json.dumps([dataclasses.asdict(entry) for entry in entries], indent=2) + "\n")
     return path
+
+
+def read_weeks_file(data_directory: pathlib.Path) -> list[WeekEntry]:
+    """The entries of the data folder's `weeks.json`, oldest first."""
+    listed = json.loads((data_directory / paths.WEEKS_FILE).read_text())
+    return [WeekEntry(**entry) for entry in listed]
+
+
+def weeks_with_file(entries: list[WeekEntry], kind_folder: str) -> list[str]:
+    """The Sundays of the weeks that have a file of the kind `kind_folder`: every week, or for the simulation, the
+    simulated weeks."""
+    if kind_folder == paths.SIMULATION_FOLDER:
+        return [entry.week for entry in entries if entry.simulated]
+    return [entry.week for entry in entries]

@@ -9,7 +9,7 @@ from site_data import loading, requests, sessions, weeks
 import fixture_release
 
 SITE_COLUMNS = [
-    "week", "session_id", "harness", "scope", "parent_session_id", "spawned_by_step", "root_session_id", "depth",
+    "week", "session_id", "harness", "parent_session_id", "spawned_by_step", "root_session_id", "depth",
     "user_id", "requests", "user_steps", "tool_steps", "tool_calls", "first_start_ms", "duration_s", "input_tokens",
     "cached_tokens", "reported_input_tokens", "output_tokens", "peak_prompt_tokens", "main_model", "subagents",
     "subagent_requests",
@@ -55,7 +55,7 @@ def test_totals_equal_the_sums_of_each_session_s_requests(tmp_path: pathlib.Path
 def test_a_session_whose_provider_reports_no_cache_reads_has_no_reported_input(tmp_path: pathlib.Path) -> None:
     benchmark = fixture_frames(tmp_path)[1].loc["swe-bench"]
     assert (benchmark.cached_tokens, benchmark.reported_input_tokens) == (0, 0)
-    assert (benchmark.input_tokens, benchmark.scope) == (1_800, "SWE-Bench")
+    assert (benchmark.input_tokens, benchmark.harness) == (1_800, "eval:swe-bench")
 
 
 def test_a_top_level_session_counts_its_subagents_at_every_depth(tmp_path: pathlib.Path) -> None:

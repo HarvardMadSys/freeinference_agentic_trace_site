@@ -1,4 +1,4 @@
--- One row per tool category, over the tool calls of the top-level sessions of the selected weeks and scope that were
+-- One row per tool category, over the tool calls of the top-level sessions of the selected weeks and harnesses that were
 -- their request's only call and have a latency (the wait after the request until the session's next; a batch's
 -- calls share one): the category, its `rows` (those calls), and the 5th, 25th, 50th, 75th and 95th percentile of
 -- their latency in milliseconds.
@@ -9,7 +9,7 @@ WITH single_calls AS (
   FROM tool_calls
   WHERE is_top_level
     AND week IN (SELECT week FROM selected_weeks)
-    AND scope IN (SELECT scope FROM selected_scopes)
+    AND harness IN (SELECT harness FROM selected_harnesses)
 )
 SELECT category,
        count(*) AS rows,

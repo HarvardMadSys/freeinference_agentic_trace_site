@@ -1,5 +1,5 @@
 -- One row per power-of-two bin of messages in the request, over the top-level requests of the selected weeks and
--- scope whose provider reports cache reads, with an input and at least one message: the bin's smallest message
+-- harnesses whose provider reports cache reads, with an input and at least one message: the bin's smallest message
 -- count `bin_start` (bins run from 2^k to 2^(k+1) - 1 messages), its `rows` (requests), and the median cached,
 -- uncached and output tokens of its requests, each over the requests where it is known. Uncached tokens are input
 -- minus cached tokens, not clipped at zero, as the paper's growth figure takes them.
@@ -14,7 +14,7 @@ WITH growth_requests AS (
     AND prompt_tokens > 0
     AND n_messages >= 1
     AND week IN (SELECT week FROM selected_weeks)
-    AND scope IN (SELECT scope FROM selected_scopes)
+    AND harness IN (SELECT harness FROM selected_harnesses)
 )
 SELECT bin_start,
        count(*) AS rows,

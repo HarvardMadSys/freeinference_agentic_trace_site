@@ -32,6 +32,9 @@ FIRST_WEEK = "2026-05-31_2026-06-06"  # spans May and June
 SECOND_WEEK = "2026-06-07_2026-06-13"
 SIMULATED_WEEK = FIRST_WEEK  # the second week has no simulation folder
 TOOL_RESULT_TOKENS = 100  # every call's result is this long
+BENCHMARK_HARNESSES = ["eval:swe-bench"]  # the harness of `swe-bench` and `idle-benchmark`, the benchmark's
+PAPER_HARNESSES = ["claude-code", "codex", "pi"]  # every other harness of the sessions: the paper's population
+EVERY_HARNESS = [*BENCHMARK_HARNESSES, *PAPER_HARNESSES]
 
 
 @dataclasses.dataclass(frozen=True)

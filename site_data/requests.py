@@ -3,16 +3,18 @@
 It keeps the release's request columns but `link_reason`, `stream`,
 `tool_definition_names` and `block_ids`, with the role tokens named
 `system_tokens` and so on. Each row also carries its `week`, its
-session's `scope`, `is_top_level`, `root_session_id` and `depth`, and per
+session's `harness`, `is_top_level`, `root_session_id` and `depth`, and per
 request, each from the pipeline's function: `turn`, `uncached_tokens`,
 `hit_ratio`, `wait_s`, `idle_gap_s`, `idle_gap_bin`, `is_trusted_ttft` and
 `n_tool_calls`, its rows in the tool calls.
 
 The idle gap is the pipeline's, taken over the top-level sessions of each
-scope, every week together, so a gap never reaches back to a request of the
-other scope; a subagent's request has none. `idle_gap_bin` is the 0-based
-bin of `gaps.IDLE_GAP_EDGES_S` the gap falls in, a gap under the first edge
-counted in the first bin and one over the last edge in none.
+scope (the pipeline's `population.scope_of` of the harness), every week
+together, so a gap never reaches back to a request of the other scope; a
+subagent's request has none. The scope itself is not kept: the harness says
+it. `idle_gap_bin` is the 0-based bin of `gaps.IDLE_GAP_EDGES_S` the gap falls
+in, a gap under the first edge counted in the first bin and one over the last
+edge in none.
 """
 
 import pandas
@@ -34,7 +36,7 @@ COLUMNS = [
     "week", "session_id", "step", "start_ms", "end_ms", "ttft_ms", "model", "provider", "step_trigger",
     "waited_for", "prompt_tokens", "completion_tokens", "cache_read_tokens", "system_tokens", "user_tokens",
     "assistant_tokens", "tool_tokens", "tool_definition_tokens", "n_messages", "finish_reason", "transition",
-    "cause", "scope", "is_top_level", "root_session_id", "depth", "turn", "uncached_tokens", "hit_ratio", "wait_s",
+    "cause", "harness", "is_top_level", "root_session_id", "depth", "turn", "uncached_tokens", "hit_ratio", "wait_s",
     "idle_gap_s", "idle_gap_bin", "is_trusted_ttft", "n_tool_calls",
 ]
 
@@ -56,14 +58,12 @@ def requests_frame(release: loading.WeekTaggedRelease) -> pandas.DataFrame:
 
 
 def with_sessions(requests: pandas.DataFrame, sessions: pandas.DataFrame) -> pandas.DataFrame:
-    """The requests with their session's `harness`, `user_id`, `scope`, `is_top_level`, `root_session_id` and
-    `depth`."""
+    """The requests with their session's `harness`, `user_id`, `is_top_level`, `root_session_id` and `depth`."""
     orphans = requests.session_id[~requests.session_id.isin(sessions.session_id)].unique()
     if len(orphans) > 0:
         raise ValueError(f"requests of sessions not in the sessions table: {', '.join(orphans)}")
     session_columns = sessions[["session_id", "harness", "user_id", "parent_session_id"]]
     session_columns = session_columns.merge(session_tree.tree_positions(sessions), on="session_id")
-    session_columns["scope"] = session_columns.harness.map(population.scope_of)
     session_columns["is_top_level"] = session_columns.parent_session_id.isna()
     return requests.merge(session_columns, on="session_id", how="left", validate="many_to_one")
 
@@ -72,9 +72,10 @@ def top_level_idle_gaps(requests: pandas.DataFrame) -> pandas.Series:
     """Each top-level request's idle gap in seconds among the top-level requests of its scope, where the pipeline
     gives one; missing on every other row."""
     top_level = requests[requests.is_top_level]
+    scopes = top_level.harness.map(population.scope_of)
     idle_gaps = []
-    for scope in sorted(top_level.scope.unique()):
-        idle_gaps.append(gaps.idle_gap_rows(top_level[top_level.scope == scope]).idle_gap_s)
+    for scope in sorted(scopes.unique()):
+        idle_gaps.append(gaps.idle_gap_rows(top_level[scopes == scope]).idle_gap_s)
     return pandas.concat(idle_gaps).reindex(requests.index)
 
 

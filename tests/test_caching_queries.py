@@ -1,5 +1,5 @@
 """The Prefix-caching figures' queries on the fixture data: hit ratios by idle gap and by transition, and the cache
-simulation's ratios, which hold the Agentic rows whatever scope is selected."""
+simulation's ratios, which hold the paper's population whatever harnesses are selected."""
 
 import duckdb
 import pytest
@@ -9,9 +9,9 @@ import site_database
 
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]  # the week the fixture did not simulate
-ALL_SCOPES = site_database.SCOPES_OF["All"]  # every scope of the data
 SIMULATION_QUERIES = ["figures/simulated_hit_ratio_by_ttl", "figures/dead_over_active_by_policy"]
-# The fixture's first-week Agentic top-level requests, which the simulation replayed: `tree-root` 5, `idle-week-1` 3.
+# The fixture's first-week top-level requests of the paper's harnesses, which the simulation replayed: `tree-root` 5,
+# `idle-week-1` 3.
 REPLAYED_REQUESTS = 8
 FIRST_WEEK_ACTIVE_TOKEN_SECONDS = 20_000.0  # the fixture's Agentic total, repeated on each of its three tally rows
 
@@ -19,14 +19,14 @@ FIRST_WEEK_ACTIVE_TOKEN_SECONDS = 20_000.0  # the fixture's Agentic total, repea
 SIMULATION_TALLIES = """
 SELECT policy, ttl, hit_tokens, miss_tokens, dead_token_seconds
 FROM simulation
-WHERE scope = 'Agentic' AND week = ?
+WHERE week = ?
 ORDER BY policy, ttl
 """
 
 
 def test_the_simulated_hit_ratio_of_a_week_is_its_hit_over_hit_and_missed_tokens(
         connection: duckdb.DuckDBPyConnection) -> None:
-    site_database.select_weeks(connection, [FIRST_SUNDAY], site_database.SCOPES_OF["Agentic"])
+    site_database.select_weeks(connection, [FIRST_SUNDAY], fixture_release.PAPER_HARNESSES)
     rows = site_database.run_query(connection, "figures/simulated_hit_ratio_by_ttl")
     tallies = connection.execute(SIMULATION_TALLIES, [FIRST_SUNDAY]).df()
     expected = tallies.hit_tokens / (tallies.hit_tokens + tallies.miss_tokens)
@@ -36,7 +36,7 @@ def test_the_simulated_hit_ratio_of_a_week_is_its_hit_over_hit_and_missed_tokens
 
 
 def test_dead_over_active_sums_a_week_s_active_token_seconds_once(connection: duckdb.DuckDBPyConnection) -> None:
-    site_database.select_weeks(connection, [FIRST_SUNDAY], site_database.SCOPES_OF["Agentic"])
+    site_database.select_weeks(connection, [FIRST_SUNDAY], fixture_release.PAPER_HARNESSES)
     rows = site_database.run_query(connection, "figures/dead_over_active_by_policy")
     tallies = connection.execute(SIMULATION_TALLIES, [FIRST_SUNDAY]).df()
     expected = tallies.dead_token_seconds / FIRST_WEEK_ACTIVE_TOKEN_SECONDS
@@ -45,21 +45,22 @@ def test_dead_over_active_sums_a_week_s_active_token_seconds_once(connection: du
 
 
 @pytest.mark.parametrize("name", SIMULATION_QUERIES)
-@pytest.mark.parametrize("scope", ["Agentic", "SWE-Bench", "All"])
-def test_a_simulation_figure_holds_the_agentic_rows_of_the_simulated_weeks_under_any_scope(
-        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str], name: str, scope: str) -> None:
-    site_database.select_weeks(connection, [FIRST_SUNDAY], site_database.SCOPES_OF["Agentic"])
-    agentic = site_database.run_query(connection, name)
-    site_database.select_weeks(connection, fixture_weeks, site_database.SCOPES_OF[scope])
+@pytest.mark.parametrize("harnesses", [
+    fixture_release.PAPER_HARNESSES, fixture_release.BENCHMARK_HARNESSES, fixture_release.EVERY_HARNESS, ["pi"], []])
+def test_a_simulation_figure_holds_the_paper_s_rows_of_the_simulated_weeks_whatever_harnesses_are_selected(
+        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str], name: str, harnesses: list[str]) -> None:
+    site_database.select_weeks(connection, [FIRST_SUNDAY], fixture_release.PAPER_HARNESSES)
+    paper_population = site_database.run_query(connection, name)
+    site_database.select_weeks(connection, fixture_weeks, harnesses)
     rows = site_database.run_query(connection, name)
-    assert rows.equals(agentic)
+    assert rows.equals(paper_population)
     assert rows.rows.unique().tolist() == [REPLAYED_REQUESTS]
 
 
 @pytest.mark.parametrize("name", SIMULATION_QUERIES)
 def test_a_week_the_simulation_did_not_cover_has_no_simulated_rows(connection: duckdb.DuckDBPyConnection,
                                                                     name: str) -> None:
-    site_database.select_weeks(connection, [SECOND_SUNDAY], ALL_SCOPES)
+    site_database.select_weeks(connection, [SECOND_SUNDAY], fixture_release.EVERY_HARNESS)
     assert site_database.run_query(connection, name).empty
 
 
@@ -68,7 +69,7 @@ def test_the_idle_gap_bins_hold_each_provider_s_gaps_up_to_an_hour(connection: d
     # Provider B serves `idle-week-1` and `idle-week-2` of one user: gaps of 20 s (bin 3, hit ratio 900 / 1,200),
     # 5 s (counted in bin 0, 1,200 / 1,400) and 90 s (bin 9, 1,000 / 1,200). The 4,800 s gap of `idle-week-2`'s first
     # request, across the week boundary, is over an hour and falls in no bin.
-    site_database.select_weeks(connection, fixture_weeks, site_database.SCOPES_OF["Agentic"])
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
     rows = site_database.run_query(connection, "figures/hit_ratio_by_idle_gap")
     provider_b = rows[rows.provider == "B"]
     assert provider_b.idle_gap_bin.tolist() == [0, 3, 9]
@@ -79,8 +80,8 @@ def test_the_idle_gap_bins_hold_each_provider_s_gaps_up_to_an_hour(connection: d
 
 def test_the_mean_hit_ratio_after_each_transition(connection: duckdb.DuckDBPyConnection,
                                                   fixture_weeks: list[str]) -> None:
-    # The Agentic scope's nine top-level requests after a first step: `mutation`'s step 1 reads nothing from cache.
-    site_database.select_weeks(connection, fixture_weeks, site_database.SCOPES_OF["Agentic"])
+    # The paper's harnesses' nine top-level requests after a first step: `mutation`'s step 1 reads nothing from cache.
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
     rows = site_database.run_query(connection, "figures/hit_ratio_by_transition").set_index("transition")
     assert rows.rows.to_dict() == {"append": 8, "mutation": 1}
     assert rows.mean_hit_ratio["mutation"] == 0.0

@@ -1,4 +1,4 @@
--- One row: the totals of the top-level sessions in the selected weeks and scope, each over the session's own requests.
+-- One row: the totals of the top-level sessions in the selected weeks and harnesses, each over the session's own requests.
 -- A top-level session is one no other session spawned, so it has no parent; its subagents are counted in `subagents`.
 -- reported_input_tokens is the input of the requests whose provider reports cache reads, the input the cached share is taken of.
 SELECT count(*) AS sessions,
@@ -13,4 +13,4 @@ SELECT count(*) AS sessions,
 FROM sessions
 WHERE parent_session_id IS NULL
   AND week IN (SELECT week FROM selected_weeks)
-  AND scope IN (SELECT scope FROM selected_scopes);
+  AND harness IN (SELECT harness FROM selected_harnesses);

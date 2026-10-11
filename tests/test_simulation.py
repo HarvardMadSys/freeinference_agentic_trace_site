@@ -1,4 +1,4 @@
-"""The site's simulation rows on the fixture: the first week's tallies with their scope's active token-seconds."""
+"""The site's simulation rows on the fixture: the first week's Agentic tallies with the week's Agentic totals."""
 
 import pathlib
 
@@ -7,8 +7,8 @@ from site_data import simulation, weeks
 import fixture_release
 
 SITE_COLUMNS = [
-    "week", "scope", "policy", "ttl", "hit_tokens", "miss_tokens", "reusable_token_seconds", "dead_token_seconds",
-    "active_token_seconds",
+    "week", "policy", "ttl", "hit_tokens", "miss_tokens", "reusable_token_seconds", "dead_token_seconds",
+    "active_token_seconds", "output_tokens",
 ]
 
 
@@ -23,18 +23,19 @@ def test_only_the_first_week_is_simulated(tmp_path: pathlib.Path) -> None:
     assert [(entry.week, entry.simulated) for entry in entries] == [("2026-05-31", True), ("2026-06-07", False)]
 
 
-def test_the_simulated_week_s_tallies_appear_unchanged(tmp_path: pathlib.Path) -> None:
+def test_the_simulated_week_s_agentic_tallies_appear_unchanged(tmp_path: pathlib.Path) -> None:
     rows = simulation.simulation_frame(tmp_path / "simulation", fixture_entries(tmp_path))
     assert list(rows.columns) == SITE_COLUMNS
-    assert rows.week.tolist() == ["2026-05-31"] * 4  # the second week contributes none
-    assert rows.ttl.tolist() == ["5m", "1h", "5m", "5m"]
-    assert rows.hit_tokens.tolist() == [6_000, 8_000, 6_000, 1_000]
-    assert rows.dead_token_seconds.tolist() == [500.0, 2_000.0, 0.0, 50.0]
+    assert rows.week.tolist() == ["2026-05-31"] * 3  # the second week contributes none, the SWE-Bench tally neither
+    assert rows.ttl.tolist() == ["5m", "1h", "5m"]
+    assert rows.hit_tokens.tolist() == [6_000, 8_000, 6_000]
+    assert rows.dead_token_seconds.tolist() == [500.0, 2_000.0, 0.0]
 
 
-def test_each_row_carries_its_scope_s_active_token_seconds(tmp_path: pathlib.Path) -> None:
+def test_each_row_carries_the_week_s_agentic_totals(tmp_path: pathlib.Path) -> None:
     rows = simulation.simulation_frame(tmp_path / "simulation", fixture_entries(tmp_path))
-    assert dict(zip(rows.scope, rows.active_token_seconds)) == {"Agentic": 20_000.0, "SWE-Bench": 2_000.0}
+    assert rows.active_token_seconds.tolist() == [20_000.0] * 3
+    assert rows.output_tokens.tolist() == [1_300.0] * 3
 
 
 def test_no_simulated_week_gives_no_rows(tmp_path: pathlib.Path) -> None:

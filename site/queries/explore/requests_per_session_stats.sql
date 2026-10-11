@@ -1,4 +1,4 @@
--- One row: how many top-level sessions of the selected weeks and scope there are, and the largest and the exact 50th, 75th, 90th and 95th percentiles of their requests per session.
+-- One row: how many top-level sessions of the selected weeks and harnesses there are, and the largest and the exact 50th, 75th, 90th and 95th percentiles of their requests per session.
 -- A top-level session is one no other session spawned, so it has no parent.
 SELECT count(requests) AS count,
        max(requests) AS max,
@@ -9,4 +9,4 @@ SELECT count(requests) AS count,
 FROM sessions
 WHERE parent_session_id IS NULL
   AND week IN (SELECT week FROM selected_weeks)
-  AND scope IN (SELECT scope FROM selected_scopes);
+  AND harness IN (SELECT harness FROM selected_harnesses);

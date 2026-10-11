@@ -11,8 +11,6 @@ from paper.metrics import gaps, tools
 from release import population, schema
 from simulation import cache
 
-import site_database
-
 SITE_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site"
 CACHING_MODULE = SITE_FOLDER / "js" / "figures" / "caching.js"  # the idle-gap bins, the TTLs and the policies
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the wait causes
@@ -91,10 +89,6 @@ def pipeline_scope_members() -> dict[str, list[str]]:
 
 def test_the_browser_s_scopes_are_the_pipeline_s() -> None:
     assert browser_scope_members() == pipeline_scope_members()
-
-
-def test_the_test_database_s_scopes_are_the_pipeline_s() -> None:
-    assert site_database.SCOPES_OF == pipeline_scope_members()
 
 
 def test_the_benchmark_harness_of_the_harness_index_is_the_pipeline_s(data_directory: pathlib.Path) -> None:

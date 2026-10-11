@@ -9,7 +9,6 @@ import site_database
 
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
-ALL_SCOPES = site_database.SCOPES_OF["All"]  # every scope of the data
 # The CDF queries, each with the series it draws: one row per series and point.
 CDF_SERIES = {
     "figures/requests_per_session_cdf": ["requests", "tool_steps", "user_steps"],
@@ -35,7 +34,7 @@ COLOUR_ORDER_COLUMNS = {
 @pytest.mark.parametrize("name", sorted(CDF_SERIES))
 def test_a_cdf_runs_from_0_to_1_in_even_steps_with_x_never_falling(connection: duckdb.DuckDBPyConnection,
                                                                    fixture_weeks: list[str], name: str) -> None:
-    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
     rows = site_database.run_query(connection, name)
     assert sorted(rows.series.unique()) == CDF_SERIES[name]
     for series, points in rows.groupby("series"):
@@ -47,11 +46,11 @@ def test_a_cdf_runs_from_0_to_1_in_even_steps_with_x_never_falling(connection: d
 
 @pytest.mark.parametrize("name", sorted(CDF_SERIES))
 def test_a_cdf_of_no_weeks_has_no_rows(connection: duckdb.DuckDBPyConnection, name: str) -> None:
-    site_database.select_weeks(connection, [], ALL_SCOPES)
+    site_database.select_weeks(connection, [], fixture_release.EVERY_HARNESS)
     assert site_database.run_query(connection, name).empty
 
 
-# Top-level sessions of the fixture's Agentic scope over both weeks, with their requests, user steps and tool steps,
+# Top-level sessions of the fixture's paper harnesses over both weeks, with their requests, user steps and tool steps,
 # counted by hand from `fixture_release.REQUESTS`: `tree-root` 5, `idle-week-1` 3, `mutation` 3, `idle-week-2` 2.
 AGENTIC_SESSIONS = 4
 MEDIAN_REQUESTS_PER_AGENTIC_SESSION = 3.0
@@ -59,7 +58,7 @@ MEDIAN_REQUESTS_PER_AGENTIC_SESSION = 3.0
 
 def test_the_requests_per_session_cdf_crosses_one_half_at_the_median(connection: duckdb.DuckDBPyConnection,
                                                                      fixture_weeks: list[str]) -> None:
-    site_database.select_weeks(connection, fixture_weeks, site_database.SCOPES_OF["Agentic"])
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
     rows = site_database.run_query(connection, "figures/requests_per_session_cdf")
     requests = rows[rows.series == "requests"]
     assert requests.rows.tolist() == [AGENTIC_SESSIONS] * CDF_POINTS
@@ -83,9 +82,9 @@ def test_the_colour_orders_ignore_the_selection(connection: duckdb.DuckDBPyConne
 
 def test_the_token_split_counts_only_requests_whose_provider_reports_cache_reads(
         connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
-    # In the SWE-Bench scope, `swe-bench` runs at a provider that reports no cache reads; `idle-benchmark`, in the
+    # Of the benchmark's sessions, `swe-bench` runs at a provider that reports no cache reads; `idle-benchmark`, in the
     # second week, reads none of its 600 input tokens from cache and writes 100 output tokens.
-    site_database.select_weeks(connection, fixture_weeks, site_database.SCOPES_OF["SWE-Bench"])
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.BENCHMARK_HARNESSES)
     rows = site_database.run_query(connection, "figures/token_split_by_week")
     shares = dict(zip(rows.part, rows.share))
     assert rows.week.unique().tolist() == [SECOND_SUNDAY]
@@ -94,7 +93,7 @@ def test_the_token_split_counts_only_requests_whose_provider_reports_cache_reads
 
 
 def test_each_week_s_token_parts_sum_to_one(connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
-    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
     rows = site_database.run_query(connection, "figures/token_split_by_week")
     assert rows.groupby("week").share.sum().tolist() == pytest.approx([1.0, 1.0])
 
@@ -108,7 +107,7 @@ GROWTH_BIN_ROWS = {2: 5, 4: 7, 8: 2}
 
 def test_token_growth_bins_by_powers_of_two_of_messages(connection: duckdb.DuckDBPyConnection,
                                                         fixture_weeks: list[str]) -> None:
-    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
     rows = site_database.run_query(connection, "figures/token_growth_by_messages")
     assert dict(zip(rows.bin_start, rows.rows)) == GROWTH_BIN_ROWS
     last_bin = rows[rows.bin_start == 8].iloc[0]
@@ -117,7 +116,7 @@ def test_token_growth_bins_by_powers_of_two_of_messages(connection: duckdb.DuckD
 
 def test_each_input_bin_s_role_shares_sum_to_one(connection: duckdb.DuckDBPyConnection,
                                                  fixture_weeks: list[str]) -> None:
-    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
     rows = site_database.run_query(connection, "figures/context_share_by_role")
     assert sorted(rows.role.unique()) == ["assistant", "system", "tool", "tool_definitions", "user"]
     assert rows.groupby("bin_start").share.sum().tolist() == pytest.approx([1.0] * rows.bin_start.nunique())
@@ -126,9 +125,9 @@ def test_each_input_bin_s_role_shares_sum_to_one(connection: duckdb.DuckDBPyConn
 
 def test_the_ttft_cdf_keeps_only_trusted_ttfts(connection: duckdb.DuckDBPyConnection,
                                                fixture_weeks: list[str]) -> None:
-    # The Agentic scope's thirteen top-level requests all run on `model-x`; `tree-root`'s step 2 has a TTFT of 99%
+    # The paper's harnesses' thirteen top-level requests all run on `model-x`; `tree-root`'s step 2 has a TTFT of 99%
     # of its latency and its step 3 none, so eleven TTFTs are trusted.
-    site_database.select_weeks(connection, fixture_weeks, site_database.SCOPES_OF["Agentic"])
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
     rows = site_database.run_query(connection, "figures/ttft_cdf_by_model")
     assert rows.series.unique().tolist() == ["model-x"]
     assert rows.rows.unique().tolist() == [11]
@@ -136,8 +135,8 @@ def test_the_ttft_cdf_keeps_only_trusted_ttfts(connection: duckdb.DuckDBPyConnec
 
 def test_the_ttft_median_counts_only_trusted_ttfts(connection: duckdb.DuckDBPyConnection,
                                                    fixture_weeks: list[str]) -> None:
-    # The same eleven trusted TTFTs of `model-x` as the CDF's, in the Agentic scope.
-    site_database.select_weeks(connection, fixture_weeks, site_database.SCOPES_OF["Agentic"])
+    # The same eleven trusted TTFTs of `model-x` as the CDF's, of the paper's harnesses.
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
     rows = site_database.run_query(connection, "figures/ttft_median_by_model")
     assert rows.model.tolist() == ["model-x"]
     assert rows.rows.tolist() == [11]
@@ -150,7 +149,7 @@ def test_the_category_order_counts_every_call_largest_first(connection: duckdb.D
     assert rows.values.tolist() == [["*Build/Test", 6], ["Read", 6], ["Subagent", 3], ["Edit", 1]]
 
 
-# The fixture's top-level tool calls over both weeks and every scope, counted by hand from `fixture_release.REQUESTS`:
+# The fixture's top-level tool calls over both weeks and every harness, counted by hand from `fixture_release.REQUESTS`:
 # `tree-root` read, task, task, edit and bash; `swe-bench` bash twice; `idle-week-1` read, read and bash; `mutation`
 # bash and read. The two `task` calls are one request's, so Subagent has no single-call latency.
 TOOL_CALLS_BY_CATEGORY = {"*Build/Test": 5, "Read": 4, "Subagent": 2, "Edit": 1}
@@ -163,7 +162,7 @@ PERCENTILE_COLUMNS = ["p5", "p25", "p50", "p75", "p95"]
 
 def test_the_tool_overview_counts_calls_and_sessions_per_category_and_its_shares_sum_to_one(
         connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
-    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
     rows = site_database.run_query(connection, "figures/tool_overview").set_index("category")
     assert rows.rows.to_dict() == TOOL_CALLS_BY_CATEGORY
     assert rows.sessions.to_dict() == SESSIONS_BY_CATEGORY
@@ -177,7 +176,7 @@ def test_the_tool_overview_counts_calls_and_sessions_per_category_and_its_shares
 def test_calls_per_request_counts_the_requests_that_emitted_calls(connection: duckdb.DuckDBPyConnection,
                                                                    fixture_weeks: list[str]) -> None:
     # Eleven top-level requests emitted calls: `tree-root`'s step 1 two, the other ten one each.
-    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
     rows = site_database.run_query(connection, "figures/calls_per_request")
     assert rows.values.tolist() == [["1", 10, pytest.approx(10 / 11)], ["2", 1, pytest.approx(1 / 11)]]
 
@@ -185,7 +184,7 @@ def test_calls_per_request_counts_the_requests_that_emitted_calls(connection: du
 @pytest.mark.parametrize("name", ["figures/latency_by_category", "figures/result_tokens_by_category"])
 def test_a_category_s_percentiles_never_fall(connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str],
                                             name: str) -> None:
-    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
     rows = site_database.run_query(connection, name)
     assert not rows.empty
     for row in rows.itertuples():
@@ -195,7 +194,7 @@ def test_a_category_s_percentiles_never_fall(connection: duckdb.DuckDBPyConnecti
 
 def test_latency_counts_only_calls_that_were_their_request_s_only_call(connection: duckdb.DuckDBPyConnection,
                                                                        fixture_weeks: list[str]) -> None:
-    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
     rows = site_database.run_query(connection, "figures/latency_by_category").set_index("category")
     assert "Subagent" not in rows.index
     assert rows.rows["Read"] == 4

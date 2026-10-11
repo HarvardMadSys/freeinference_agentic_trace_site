@@ -61,7 +61,7 @@ EXPECTED_COLUMNS = {
     "figures/dead_over_active_by_policy": ["policy", "ttl", "dead_over_active", "rows"],
     "session/session_root": ["root_session_id", "week"],
     "session/session_tree": [
-        "session_id", "parent_session_id", "spawned_by_step", "depth", "harness", "scope", "main_model", "user_id",
+        "session_id", "parent_session_id", "spawned_by_step", "depth", "harness", "main_model", "user_id",
         "requests", "user_steps", "tool_calls", "first_start_ms", "duration_s", "input_tokens",
         "reported_input_tokens", "cached_tokens", "output_tokens", "subagents", "subagent_requests",
     ],
@@ -84,7 +84,6 @@ QUERY_PARAMETERS: dict[str, list] = {
 
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
-ALL_SCOPES = site_database.SCOPES_OF["All"]  # every scope of the data
 SESSION_QUERIES_FOLDER = "session/"  # queries of the Session page, which read the selected session
 SELECTED_SESSION = "tree-root"  # the fixture's first-week session with a tree of subagents
 
@@ -106,7 +105,8 @@ def test_the_setup_statements_run_in_the_browser_s_order() -> None:
 
 def test_every_create_statement_on_disk_is_run() -> None:
     on_disk = {f"setup/{path.stem}" for path in site_database.SETUP_FOLDER.glob("create_*.sql")}
-    assert on_disk == {*site_database.VIEW_STATEMENTS, *site_database.SELECTION_TABLE_STATEMENTS}
+    assert on_disk == {*site_database.VIEW_STATEMENTS, *site_database.SELECTION_TABLE_STATEMENTS,
+                       site_database.BENCHMARK_TABLE_STATEMENT}
 
 
 def test_the_fixture_has_two_weeks(fixture_weeks: list[str]) -> None:
@@ -116,7 +116,7 @@ def test_the_fixture_has_two_weeks(fixture_weeks: list[str]) -> None:
 @pytest.mark.parametrize("name", sorted(EXPECTED_COLUMNS))
 def test_a_query_returns_its_columns(connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str],
                                      name: str) -> None:
-    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
     if name.startswith(SESSION_QUERIES_FOLDER):
         site_database.select_session(connection, FIRST_SUNDAY, SELECTED_SESSION)
     rows = site_database.run_query(connection, name, QUERY_PARAMETERS.get(name))
@@ -140,24 +140,31 @@ def test_every_query_file_starts_with_a_comment() -> None:
         assert lines[0].startswith("--"), f"{name} starts with {lines[0]!r}, not a -- comment"
 
 
-# Top-level requests of the fixture, counted by hand from `fixture_release.REQUESTS`: in the Agentic scope
-# `tree-root` 5, `idle-week-1` 3, `mutation` 3 and `idle-week-2` 2; in the SWE-Bench scope `swe-bench` 2 and
-# `idle-benchmark` 1. The subagents `tree-child`, `tree-sibling` and `tree-grandchild` are not top-level.
-@pytest.mark.parametrize(("scope", "top_level_requests"), [("Agentic", 13), ("SWE-Bench", 3), ("All", 16)])
-def test_the_request_count_is_the_number_of_top_level_requests(connection: duckdb.DuckDBPyConnection,
-                                                               fixture_weeks: list[str], scope: str,
-                                                               top_level_requests: int) -> None:
-    site_database.select_weeks(connection, fixture_weeks, site_database.SCOPES_OF[scope])
+# Top-level requests of the fixture, counted by hand from `fixture_release.REQUESTS`: of the paper's harnesses
+# `tree-root` 5, `idle-week-1` 3, `mutation` 3 and `idle-week-2` 2; of the benchmark's `swe-bench` 2 and
+# `idle-benchmark` 1; of `pi` alone, 5. The subagents `tree-child`, `tree-sibling` and `tree-grandchild` are not
+# top-level.
+@pytest.mark.parametrize(("harnesses", "top_level_requests"), [
+    (fixture_release.PAPER_HARNESSES, 13),
+    (fixture_release.BENCHMARK_HARNESSES, 3),
+    (fixture_release.EVERY_HARNESS, 16),
+    (["pi"], 5),
+    ([], 0),
+])
+def test_the_request_count_is_the_number_of_top_level_requests_of_the_selected_harnesses(
+        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str], harnesses: list[str],
+        top_level_requests: int) -> None:
+    site_database.select_weeks(connection, fixture_weeks, harnesses)
     rows = site_database.run_query(connection, "explore/request_count")
     assert rows.requests.tolist() == [top_level_requests]
 
 
 def test_a_new_selection_replaces_the_previous_one(connection: duckdb.DuckDBPyConnection,
                                                    fixture_weeks: list[str]) -> None:
-    site_database.select_weeks(connection, fixture_weeks, ALL_SCOPES)
-    site_database.select_weeks(connection, [FIRST_SUNDAY], site_database.SCOPES_OF["Agentic"])
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
+    site_database.select_weeks(connection, [FIRST_SUNDAY], fixture_release.PAPER_HARNESSES)
     rows = site_database.run_query(connection, "explore/request_count")
-    assert rows.requests.tolist() == [8]  # `tree-root` 5 and `idle-week-1` 3, the first week's Agentic sessions
+    assert rows.requests.tolist() == [8]  # `tree-root` 5 and `idle-week-1` 3, the first week's paper sessions
 
 
 def test_a_new_session_replaces_the_previous_one(connection: duckdb.DuckDBPyConnection) -> None:

@@ -1,18 +1,18 @@
--- One row per eviction policy and TTL of the cache simulation, over its Agentic tallies in the selected weeks it
--- covers, whatever scope is selected (the simulation was run for the Agentic scope only): the policy, the TTL (`1s`
--- to `1d`, or `none`), its `hit_ratio` (hit tokens over hit and missed tokens, each summed over the weeks), and
--- `rows`, the top-level Agentic requests the simulation replayed in those weeks.
+-- One row per eviction policy and TTL of the cache simulation, over its tallies in the selected weeks it covers,
+-- whatever harnesses are selected (the simulation replays the paper's population, every harness but the benchmark):
+-- the policy, the TTL (`1s` to `1d`, or `none`), its `hit_ratio` (hit tokens over hit and missed tokens, each summed
+-- over the weeks), and `rows`, the top-level requests of the paper's population the simulation replayed in those
+-- weeks.
 WITH simulated_tallies AS (
   SELECT week, policy, ttl, hit_tokens, miss_tokens
   FROM simulation
-  WHERE scope = 'Agentic'
-    AND week IN (SELECT week FROM selected_weeks)
+  WHERE week IN (SELECT week FROM selected_weeks)
 ),
 replayed_requests AS (
   SELECT count(*) AS rows
   FROM requests
   WHERE is_top_level
-    AND scope = 'Agentic'
+    AND harness NOT IN (SELECT harness FROM benchmark_harness)
     AND week IN (SELECT week FROM simulated_tallies)
 ),
 policy_tallies AS (

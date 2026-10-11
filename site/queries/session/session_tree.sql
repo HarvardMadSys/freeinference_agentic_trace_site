@@ -6,7 +6,6 @@ SELECT
   spawned_by_step,
   depth,
   harness,
-  scope,
   main_model,
   user_id,
   requests,

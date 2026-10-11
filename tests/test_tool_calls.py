@@ -11,8 +11,8 @@ from site_data import loading, requests, tool_calls, weeks
 import fixture_release
 
 SITE_COLUMNS = [
-    "week", "session_id", "step", "call_index", "name", "category", "outcome", "result_tokens", "latency_ms", "scope",
-    "is_top_level", "root_session_id",
+    "week", "session_id", "step", "call_index", "name", "category", "outcome", "result_tokens", "latency_ms",
+    "harness", "is_top_level", "root_session_id",
 ]
 
 
@@ -50,7 +50,7 @@ def test_a_call_carries_its_session_s_place(tmp_path: pathlib.Path) -> None:
     assert (spawn["name"], spawn.category, spawn.is_top_level, spawn.root_session_id) == (
         "task", "Subagent", False, "tree-root")
     benchmark = calls.loc[("swe-bench", 0, 0)]
-    assert (benchmark.scope, benchmark.is_top_level, benchmark.week) == ("SWE-Bench", True, "2026-05-31")
+    assert (benchmark.harness, benchmark.is_top_level, benchmark.week) == ("eval:swe-bench", True, "2026-05-31")
 
 
 def test_latency_is_the_wait_until_the_next_request_and_missing_after_the_last(tmp_path: pathlib.Path) -> None:

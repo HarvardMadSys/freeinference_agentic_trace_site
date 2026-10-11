@@ -51,3 +51,9 @@ def write_harnesses_file(entries: list[HarnessEntry], out_directory: pathlib.Pat
     path = out_directory / paths.HARNESSES_FILE
     path.write_text(json.dumps([dataclasses.asdict(entry) for entry in entries], indent=2) + "\n")
     return path
+
+
+def read_harnesses_file(data_directory: pathlib.Path) -> list[HarnessEntry]:
+    """The entries of the data folder's `harnesses.json`, in its order."""
+    listed = json.loads((data_directory / paths.HARNESSES_FILE).read_text())
+    return [HarnessEntry(**entry) for entry in listed]

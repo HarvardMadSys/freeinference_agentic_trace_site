@@ -1,5 +1,5 @@
--- One row per selected week and token part (`cached`, `uncached` or `output`), over the week's top-level requests in
--- the selected scope whose provider reports cache reads and that have an input: the part's `share` of the three
+-- One row per selected week and token part (`cached`, `uncached` or `output`), over the week's top-level requests of
+-- the selected harnesses whose provider reports cache reads and that have an input: the part's `share` of the three
 -- parts' tokens summed, and the week's `rows` (those requests).
 WITH reporting_requests AS (
   SELECT week, cache_read_tokens, uncached_tokens, completion_tokens
@@ -8,7 +8,7 @@ WITH reporting_requests AS (
     AND cache_read_tokens IS NOT NULL
     AND prompt_tokens > 0
     AND week IN (SELECT week FROM selected_weeks)
-    AND scope IN (SELECT scope FROM selected_scopes)
+    AND harness IN (SELECT harness FROM selected_harnesses)
 ),
 week_tokens AS (
   SELECT week,

@@ -24,7 +24,7 @@ const VIEW_STATEMENTS = Object.freeze([
 // The statements that make the empty selection tables, run once after the views.
 const SELECTION_TABLE_STATEMENTS = Object.freeze([
   "setup/create_selected_weeks",
-  "setup/create_selected_scopes",
+  "setup/create_selected_harnesses",
   "setup/create_selected_session",
 ]);
 

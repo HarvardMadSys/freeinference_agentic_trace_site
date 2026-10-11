@@ -26,7 +26,9 @@ binding, and `make test` checks the countable ones.
 - **SQL is a literal.** Every query is one `.sql` file under `site/queries/`.
   No SQL is written in JavaScript, and no query is assembled from strings. A
   query reads the selection from the tables `selected_weeks`,
-  `selected_scopes` and `selected_session`, and from nothing else. The one
+  `selected_harnesses` and `selected_session`, and from nothing else; the
+  table `benchmark_harness` names the harness that is not the paper's
+  population. The one
   exception is `session/session_root.sql`, run through `runQueryWith` with
   the session id from the URL as its one `?` parameter: it finds the
   session's week and top-level session, which `selected_session` is then
@@ -78,13 +80,13 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
 **A query** (`site/queries/explore/request_count.sql`):
 
 ```sql
--- The number of requests of the top-level sessions in the selected weeks and scope. No page runs it: it is the
+-- The number of requests of the top-level sessions in the selected weeks and harnesses. No page runs it: it is the
 -- example query of CONTRIBUTING.md, and tests/test_queries.py checks the count against the fixture.
 SELECT count(*) AS requests
 FROM requests
 WHERE is_top_level
   AND week IN (SELECT week FROM selected_weeks)
-  AND scope IN (SELECT scope FROM selected_scopes);
+  AND harness IN (SELECT harness FROM selected_harnesses);
 ```
 
 The first line says what one row is. Columns are named in words. Every

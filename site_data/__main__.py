@@ -2,14 +2,17 @@
 
 Every week is loaded, checked and turned into rows before any file is
 written, so a corrupted week stops the run, with its message and exit status
-1, and the data folder untouched. Each Parquet file is sorted, here and only
-here, by week and then by root session, so a session's tree sits together, and
-is written one week at a time, so no row group holds two weeks. The indexes
-`harnesses.json` and `weeks.json` are written last.
+1, and the data folder untouched. Each kind of row is written one file per
+week, at `<kind>/week=<sunday>/rows.parquet`, without a `week` column: the
+week is the folder's name. A week's file is sorted, here and only here, by
+root session, so a session's tree sits together. The indexes `harnesses.json`
+and `weeks.json` are written last.
 """
 
 import argparse
+import dataclasses
 import pathlib
+import shutil
 import sys
 
 import pandas
@@ -19,22 +22,30 @@ from pyarrow import compute, parquet
 from release import reader
 from site_data import harnesses, loading, paths, requests, sessions, simulation, tool_calls, weeks
 
-ROWS_PER_GROUP = 100_000  # a row group holds one week's rows only, so a query filtered by week skips the others; large, so a query makes few ranged reads
+ROWS_PER_GROUP = 100_000  # large, so a query makes few ranged reads
 COMPRESSION = "zstd"  # small files that DuckDB-WASM reads
 BYTES_PER_MB = 1_000_000  # sizes are printed in decimal megabytes, the unit of the host's file size limit
-# Each file's row order: by week, then by root session where the rows have one, so a query filtered by either
-# reads only the row groups that hold them.
+# The row order of each kind's week files: by root session where the rows have one, so a query filtered by session
+# reads only the row groups that hold it.
 SORT_ORDERS = {
-    paths.REQUESTS_FILE: ["week", "root_session_id", "session_id", "step"],
-    paths.TOOL_CALLS_FILE: ["week", "root_session_id", "session_id", "step", "call_index"],
-    paths.SESSIONS_FILE: ["week", "root_session_id", "session_id"],
-    paths.SIMULATION_FILE: ["week", "scope", "policy", "ttl"],
+    paths.REQUESTS_FOLDER: ["root_session_id", "session_id", "step"],
+    paths.TOOL_CALLS_FOLDER: ["root_session_id", "session_id", "step", "call_index"],
+    paths.SESSIONS_FOLDER: ["root_session_id", "session_id"],
+    paths.SIMULATION_FOLDER: ["policy", "ttl"],
 }
 
 
+@dataclasses.dataclass(frozen=True)
+class WrittenKind:
+    """What one kind's week files hold over every week."""
+
+    rows: int
+    bytes: int
+
+
 def main(arguments: list[str] | None = None) -> None:
-    """Write the four Parquet files, `harnesses.json` and `weeks.json` into the output folder, and print each file's
-    rows and size."""
+    """Write each kind's week files, `harnesses.json` and `weeks.json` into the output folder, and print each kind's
+    rows and size over every week, and each index's."""
     options = parsed_arguments(arguments)
     try:
         entries = weeks.weeks_index(options.release, options.simulation)
@@ -45,11 +56,10 @@ def main(arguments: list[str] | None = None) -> None:
     frames = site_frames(release, options.simulation, entries)
     del release  # the frames hold every row the files need; the release's own copy is not written
     options.out.mkdir(parents=True, exist_ok=True)
-    for file_name, frame in frames.items():
-        sorted_frame = frame.sort_values(SORT_ORDERS[file_name], ignore_index=True)
-        write_parquet(sorted_frame, options.out / file_name)
-        print_size(options.out / file_name, len(sorted_frame))
-    harness_entries = harnesses.harnesses_index(frames[paths.SESSIONS_FILE])
+    for kind_folder, frame in frames.items():
+        written = write_kind(frame, options.out, kind_folder, weeks.weeks_with_file(entries, kind_folder))
+        print(f"{kind_folder}: {written.rows:,} rows, {written.bytes / BYTES_PER_MB:.1f} MB")
+    harness_entries = harnesses.harnesses_index(frames[paths.SESSIONS_FOLDER])
     print_size(harnesses.write_harnesses_file(harness_entries, options.out), len(harness_entries))
     print_size(weeks.write_weeks_file(entries, options.out), len(entries))
 
@@ -65,23 +75,39 @@ def parsed_arguments(arguments: list[str] | None) -> argparse.Namespace:
 
 def site_frames(release: loading.WeekTaggedRelease, simulation_directory: pathlib.Path,
                 entries: list[weeks.WeekEntry]) -> dict[str, pandas.DataFrame]:
-    """The four frames of the site, by the name of the file each is written to."""
+    """The four frames of the site, each with its `week` column, by the folder each is written to."""
     site_requests = requests.requests_frame(release)
     return {
-        paths.REQUESTS_FILE: site_requests,
-        paths.TOOL_CALLS_FILE: tool_calls.tool_calls_frame(release, site_requests),
-        paths.SESSIONS_FILE: sessions.sessions_frame(release, site_requests),
-        paths.SIMULATION_FILE: simulation.simulation_frame(simulation_directory, entries),
+        paths.REQUESTS_FOLDER: site_requests,
+        paths.TOOL_CALLS_FOLDER: tool_calls.tool_calls_frame(release, site_requests),
+        paths.SESSIONS_FOLDER: sessions.sessions_frame(release, site_requests),
+        paths.SIMULATION_FOLDER: simulation.simulation_frame(simulation_directory, entries),
     }
 
 
-def write_parquet(frame: pandas.DataFrame, path: pathlib.Path) -> None:
-    """Write a frame sorted by week, each week's rows in row groups of their own."""
-    table = pyarrow.Table.from_pandas(frame, preserve_index=False)
-    with parquet.ParquetWriter(path, table.schema, compression=COMPRESSION) as writer:
-        for week in frame.week.unique():
-            week_rows = table.filter(compute.equal(table["week"], week))
-            writer.write_table(week_rows, row_group_size=ROWS_PER_GROUP)
+def write_kind(frame: pandas.DataFrame, out_directory: pathlib.Path, kind_folder: str,
+               week_list: list[str]) -> WrittenKind:
+    """Replace the kind's folder with one file per listed week, each holding that week's rows without `week`;
+    every row of the frame must belong to a listed week."""
+    shutil.rmtree(out_directory / kind_folder, ignore_errors=True)  # a week no longer listed keeps no file
+    ordered = frame.sort_values(["week", *SORT_ORDERS[kind_folder]], ignore_index=True)
+    table = pyarrow.Table.from_pandas(ordered, preserve_index=False)
+    rows, size = 0, 0
+    for week in week_list:
+        path = out_directory / paths.week_file(kind_folder, week)
+        week_rows = table.filter(compute.equal(table["week"], week)).drop_columns(["week"])
+        write_week_file(week_rows, path)
+        rows += week_rows.num_rows
+        size += path.stat().st_size
+    if rows != len(frame):
+        raise ValueError(f"{kind_folder} has {len(frame) - rows} rows of weeks that have no {kind_folder} file")
+    return WrittenKind(rows=rows, bytes=size)
+
+
+def write_week_file(week_rows: pyarrow.Table, path: pathlib.Path) -> None:
+    """Write one week's rows of a kind, in row groups of at most `ROWS_PER_GROUP` rows."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    parquet.write_table(week_rows, path, row_group_size=ROWS_PER_GROUP, compression=COMPRESSION)
 
 
 def print_size(path: pathlib.Path, rows: int) -> None:

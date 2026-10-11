@@ -12,7 +12,7 @@ SITE_COLUMNS = [
     "week", "session_id", "step", "start_ms", "end_ms", "ttft_ms", "model", "provider", "step_trigger",
     "waited_for", "prompt_tokens", "completion_tokens", "cache_read_tokens", "system_tokens", "user_tokens",
     "assistant_tokens", "tool_tokens", "tool_definition_tokens", "n_messages", "finish_reason", "transition",
-    "cause", "scope", "is_top_level", "root_session_id", "depth", "turn", "uncached_tokens", "hit_ratio", "wait_s",
+    "cause", "harness", "is_top_level", "root_session_id", "depth", "turn", "uncached_tokens", "hit_ratio", "wait_s",
     "idle_gap_s", "idle_gap_bin", "is_trusted_ttft", "n_tool_calls",
 ]
 
@@ -37,7 +37,7 @@ def test_types_are_nullable_integers_booleans_and_strings(tmp_path: pathlib.Path
         assert dtypes[column] == "Int64", column
     for column in ("is_top_level", "is_trusted_ttft"):
         assert dtypes[column] == bool, column
-    for column in ("week", "scope", "root_session_id", "session_id"):
+    for column in ("week", "harness", "root_session_id", "session_id"):
         assert dtypes[column] == "str", column
 
 
@@ -69,10 +69,10 @@ def test_the_nested_subagent_is_two_below_its_root(tmp_path: pathlib.Path) -> No
     assert (root.depth, root.root_session_id, root.is_top_level) == (0, "tree-root", True)
 
 
-def test_scope_follows_the_session_harness(tmp_path: pathlib.Path) -> None:
+def test_a_request_carries_its_session_s_harness(tmp_path: pathlib.Path) -> None:
     site_requests = fixture_requests(tmp_path)
-    assert site_requests.scope[("swe-bench", 0)] == "SWE-Bench"
-    assert site_requests.scope[("tree-child", 0)] == "Agentic"
+    assert site_requests.harness[("swe-bench", 0)] == "eval:swe-bench"
+    assert site_requests.harness[("tree-child", 0)] == "claude-code"
 
 
 def test_tool_calls_are_counted_per_request(tmp_path: pathlib.Path) -> None:

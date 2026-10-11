@@ -1,24 +1,25 @@
-"""The site's simulation rows: the cache simulation's tallies of every simulated week, unchanged, with `week` and
-the week's `active_token_seconds` added.
+"""The site's simulation rows: the cache simulation's tallies of the paper's Agentic population in every simulated
+week, unchanged, with `week` and the week's Agentic `active_token_seconds` and `output_tokens` added.
 
 A simulated week's folder holds the tallies per scope, policy and TTL, and the
-totals per scope; a row's `active_token_seconds` is its week's total for its
-scope. A week the simulation has not covered contributes no rows. Each week's
-files are read directly, since the pipeline's summing readers stop on a
-release week without a simulation, which the site allows.
+totals per scope; the site keeps the Agentic scope's tallies, without the
+scope column, each with its week's Agentic totals. A week the simulation has
+not covered contributes no rows. Each week's files are read directly, since
+the pipeline's summing readers stop on a release week without a simulation,
+which the site allows.
 """
 
 import pathlib
 
 import pandas
 
+from release import population
 from simulation import weekly_files
 from site_data import weeks
 
 # The frame's columns in order, with the types the simulation writes them in.
 COLUMN_TYPES = {
     "week": "str",
-    "scope": "str",
     "policy": "str",
     "ttl": "str",
     "hit_tokens": "int64",
@@ -26,12 +27,13 @@ COLUMN_TYPES = {
     "reusable_token_seconds": "float64",
     "dead_token_seconds": "float64",
     "active_token_seconds": "float64",
+    "output_tokens": "float64",
 }
 COLUMNS = list(COLUMN_TYPES)
 
 
 def simulation_frame(simulation_directory: pathlib.Path, entries: list[weeks.WeekEntry]) -> pandas.DataFrame:
-    """The tallies of every simulated week among the entries, oldest first."""
+    """The Agentic tallies of every simulated week among the entries, oldest first."""
     weekly = []
     for entry in entries:
         if entry.simulated:
@@ -42,7 +44,7 @@ def simulation_frame(simulation_directory: pathlib.Path, entries: list[weeks.Wee
 
 
 def no_rows() -> pandas.DataFrame:
-    """The frame without rows, its columns typed as a simulated week's are, so its file has the same schema."""
+    """The frame without rows, its columns typed as a simulated week's are."""
     empty_columns = {}
     for column, column_type in COLUMN_TYPES.items():
         empty_columns[column] = pandas.Series(dtype=column_type)
@@ -50,11 +52,18 @@ def no_rows() -> pandas.DataFrame:
 
 
 def week_tallies(simulated_week: pathlib.Path, week: str) -> pandas.DataFrame:
-    """One simulated week's tallies, each with the week and the active token-seconds of its scope."""
+    """One simulated week's Agentic tallies, each with the week and the week's Agentic active token-seconds and
+    output tokens."""
     tallies = pandas.read_parquet(simulated_week / weekly_files.TALLIES_FILE)
     totals = pandas.read_parquet(simulated_week / weekly_files.TOTALS_FILE)
-    rows = tallies.merge(totals[["scope", "active_token_seconds"]], on="scope", how="left", validate="many_to_one")
-    without_totals = rows.scope[rows.active_token_seconds.isna()].unique()
-    if len(without_totals) > 0:
-        raise ValueError(f"{simulated_week.name} has tallies but no totals for {', '.join(without_totals)}")
-    return rows.assign(week=week)[COLUMNS]
+    agentic_totals = totals[totals.scope == population.AGENTIC]
+    if len(agentic_totals) != 1:
+        raise ValueError(f"{simulated_week.name} has {len(agentic_totals)} rows of {population.AGENTIC} totals, "
+                         "not one")
+    agentic_tallies = tallies[tallies.scope == population.AGENTIC]
+    rows = agentic_tallies.assign(
+        week=week,
+        active_token_seconds=agentic_totals.active_token_seconds.iloc[0],
+        output_tokens=agentic_totals.output_tokens.iloc[0],
+    )
+    return rows[COLUMNS]

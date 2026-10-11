@@ -1,9 +1,9 @@
 """The site's figures give the paper's numbers: every number a figure shares with the paper's `numbers.json` is equal.
 
-The queries run as the browser runs them, on the full site data with every week selected, in the scope the paper
-counts each number in (the trace summary over `All`, the benchmark's medians over `SWE-Bench`, the rest over
-`Agentic`). It is skipped when the full site data (`make data`) or `numbers.json` in `$FREEINFERENCE_PIPELINE`
-(by default the sibling pipeline repository the Makefile builds from) is missing.
+The queries run as the browser runs them, on the full site data with every week and the harnesses of the paper's
+scope selected: every harness for `All` (the trace summary), the benchmark's for `SWE-Bench` (its medians), every
+other for `Agentic`. It is skipped when the full site data (`make data`) or `numbers.json` in
+`$FREEINFERENCE_PIPELINE` (by default the sibling pipeline repository the Makefile builds from) is missing.
 
 A number counted the same way is compared; a count must be equal and a median, share or ratio equal up to
 `RELATIVE_TOLERANCE`. These figures draw a number the paper also reports, but define it differently on purpose, so
@@ -34,7 +34,7 @@ import pytest
 import site_database
 
 SITE_DATA_FOLDER = site_database.QUERIES_FOLDER.parent / "data"  # built by `make data` from the full release
-SITE_DATA_FILES = ["weeks.json", "requests.parquet", "sessions.parquet", "tool_calls.parquet", "simulation.parquet"]
+SITE_DATA_FILES = ["weeks.json", "harnesses.json", "requests", "sessions", "tool_calls", "simulation"]  # what it holds
 PIPELINE_VARIABLE = "FREEINFERENCE_PIPELINE"  # names the pipeline repository's folder, when it is not the default
 # Unset, it is `../freeinference-agentic-pipeline` from this repository's root, the Makefile's `PIPELINE` default.
 DEFAULT_PIPELINE_FOLDER = site_database.QUERIES_FOLDER.parent.parent / ".." / "freeinference-agentic-pipeline"
@@ -42,7 +42,6 @@ NUMBERS_PATH = pathlib.Path("figures") / "v1" / "numbers.json"  # where the pipe
 
 EXACT = 0  # a count matches only when it is equal
 RELATIVE_TOLERANCE = 1e-6  # a median, share or ratio may differ by DuckDB's and numpy's float rounding, no more
-
 MEDIAN_SHARE = 0.5  # the CDF point whose `x` is the median
 NINETIETH_PERCENTILE_SHARE = 0.9  # the CDF point whose `x` is the 90th percentile
 PERCENT = 100  # the paper gives the tool overview's shares in percent
@@ -93,35 +92,37 @@ def paper_numbers() -> dict:
     return json.loads(numbers_file().read_text())
 
 
-def selected_database(scope: str) -> duckdb.DuckDBPyConnection:
-    """A database over the full site data with every week of `weeks.json` and the scopes `scope` covers selected."""
+def selected_database(benchmark: bool | None) -> duckdb.DuckDBPyConnection:
+    """The full site data with every week and the harnesses whose `benchmark` is `benchmark` (all, if None) selected."""
     skip_unless_inputs_exist()
     weeks = [entry["week"] for entry in json.loads((SITE_DATA_FOLDER / "weeks.json").read_text())]
+    harnesses = [entry["harness"] for entry in json.loads((SITE_DATA_FOLDER / "harnesses.json").read_text())
+                 if benchmark is None or entry["benchmark"] == benchmark]
     connection = site_database.open_site_database(SITE_DATA_FOLDER.resolve())
-    site_database.select_weeks(connection, weeks, site_database.SCOPES_OF[scope])
+    site_database.select_weeks(connection, weeks, harnesses)
     return connection
 
 
 @pytest.fixture(scope="session")
 def agentic() -> typing.Iterator[duckdb.DuckDBPyConnection]:
-    """The full data with every week and the `Agentic` scope selected."""
-    connection = selected_database("Agentic")
+    """The full data with every week and the paper's harnesses, every one but the benchmark's, selected."""
+    connection = selected_database(benchmark=False)
     yield connection
     connection.close()
 
 
 @pytest.fixture(scope="session")
 def whole_trace() -> typing.Iterator[duckdb.DuckDBPyConnection]:
-    """The full data with every week and the `All` scope selected."""
-    connection = selected_database("All")
+    """The full data with every week and every harness selected."""
+    connection = selected_database(benchmark=None)
     yield connection
     connection.close()
 
 
 @pytest.fixture(scope="session")
 def benchmark() -> typing.Iterator[duckdb.DuckDBPyConnection]:
-    """The full data with every week and the `SWE-Bench` scope selected."""
-    connection = selected_database("SWE-Bench")
+    """The full data with every week and the benchmark harness alone selected."""
+    connection = selected_database(benchmark=True)
     yield connection
     connection.close()
 
@@ -133,8 +134,8 @@ def cdf_point(rows: pandas.DataFrame, series: str, share: float) -> float:
     return float(point.x.iloc[0])
 
 
-# The scope `numbers.json` records with each compared item, by section and item. The tests select it, except that
-# each `median_benchmark` is compared over `SWE-Bench`, the benchmark's half of "Agentic and SWE-Bench".
+# The scope `numbers.json` records with each compared item, by section and item. The tests select its harnesses,
+# except that each `median_benchmark` is compared over `SWE-Bench`, the benchmark's half of "Agentic and SWE-Bench".
 PAPER_SCOPES = {
     ("dataset", "trace_summary"): "All",
     ("sessions", "counts_per_session"): "Agentic",

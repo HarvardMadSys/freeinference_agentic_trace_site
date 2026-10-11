@@ -1,78 +1,22 @@
-"""The site's database in Python DuckDB, set up and filled by the same `.sql` files the browser runs.
+"""The site's database for the tests: `site_data.site_database`, which sets the database up as the browser does,
+under the names the tests use, and the list of every query a page runs.
 
-`site/js/shared/database.js` opens the browser's database by running the
-`site/queries/setup/create_*.sql` statements in its own order, the four views
-(with `{data_url}` replaced by the data folder's URL) and then the three
-selection tables, and fills the selection tables through the `clear_*` and
-`insert_*` statements, one parameterised insert per value. The functions here
-run the same statements in the browser's order with a local data folder, so a
-test runs a query exactly as a page runs it. A query's name is its path under
-`site/queries/` without `.sql`.
+A test opens the database over the fixture's data folder, fills the selection
+tables and runs a query by name, exactly as a page runs it.
 """
 
-import pathlib
+import site_data.site_database
 
-import duckdb
-import pandas
+QUERIES_FOLDER = site_data.site_database.QUERIES_FOLDER  # every query file, under its page's folder
+SETUP_FOLDER = site_data.site_database.SETUP_FOLDER  # the statements that create and fill the views and tables
+VIEW_STATEMENTS = list(site_data.site_database.VIEW_STATEMENTS.values())  # in the order the views are made
+SELECTION_TABLE_STATEMENTS = site_data.site_database.SELECTION_TABLE_STATEMENTS
+BENCHMARK_TABLE_STATEMENT = site_data.site_database.BENCHMARK_TABLE_STATEMENT
 
-QUERIES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site" / "queries"
-SETUP_FOLDER = QUERIES_FOLDER / "setup"  # the statements that create and fill the views and selection tables
-DATA_URL_PLACEHOLDER = "{data_url}"  # stands for the data folder in a view statement, as in database.js
-
-# The statements that register each data file as a view, in the order database.js runs them.
-VIEW_STATEMENTS = [
-    "setup/create_view_requests",
-    "setup/create_view_tool_calls",
-    "setup/create_view_sessions",
-    "setup/create_view_simulation",
-]
-
-# The statements that make the empty selection tables, run after the views, in the order database.js runs them.
-SELECTION_TABLE_STATEMENTS = [
-    "setup/create_selected_weeks",
-    "setup/create_selected_scopes",
-    "setup/create_selected_session",
-]
-
-# The scopes of the data each scope a visitor can choose covers, as `scopesOf` in selection.js gives them;
-# checked against the pipeline's scopes by test_pipeline_mirrors.py.
-SCOPES_OF = {"Agentic": ["Agentic"], "SWE-Bench": ["SWE-Bench"], "All": ["Agentic", "SWE-Bench"]}
-
-
-def statement_text(name: str) -> str:
-    """The text of the statement `name`: the file `site/queries/<name>.sql`."""
-    return (QUERIES_FOLDER / f"{name}.sql").read_text()
-
-
-def open_site_database(data_directory: pathlib.Path) -> duckdb.DuckDBPyConnection:
-    """A new in-memory database: the four views over `data_directory`, then the empty selection tables."""
-    connection = duckdb.connect()
-    for name in VIEW_STATEMENTS:
-        connection.execute(statement_text(name).replace(DATA_URL_PLACEHOLDER, str(data_directory)))
-    for name in SELECTION_TABLE_STATEMENTS:
-        connection.execute(statement_text(name))
-    return connection
-
-
-def select_weeks(connection: duckdb.DuckDBPyConnection, weeks: list[str], scopes: list[str]) -> None:
-    """Empty `selected_weeks` and `selected_scopes`, then fill them with `weeks` (Sundays) and `scopes`."""
-    connection.execute(statement_text("setup/clear_selected_weeks"))
-    for week in weeks:
-        connection.execute(statement_text("setup/insert_selected_week"), [week])
-    connection.execute(statement_text("setup/clear_selected_scopes"))
-    for scope in scopes:
-        connection.execute(statement_text("setup/insert_selected_scope"), [scope])
-
-
-def select_session(connection: duckdb.DuckDBPyConnection, week: str, root_session_id: str) -> None:
-    """Empty `selected_session`, then hold the one top-level session `root_session_id` of the week `week`."""
-    connection.execute(statement_text("setup/clear_selected_session"))
-    connection.execute(statement_text("setup/insert_selected_session"), [week, root_session_id])
-
-
-def run_query(connection: duckdb.DuckDBPyConnection, name: str, parameters: list | None = None) -> pandas.DataFrame:
-    """The rows of the query `name`, run with its `?` parameters in order, as a frame with the query's columns."""
-    return connection.execute(statement_text(name), parameters or []).df()
+open_site_database = site_data.site_database.open_site_database
+select_weeks = site_data.site_database.select_weeks
+select_session = site_data.site_database.select_session
+run_query = site_data.site_database.run_query
 
 
 def query_names() -> list[str]:

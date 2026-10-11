@@ -1,4 +1,4 @@
--- One row per tool category, over the tool calls of the top-level sessions of the selected weeks and scope: the
+-- One row per tool category, over the tool calls of the top-level sessions of the selected weeks and harnesses: the
 -- category, its `rows` (calls) and `share_of_calls` of all those calls, the `sessions` that called it, its
 -- `failed_share` (calls whose outcome is error, denied or timeout, over its calls with an outcome; null when none has
 -- one), the `median_latency_ms` of its calls that were their request's only call (a batch's calls share one wait),
@@ -13,7 +13,7 @@ WITH selected_calls AS (
   FROM tool_calls
   WHERE is_top_level
     AND week IN (SELECT week FROM selected_weeks)
-    AND scope IN (SELECT scope FROM selected_scopes)
+    AND harness IN (SELECT harness FROM selected_harnesses)
 )
 SELECT category,
        count(*) AS rows,
