@@ -118,6 +118,22 @@ test("a figure whose bins are its series, as every CDF's are, names that column 
   }
 });
 
+// The colours every figure shares, as the page gives a legend function; no model, whose label is its name.
+const FIGURE_COLOURS = Object.freeze({ models: new Map(), categories: new Map(), providers: new Map([["A", "red"]]) });
+
+test("every legend label is capitalised, as a sentence starts", async () => {
+  for (const { figures } of await sections()) {
+    for (const figure of figures.filter(hasLegend)) {
+      // The rows name every series the legend could list, so the legend lists them all.
+      const { colours } = figure.legend([], FIGURE_COLOURS, figure.seriesColumn);
+      const rows = [...colours.keys()].map((name) => ({ [figure.seriesColumn]: name }));
+      for (const { label } of figure.legend(rows, FIGURE_COLOURS, figure.seriesColumn).series) {
+        assert.equal(label[0], label[0].toUpperCase(), `${figure.name}: ${label}`);
+      }
+    }
+  }
+});
+
 test("no figure name is used twice, so every element id is unique", async () => {
   const names = (await sections()).flatMap((section) => section.names);
   assert.equal(new Set(names).size, names.length);

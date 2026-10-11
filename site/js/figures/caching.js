@@ -200,7 +200,9 @@ async function drawTtlLines(body, points, seriesColours, { names, yLabel, logY }
       Plot.axisY({ ...AXIS_STYLE, label: yLabel, tickFormat: logY ? PLAIN_NUMBER_FORMAT : "%" }),
       Plot.line(points, { x: "ttl", y: "value", stroke: "series", strokeWidth: LINE_WIDTH }),
       Plot.dot(points, { x: "ttl", y: "value", fill: "series", r: MARKER_RADIUS }),
-      Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "ttl", y: "value", title: (point) => ttlTipText(point, names, yLabel, logY) })),
+      Plot.tip(points, Plot.pointer({
+        ...TIP_STYLE, x: "ttl", y: "value", title: (point) => ttlTipText(point, names, yLabel, logY),
+      })),
     ],
   });
   body.replaceChildren(chart);
@@ -268,5 +270,6 @@ function idleGapTipText(point) {
   const bin = point.row.idle_gap_bin;
   const from = bin === 0 ? "up" : formatSeconds(idleGapEdgeSeconds(bin));
   const gap = `${from} to ${formatSeconds(idleGapEdgeSeconds(bin + 1))} idle`;
-  return `${providerLabel(point.provider)}\n${gap}\nmedian hit ratio ${formatShare(point.hitRatio)}\n${formatCount(point.row.rows)} requests`;
+  const requests = `${formatCount(point.row.rows)} requests`;
+  return `${providerLabel(point.provider)}\n${gap}\nmedian hit ratio ${formatShare(point.hitRatio)}\n${requests}`;
 }

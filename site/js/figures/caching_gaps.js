@@ -132,7 +132,9 @@ export function meanHitRatioBars(rows) {
 /** Draw one CDF line of the hit ratio per gap bin. */
 async function drawHitRatioByGapBin(rows, body, colours) {
   const series = cdfSeries(rows, GAP_BIN_LABELS);
-  await drawCdf(body, series, { xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, format: formatShare, colours: colours.series });
+  await drawCdf(body, series, {
+    xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, format: formatShare, colours: colours.series,
+  });
 }
 
 /** Draw one CDF line of the gap per cause, on a log axis of seconds from 0.1 s to a day. */
@@ -151,10 +153,12 @@ async function drawGapByCause(rows, body, colours) {
 /** Draw one CDF line of the hit ratio per transition. */
 async function drawHitRatioByTransition(rows, body, colours) {
   const series = cdfSeries(rows, Object.keys(TRANSITION_NAMES), { labels: TRANSITION_NAMES });
-  await drawCdf(body, series, { xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, format: formatShare, colours: colours.series });
+  await drawCdf(body, series, {
+    xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, format: formatShare, colours: colours.series,
+  });
 }
 
-/** Draw one horizontal bar per cause from the axis's low end to its mean hit ratio, each with its value written after it. */
+/** Draw one horizontal bar per cause from the axis's low end to its mean hit ratio, its value written after it. */
 async function drawMeanHitRatioByCause(rows, body) {
   // Plot is loaded here, not at the top, so node can test the section's figure list.
   const { Plot } = await import("../shared/libraries.js");
@@ -172,7 +176,9 @@ async function drawMeanHitRatioByCause(rows, body) {
       Plot.axisX({ ...AXIS_STYLE, label: "Mean hit ratio" }),
       Plot.axisY({ ...AXIS_STYLE, label: null, tickFormat: (cause) => CAUSE_NAMES[cause] }),
       Plot.barX(bars, { x1: MEAN_HIT_RATIO_AXIS_LOW, x2: "end", y: "cause", fill: "cause", inset: BAR_INSET }),
-      Plot.text(bars, { x: "end", y: "cause", text: meanText, textAnchor: "start", dx: VALUE_OFFSET, fill: "var(--chart-label)" }),
+      Plot.text(bars, {
+        x: "end", y: "cause", text: meanText, textAnchor: "start", dx: VALUE_OFFSET, fill: "var(--chart-label)",
+      }),
       Plot.tip(bars, Plot.pointerY({ ...TIP_STYLE, x: "end", y: "cause", title: meanTipText })),
     ],
   });

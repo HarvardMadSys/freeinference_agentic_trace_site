@@ -39,6 +39,9 @@ const TOKEN_SERIES = Object.freeze({ input: "Input", uncached: "Uncached input",
 // A request's token parts, bottom up in a stacked bar, each drawn in its token colour.
 const TOKEN_PARTS = Object.freeze(["cached", "uncached", "output"]);
 
+// The label each token part has in a legend and a tooltip.
+const TOKEN_PART_LABELS = Object.freeze({ cached: "Cached", uncached: "Uncached", output: "Output" });
+
 // The median column of each token part in the token growth query.
 const GROWTH_COLUMNS = Object.freeze({
   cached: "median_cached_tokens",
@@ -48,6 +51,15 @@ const GROWTH_COLUMNS = Object.freeze({
 
 // The parts of a request's input, bottom up in a stacked bar; each takes its series colour in this order.
 const ROLES = Object.freeze(["system", "user", "assistant", "tool", "tool_definitions"]);
+
+// The label each part of a request's input has in the legend.
+const ROLE_LABELS = Object.freeze({
+  system: "System",
+  user: "User",
+  assistant: "Assistant",
+  tool: "Tool",
+  tool_definitions: "Tool definitions",
+});
 
 const MIN_COUNT_DRAWN = 1; // a count below one (a session with no tool step) is drawn at one, on the log axis
 const MIN_SECONDS_DRAWN = 0.1; // a duration below a tenth of a second is drawn at it, on the log axis
@@ -148,17 +160,18 @@ function tokensPerRequestLegend(rows, colours, seriesColumn) {
 
 /** The token split's legend: the token parts, in their colours. */
 function tokenSplitLegend(rows, colours, seriesColumn) {
-  return seriesLegend(rows, seriesColumn, tokenPartColours());
+  return seriesLegend(rows, seriesColumn, tokenPartColours(), TOKEN_PART_LABELS);
 }
 
 /** The token growth's legend: the token parts, in their colours; each is a column of every row. */
 function tokenGrowthLegend() {
-  return { series: TOKEN_PARTS.map((part) => ({ name: part, label: part })), colours: tokenPartColours() };
+  const series = TOKEN_PARTS.map((part) => ({ name: part, label: TOKEN_PART_LABELS[part] }));
+  return { series, colours: tokenPartColours() };
 }
 
 /** The context share's legend: the roles, in their order. */
 function contextShareLegend(rows, colours, seriesColumn) {
-  return seriesLegend(rows, seriesColumn, assignColours(ROLES));
+  return seriesLegend(rows, seriesColumn, assignColours(ROLES), ROLE_LABELS);
 }
 
 /** Draw the CDFs of requests, user steps and tool steps per session, on a log axis. */
@@ -256,7 +269,7 @@ function growthPoints(rows, parts) {
 function growthTipText(point) {
   const lastMessage = 2 * point.messages - 1; // a power-of-two bin runs to one below the next power of two
   const messages = `${formatCount(point.messages)}–${formatCount(lastMessage)} messages`;
-  return `${point.part}\n${messages}\nmedian ${formatTokens(point.median)} tokens\n${formatCount(point.rows)} requests`;
+  return `${TOKEN_PART_LABELS[point.part]}\n${messages}\nmedian ${formatTokens(point.median)} tokens\n${formatCount(point.rows)} requests`;
 }
 
 /** The token part colours as a map from part to colour, as the chart helpers take them. */
