@@ -76,7 +76,9 @@ registers each fetched file with DuckDB as an in-memory buffer under its
 path; a file not yet fetched is read over HTTP ranges as before. A narrowed
 selection therefore runs on memory for the weeks already streamed and on
 ranges for the rest, and the picker shows which weeks are in. Streaming
-stops when every week is in or the visitor leaves the page.
+stops when every week is in or the visitor leaves the page. One named
+constant in the database module turns it off, in case the bytes it sends
+every visitor turn out not to be worth it; nothing else changes with it.
 
 - *Alternative: keep one file per kind and prefetch row groups.* DuckDB-WASM
   cannot take part of a file as a buffer, and the browser's HTTP cache does

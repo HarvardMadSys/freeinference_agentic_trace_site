@@ -95,7 +95,14 @@ hand each fetched file to DuckDB, so a query on those weeks reads memory. A
 file not yet fetched SHALL be read over HTTP ranges. Streaming SHALL NOT
 delay the default view and SHALL stop when every week is in or the page is
 left. A narrowed selection SHALL run as soon as it is made, whether or not
-its weeks have streamed in.
+its weeks have streamed in. Streaming SHALL be switched on or off by one
+named constant in one module, so a maintainer can turn it off without
+touching anything else; with it off, every browser-computed selection reads
+HTTP ranges and the picker does not mention streamed weeks.
+
+#### Scenario: Streaming switched off
+- **WHEN** the maintainer sets the streaming constant to off and deploys
+- **THEN** the default view SHALL be unchanged, no row file SHALL be fetched until a selection is narrowed, and a narrowed selection SHALL read HTTP ranges
 
 #### Scenario: Narrowing after the stream
 - **WHEN** every week's files have streamed in and the visitor unticks a harness
