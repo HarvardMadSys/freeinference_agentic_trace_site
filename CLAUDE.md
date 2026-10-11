@@ -3,8 +3,8 @@
 This is the FreeInference trace site: a static, public visualizer and explorer
 for the agentic trace. Start with `README.md` (what it is and how to run it)
 and `CONTRIBUTING.md` (the rules, the patterns to copy, how to verify a
-change). The specifications are in `openspec/`; the change that builds the
-site is `openspec/changes/site-first-release/`.
+change). The specifications are in `openspec/`; the change being built is
+`openspec/changes/one-page-all-weeks/`.
 
 The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
 
@@ -18,6 +18,9 @@ The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
   `site_data`; the browser only filters, counts, sums and takes quantiles.
 - Names are words; functions ≤ 50 lines; modules ≤ 300 lines; every module
   has tests.
+- `make data` follows every edit to a query under `site/queries/explore/`,
+  `site/queries/figures/` or a colour order: the default view reads the
+  answer `make data` precomputed, not the query.
 
 ## Verifying a change
 

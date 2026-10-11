@@ -25,17 +25,28 @@ binding, and `make test` checks the countable ones.
   or paper figure numbers.
 - **SQL is a literal.** Every query is one `.sql` file under `site/queries/`.
   No SQL is written in JavaScript, and no query is assembled from strings. A
-  query reads the selection from the tables `selected_weeks`,
-  `selected_harnesses` and `selected_session`, and from nothing else; the
-  table `benchmark_harness` names the harness that is not the paper's
-  population. The one
-  exception is `session/session_root.sql`, run through `runQueryWith` with
-  the session id from the URL as its one `?` parameter: it finds the
-  session's week and top-level session, which `selected_session` is then
-  filled with.
+  query reads the selection from the selection tables and from nothing else:
+  - `selected_weeks(week)`: the selected weeks' Sundays;
+  - `selected_harnesses(harness)`: the selected harnesses;
+  - `selected_session(week, root_session_id)`: on the Session page, the
+    session shown and its week;
+  - `benchmark_harness(harness)`: not a choice but a fact, filled from
+    `harnesses.json` when the database opens: the harness that is not the
+    paper's population.
+
+  A setup statement that fills a table takes its row as `?` parameters
+  (`setup/insert_*.sql`). One query takes a parameter: `session/session_root.sql`,
+  run through `runQueryWith` with the session id from the URL as its one `?`:
+  it finds the session's week and top-level session, which `selected_session`
+  is then filled with. Every other query takes none. The view statements
+  `setup/create_view_*.sql` hold the placeholder `{files}`, which the opener
+  replaces with the names of that kind's week files, each single-quoted and
+  separated by commas (`engine/duckdb_files.js` in the browser,
+  `site_data/site_database.py` in Python): HTTP has no directory listing, and
+  a file registered under its name is what the stream can swap for its bytes.
 - **Every definition comes from the pipeline.** The browser filters, groups,
-  counts, sums and takes quantiles. It never decides what a turn, a scope, a
-  wait or a cache hit is; `site_data` computes those by calling the pipeline's
+  counts, sums and takes quantiles. It never decides what a turn, a wait or a
+  cache hit is; `site_data` computes those by calling the pipeline's
   functions.
 - **No framework, no bundler, no npm dependency.** Plain HTML, CSS and ES
   modules. Libraries come from a CDN at exact versions, named only in
@@ -53,8 +64,9 @@ page (html)  →  js/pages/<page>.js  →  section modules and js/shared/  →  
 js/pages/             one module per page
 js/shared/            what every page uses: the database, the selection, formatting, charts, the table, the stat strip
 js/engine/            DuckDB in the page: starting it, its views and setup, the weeks' files and their streaming in
-js/explore/           the Explore page's sections
-js/figures/           the Explore page's figures: one module per section, listing its figure entries
+js/explore/           the Explore page's sections, the figure runner (figure_sections.js) and the legend of buttons
+js/figures/           the Explore page's figures: one module per section, listing its figure entries, the modules a
+                      section takes entries from, and the row rules every figure shares (figure_rows.js)
 js/session/           the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
 js/session_requests/  the Session page's Requests view
 js/session_charts/    the Session page's Context and Timeline views
@@ -77,8 +89,10 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   the database fills the selection tables before a query whenever the
   selection has changed. Once a page has drawn its first view it calls
   `streamRows`, which fetches each week's files and hands DuckDB their
-  bytes in place of their URLs (`engine/duckdb_files.js`); the constant
-  `STREAM_ROWS_AFTER_DRAW` in `database.js` turns this off.
+  bytes in place of their URLs (`engine/duckdb_files.js`). To turn the
+  stream off, set the constant `STREAM_ROWS_AFTER_DRAW` in `database.js` to
+  `false`: the default view is unchanged, nothing is fetched until a
+  selection is narrowed, and a narrowed selection reads HTTP ranges.
 - `shared/selection.js` owns the selection and the URL keys `weeks`, `month`
   and `harnesses` that hold it (none for the default: every week and the
   paper's harnesses); `explore/selection_pickers.js` draws the week and
@@ -105,8 +119,10 @@ The first line says what one row is. Columns are named in words. Every
 query is run by `tests/test_queries.py` against the fixture data.
 `make data` also runs every query under `explore/` and `figures/` once for the
 default selection, and the colour orders `setup/*_order`, and writes each
-answer to `site/data/all_weeks/`, so rerun `make data` after editing one of
-those queries; `tests/test_answers.py` checks each answer against its query.
+answer to `site/data/all_weeks/`. **Rerun `make data` after editing one of
+those queries**: the default view reads the answer, not the query.
+`tests/test_answers.py` checks each answer written for the fixture against its
+query run live.
 
 **A pure JavaScript module with its test** (`site/js/shared/format.js`,
 `tests/format.test.js`): exported functions with one-line JSDoc, module-level
@@ -164,6 +180,43 @@ Object.freeze({
   draw: drawTokensPerRequest,
 }),
 ```
+
+**Adding a figure.** One query, one answer, one draw function, and their
+tests:
+
+1. **The query**, `site/queries/figures/<name>.sql`, as above: the selection
+   from the selection tables; where thin bins are to be hidden, a column
+   naming each row's bin or series and that bin's count in `rows`. List its
+   columns in `EXPECTED_COLUMNS` of `tests/test_queries.py`, and test its
+   numbers on the fixture, counted by hand, in its section's query test
+   (`test_figure_queries.py`, `test_session_figure_queries.py` or
+   `test_caching_queries.py`).
+2. **The answer.** Run `make data`, which writes
+   `site/data/all_weeks/figures/<name>.json`. `tests/test_answers.py` already
+   runs every figure query live on the fixture and compares it with the
+   answer written for it.
+3. **The draw function and the entry**, in the section's module under
+   `js/figures/` or a module it takes entries from: a frozen figure entry, and
+   a draw function that loads Plot where it needs it and colours its series
+   from `colours`. Its pure parts (rows to series, bars or stacks) are
+   exported and tested with `node --test`. Add its name to the section's list
+   in `tests/figure_sections.test.js`.
+4. **The legend**, for a figure of more than one series: `legend(rows,
+   colours)` (`seriesLegend` in `figures/figure_rows.js` builds one from rows
+   that name their series), and either `seriesColumn` or a `draw` that takes
+   `hidden`; list the figure under `LONG_FORMAT_SERIES_COLUMNS` or
+   `WIDE_FORMAT_FIGURES` in `tests/figure_sections.test.js`. A series that is a
+   model, category, cause, transition or gap bin takes that thing's colour.
+5. **Parity**, when the paper's `numbers.json` holds a number the figure
+   shows: compare it in `tests/test_paper_parity*.py`, which runs the query
+   on the full data with the default selection.
+6. **A mirror test**, when the query or a module copies a pipeline constant
+   (a bin edge, a price, a list of causes): a test in
+   `tests/test_pipeline_mirrors*.py` that parses the copy and compares it with
+   the pipeline's own.
+7. **The words.** Where the figure is drawn more simply than the paper, its
+   definition says how, and so does the About page's list;
+   `tests/test_about_page.py` counts the figures the About page states.
 
 ## JavaScript style
 

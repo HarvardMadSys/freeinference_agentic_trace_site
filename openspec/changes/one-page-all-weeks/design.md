@@ -58,9 +58,11 @@ compares the rows.
   instances would quadruple memory and WASM start-up to read the same
   bytes. Rejected.
 
-The JSON is small: the fifteen figure answers of the first release total
-under 300 KB, the sessions table of every week about 1 MB. The default page
-therefore loads no DuckDB and no Parquet, and under 2 MB in all.
+Measured when they were first written, the answers total 3.9 MB, of which
+the sessions table of every week is 3.6 MB and every other answer is small;
+with every figure of decision 6 answered they are 4.2 MB in 48 files, the
+figures' 0.5 MB of it. The host gzips JSON, which takes the sessions table to
+0.7 MB. The default page loads no DuckDB and no Parquet.
 
 ### 2. One Parquet file per kind of row and week, streamed in the background
 
@@ -89,6 +91,36 @@ every visitor turn out not to be worth it; nothing else changes with it.
 - Cost: with 16 weeks the views open 64 files, each needing its footer (one
   small range read) the first time a query touches it; the streaming makes
   most of those reads memory reads. Measured at task 6.2.
+
+Measurements, on the full data (16 weeks, 64 row files), through `serve.py`
+on the same machine in headless Chromium, before the deployed check of task
+6.2:
+
+- **Default page.** Before the pages merged: Explore drawn in 0.46 s from
+  23 answers (4.11 MB, the sessions table 3.63 MB of it), Figures in
+  0.81–1.02 s from 17 answers (0.67 MB). On one page: every number, figure
+  and the table drawn in 0.76–0.95 s from 37 answers. No DuckDB module and
+  no Parquet file is fetched before the page is drawn.
+- **One month** (`?month=2026-07`), every figure queried at once: Explore
+  4.07 s and 17.7 MB (DuckDB 7.06 MB, Parquet 10.1 MB in 161 ranges);
+  Figures 6.05 s and 36.9 MB (Parquet 29.3 MB in 239 ranges over 20 files).
+  On one page, figures drawn as they come into view: the first figure at
+  3.8 s, with 4 figure queries before any scroll instead of 13 and 175
+  Parquet range reads instead of 269; the Tools figures, scrolled to after
+  the stream, drawn in 0.5 s with no range read.
+- **Session page**, the largest session (5,040 requests, 4,856 tool calls),
+  with the database opened over its week alone: Requests view drawn in
+  2.27–2.39 s warm and 3.49 s cold, 27 Parquet ranges, 7.47 MB; over every
+  week it took 2.72–2.82 s warm. Opening DuckDB is 1.39 s of it, reading the
+  session's requests 0.43 s. It misses task 2.4's 2 s; the deployed check
+  decides whether the data layout changes.
+- **Stream.** 64 whole-file fetches, each file once, 68,700,803 bytes. With
+  the default view drawn at 0.43 s, the first file is fetched at 2.55 s,
+  once DuckDB has started, and the last is in by 3.5 s. A one-harness change
+  then takes 2.18 s on Explore and 6.64 s on Figures with no range request;
+  made before the stream is in, 6.58 s (389 ranges, 34.2 MB) and 13.55 s
+  (883 ranges, 112.3 MB); with the stream switched off, 6.06 s (421 ranges,
+  42.1 MB) and 13.8 s (1,003 ranges, 130.4 MB).
 
 ### 3. Harnesses instead of scope
 
