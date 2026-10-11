@@ -194,7 +194,8 @@ tests:
 2. **The answer.** Run `make data`, which writes
    `site/data/all_weeks/figures/<name>.json`. `tests/test_answers.py` already
    runs every figure query live on the fixture and compares it with the
-   answer written for it.
+   answer written for it, and fails on a query with no rows there, so the
+   fixture must hold a case of the figure.
 3. **The draw function and the entry**, in the section's module under
    `js/figures/` or a module it takes entries from: a frozen figure entry, and
    a draw function that loads Plot where it needs it and colours its series

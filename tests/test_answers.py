@@ -16,9 +16,6 @@ import fixture_release
 import site_database
 
 ANSWERS_FOLDER = "all_weeks"  # where the data step writes the answers, under the data folder
-ANSWERED_PAGES = ("explore/", "figures/")  # the pages whose queries are answered
-# The colour orders, answered too: they read every week and every harness, whatever the selection.
-COLOUR_ORDER_QUERIES = ["setup/category_order", "setup/harness_order", "setup/model_order"]
 RELATIVE_TOLERANCE = 1e-12  # an answer's number and the live query's are equal when this close
 # The queries that read the `simulation` view, which a data folder with no simulated week does not have.
 SIMULATION_QUERIES = ["figures/dead_over_active_by_policy", "figures/retained_over_active",
@@ -28,9 +25,10 @@ SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
 
 
 def answered_query_names() -> list[str]:
-    """Every query under `explore/` and `figures/`, and every colour order, by name, sorted."""
-    page_queries = [name for name in site_database.query_names() if name.startswith(ANSWERED_PAGES)]
-    return sorted([*page_queries, *COLOUR_ORDER_QUERIES])
+    """Every query of the answered pages, and every colour order, by name, sorted."""
+    page_prefixes = tuple(f"{page}/" for page in site_data.answers.ANSWERED_PAGES)
+    page_queries = [name for name in site_database.query_names() if name.startswith(page_prefixes)]
+    return sorted([*page_queries, *site_data.answers.COLOUR_ORDER_QUERIES])
 
 
 def expected_answer_names(data_directory: pathlib.Path) -> list[str]:
@@ -60,7 +58,10 @@ def read_answer(data_directory: pathlib.Path, name: str) -> list[dict]:
 
 def same_value(answered: object, live: object) -> bool:
     """Whether an answer's value equals the live query's: null for a NaN or None, a string exactly, a number within
-    `RELATIVE_TOLERANCE`."""
+    `RELATIVE_TOLERANCE`.
+
+    An integer written as a float (`13.0` for `13`) passes `isclose`; the test of an answer's exact text guards that.
+    """
     if pandas.isna(live):
         return answered is None
     if isinstance(live, str):
@@ -77,6 +78,7 @@ def test_an_answer_equals_its_query_run_live_with_the_default_selection(
     site_database.select_weeks(connection, selection.weeks, selection.harnesses)
     live = site_database.run_query(connection, name)
     answer = read_answer(data_directory, name)
+    assert len(live) > 0, f"{name}: no rows on the fixture, so its columns and values go unchecked"
     assert len(answer) == len(live), f"{name}: {len(answer)} rows answered, {len(live)} live"
     for index, live_row in enumerate(live.itertuples(index=False)):
         answered_row = answer[index]
@@ -87,6 +89,7 @@ def test_an_answer_equals_its_query_run_live_with_the_default_selection(
 
 
 def test_every_explore_and_figure_query_and_colour_order_has_an_answer_and_nothing_else_does(data_directory: pathlib.Path) -> None:
+    assert site_data.answers.ANSWERED_PAGES == ["explore", "figures"]
     assert written_files(data_directory) == answer_files(expected_answer_names(data_directory))
 
 
@@ -122,11 +125,15 @@ def test_a_nan_is_written_as_null_and_an_infinity_stops_the_writer() -> None:
         site_data.answers.answer_text([{"share": math.inf}])
 
 
-def test_without_a_simulated_week_only_the_simulation_queries_have_no_answer(tmp_path: pathlib.Path) -> None:
+def test_without_a_simulated_week_only_the_simulation_queries_have_no_answer(
+        tmp_path: pathlib.Path, capsys: pytest.CaptureFixture) -> None:
     fixture_release.write_fixture_release(tmp_path / "release", tmp_path / "simulation")
     (tmp_path / "simulation" / fixture_release.SIMULATED_WEEK / "sources.json").write_text(json.dumps({}))
     site_data.__main__.main(["--release", str(tmp_path / "release"), "--simulation", str(tmp_path / "simulation"),
                              "--out", str(tmp_path / "data")])
+    printed = capsys.readouterr().out.splitlines()
+    assert printed[-len(SIMULATION_QUERIES):] == [f"{name}: no answer, because no week is simulated"
+                                                  for name in SIMULATION_QUERIES]
     written = written_files(tmp_path / "data")
     assert written == answer_files(expected_answer_names(tmp_path / "data"))
     assert sorted(set(answer_files(answered_query_names())) - set(written)) == answer_files(SIMULATION_QUERIES)

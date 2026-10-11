@@ -8,15 +8,14 @@ import pytest
 from pyarrow import parquet
 
 import site_data.__main__
+import site_data.answers
 import site_data.site_database
 
 import fixture_release
 
 KIND_FOLDERS = ["requests", "tool_calls", "sessions", "simulation"]  # in the order the step writes them
 INDEX_FILES = ["harnesses.json", "weeks.json"]  # written after the kinds' files, in this order
-ANSWERS_FOLDER = "all_weeks"  # written last: an answer per query of these pages, and of each colour order
-ANSWERED_PAGES = ["explore", "figures"]
-COLOUR_ORDER_QUERIES = ["setup/category_order", "setup/harness_order", "setup/model_order"]
+ANSWERS_FOLDER = "all_weeks"  # written last: an answer per query of the answered pages, and of each colour order
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
 REQUEST_COLUMNS = [
@@ -51,10 +50,10 @@ def written_files(out: pathlib.Path) -> list[str]:
 def answer_files() -> list[str]:
     """The answer file of every query of the answered pages and of every colour order, relative to the data folder."""
     files = []
-    for page in ANSWERED_PAGES:
+    for page in site_data.answers.ANSWERED_PAGES:
         for path in (site_data.site_database.QUERIES_FOLDER / page).glob("*.sql"):
             files.append(f"{ANSWERS_FOLDER}/{page}/{path.stem}.json")
-    for name in COLOUR_ORDER_QUERIES:
+    for name in site_data.answers.COLOUR_ORDER_QUERIES:
         files.append(f"{ANSWERS_FOLDER}/{name}.json")
     return files
 

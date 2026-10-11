@@ -13,9 +13,9 @@ names in the query's order. Integers are written as integers and other numbers
 as floats, strings as strings, booleans as booleans and NULL as null.
 
 When no week is simulated the data folder has no `simulation` view. A query
-that then fails because it reads that view gets no answer file, and a page
-asking for that answer shows the query's error; any other failure stops the
-step.
+that then fails because it reads that view gets no answer file, the step
+names it, and a page asking for that answer shows the query's error; any
+other failure stops the step.
 """
 
 import dataclasses
@@ -32,7 +32,6 @@ ANSWERED_PAGES = ["explore", "figures"]  # the pages whose queries are answered;
 # The setup queries that fix each harness's, model's and category's colour from every week and harness; answered so a
 # page draws its colours without DuckDB.
 COLOUR_ORDER_QUERIES = ["setup/category_order", "setup/harness_order", "setup/model_order"]
-SIMULATION_VIEW = "simulation"  # the view a data folder with no simulated week does not have
 # Commas and colons without spaces: the answers are fetched by every visitor, the sessions table's above all.
 JSON_SEPARATORS = (",", ":")
 
@@ -47,10 +46,11 @@ class DefaultSelection:
 
 @dataclasses.dataclass(frozen=True)
 class WrittenAnswers:
-    """What the answers folder holds."""
+    """What the answers folder holds, and the queries it holds no answer of because no week is simulated."""
 
     files: int
     bytes: int
+    unanswered: list[str]  # by name, `<folder>/<query>`; empty when a week is simulated
 
 
 def default_selection(data_directory: pathlib.Path) -> DefaultSelection:
@@ -80,20 +80,21 @@ def write_answers(data_directory: pathlib.Path) -> WrittenAnswers:
         shutil.rmtree(answers_directory)  # a query since removed keeps no answer
     any_simulated = any(entry.simulated for entry in weeks.read_weeks_file(data_directory))
     selection = default_selection(data_directory)
-    connection = site_database.open_site_database(data_directory)
-    site_database.select_weeks(connection, selection.weeks, selection.harnesses)
-    files, size = 0, 0
-    for name in answered_query_names():
-        rows = rows_unless_simulation_is_missing(connection, name, any_simulated)
-        if rows is None:
-            continue
-        path = data_directory / paths.answer_file(name)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(answer_text(rows))
-        files += 1
-        size += path.stat().st_size
-    connection.close()
-    return WrittenAnswers(files=files, bytes=size)
+    files, size, unanswered = 0, 0, []
+    # The block closes the connection whether or not a query fails.
+    with site_database.open_site_database(data_directory) as connection:
+        site_database.select_weeks(connection, selection.weeks, selection.harnesses)
+        for name in answered_query_names():
+            rows = rows_unless_simulation_is_missing(connection, name, any_simulated)
+            if rows is None:
+                unanswered.append(name)
+                continue
+            path = data_directory / paths.answer_file(name)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(answer_text(rows))
+            files += 1
+            size += path.stat().st_size
+    return WrittenAnswers(files=files, bytes=size, unanswered=unanswered)
 
 
 def rows_unless_simulation_is_missing(connection: duckdb.DuckDBPyConnection, query_name: str,
@@ -103,7 +104,8 @@ def rows_unless_simulation_is_missing(connection: duckdb.DuckDBPyConnection, que
     try:
         return answer_rows(connection, query_name)
     except duckdb.CatalogException as error:
-        if any_simulated or SIMULATION_VIEW not in str(error):
+        # The view of a kind of row is named after the kind's folder.
+        if any_simulated or paths.SIMULATION_FOLDER not in str(error):
             raise
         return None
 

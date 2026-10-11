@@ -9,7 +9,8 @@ import site_data.site_database
 
 QUERIES_FOLDER = site_data.site_database.QUERIES_FOLDER  # every query file, under its page's folder
 SETUP_FOLDER = site_data.site_database.SETUP_FOLDER  # the statements that create and fill the views and tables
-VIEW_STATEMENTS = list(site_data.site_database.VIEW_STATEMENTS.values())  # in the order the views are made
+VIEW_STATEMENTS_BY_KIND = site_data.site_database.VIEW_STATEMENTS  # each kind of row's view statement, in order
+VIEW_STATEMENTS = list(VIEW_STATEMENTS_BY_KIND.values())  # in the order the views are made
 SELECTION_TABLE_STATEMENTS = site_data.site_database.SELECTION_TABLE_STATEMENTS
 BENCHMARK_TABLE_STATEMENT = site_data.site_database.BENCHMARK_TABLE_STATEMENT
 

@@ -46,7 +46,8 @@ class WrittenKind:
 
 def main(arguments: list[str] | None = None) -> None:
     """Write each kind's week files, `harnesses.json`, `weeks.json` and the answers into the output folder, and print
-    each kind's rows and size over every week, each index's, and the answers' files and bytes."""
+    each kind's rows and size over every week, each index's, the answers' files and bytes, and each query left
+    without an answer."""
     options = parsed_arguments(arguments)
     try:
         entries = weeks.weeks_index(options.release, options.simulation)
@@ -65,6 +66,8 @@ def main(arguments: list[str] | None = None) -> None:
     print_size(weeks.write_weeks_file(entries, options.out), len(entries))
     written_answers = answers.write_answers(options.out)
     print(f"{paths.ANSWERS_FOLDER}: {written_answers.files} files, {written_answers.bytes:,} bytes")
+    for name in written_answers.unanswered:
+        print(f"{name}: no answer, because no week is simulated")
 
 
 def parsed_arguments(arguments: list[str] | None) -> argparse.Namespace:

@@ -53,8 +53,13 @@ test("the start is the UTC minute and the models carry their requests", () => {
   const requests = [{ model: "model-y" }, { model: "model-x" }, { model: "model-y" }];
   const values = factValues([TOP_LEVEL], requests);
   assert.deepEqual(values["Started"], ["2026-08-09 14:03", "UTC"]);
-  assert.deepEqual(values["Harness"], ["claude-code", "of the top-level session"]);
+  assert.deepEqual(values["Harness"], ["claude-code", "the agent program"]);
   assert.deepEqual(values["Models"], ["2", "model-y · 2, model-x · 1"]);
+});
+
+test("the Harness tile's detail says what a harness is, not what the Duration tile's says", () => {
+  const values = factValues([TOP_LEVEL], [{ model: "model-x" }]);
+  assert.notEqual(values["Harness"][1], values["Duration"][1]);
 });
 
 test("models with as many requests are in name order", () => {

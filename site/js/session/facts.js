@@ -16,7 +16,7 @@ export function sessionFacts(tree, requests) {
   const subagentTurns = totals.turns - topLevel.user_steps;
   const subagentToolCalls = totals.toolCalls - topLevel.tool_calls;
   return [
-    { label: "Harness", value: topLevel.harness, detail: "of the top-level session" },
+    { label: "Harness", value: topLevel.harness, detail: "the agent program" },
     modelsFact(requests),
     { label: "Started", value: utcMinute(topLevel.first_start_ms), detail: "UTC" },
     { label: "Duration", value: formatSeconds(topLevel.duration_s), detail: "of the top-level session" },

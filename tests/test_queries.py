@@ -7,7 +7,6 @@ import duckdb
 import pytest
 
 import site_data.answers
-import site_data.site_database
 
 import fixture_release
 import site_database
@@ -122,7 +121,7 @@ def browser_view_statements() -> dict[str, str]:
 
 
 def test_the_setup_statements_run_in_the_browser_s_order() -> None:
-    assert list(site_data.site_database.VIEW_STATEMENTS.items()) == list(browser_view_statements().items())
+    assert list(site_database.VIEW_STATEMENTS_BY_KIND.items()) == list(browser_view_statements().items())
     assert site_database.SELECTION_TABLE_STATEMENTS == browser_list(VIEWS_MODULE, "SELECTION_TABLE_STATEMENTS")
 
 
