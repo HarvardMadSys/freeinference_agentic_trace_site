@@ -1,0 +1,1 @@
+[{"waited_for":"tool","rows":1001674,"mean_hit_ratio":0.9745462617184837},{"waited_for":"ask_user_tool","rows":3976,"mean_hit_ratio":0.9222796220572476},{"waited_for":"user","rows":61047,"mean_hit_ratio":0.8422528271291481},{"waited_for":"subagent","rows":3296,"mean_hit_ratio":0.9094358352138591}]

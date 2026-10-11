@@ -24,6 +24,7 @@ RELATIVE_TOLERANCE = 1e-12  # an answer's number and the live query's are equal 
 # The queries that read the `simulation` view, which a data folder with no simulated week does not have.
 SIMULATION_QUERIES = ["figures/dead_over_active_by_policy", "figures/retained_over_active",
                       "figures/simulated_hit_ratio_by_ttl"]
+SHIPPED_DATA_FOLDER = site_database.QUERIES_FOLDER.parent / "data"  # the data the repository tracks, built by `make data`
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
 
@@ -212,3 +213,10 @@ def test_a_failed_run_leaves_the_previous_answers_in_place(data_directory: pathl
         site_data.answers.write_answers(data)
     assert written_files(data) == before
     assert read_answer(data, "explore/request_count") == read_answer(data_directory, "explore/request_count")
+
+
+def test_shipped_answers_come_from_the_current_queries() -> None:
+    """Every answer under the tracked `site/data` was written from its query's current text: a query edited since `make
+    data`, or added since, fails here until `make data` is rerun."""
+    stale = site_data.check_answers.stale_queries(SHIPPED_DATA_FOLDER)
+    assert stale == [], "stale answers: " + ", ".join(f"{query.name} ({query.reason})" for query in stale)
