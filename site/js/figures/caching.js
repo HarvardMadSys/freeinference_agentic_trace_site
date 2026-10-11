@@ -1,7 +1,7 @@
 /**
  * The Prefix-caching section of the Explore page's figures: how much of a request's input the provider served from
- * cache, after an idle gap and after each kind of context change, and what the cache simulation says each TTL and
- * eviction policy would keep.
+ * cache, after a gap of each length and cause, after an idle gap and after each kind of context change, and what the
+ * cache simulation says each TTL and eviction policy would keep. The gap figures are drawn in `caching_gaps.js`.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines; a figure that `isSimulation` draws
  * the simulation of the paper's harnesses whatever harnesses are selected. A figure of more than one series colours
@@ -12,6 +12,7 @@ import {
   AXIS_STYLE, assignColours, chartFrame, colourScale, DASH, distinct, drawBars, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
 } from "../shared/charts.js";
 import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
+import { GAP_FIGURES } from "./caching_gaps.js";
 import { seriesLegend, sparseTickFormat } from "./figure_rows.js";
 
 // The idle-gap bins mirror the pipeline's `gaps.IDLE_GAP_EDGES_S`: 26 bins between 27 geometric edges from 10 s to
@@ -45,6 +46,7 @@ const PLAIN_NUMBER_FORMAT = "~g"; // a log axis writes 0.001 and 100, not Plot's
 
 /** The figures of the Prefix-caching section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
+  GAP_FIGURES.hitRatioByGapBin,
   Object.freeze({
     name: "hit_ratio_by_idle_gap",
     title: "Hit ratio after an idle gap",
@@ -55,6 +57,8 @@ export const FIGURES = Object.freeze([
     legend: idleGapLegend,
     draw: drawIdleGapRetention,
   }),
+  GAP_FIGURES.gapByCause,
+  GAP_FIGURES.meanHitRatioByCause,
   Object.freeze({
     name: "hit_ratio_by_transition",
     title: "Hit ratio after a context change",

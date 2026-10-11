@@ -58,6 +58,26 @@
   --token-uncached: var(--series-2);
   --token-output: var(--series-1);
 
+  /* What a wait before a request waited for, the same everywhere it is drawn. The paper draws an ask-user tool in
+     purple, but this palette's purple and blue (the subagent's) are too close for colour-blind readers, so it is amber. */
+  --cause-tool: var(--series-3);
+  --cause-ask-user: var(--series-4);
+  --cause-user: var(--series-8);
+  --cause-subagent: var(--series-1);
+
+  /* How a request's context changed from the one before it: appended to, or rewritten. */
+  --transition-append: var(--series-3);
+  --transition-mutation: var(--series-8);
+
+  /* The six gap bins, shortest gap lightest: the blue of --series-1 from its 250 to its 700 step, evenly in lightness,
+     the lightest still 2:1 against the surface. */
+  --gap-bin-1: #86b6ef;
+  --gap-bin-2: #599be8;
+  --gap-bin-3: #307edc;
+  --gap-bin-4: #2164b7;
+  --gap-bin-5: #164c91;
+  --gap-bin-6: #0d366b;
+
   /* A highlighted row, step or bar. */
   --color-highlight: rgb(237 161 0 / 0.25);
 }
@@ -94,6 +114,14 @@
     --series-7: #9085e9;
     --series-8: #e66767;
     --series-other: #6b7280;
+
+    /* The gap bins on a dark surface: the same blue from its 100 to its 600 step, the darkest still 2:1 against it. */
+    --gap-bin-1: #cde2fb;
+    --gap-bin-2: #9dc5f4;
+    --gap-bin-3: #6da7ec;
+    --gap-bin-4: #3987e5;
+    --gap-bin-5: #256abf;
+    --gap-bin-6: #184f95;
 
     --color-highlight: rgb(201 133 0 / 0.3);
   }

@@ -32,6 +32,16 @@ export const TOKEN_PART_COLOURS = Object.freeze({
   output: "var(--token-output)",
 });
 
+/** The colour of each wait cause, by the release's `waited_for` value in the paper's order, the same in every chart. */
+export const CAUSE_COLOURS = Object.freeze({
+  tool: "var(--cause-tool)", ask_user_tool: "var(--cause-ask-user)", user: "var(--cause-user)", subagent: "var(--cause-subagent)",
+});
+
+/** The six gap-bin colours, shortest gap first: one blue from light to dark. */
+export const GAP_BIN_SLOTS = Object.freeze([
+  "var(--gap-bin-1)", "var(--gap-bin-2)", "var(--gap-bin-3)", "var(--gap-bin-4)", "var(--gap-bin-5)", "var(--gap-bin-6)",
+]);
+
 /** A bin, category or model with fewer rows than this is not drawn: too few rows to show a shape. */
 export const MIN_ROWS_PER_BIN = 50;
 
@@ -163,17 +173,19 @@ export function renderFigure(container, { title, definition, caption }) {
 /**
  * Draw into `body` one line per series of `series`, `[{ name, label, points: [{ x, share }] }]`, with share running
  * 0 to 1, each in its colour from `colours` (a map from series name to colour, as `assignColours` gives); the tooltip
- * names a series by its label. `format` writes an x value in the tooltip.
+ * names a series by its label. `format` writes an x value in the tooltip; `xDomain`, when given, is the x axis's
+ * `[low, high]`, the lines cut at its ends.
  */
-export async function drawCdf(body, series, { xLabel, logX = false, format = String, colours }) {
+export async function drawCdf(body, series, { xLabel, logX = false, format = String, colours, xDomain }) {
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("./libraries.js");
   const points = cdfPoints(series);
   const names = series.map((one) => one.name);
   const chart = Plot.plot({
     ...chartFrame(body),
-    x: { type: logX ? "log" : "linear" },
+    x: { type: logX ? "log" : "linear", domain: xDomain },
     y: { domain: [0, 1] },
+    clip: xDomain !== undefined,
     color: colourScale(colours, names),
     marks: [
       Plot.gridX(GRID_STYLE),

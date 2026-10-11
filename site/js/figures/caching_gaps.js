@@ -1,0 +1,160 @@
+/**
+ * The Prefix-caching section's figures of what came before a request: the hit ratio after a gap of each length, how
+ * long a gap is by what it waited for, and the mean hit ratio by the same. A request's gap is the wait since the
+ * previous request of its session ended, of 0 s or more, with what it waited for; the queries pick those requests.
+ *
+ * Each figure is a figure entry, whose fields CONTRIBUTING.md defines; `caching.js` lists them with the section's other
+ * figures. A cause and a gap bin have the same colour in every chart, from `shared/charts.js`.
+ */
+
+import {
+  AXIS_STYLE, CAUSE_COLOURS, chartFrame, colourScale, drawCdf, GAP_BIN_SLOTS, GRID_STYLE, TIP_STYLE,
+} from "../shared/charts.js";
+import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
+import { cdfSeries, seriesLegend } from "./figure_rows.js";
+
+// The gap bins' labels, shortest gap first, as the pipeline's `gaps.GAP_BINS` names them. tests/
+// test_pipeline_mirrors_caching.py checks them, the cause names and the three constants below against the pipeline.
+const GAP_BIN_LABELS = Object.freeze(["<1m", "1–5m", "5–15m", "15–30m", "30m–1h", ">1h"]);
+
+// What a gap waited for, by the release's `waited_for` value, named and ordered as the pipeline's `gaps.CAUSE_NAMES`.
+const CAUSE_NAMES = Object.freeze({
+  tool: "Tool Gap",
+  ask_user_tool: "Ask-User Tool",
+  user: "User Idle",
+  subagent: "Subagent",
+});
+
+const MIN_GAP_DRAWN_S = 0.1; // a shorter gap is drawn at it, on the log axis, as in the paper
+const MAX_GAP_DRAWN_S = 86400; // the gap axis ends at a day, as the paper's does
+const MEAN_HIT_RATIO_AXIS_LOW = 0.7; // the bars start here, as in the paper, so their differences show
+
+const HIT_RATIO_DOMAIN = Object.freeze([0, 1]); // a hit ratio runs from none of the input cached to all of it
+const CAUSE_MARGIN_LEFT = 96; // pixels; room for the longest cause name, "Ask-User Tool"
+const VALUE_MARGIN_RIGHT = 40; // pixels; room for a value written after a bar that reaches 1
+const VALUE_OFFSET = 4; // pixels between a bar's end and its value
+const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars
+const VALUE_DIGITS = 2; // a mean hit ratio is written with two decimals, as in the paper
+
+/** The gap figures of the Prefix-caching section, by name. */
+export const GAP_FIGURES = Object.freeze({
+  hitRatioByGapBin: Object.freeze({
+    name: "hit_ratio_cdf_by_gap_bin",
+    title: "Hit ratio by gap before the request",
+    definition: "CDF of the hit ratio (cached over input tokens) of requests in each of six bins of the gap before them (the wait since the previous request of their session ended), shortest gap lightest.",
+    query: "figures/hit_ratio_cdf_by_gap_bin",
+    binColumn: "series",
+    seriesColumn: "series",
+    legend: gapBinLegend,
+    draw: drawHitRatioByGapBin,
+  }),
+  gapByCause: Object.freeze({
+    name: "gap_cdf_by_cause",
+    title: "Gap before a request by cause",
+    definition: "CDF of the gap before a request (the wait since the previous request of its session ended) by what it waited for, a gap under 0.1 s drawn at 0.1 s, on an axis that ends at a day.",
+    query: "figures/gap_cdf_by_cause",
+    binColumn: "series",
+    seriesColumn: "series",
+    legend: causeLegend,
+    draw: drawGapByCause,
+  }),
+  meanHitRatioByCause: Object.freeze({
+    name: "mean_hit_ratio_by_cause",
+    title: "Mean hit ratio by cause",
+    definition: "Mean hit ratio (cached over input tokens) of requests by what the gap before them waited for, on an axis from 0.7 to 1.",
+    query: "figures/mean_hit_ratio_by_cause",
+    binColumn: "waited_for",
+    draw: drawMeanHitRatioByCause,
+  }),
+});
+
+/** A map from each gap bin's label, shortest gap first, to its colour. */
+export function gapBinColours() {
+  const colours = new Map();
+  for (let index = 0; index < GAP_BIN_LABELS.length; index += 1) {
+    colours.set(GAP_BIN_LABELS[index], GAP_BIN_SLOTS[index]);
+  }
+  return colours;
+}
+
+/** A map from each cause, by its `waited_for` value in the paper's order, to its colour. */
+export function causeColours() {
+  return new Map(Object.entries(CAUSE_COLOURS));
+}
+
+/** The gap-bin figure's legend: the bins of the rows, shortest gap first. */
+export function gapBinLegend(rows) {
+  return seriesLegend(rows, "series", gapBinColours());
+}
+
+/** The gap-by-cause figure's legend: the causes of the rows, in the paper's order, by the paper's names. */
+export function causeLegend(rows) {
+  return seriesLegend(rows, "series", causeColours(), CAUSE_NAMES);
+}
+
+/**
+ * The mean-hit-ratio bars, one per cause of `rows` in the paper's order: `{ cause, name, end, mean, rows }`, each bar
+ * ending at its mean, or at the axis's low end when its mean is below it, so the bar stays on the axis.
+ */
+export function meanHitRatioBars(rows) {
+  const bars = [];
+  for (const [cause, name] of Object.entries(CAUSE_NAMES)) {
+    const row = rows.find((candidate) => candidate.waited_for === cause);
+    if (row !== undefined) {
+      const end = Math.max(row.mean_hit_ratio, MEAN_HIT_RATIO_AXIS_LOW);
+      bars.push({ cause, name, end, mean: row.mean_hit_ratio, rows: row.rows });
+    }
+  }
+  return bars;
+}
+
+/** Draw one CDF line of the hit ratio per gap bin. */
+async function drawHitRatioByGapBin(rows, body, colours) {
+  const series = cdfSeries(rows, GAP_BIN_LABELS);
+  await drawCdf(body, series, { xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, format: formatShare, colours: colours.series });
+}
+
+/** Draw one CDF line of the gap per cause, on a log axis of seconds from 0.1 s to a day. */
+async function drawGapByCause(rows, body, colours) {
+  const series = cdfSeries(rows, Object.keys(CAUSE_NAMES), { labels: CAUSE_NAMES, floor: MIN_GAP_DRAWN_S });
+  await drawCdf(body, series, {
+    xLabel: "Gap before the request (s)",
+    logX: true,
+    xDomain: [MIN_GAP_DRAWN_S, MAX_GAP_DRAWN_S],
+    format: formatSeconds,
+    colours: colours.series,
+  });
+}
+
+/** Draw one horizontal bar per cause from the axis's low end to its mean hit ratio, each with its value written after it. */
+async function drawMeanHitRatioByCause(rows, body) {
+  // Plot is loaded here, not at the top, so node can test the section's figure list.
+  const { Plot } = await import("../shared/libraries.js");
+  const bars = meanHitRatioBars(rows);
+  const causes = bars.map((bar) => bar.cause);
+  const chart = Plot.plot({
+    ...chartFrame(body),
+    marginLeft: CAUSE_MARGIN_LEFT,
+    marginRight: VALUE_MARGIN_RIGHT,
+    x: { domain: [MEAN_HIT_RATIO_AXIS_LOW, 1] },
+    y: { type: "band", domain: causes },
+    color: colourScale(causeColours(), causes),
+    marks: [
+      Plot.gridX(GRID_STYLE),
+      Plot.axisX({ ...AXIS_STYLE, label: "Mean hit ratio" }),
+      Plot.axisY({ ...AXIS_STYLE, label: null, tickFormat: (cause) => CAUSE_NAMES[cause] }),
+      Plot.barX(bars, { x1: MEAN_HIT_RATIO_AXIS_LOW, x2: "end", y: "cause", fill: "cause", inset: BAR_INSET }),
+      Plot.text(bars, { x: "end", y: "cause", text: meanText, textAnchor: "start", dx: VALUE_OFFSET, fill: "var(--chart-label)" }),
+      Plot.tip(bars, Plot.pointerY({ ...TIP_STYLE, x: "end", y: "cause", title: meanTipText })),
+    ],
+  });
+  body.replaceChildren(chart);
+}
+
+function meanText(bar) {
+  return bar.mean.toFixed(VALUE_DIGITS);
+}
+
+function meanTipText(bar) {
+  return `${bar.name}\nmean hit ratio ${formatShare(bar.mean)}\n${formatCount(bar.rows)} requests`;
+}
