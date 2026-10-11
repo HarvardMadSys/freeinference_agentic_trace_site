@@ -63,6 +63,7 @@ EXPECTED_COLUMNS = {
     "figures/mean_hit_ratio_by_cause": ["waited_for", "rows", "mean_hit_ratio"],
     "figures/hit_ratio_cdf_by_transition": ["series", "x", "share", "rows"],
     "figures/simulated_hit_ratio_by_ttl": ["policy", "ttl", "hit_ratio", "rows"],
+    "figures/retained_over_active": ["ttl", "reusable_over_active", "dead_over_active", "rows"],
     "figures/dead_over_active_by_policy": ["policy", "ttl", "dead_over_active", "rows"],
     "session/session_root": ["root_session_id", "week"],
     "session/session_tree": [

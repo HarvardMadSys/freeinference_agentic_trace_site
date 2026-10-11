@@ -21,7 +21,8 @@ ANSWERED_PAGES = ("explore/", "figures/")  # the pages whose queries are answere
 COLOUR_ORDER_QUERIES = ["setup/category_order", "setup/harness_order", "setup/model_order"]
 RELATIVE_TOLERANCE = 1e-12  # an answer's number and the live query's are equal when this close
 # The queries that read the `simulation` view, which a data folder with no simulated week does not have.
-SIMULATION_QUERIES = ["figures/dead_over_active_by_policy", "figures/simulated_hit_ratio_by_ttl"]
+SIMULATION_QUERIES = ["figures/dead_over_active_by_policy", "figures/retained_over_active",
+                      "figures/simulated_hit_ratio_by_ttl"]
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
 

@@ -16,8 +16,10 @@ import site_database
 import test_paper_parity
 
 SECTION = "prefix_caching"  # the section of `numbers.json` every compared item is in
-COMPARED_ITEMS = ["hit_ratio_by_gap_bin", "gap_by_cause", "mean_hit_ratio_by_cause", "hit_ratio_after_transition"]
+COMPARED_ITEMS = ["hit_ratio_by_gap_bin", "gap_by_cause", "mean_hit_ratio_by_cause", "hit_ratio_after_transition",
+                  "retained_over_active"]
 TRANSITIONS = ["append", "mutation"]  # the transitions whose median hit ratio the paper reports
+LONGEST_TTL = "1d"  # the TTL at which the paper reports dead over active cache
 PAPER_SCOPE = "Agentic"  # the scope `numbers.json` records with each compared item: the paper's harnesses
 
 
@@ -83,3 +85,11 @@ def test_the_median_hit_ratio_after_each_transition(agentic: duckdb.DuckDBPyConn
         comparison("hit_ratio_after_transition", f"median_hit_ratio_{transition}",
                    test_paper_parity.cdf_point(rows, transition, test_paper_parity.MEDIAN_SHARE))
         for transition in TRANSITIONS])
+
+
+def test_dead_over_active_cache_at_a_day(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+    # `figures/retained_over_active`'s `dead_over_active` at the TTL `1d` against
+    # `prefix_caching.retained_over_active.dead_over_active_1d`.
+    rows = site_database.run_query(agentic, "figures/retained_over_active").set_index("ttl")
+    test_paper_parity.assert_match(paper_numbers, [
+        comparison("retained_over_active", "dead_over_active_1d", float(rows.dead_over_active[LONGEST_TTL]))])

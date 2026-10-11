@@ -27,6 +27,7 @@ const SECTION_FIGURES = {
     "mean_hit_ratio_by_cause",
     "hit_ratio_cdf_by_transition",
     "simulated_hit_ratio_by_ttl",
+    "retained_over_active",
     "dead_over_active_by_policy",
   ],
 };
@@ -89,7 +90,7 @@ const LONG_FORMAT_SERIES_COLUMNS = {
   simulated_hit_ratio_by_ttl: "policy",
   dead_over_active_by_policy: "policy",
 };
-const WIDE_FORMAT_FIGURES = ["token_growth_by_messages"];
+const WIDE_FORMAT_FIGURES = ["token_growth_by_messages", "retained_over_active"];
 
 test("every long-format figure of more than one series names its series column and has a legend", async () => {
   for (const { figures } of await sections()) {

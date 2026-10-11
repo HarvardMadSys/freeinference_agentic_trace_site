@@ -10,7 +10,8 @@ import site_database
 
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]  # the week the fixture did not simulate
-SIMULATION_QUERIES = ["figures/simulated_hit_ratio_by_ttl", "figures/dead_over_active_by_policy"]
+SIMULATION_QUERIES = ["figures/simulated_hit_ratio_by_ttl", "figures/retained_over_active",
+                      "figures/dead_over_active_by_policy"]
 # The fixture's first-week top-level requests of the paper's harnesses, which the simulation replayed: `tree-root` 5,
 # `idle-week-1` 3.
 REPLAYED_REQUESTS = 8
@@ -45,6 +46,29 @@ def test_dead_over_active_sums_a_week_s_active_token_seconds_once(connection: du
     expected = tallies.dead_token_seconds / FIRST_WEEK_ACTIVE_TOKEN_SECONDS
     assert rows.dead_over_active.tolist() == pytest.approx(expected.tolist())
     assert rows.dead_over_active.tolist() == pytest.approx([0.0, 0.1, 0.025])
+
+
+# The TTL-only tallies of the fixture's first week, one row per TTL.
+TTL_ONLY_TALLIES = """
+SELECT ttl, reusable_token_seconds, dead_token_seconds
+FROM simulation
+WHERE week = ? AND policy = 'ttl_only'
+ORDER BY ttl
+"""
+
+
+def test_retained_over_active_is_a_week_s_ttl_only_tallies_over_its_active_token_seconds(
+        connection: duckdb.DuckDBPyConnection) -> None:
+    site_database.select_weeks(connection, [FIRST_SUNDAY], fixture_release.PAPER_HARNESSES)
+    rows = site_database.run_query(connection, "figures/retained_over_active")
+    tallies = connection.execute(TTL_ONLY_TALLIES, [FIRST_SUNDAY]).df()
+    assert rows.ttl.tolist() == tallies.ttl.tolist() == ["1h", "5m"]
+    expected_reusable = tallies.reusable_token_seconds / FIRST_WEEK_ACTIVE_TOKEN_SECONDS
+    expected_dead = tallies.dead_token_seconds / FIRST_WEEK_ACTIVE_TOKEN_SECONDS
+    assert rows.reusable_over_active.tolist() == pytest.approx(expected_reusable.tolist())
+    assert rows.dead_over_active.tolist() == pytest.approx(expected_dead.tolist())
+    assert rows.reusable_over_active.tolist() == pytest.approx([0.15, 0.05])  # 3,000 and 1,000 of 20,000
+    assert rows.dead_over_active.tolist() == pytest.approx([0.1, 0.025])  # 2,000 and 500 of 20,000
 
 
 @pytest.mark.parametrize("name", SIMULATION_QUERIES)
