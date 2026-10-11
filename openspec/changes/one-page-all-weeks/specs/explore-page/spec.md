@@ -132,7 +132,7 @@ and harnesses, in three sections, each figure with its definition beside it:
 | Sessions | `token_split_by_week` | Per selected week: the share of cached input, uncached input and output in all tokens |
 | Sessions | `token_growth_by_messages` | Median cached, uncached and output tokens per bin of messages in the request |
 | Sessions | `context_share_by_role` | Share of input held by system, user, assistant, tool results and tool definitions, per bin of input size |
-| Sessions | `ttft_cdf_by_model` | CDF of TTFT per model, for the five models with most requests, trusted TTFTs only |
+| Sessions | `ttft_cdf_by_model` | CDF of TTFT per model, for the five models with most requests in the selection that are among the eight with most requests over every week, trusted TTFTs only |
 | Sessions | `decode_cdf_by_model` | CDF of latency minus TTFT per model, for the same models and requests |
 | Sessions | `session_time_by_part` | Each session's time split between model time, tool waits and human waits, sessions ranked by human share, in rank bins |
 | Tools | `latency_by_category` | 5th, 25th, 50th, 75th, 95th percentile of latency per category |

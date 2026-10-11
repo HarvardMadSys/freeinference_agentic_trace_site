@@ -15,7 +15,7 @@ and `.gitignore`:
 README.md         what the site shows, how to build the data, serve and deploy
 CONTRIBUTING.md   the rules, the patterns to copy, and how to verify a change
 CLAUDE.md         a pointer to the two files above and the git rules
-Makefile          make setup, setup-browser, data, serve, test, deploy
+Makefile          make setup, setup-browser, data, serve, test, check-answers, deploy
 deploy.sh         what make deploy runs
 serve.py          what make serve runs: a local server that answers range requests
 pyproject.toml    Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
