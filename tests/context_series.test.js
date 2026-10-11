@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  AGENT_LINE_COLOURS, areaParts, areaRows, pointTip, requestPoints, trajectoryPoints, transitionMarks, turnStarts,
+  AGENT_LINE_COLOURS, areaParts, areaRows, markEntries, pointTip, requestPoints, trajectoryPoints, transitionMarks,
+  turnStarts,
 } from "../site/js/session_charts/context_series.js";
 
 // The fixture's `mutation` session: step 1 rewrites its context by compaction, step 3 starts a second turn.
@@ -103,4 +104,13 @@ test("the top-level line is the first series and subagents' lines a slot neither
     const areaColours = areaParts(TREE, REQUESTS, split).map((part) => part.colour);
     assert.ok(!areaColours.includes(AGENT_LINE_COLOURS.subagents), split);
   }
+});
+
+test("a mutation's dot takes the mutation colour every chart gives it, and a switch's dot ink", () => {
+  const switched = [...REQUESTS, request("mutation", 4, 1_400, 1_410, 900, { transition: "switch", turn: 2 })];
+  assert.deepEqual(markEntries(transitionMarks(requestPoints(TREE, switched))), [
+    { name: "mutation", colour: "var(--transition-mutation)" },
+    { name: "switch", colour: "var(--color-text)" },
+  ]);
+  assert.deepEqual(markEntries(transitionMarks(requestPoints(TREE, REQUESTS))).map((entry) => entry.name), ["mutation"]);
 });

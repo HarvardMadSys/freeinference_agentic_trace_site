@@ -77,8 +77,8 @@ test("a tool call runs from its request's end for its latency, in the tool band,
 test("a wait ends at its request's start, lasts its wait, is lighter and coloured by what it waited for", () => {
   const waits = barsOf((bar) => bar.opacity === WAIT_OPACITY);
   assert.deepEqual(waits.map((bar) => [bar.step, bar.x1, bar.x2, bar.colour]), [
-    [1, 10, 20, "var(--series-2)"],
-    [2, 30, 100, "var(--series-3)"],
+    [1, 10, 20, "var(--cause-tool)"],
+    [2, 30, 100, "var(--cause-subagent)"],
   ]);
   assert.equal(waits[1].tip, "waited 1m 10s for subagents\nbefore main step 2");
 });
@@ -89,7 +89,7 @@ test("a long user wait is a user wait whose tooltip gives its duration", () => {
     request("root", 1, 2_210, 2_220, { waited_for: "user", wait_s: 1_200 }),
   ];
   const wait = ganttBars(TREE, waited, [], COLOURS).find((bar) => bar.opacity === WAIT_OPACITY);
-  assert.deepEqual([wait.x1, wait.x2, wait.colour], [10, 1_210, "var(--series-1)"]);
+  assert.deepEqual([wait.x1, wait.x2, wait.colour], [10, 1_210, "var(--cause-user)"]);
   assert.match(wait.tip, /^waited 20m 00s for the user/);
 });
 
@@ -152,7 +152,7 @@ test("the legend's request parts are ink tones, the rest naming a request with n
 
 test("the legend lists only the waits present, lighter, in the wait causes' colours", () => {
   assert.deepEqual(waitEntries(REQUESTS), [
-    { name: "tools", colour: "var(--series-2)", opacity: WAIT_OPACITY },
-    { name: "subagents", colour: "var(--series-3)", opacity: WAIT_OPACITY },
+    { name: "tools", colour: "var(--cause-tool)", opacity: WAIT_OPACITY },
+    { name: "subagents", colour: "var(--cause-subagent)", opacity: WAIT_OPACITY },
   ]);
 });

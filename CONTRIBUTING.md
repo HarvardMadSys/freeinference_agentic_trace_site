@@ -197,7 +197,10 @@ which is plain HTML.
   a ninth series folds into "Other" (`--series-other`). A request's cached,
   uncached and output tokens are always `--token-cached`, `--token-uncached`
   and `--token-output`. The same model, category, policy or wait cause has the
-  same colour in every chart. The palette was validated for colour-vision
+  same colour in every chart: a wait cause, a transition and a gap bin always
+  take `--cause-*`, `--transition-*` and `--gap-bin-1` to `--gap-bin-6`, read
+  through `CAUSE_COLOURS`, `TRANSITION_COLOURS` and `GAP_BIN_SLOTS` in
+  `shared/charts.js`. The palette was validated for colour-vision
   deficiency in both modes; three light-mode slots sit under 3:1 contrast on
   white, so every chart ships a legend and a hover tooltip, and tables stay
   available where values matter.

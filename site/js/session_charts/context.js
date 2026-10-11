@@ -6,23 +6,20 @@
  */
 
 import {
-  AGENT_LINE_COLOURS, AREA_SPLITS, areaParts, areaRows, pointTip, requestPoints, trajectoryPoints, transitionMarks,
-  turnStarts,
+  AGENT_LINE_COLOURS, AREA_SPLITS, areaParts, areaRows, MARK_COLOURS, markEntries, pointTip, requestPoints,
+  trajectoryPoints, transitionMarks, turnStarts,
 } from "./context_series.js";
 import { legendLine } from "../session/legend.js";
 import {
   elapsedTicks, listenForRequestClick, scrollBox, startChartView, tickCount, viewChartWidth,
 } from "../session/view_chart.js";
 import {
-  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, SERIES_SLOTS, TIP_STYLE, renderFigure,
+  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE, renderFigure,
 } from "../shared/charts.js";
 import { formatElapsed, formatQuantity, formatTokens } from "../shared/format.js";
 
 // Subagents' lines are drawn a little lighter, so the top-level session's line reads above them where they cross.
 const SUBAGENT_LINE_OPACITY = 0.8;
-
-// The colour of the dot on a request whose context was rewritten or switched: the last series slot.
-const TRANSITION_COLOUR = SERIES_SLOTS[7];
 
 const TRANSITION_DOT_RADIUS = 3.5; // pixels: small markers
 const TURN_DASH = "2 3"; // dash and gap of a turn's dotted rule, in pixels
@@ -109,7 +106,7 @@ function drawChart(Plot, boxes, tree, requests, split) {
       }),
       Plot.ruleX(turnStarts(tree, requests), { ...AXIS_STYLE, strokeDasharray: TURN_DASH }),
       agentLines(Plot, trajectories),
-      Plot.dot(marks, { x: "elapsed", y: "inputTokens", r: TRANSITION_DOT_RADIUS, fill: TRANSITION_COLOUR }),
+      transitionDots(Plot, marks),
       Plot.axisX({ ...AXIS_STYLE, ticks: elapsedTicks(maxElapsed, tickCount(width)), tickFormat: formatElapsed,
         label: "Time since the session's first request" }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatTokens, label: "Input tokens" }),
@@ -118,7 +115,7 @@ function drawChart(Plot, boxes, tree, requests, split) {
   });
   listenForRequestClick(boxes.body, chart);
   boxes.chartBox.replaceChildren(scrollBox(chart));
-  boxes.legend.replaceChildren(...contextLegend(parts, tree, marks.length > 0));
+  boxes.legend.replaceChildren(...contextLegend(parts, tree, marks));
 }
 
 /** One line per agent, stepping at each request: the top-level session's first, then the subagents', lighter. */
@@ -132,13 +129,21 @@ function agentLines(Plot, trajectories) {
   ];
 }
 
-function contextLegend(parts, tree, hasMarks) {
+/** One dot mark per marked transition, each in its colour. */
+function transitionDots(Plot, marks) {
+  const dots = [];
+  for (const [transition, colour] of Object.entries(MARK_COLOURS)) {
+    const marked = marks.filter((point) => point.transition === transition);
+    dots.push(Plot.dot(marked, { x: "elapsed", y: "inputTokens", r: TRANSITION_DOT_RADIUS, fill: colour }));
+  }
+  return dots;
+}
+
+function contextLegend(parts, tree, marks) {
   const lines = [{ name: "main", colour: AGENT_LINE_COLOURS.main }];
   if (tree.length > 1) {
     lines.push({ name: "subagents", colour: AGENT_LINE_COLOURS.subagents, opacity: SUBAGENT_LINE_OPACITY });
   }
-  if (hasMarks) {
-    lines.push({ name: "mutation or switch", colour: TRANSITION_COLOUR });
-  }
+  lines.push(...markEntries(marks));
   return [legendLine("Top-level input", parts), legendLine("Input per agent", lines)];
 }

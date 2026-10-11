@@ -34,6 +34,7 @@ const MIN_GAP_DRAWN_S = 0.1; // a shorter gap is drawn at it, on the log axis, a
 const MAX_GAP_DRAWN_S = 86400; // the gap axis ends at a day, as the paper's does
 const MEAN_HIT_RATIO_AXIS_LOW = 0.7; // the bars start here, as in the paper, so their differences show
 
+const PLAIN_NUMBER_FORMAT = "~g"; // the gap axis writes 0.1 and 1000, not Plot's SI "100m" (which reads as minutes) and "1k"
 const HIT_RATIO_DOMAIN = Object.freeze([0, 1]); // a hit ratio runs from none of the input cached to all of it
 const CAUSE_MARGIN_LEFT = 96; // pixels; room for the longest cause name, "Ask-User Tool"
 const VALUE_MARGIN_RIGHT = 40; // pixels; room for a value written after a bar that reaches 1
@@ -141,6 +142,7 @@ async function drawGapByCause(rows, body, colours) {
     xLabel: "Gap before the request (s)",
     logX: true,
     xDomain: [MIN_GAP_DRAWN_S, MAX_GAP_DRAWN_S],
+    xTickFormat: PLAIN_NUMBER_FORMAT,
     format: formatSeconds,
     colours: colours.series,
   });

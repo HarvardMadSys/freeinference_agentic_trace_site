@@ -8,18 +8,19 @@
  */
 
 import { agentLabel, agentsInStartOrder, callsByRequest, requestKey } from "../session/tree.js";
-import { assignColours, OTHER_SERIES } from "../shared/charts.js";
+import { CAUSE_COLOURS, OTHER_SERIES } from "../shared/charts.js";
 import { elapsedSeconds, formatSeconds, MILLISECONDS_PER_SECOND } from "../shared/format.js";
 
 /**
- * What a wait can wait for, in the order that gives each its colour, with the name a legend and tooltip give it; the
- * keys are the release's `waited_for` values, checked by tests/test_pipeline_mirrors.py.
+ * What a wait can wait for, in the order the paper names the causes, with the name a legend and tooltip give it; the
+ * keys are the release's `waited_for` values, checked by tests/test_pipeline_mirrors.py and, for their order,
+ * tests/test_pipeline_mirrors_caching.py.
  */
 export const WAIT_CAUSES = Object.freeze({
-  user: "the user",
   tool: "tools",
-  subagent: "subagents",
   ask_user_tool: "an ask-user tool",
+  user: "the user",
+  subagent: "subagents",
 });
 
 /**
@@ -41,9 +42,13 @@ export const BAND_SPANS = Object.freeze({ request: [0.12, 0.6], tool: [0.66, 0.8
 // The share of a row from its top where the pointer passes from the request band to the tool band: between the two.
 const BAND_BOUNDARY = 0.63;
 
-/** A map from each wait cause to its colour, in the order of `WAIT_CAUSES`. */
+/** A map from each wait cause to its colour, the one every chart gives it, in the order of `WAIT_CAUSES`. */
 export function waitColours() {
-  return assignColours(Object.keys(WAIT_CAUSES));
+  const colours = new Map();
+  for (const cause of Object.keys(WAIT_CAUSES)) {
+    colours.set(cause, CAUSE_COLOURS[cause]);
+  }
+  return colours;
 }
 
 /** The Gantt's rows, `[{ sessionId, label }]`: the top-level session, then every subagent in order of first start. */

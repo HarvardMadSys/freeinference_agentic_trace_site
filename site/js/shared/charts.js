@@ -176,10 +176,10 @@ export function renderFigure(container, { title, definition, caption }) {
 /**
  * Draw into `body` one line per series of `series`, `[{ name, label, points: [{ x, share }] }]`, with share running
  * 0 to 1, each in its colour from `colours` (a map from series name to colour, as `assignColours` gives); the tooltip
- * names a series by its label. `format` writes an x value in the tooltip; `xDomain`, when given, is the x axis's
- * `[low, high]`, the lines cut at its ends.
+ * names a series by its label. `format` writes an x value in the tooltip, `xTickFormat` (if given) on the axis;
+ * `xDomain`, when given, is the x axis's `[low, high]`, the lines cut at its ends.
  */
-export async function drawCdf(body, series, { xLabel, logX = false, format = String, colours, xDomain }) {
+export async function drawCdf(body, series, { xLabel, logX = false, format = String, xTickFormat, colours, xDomain }) {
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("./libraries.js");
   const points = cdfPoints(series);
@@ -194,7 +194,7 @@ export async function drawCdf(body, series, { xLabel, logX = false, format = Str
       Plot.gridX(GRID_STYLE),
       Plot.gridY(GRID_STYLE),
       Plot.ruleY([MEDIAN_SHARE], { ...AXIS_STYLE, strokeDasharray: DASH }),
-      Plot.axisX({ ...AXIS_STYLE, label: xLabel }),
+      Plot.axisX({ ...AXIS_STYLE, label: xLabel, tickFormat: xTickFormat }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: "%", label: "Share of rows" }),
       Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH }),
       Plot.tip(points, Plot.pointerX({ ...TIP_STYLE, x: "x", y: "share", title: (point) => cdfTipText(point, format) })),

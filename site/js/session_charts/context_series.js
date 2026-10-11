@@ -7,7 +7,7 @@
  */
 
 import { agentLabel, agentsInStartOrder } from "../session/tree.js";
-import { assignColours, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../shared/charts.js";
+import { assignColours, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS, TRANSITION_COLOURS } from "../shared/charts.js";
 import { elapsedSeconds, formatElapsed, formatTokens } from "../shared/format.js";
 
 /** The two ways the area can split the top-level session's input: into cached and uncached tokens, or by role. */
@@ -19,8 +19,12 @@ export const AREA_SPLITS = Object.freeze({ tokens: "Cached and uncached", roles:
  */
 export const AGENT_LINE_COLOURS = Object.freeze({ main: SERIES_SLOTS[0], subagents: SERIES_SLOTS[6] });
 
-// The transitions a marker points out: the context was rewritten, or the request went to another model.
-const MARKED_TRANSITIONS = Object.freeze(["mutation", "switch"]);
+/**
+ * The transitions a dot marks, each with the dot's colour: the context was rewritten, in the colour every chart gives a
+ * mutation, or the request went to another model or provider, in the text ink, which stands out on every area, since
+ * no figure draws a switch.
+ */
+export const MARK_COLOURS = Object.freeze({ mutation: TRANSITION_COLOURS.mutation, switch: "var(--color-text)" });
 
 // Each role of the input, in stacking order, with the request column that counts its tokens.
 const ROLE_COLUMNS = Object.freeze({
@@ -140,7 +144,18 @@ export function turnStarts(tree, requests) {
 
 /** The points whose request's transition is a mutation or a switch. */
 export function transitionMarks(points) {
-  return points.filter((point) => MARKED_TRANSITIONS.includes(point.transition));
+  return points.filter((point) => isMarked(point.transition));
+}
+
+/** The legend entries `[{ name, colour }]` of the transitions `marks` holds, in the order of `MARK_COLOURS`. */
+export function markEntries(marks) {
+  const entries = [];
+  for (const [transition, colour] of Object.entries(MARK_COLOURS)) {
+    if (marks.some((point) => point.transition === transition)) {
+      entries.push({ name: transition, colour });
+    }
+  }
+  return entries;
 }
 
 /** A point's tooltip: its agent, step and turn, its time, its input tokens and, when marked, its transition. */
@@ -152,11 +167,15 @@ export function pointTip(point) {
     const split = `${formatTokens(point.cachedTokens)} cached, ${formatTokens(point.uncachedTokens)} uncached`;
     lines.push(`${formatTokens(point.inputTokens)} input tokens: ${split}`);
   }
-  if (MARKED_TRANSITIONS.includes(point.transition)) {
+  if (isMarked(point.transition)) {
     const cause = point.cause === null ? "" : `, ${point.cause}`;
     lines.push(`transition: ${point.transition}${cause}`);
   }
   return lines.join("\n");
+}
+
+function isMarked(transition) {
+  return transition !== null && Object.hasOwn(MARK_COLOURS, transition);
 }
 
 function partRows(elapsed, tokens, parts) {
