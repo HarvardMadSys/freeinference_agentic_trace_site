@@ -2,9 +2,10 @@
  * The Sessions section of the Explore page's figures: how long sessions are, and how their tokens are spent.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. A figure of more than one series colours each
- * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden. The
- * figures that rank sessions are entries of `sessions_ranked.js`, and the decode time's of `sessions_latency.js`,
- * listed here in the section's order.
+ * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
+ *
+ * Two modules hold some of the section's entries, listed here in the section's order: `sessions_ranked.js` the
+ * figures that rank sessions by a share, and `sessions_latency.js` the per-model CDFs of TTFT and decode time.
  */
 
 import {
@@ -23,7 +24,7 @@ import {
 } from "../shared/charts.js";
 import { formatCount, formatSeconds, formatShare, formatTokens, monthAndDay } from "../shared/format.js";
 import { cdfSeries, seriesLegend, sparseTickFormat } from "./figure_rows.js";
-import { DECODE_CDF_BY_MODEL } from "./sessions_latency.js";
+import { DECODE_CDF_BY_MODEL, TTFT_CDF_BY_MODEL } from "./sessions_latency.js";
 import { COST_SHARE_BY_SESSION, SESSION_TIME_BY_PART } from "./sessions_ranked.js";
 
 // The series of the requests-per-session CDF, by their name in the query, with the name each is drawn under.
@@ -119,16 +120,7 @@ export const FIGURES = Object.freeze([
     legend: contextShareLegend,
     draw: drawContextShare,
   }),
-  Object.freeze({
-    name: "ttft_cdf_by_model",
-    title: "Time to first token by model",
-    definition: "CDF of the time to first token of the five models with most requests in the selection, over requests whose TTFT is trusted (positive and under 95% of the latency), where the paper draws two fixed models, each with its decode and queueing time.",
-    query: "figures/ttft_cdf_by_model",
-    binColumn: "series",
-    seriesColumn: "series",
-    legend: ttftLegend,
-    draw: drawTtftByModel,
-  }),
+  TTFT_CDF_BY_MODEL,
   DECODE_CDF_BY_MODEL,
   SESSION_TIME_BY_PART,
 ]);
@@ -167,11 +159,6 @@ function tokenGrowthLegend() {
 /** The context share's legend: the roles, in their order. */
 function contextShareLegend(rows) {
   return seriesLegend(rows, "role", assignColours(ROLES));
-}
-
-/** The TTFT CDF's legend: its models, in the model order and colours every chart shares. */
-function ttftLegend(rows, colours) {
-  return seriesLegend(rows, "series", colours.models);
 }
 
 /** Draw the CDFs of requests, user steps and tool steps per session, on a log axis. */
@@ -222,12 +209,6 @@ async function drawContextShare(rows, body, colours) {
     format: formatShare,
     xTickFormat: sparseTickFormat(distinct(rows.map((row) => row.bin_start)), formatTokens, MAX_BAR_LABELS),
   });
-}
-
-/** Draw the TTFT CDFs of the selection's largest models, in seconds on a log axis, each model in its colour on every chart. */
-async function drawTtftByModel(rows, body, colours) {
-  const series = cdfSeries(rows, [...colours.series.keys()]);
-  await drawCdf(body, series, { xLabel: "Seconds to first token", logX: true, format: formatSeconds, colours: colours.series });
 }
 
 /**

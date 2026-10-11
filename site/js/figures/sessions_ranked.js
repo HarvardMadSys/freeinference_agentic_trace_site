@@ -4,8 +4,10 @@
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Every row of their queries is one rank bin:
  * its `percentile` (the bin's middle, in percent of the sessions ranked), one column per part holding the bin's mean
- * share of it, and `rows`, the bin's sessions. The parts are columns, not rows, so a figure's draw function is given
- * the parts its legend hides.
+ * share of it, and `bin_sessions`, the bin's sessions. Every row also holds the same `ranked_bin` and `rows`, the
+ * sessions ranked: the page counts the figure's rows as one bin, so the figure is hidden only when the whole selection
+ * has too few sessions, not when its rank bins are small. The parts are columns, not rows, so a figure's draw function
+ * is given the parts its legend hides.
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE, TOKEN_PART_COLOURS } from "../shared/charts.js";
@@ -25,9 +27,10 @@ const SHARE_DOMAIN = Object.freeze([0, 1]); // the y axis spans a whole share, w
 export const COST_SHARE_BY_SESSION = Object.freeze({
   name: "cost_share_by_session",
   title: "Cost share by session",
-  definition: "Each top-level session's cost at the pipeline's prices (cached 1, uncached 10, output 50 per token), over its requests whose provider reports cache reads, split between cached input, uncached input and output, with the sessions ranked by cached share and each rank bin's mean shares stacked.",
+  definition: "Each top-level session's cost at the pipeline's prices (cached 1, uncached 10, output 50 per token), over its requests whose provider reports cache reads and that have an input, split between cached input, uncached input and output, with the sessions ranked by cached share and each rank bin's mean shares stacked.",
   query: "figures/cost_share_by_session",
-  binColumn: null,
+  binColumn: "ranked_bin",
+  seriesOverSameRows: true,
   legend: costShareLegend,
   draw: drawCostShare,
 });
@@ -38,7 +41,8 @@ export const SESSION_TIME_BY_PART = Object.freeze({
   title: "Session time by part",
   definition: "Each top-level session's time split between model time (its requests' latencies), tool time (its waits for a tool or a subagent) and human time (its waits for the user or an ask-user tool), with the sessions ranked by human share and each rank bin's mean shares stacked; the paper splits model time into prefill and decode, the site does not.",
   query: "figures/session_time_by_part",
-  binColumn: null,
+  binColumn: "ranked_bin",
+  seriesOverSameRows: true,
   legend: sessionTimeLegend,
   draw: drawSessionTime,
 });
@@ -60,7 +64,7 @@ export function stackedSharePoints(rows, parts) {
 /**
  * The tooltip of each rank bin: `{ percentile, top, text }`, `top` the sum of its shares of `parts` (the top of the
  * stack, where the tooltip points) and `text` naming each part by its label in `labels`, its share, and the bin's
- * sessions.
+ * sessions (`bin_sessions`).
  */
 export function rankTips(rows, parts, labels) {
   const tips = [];
@@ -71,7 +75,7 @@ export function rankTips(rows, parts, labels) {
       lines.push(`${labels[part]}: ${formatShare(row[part])}`);
       top += row[part];
     }
-    lines.push(`${formatCount(row.rows)} sessions`);
+    lines.push(`${formatCount(row.bin_sessions)} sessions`);
     tips.push({ percentile: row.percentile, top, text: lines.join("\n") });
   }
   return tips;

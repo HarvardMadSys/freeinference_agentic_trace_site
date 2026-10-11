@@ -3,8 +3,10 @@
 -- (its waits for a person: the user or an ask-user tool), a wait being the gap after the previous request and a
 -- negative one counted as none; the sessions, each as the shares of its time, sorted by human share, then tool share,
 -- then session id, and cut into equal rank bins. Per bin: `percentile`, its middle in percent of the sessions;
--- `model`, `tool` and `human`, the bin's mean shares rescaled to sum to 1; and `rows` (its sessions).
+-- `model`, `tool` and `human`, the bin's mean shares rescaled to sum to 1; and `bin_sessions` (its sessions).
 -- `mean_tool_share` and `mean_human_share`, the same on every row, are the mean over the sessions of each share.
+-- `ranked_bin`, the same on every row, names the one bin the page counts the figure's rows in, so it is hidden only
+-- when the whole selection is thin, and `rows`, the same on every row, is the number of sessions ranked.
 WITH constants AS (
   SELECT ['tool', 'subagent'] AS tool_waits, -- the pipeline's latency.TOOL_WAITS: tool time
          ['user', 'ask_user_tool'] AS human_waits, -- latency.HUMAN_WAITS: a person's time
@@ -53,10 +55,11 @@ binned_sessions AS (
 bins AS (
   SELECT session_rank * bin_count // sessions AS bin,
          any_value(bin_count) AS bin_count,
+         any_value(sessions) AS sessions,
          avg(model_share) AS model,
          avg(tool_share) AS tool,
          avg(human_share) AS human,
-         count(*) AS rows
+         count(*) AS bin_sessions
   FROM binned_sessions
   GROUP BY bin
 ),
@@ -68,7 +71,9 @@ SELECT (bins.bin + 0.5) * 100 / bins.bin_count AS percentile,
        bins.model / (bins.model + bins.tool + bins.human) AS model,
        bins.tool / (bins.model + bins.tool + bins.human) AS tool,
        bins.human / (bins.model + bins.tool + bins.human) AS human,
-       bins.rows,
+       bins.bin_sessions,
+       'ranked sessions' AS ranked_bin,
+       bins.sessions AS rows,
        mean_shares.mean_tool_share,
        mean_shares.mean_human_share
 FROM bins, mean_shares

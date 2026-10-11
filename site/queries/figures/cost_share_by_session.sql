@@ -2,9 +2,11 @@
 -- counted over its requests whose provider reports cache reads and that have an input, at the prices below: the
 -- sessions, each split into the shares of its cost that are cached input, uncached input and output, sorted by cached
 -- share, then uncached share, then session id, and cut into equal rank bins. Per bin: `percentile`, its middle in
--- percent of the sessions; `cached`, `uncached` and `output`, the bin's mean shares rescaled to sum to 1; and `rows`
--- (its sessions). `pooled_cached`, `pooled_uncached` and `pooled_output`, the same on every row, are the shares of the
--- whole selection's cost.
+-- percent of the sessions; `cached`, `uncached` and `output`, the bin's mean shares rescaled to sum to 1; and
+-- `bin_sessions` (its sessions). `pooled_cached`, `pooled_uncached` and `pooled_output`, the same on every row, are the
+-- shares of the whole selection's cost.
+-- `ranked_bin`, the same on every row, names the one bin the page counts the figure's rows in, so it is hidden only
+-- when the whole selection is thin, and `rows`, the same on every row, is the number of sessions ranked.
 WITH constants AS (
   SELECT 1.0 AS cached_price, -- the pipeline's prices.CACHED_PRICE: a cached input token
          10.0 AS uncached_price, -- prices.UNCACHED_PRICE: an uncached input token
@@ -53,10 +55,11 @@ binned_sessions AS (
 bins AS (
   SELECT session_rank * bin_count // sessions AS bin,
          any_value(bin_count) AS bin_count,
+         any_value(sessions) AS sessions,
          avg(cached_share) AS cached,
          avg(uncached_share) AS uncached,
          avg(output_share) AS output,
-         count(*) AS rows
+         count(*) AS bin_sessions
   FROM binned_sessions
   GROUP BY bin
 ),
@@ -70,7 +73,9 @@ SELECT (bins.bin + 0.5) * 100 / bins.bin_count AS percentile,
        bins.cached / (bins.cached + bins.uncached + bins.output) AS cached,
        bins.uncached / (bins.cached + bins.uncached + bins.output) AS uncached,
        bins.output / (bins.cached + bins.uncached + bins.output) AS output,
-       bins.rows,
+       bins.bin_sessions,
+       'ranked sessions' AS ranked_bin,
+       bins.sessions AS rows,
        pooled.pooled_cached,
        pooled.pooled_uncached,
        pooled.pooled_output

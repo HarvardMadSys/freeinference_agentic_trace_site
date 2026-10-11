@@ -3,7 +3,8 @@
 The queries run as the browser runs them, on the full site data with every week and the harnesses of the paper's
 scope selected: every harness for `All` (the trace summary), the benchmark's for `SWE-Bench` (its medians), every
 other for `Agentic`. It is skipped when the full site data (`make data`) or `numbers.json` in
-`$FREEINFERENCE_PIPELINE` (by default the sibling pipeline repository the Makefile builds from) is missing.
+`$FREEINFERENCE_PIPELINE` (by default the sibling pipeline repository the Makefile builds from) is missing. The
+fixtures `paper_numbers` and `agentic`, which other parity modules share, are in `conftest.py`.
 
 A number counted the same way is compared; a count must be equal and a median, share or ratio equal up to
 `RELATIVE_TOLERANCE`. These figures draw a number the paper also reports, but define it differently on purpose, so
@@ -81,13 +82,6 @@ def skip_unless_inputs_exist() -> None:
             pytest.skip(f"the paper-parity test needs {path}, which is missing")
 
 
-@pytest.fixture(scope="session")
-def paper_numbers() -> dict:
-    """The paper's `numbers.json`: section, then item, then name."""
-    skip_unless_inputs_exist()
-    return json.loads(numbers_file().read_text())
-
-
 def selected_database(benchmark: bool | None) -> duckdb.DuckDBPyConnection:
     """The full site data with every week and the harnesses whose `benchmark` is `benchmark` (all, if None) selected."""
     skip_unless_inputs_exist()
@@ -97,14 +91,6 @@ def selected_database(benchmark: bool | None) -> duckdb.DuckDBPyConnection:
     connection = site_database.open_site_database(SITE_DATA_FOLDER.resolve())
     site_database.select_weeks(connection, weeks, harnesses)
     return connection
-
-
-@pytest.fixture(scope="session")
-def agentic() -> typing.Iterator[duckdb.DuckDBPyConnection]:
-    """The full data with every week and the paper's harnesses, every one but the benchmark's, selected."""
-    connection = selected_database(benchmark=False)
-    yield connection
-    connection.close()
 
 
 @pytest.fixture(scope="session")

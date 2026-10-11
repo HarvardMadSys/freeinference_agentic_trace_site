@@ -88,7 +88,6 @@ def test_the_benchmark_harness_of_the_harness_index_is_the_pipeline_s(data_direc
     assert [entry["harness"] for entry in listed if entry["benchmark"]] == [population.BENCHMARK_HARNESS]
 
 
-
 def test_the_cost_share_prices_are_the_pipeline_s() -> None:
     assert sql_number(COST_SHARE_QUERY, "cached_price") == prices.CACHED_PRICE
     assert sql_number(COST_SHARE_QUERY, "uncached_price") == prices.UNCACHED_PRICE

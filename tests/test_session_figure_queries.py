@@ -2,7 +2,8 @@
 
 Every request of `fixture_release.REQUESTS` writes 100 output tokens. The paper's harnesses have four top-level
 sessions over both weeks, `tree-root`, `idle-week-1`, `mutation` and `idle-week-2`; fewer than ten sessions make one
-rank bin, at the 50th percentile.
+rank bin, at the 50th percentile. Every row of a rank-bin query holds the same `ranked_bin` and, in `rows`, the number
+of sessions ranked; `bin_sessions` is its own bin's.
 """
 
 import duckdb
@@ -13,6 +14,7 @@ import site_database
 
 CACHED_PRICE, UNCACHED_PRICE, OUTPUT_PRICE = 1, 10, 50  # per cached input, uncached input and output token
 ONE_BIN_PERCENTILE = 50.0  # the middle of the only rank bin
+RANKED_BIN = "ranked sessions"  # the one bin the page counts a rank-bin figure's rows in
 
 # The cost of each top-level session of the paper's harnesses, (cached, uncached, output), from its requests' input
 # and cached tokens: every request reports cache reads.
@@ -46,7 +48,8 @@ def test_the_cost_share_of_four_sessions_is_one_bin_of_their_mean_shares(connect
     rows = site_database.run_query(connection, "figures/cost_share_by_session")
     assert len(rows) == 1
     row = rows.iloc[0]
-    assert (row.percentile, row.rows) == (ONE_BIN_PERCENTILE, len(AGENTIC_SESSION_COSTS))
+    assert (row.percentile, row.ranked_bin) == (ONE_BIN_PERCENTILE, RANKED_BIN)
+    assert (row.bin_sessions, row.rows) == (len(AGENTIC_SESSION_COSTS), len(AGENTIC_SESSION_COSTS))
     assert [row[part] for part in COST_PARTS] == pytest.approx(mean_shares(AGENTIC_SESSION_COSTS))
     pooled = [row[f"pooled_{part}"] for part in COST_PARTS]
     assert pooled == pytest.approx(pooled_shares(AGENTIC_SESSION_COSTS))
@@ -59,7 +62,7 @@ def test_the_cost_share_leaves_out_a_session_whose_provider_reports_no_cache_rea
     site_database.select_weeks(connection, fixture_weeks, fixture_release.BENCHMARK_HARNESSES)
     rows = site_database.run_query(connection, "figures/cost_share_by_session")
     expected = {"idle-benchmark": (0, 600 * UNCACHED_PRICE, 100 * OUTPUT_PRICE)}
-    assert rows.rows.tolist() == [1]
+    assert (rows.bin_sessions.tolist(), rows.rows.tolist()) == ([1], [1])
     assert [rows.iloc[0][part] for part in COST_PARTS] == pytest.approx(mean_shares(expected))
 
 
@@ -96,6 +99,15 @@ def test_the_decode_cdf_draws_each_of_the_largest_models(connection: duckdb.Duck
     assert model_y.x.tolist() == pytest.approx([9] * CDF_POINTS)  # quantile_cont interpolates between two 9s
 
 
+@pytest.mark.parametrize("harnesses", [fixture_release.PAPER_HARNESSES, fixture_release.EVERY_HARNESS])
+def test_the_decode_cdf_draws_the_ttft_cdf_s_models(connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str],
+                                                   harnesses: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, harnesses)
+    ttft_rows = site_database.run_query(connection, "figures/ttft_cdf_by_model")
+    decode_rows = site_database.run_query(connection, "figures/decode_cdf_by_model")
+    assert set(decode_rows.series) == set(ttft_rows.series)
+
+
 def test_the_decode_median_is_the_median_over_trusted_ttfts(connection: duckdb.DuckDBPyConnection,
                                                             fixture_weeks: list[str]) -> None:
     site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
@@ -120,7 +132,8 @@ def test_the_session_time_of_four_sessions_is_one_bin_of_their_mean_shares(conne
     rows = site_database.run_query(connection, "figures/session_time_by_part")
     assert len(rows) == 1
     row = rows.iloc[0]
-    assert (row.percentile, row.rows) == (ONE_BIN_PERCENTILE, len(AGENTIC_SESSION_TIMES))
+    assert (row.percentile, row.ranked_bin) == (ONE_BIN_PERCENTILE, RANKED_BIN)
+    assert (row.bin_sessions, row.rows) == (len(AGENTIC_SESSION_TIMES), len(AGENTIC_SESSION_TIMES))
     means = mean_shares(AGENTIC_SESSION_TIMES)
     assert [row[part] for part in TIME_PARTS] == pytest.approx(means)
     assert (row.mean_tool_share, row.mean_human_share) == pytest.approx((means[1], means[2]))

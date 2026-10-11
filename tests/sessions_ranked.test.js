@@ -8,13 +8,14 @@ import {
   SESSION_TIME_BY_PART,
   stackedSharePoints,
 } from "../site/js/figures/sessions_ranked.js";
+import { dropThinGroups, restingCountText } from "../site/js/figures/figure_rows.js";
 import { REQUEST_PART_COLOURS, waitColours } from "../site/js/session_charts/timeline_bars.js";
 import { TOKEN_PART_COLOURS } from "../site/js/shared/charts.js";
 
-// Two rank bins of a cost share query, the first of 55 sessions, the second of 54.
+// Two rank bins of a cost share query, the first of 55 sessions, the second of 54, of 109 sessions ranked.
 const BIN_ROWS = [
-  { percentile: 25, cached: 0.5, uncached: 0.25, output: 0.25, rows: 55 },
-  { percentile: 75, cached: 0.75, uncached: 0.125, output: 0.125, rows: 54 },
+  { percentile: 25, cached: 0.5, uncached: 0.25, output: 0.25, bin_sessions: 55, ranked_bin: "ranked sessions", rows: 109 },
+  { percentile: 75, cached: 0.75, uncached: 0.125, output: 0.125, bin_sessions: 54, ranked_bin: "ranked sessions", rows: 109 },
 ];
 const LABELS = { cached: "Cached input", uncached: "Uncached input", output: "Output" };
 
@@ -61,4 +62,29 @@ test("the cost share's legend draws each token part in its token colour", () => 
   const legend = COST_SHARE_BY_SESSION.legend();
   assert.deepEqual(legend.series.map((one) => one.name), ["cached", "uncached", "output"]);
   assert.deepEqual([...legend.colours], Object.entries(TOKEN_PART_COLOURS));
+});
+
+// Eight rank bins of 13 sessions each, every one under the page's 50 rows a bin, of 104 sessions ranked.
+const SMALL_BIN_ROWS = Array.from({ length: 8 }, (unused, bin) => ({
+  percentile: (bin + 0.5) * 12.5,
+  model: 0.5,
+  tool: 0.25,
+  human: 0.25,
+  bin_sessions: 13,
+  ranked_bin: "ranked sessions",
+  rows: 104,
+}));
+
+test("a rank-bin figure is drawn whole when its sessions are enough, however small each bin, and counts them once", () => {
+  for (const figure of [COST_SHARE_BY_SESSION, SESSION_TIME_BY_PART]) {
+    const { rows, hidden } = dropThinGroups(SMALL_BIN_ROWS, figure.binColumn);
+    assert.equal(rows.length, SMALL_BIN_ROWS.length, figure.name);
+    assert.equal(hidden, 0, figure.name);
+    assert.equal(restingCountText(rows, figure), "104 rows", figure.name);
+  }
+});
+
+test("a rank-bin figure of fewer sessions than a bin needs is hidden whole", () => {
+  const thinRows = SMALL_BIN_ROWS.map((row) => ({ ...row, rows: 49 }));
+  assert.deepEqual(dropThinGroups(thinRows, SESSION_TIME_BY_PART.binColumn), { rows: [], hidden: 1 });
 });
