@@ -6,7 +6,7 @@
  * `session/session_tool_calls`.
  */
 
-import { OTHER_SERIES, TOKEN_PART_COLOURS } from "../shared/charts.js";
+import { OTHER_SERIES, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { elapsedSeconds, formatCount, formatElapsed } from "../shared/format.js";
 
 // A request with more tool calls than this shows the first ones as chips and the rest as one "+ N more" chip; its

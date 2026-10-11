@@ -1,8 +1,8 @@
 /** The legends of the Session page's views: a titled line of colour swatches, and the tool categories' entries. */
 
-import { OTHER_SERIES } from "../shared/charts.js";
+import { OTHER_SERIES } from "../theme/colours.js";
 
-// The name the legend gives every category past the eighth, which all share the Other colour. It is not charts.js's
+// The name the legend gives every category past the eighth, which all share the Other colour. It is not the charts'
 // "Other": the data has a tool category of that name, which holds its own colour.
 const OTHER_CATEGORIES = "Other categories";
 

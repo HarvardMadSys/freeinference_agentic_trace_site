@@ -63,6 +63,7 @@ page (html)  →  js/pages/<page>.js  →  section modules and js/shared/  →  
 ```
 js/pages/             one module per page
 js/shared/            what every page uses: the database, the selection, formatting, charts, the table, the stat strip
+js/theme/             the site's colours as the style tokens give them
 js/engine/            DuckDB in the page: starting it, its views and setup, the weeks' files and their streaming in
 js/explore/           the Explore page's sections, the figure runner (figure_sections.js) and the legend of buttons
 js/figures/           the Explore page's figures: one module per section, listing its figure entries, the modules a
@@ -254,7 +255,7 @@ which is plain HTML.
   same colour in every chart: a wait cause, a transition and a gap bin always
   take `--cause-*`, `--transition-*` and `--gap-bin-1` to `--gap-bin-6`, read
   through `CAUSE_COLOURS`, `TRANSITION_COLOURS` and `GAP_BIN_SLOTS` in
-  `shared/charts.js`. The palette was validated for colour-vision
+  `theme/colours.js`. The palette was validated for colour-vision
   deficiency in both modes; three light-mode slots sit under 3:1 contrast on
   white, so every chart ships a legend and a hover tooltip, and tables stay
   available where values matter.

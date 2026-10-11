@@ -10,9 +10,10 @@
  * is given the parts its legend hides.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE, TOKEN_PART_COLOURS } from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
+import { causeColours, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { formatCount, formatShare } from "../shared/format.js";
-import { REQUEST_PART_COLOURS, waitColours } from "../session_charts/timeline_bars.js";
+import { REQUEST_PART_COLOURS } from "../session_charts/timeline_bars.js";
 
 // The parts of a session's cost, bottom up in the stack, with the label each is drawn under.
 const COST_PARTS = Object.freeze({ cached: "Cached input", uncached: "Uncached input", output: "Output" });
@@ -97,7 +98,7 @@ function costShareLegend() {
  * time in the colours the Timeline gives a wait for a tool and for the user.
  */
 function sessionTimeLegend() {
-  const waits = waitColours();
+  const waits = causeColours();
   const colours = new Map([["model", REQUEST_PART_COLOURS.whole], ["tool", waits.get("tool")], ["human", waits.get("user")]]);
   return partsLegend(TIME_PARTS, colours);
 }

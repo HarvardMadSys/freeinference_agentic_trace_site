@@ -9,19 +9,9 @@
  */
 
 import {
-  assignColours,
-  AXIS_STYLE,
-  chartFrame,
-  colourScale,
-  distinct,
-  drawBars,
-  drawCdf,
-  GRID_STYLE,
-  LINE_WIDTH,
-  SERIES_SLOTS,
-  TIP_STYLE,
-  TOKEN_PART_COLOURS,
+  AXIS_STYLE, chartFrame, colourScale, distinct, drawBars, drawCdf, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
 } from "../shared/charts.js";
+import { assignColours, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { formatCount, formatSeconds, formatShare, formatTokens, monthAndDay } from "../shared/format.js";
 import { cdfSeries, seriesLegend, sparseTickFormat } from "./figure_rows.js";
 import { DECODE_CDF_BY_MODEL, TTFT_CDF_BY_MODEL } from "./sessions_latency.js";

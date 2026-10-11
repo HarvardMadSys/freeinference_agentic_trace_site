@@ -9,13 +9,11 @@
  * each from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
  */
 
-import {
-  AXIS_STYLE, assignColours, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, SERIES_SLOTS,
-  TIP_STYLE,
-} from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
+import { assignColours, SERIES_SLOTS } from "../theme/colours.js";
 import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
 import { GAP_FIGURES } from "./caching_gaps.js";
-import { seriesLegend, sparseTickFormat } from "./figure_rows.js";
+import { PLAIN_NUMBER_FORMAT, seriesLegend, sparseTickFormat } from "./figure_rows.js";
 
 // The idle-gap bins mirror the pipeline's `gaps.IDLE_GAP_EDGES_S`: 26 bins between 27 geometric edges from 10 s to
 // one hour, each 1.25 times as wide as the one before. tests/test_pipeline_mirrors.py checks these three constants,
@@ -47,7 +45,6 @@ const RETAINED_NAMES = Object.freeze({ reusable: "Reusable", dead: "Dead" });
 const RETAINED_COLOURS = Object.freeze({ reusable: SERIES_SLOTS[0], dead: SERIES_SLOTS[7] });
 
 const MARKER_RADIUS = 3; // pixels; the small markers on every line of the section
-const PLAIN_NUMBER_FORMAT = "~g"; // a log axis writes 0.001 and 100, not Plot's SI "1m" and "100"
 
 /** The figures of the Prefix-caching section, in the order the page shows them. */
 export const FIGURES = Object.freeze([

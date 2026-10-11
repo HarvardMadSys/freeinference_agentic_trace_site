@@ -3,8 +3,9 @@ import { test } from "node:test";
 
 import { idleGapEdgeSeconds, idleGapLegend, retainedLegend, retainedPoints } from "../site/js/figures/caching.js";
 import {
-  causeColours, causeLegend, gapBinColours, gapBinLegend, meanHitRatioBars, transitionLegend,
+  causeLegend, gapBinColours, gapBinLegend, meanHitRatioBars, transitionLegend,
 } from "../site/js/figures/caching_gaps.js";
+import { causeColours } from "../site/js/theme/colours.js";
 
 // The colours every figure shares, as the page gives a legend function: the providers in their fixed order.
 const FIGURE_COLOURS = Object.freeze({

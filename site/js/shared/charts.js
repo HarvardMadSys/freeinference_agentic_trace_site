@@ -1,55 +1,14 @@
 /**
- * What every chart shares: series colours, captions, loading and error states, the figure layout, and the CDF and bar drawings.
- *
- * Every colour is a CSS variable from `style.css`, so a chart follows the
- * page into dark mode with no JavaScript. Names get colours from one fixed
- * order, so the same model, category or policy has the same colour in every
- * chart. The drawing functions load Plot themselves; the rest is plain
- * functions, tested with `node --test`.
+ * What every chart shares: its frame and ink, folding series past the eighth into "Other", captions, loading and error
+ * states, the figure layout, and the CDF and bar drawings. The colours a chart draws in come from `theme/colours.js`.
+ * The drawing functions load Plot themselves; the rest is plain functions, tested with `node --test`.
  */
 
+import { OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
 import { formatCount, formatShare } from "./format.js";
-
-/** The eight series colours, in order. A chart assigns them in this order and never cycles: a ninth series is "Other". */
-export const SERIES_SLOTS = Object.freeze([
-  "var(--series-1)",
-  "var(--series-2)",
-  "var(--series-3)",
-  "var(--series-4)",
-  "var(--series-5)",
-  "var(--series-6)",
-  "var(--series-7)",
-  "var(--series-8)",
-]);
-
-/** The colour of every series past the eighth, folded together as "Other". */
-export const OTHER_SERIES = "var(--series-other)";
-
-/** The colour of each part of a request's tokens, the same in every chart. */
-export const TOKEN_PART_COLOURS = Object.freeze({
-  cached: "var(--token-cached)",
-  uncached: "var(--token-uncached)",
-  output: "var(--token-output)",
-});
-
-/** The colour of each wait cause, by the release's `waited_for` value in the paper's order, the same in every chart. */
-export const CAUSE_COLOURS = Object.freeze({
-  tool: "var(--cause-tool)", ask_user_tool: "var(--cause-ask-user)", user: "var(--cause-user)", subagent: "var(--cause-subagent)",
-});
-
-/** The colour of each transition the figures draw: a request appended to its context, or rewrote it. */
-export const TRANSITION_COLOURS = Object.freeze({ append: "var(--transition-append)", mutation: "var(--transition-mutation)" });
-
-/** The six gap-bin colours, shortest gap first: one blue from light to dark. */
-export const GAP_BIN_SLOTS = Object.freeze([
-  "var(--gap-bin-1)", "var(--gap-bin-2)", "var(--gap-bin-3)", "var(--gap-bin-4)", "var(--gap-bin-5)", "var(--gap-bin-6)",
-]);
 
 /** A bin, category or model with fewer rows than this is not drawn: too few rows to show a shape. */
 export const MIN_ROWS_PER_BIN = 50;
-
-// The name a series past the eighth takes once folded.
-const OTHER_NAME = "Other";
 
 // Joins a bar's x value and series name into one key when summing folded rows.
 const KEY_SEPARATOR = "\u0000";
@@ -76,19 +35,6 @@ export const TIP_STYLE = Object.freeze({ fill: "var(--color-surface)" });
 /** The Plot options every chart starts from: its margins, its height, the width of `body`, and its ink. */
 export function chartFrame(body) {
   return { ...PLOT_MARGINS, width: chartWidth(body), height: CHART_HEIGHT, style: PLOT_STYLE };
-}
-
-/** A map from each distinct name, in the given order, to its series colour; the ninth name and beyond map to `OTHER_SERIES`. */
-export function assignColours(names) {
-  const colours = new Map();
-  for (const name of names) {
-    if (colours.has(name)) {
-      continue;
-    }
-    const slot = colours.size < SERIES_SLOTS.length ? SERIES_SLOTS[colours.size] : OTHER_SERIES;
-    colours.set(name, slot);
-  }
-  return colours;
 }
 
 /** A copy of `rows` with `row[key]` replaced by "Other" where it is not among the first eight distinct `names`. */
@@ -252,13 +198,6 @@ export function distinct(values) {
 
 function chartWidth(body) {
   return body.clientWidth || FALLBACK_WIDTH;
-}
-
-/** A bar chart's colours: each of the first eight of `names` in its series colour, and "Other", which the rest fold into. */
-export function barColours(names) {
-  const colours = assignColours(names.slice(0, SERIES_SLOTS.length));
-  colours.set(OTHER_NAME, OTHER_SERIES);
-  return colours;
 }
 
 /**

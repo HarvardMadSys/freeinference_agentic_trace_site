@@ -17,7 +17,8 @@
  * current run, so a new selection, which starts a new run, shows every series again.
  */
 
-import { assignColours, MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote, weeksText } from "../shared/charts.js";
+import { MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote, weeksText } from "../shared/charts.js";
+import { assignColours } from "../theme/colours.js";
 import { isDefaultSelection } from "../shared/selection.js";
 import { drawnHarnessesAndWeeks, dropThinGroups, hiddenText, restingCountText } from "../figures/figure_rows.js";
 import { drawWithLegend, shownRows } from "./legend.js";

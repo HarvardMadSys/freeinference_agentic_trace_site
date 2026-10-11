@@ -8,7 +8,7 @@
  */
 
 import { agentLabel, agentsInStartOrder, callsByRequest, requestKey } from "../session/tree.js";
-import { CAUSE_COLOURS, OTHER_SERIES } from "../shared/charts.js";
+import { causeColours, OTHER_SERIES } from "../theme/colours.js";
 import { elapsedSeconds, formatSeconds, MILLISECONDS_PER_SECOND } from "../shared/format.js";
 
 /**
@@ -42,15 +42,6 @@ export const BAND_SPANS = Object.freeze({ request: [0.12, 0.6], tool: [0.66, 0.8
 // The share of a row from its top where the pointer passes from the request band to the tool band: between the two.
 const BAND_BOUNDARY = 0.63;
 
-/** A map from each wait cause to its colour, the one every chart gives it, in the order of `WAIT_CAUSES`. */
-export function waitColours() {
-  const colours = new Map();
-  for (const cause of Object.keys(WAIT_CAUSES)) {
-    colours.set(cause, CAUSE_COLOURS[cause]);
-  }
-  return colours;
-}
-
 /** The Gantt's rows, `[{ sessionId, label }]`: the top-level session, then every subagent in order of first start. */
 export function ganttRows(tree) {
   return agentsInStartOrder(tree).map((session) => ({ sessionId: session.session_id, label: agentLabel(session) }));
@@ -68,7 +59,7 @@ export function ganttBars(tree, requests, toolCalls, categoryColours) {
   const rowBySession = new Map(agents.map((session, index) => [session.session_id, index]));
   const labelBySession = new Map(agents.map((session) => [session.session_id, agentLabel(session)]));
   const calls = callsByRequest(toolCalls);
-  const causeColours = waitColours();
+  const waitColours = causeColours();
   const originMs = agents[0].first_start_ms;
   const bars = [];
   for (const request of requests) {
@@ -79,7 +70,7 @@ export function ganttBars(tree, requests, toolCalls, categoryColours) {
       label: labelBySession.get(request.session_id),
       originMs,
     };
-    bars.push(...waitBars(request, place, causeColours));
+    bars.push(...waitBars(request, place, waitColours));
     bars.push(...requestBars(request, place));
     for (const call of calls.get(requestKey(request.session_id, request.step)) ?? []) {
       bars.push(...toolBars(call, request, place, categoryColours));
@@ -115,14 +106,14 @@ function requestBars(request, place) {
 }
 
 /** The wait before a request, ending at its start and lasting `wait_s`; none for a first request or a wait under 0. */
-function waitBars(request, place, causeColours) {
+function waitBars(request, place, waitColours) {
   if (request.waited_for === null || request.wait_s === null || request.wait_s <= 0) {
     return [];
   }
   const start = elapsedSeconds(request.start_ms, place.originMs);
   const cause = WAIT_CAUSES[request.waited_for] ?? request.waited_for;
   const tip = `waited ${formatSeconds(request.wait_s)} for ${cause}\nbefore ${place.label} step ${place.step}`;
-  const colour = causeColours.get(request.waited_for) ?? OTHER_SERIES;
+  const colour = waitColours.get(request.waited_for) ?? OTHER_SERIES;
   return [{ ...bar(place, "request", start - request.wait_s, start, colour, tip), opacity: WAIT_OPACITY }];
 }
 
@@ -191,7 +182,7 @@ export function requestPartEntries(requests) {
 
 /** The legend entries of the waits `requests` has, `[{ name, colour, opacity }]`, in the order of `WAIT_CAUSES`. */
 export function waitEntries(requests) {
-  const colours = waitColours();
+  const colours = causeColours();
   const entries = [];
   for (const [cause, name] of Object.entries(WAIT_CAUSES)) {
     if (requests.some((request) => request.waited_for === cause)) {

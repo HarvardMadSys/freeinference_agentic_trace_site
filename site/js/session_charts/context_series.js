@@ -7,7 +7,7 @@
  */
 
 import { agentLabel, agentsInStartOrder } from "../session/tree.js";
-import { assignColours, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS, TRANSITION_COLOURS } from "../shared/charts.js";
+import { assignColours, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS, TRANSITION_COLOURS } from "../theme/colours.js";
 import { elapsedSeconds, formatElapsed, formatTokens } from "../shared/format.js";
 
 /** The two ways the area can split the top-level session's input: into cached and uncached tokens, or by role. */

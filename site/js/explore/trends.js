@@ -8,9 +8,9 @@
  */
 
 import {
-  barColours, captionText, drawBars, foldToOther, OTHER_SERIES, renderFigure, showError, showLoading, sumFolded,
-  TOKEN_PART_COLOURS,
+  captionText, drawBars, foldToOther, renderFigure, showError, showLoading, sumFolded,
 } from "../shared/charts.js";
+import { barColours, OTHER_SERIES, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { seriesLegend } from "../figures/figure_rows.js";
 import { formatTokens, monthAndDay } from "../shared/format.js";
 import { harnessesText, weeksByMonth } from "../shared/selection.js";

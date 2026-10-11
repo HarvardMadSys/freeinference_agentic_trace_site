@@ -1,6 +1,8 @@
 """The Prefix-caching figures' queries on the fixture data: hit ratios by gap, by idle gap and by transition, gaps by
 cause, and the cache simulation's ratios, which hold the paper's population whatever harnesses are selected."""
 
+import collections.abc
+
 import duckdb
 import pandas
 import pytest
@@ -198,3 +200,40 @@ def test_the_mean_hit_ratio_of_each_cause_in_the_paper_s_order(connection: duckd
         ratios = [ratio for _seconds, waited_for, ratio in AGENTIC_GAPS if waited_for == cause]
         expected[cause] = sum(ratios) / len(ratios)
     assert rows.set_index("waited_for").mean_hit_ratio.to_dict() == pytest.approx(expected)
+
+
+# Two top-level requests of one week and harness, each after a wait for a tool: one starts the moment the request
+# before it ended, a gap of 0 s, which counts; the other starts 2 s before the request before it ended, an overlap,
+# which is not a gap and is dropped. The fixture release has neither, so the case is a table of its own.
+WAIT_CASES = pandas.DataFrame({
+    "week": [FIRST_SUNDAY, FIRST_SUNDAY],
+    "harness": ["pi", "pi"],
+    "is_top_level": [True, True],
+    "waited_for": ["tool", "tool"],
+    "wait_s": [0.0, -2.0],
+    "hit_ratio": [0.5, 0.9],
+})
+
+
+@pytest.fixture
+def wait_cases() -> collections.abc.Iterator[duckdb.DuckDBPyConnection]:
+    """A database whose `requests` are `WAIT_CASES`, with their week and harness selected."""
+    database = duckdb.connect()
+    for name in site_database.SELECTION_TABLE_STATEMENTS:
+        database.execute(site_database.statement_text(name))
+    database.register("requests", WAIT_CASES)
+    site_database.select_weeks(database, [FIRST_SUNDAY], ["pi"])
+    yield database
+    database.close()
+
+
+def test_a_gap_of_0_s_counts_and_an_overlap_does_not(wait_cases: duckdb.DuckDBPyConnection) -> None:
+    gaps = site_database.run_query(wait_cases, "figures/gap_cdf_by_cause")
+    assert gaps.rows.unique().tolist() == [1]
+    assert gaps.x.unique().tolist() == [0.0]
+    means = site_database.run_query(wait_cases, "figures/mean_hit_ratio_by_cause")
+    assert means.values.tolist() == [["tool", 1, 0.5]]
+    bins = site_database.run_query(wait_cases, "figures/hit_ratio_cdf_by_gap_bin")
+    assert bins.series.unique().tolist() == ["<1m"]
+    assert bins.rows.unique().tolist() == [1]
+    assert bins.x.unique().tolist() == [0.5]

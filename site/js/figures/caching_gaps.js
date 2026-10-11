@@ -5,14 +5,13 @@
  * what it waited for; the queries pick those requests.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines; `caching.js` lists them with the section's other
- * figures. A cause, a transition and a gap bin have the same colour in every chart, from `shared/charts.js`.
+ * figures. A cause, a transition and a gap bin have the same colour in every chart, from `theme/colours.js`.
  */
 
-import {
-  AXIS_STYLE, CAUSE_COLOURS, chartFrame, colourScale, drawCdf, GAP_BIN_SLOTS, GRID_STYLE, TIP_STYLE, TRANSITION_COLOURS,
-} from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, colourScale, drawCdf, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
+import { causeColours, GAP_BIN_SLOTS, TRANSITION_COLOURS } from "../theme/colours.js";
 import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
-import { cdfSeries, seriesLegend } from "./figure_rows.js";
+import { cdfSeries, PLAIN_NUMBER_FORMAT, seriesLegend } from "./figure_rows.js";
 
 // The gap bins' labels, shortest gap first, as the pipeline's `gaps.GAP_BINS` names them. tests/
 // test_pipeline_mirrors_caching.py checks them, the cause names and the three constants below against the pipeline.
@@ -34,7 +33,6 @@ const MIN_GAP_DRAWN_S = 0.1; // a shorter gap is drawn at it, on the log axis, a
 const MAX_GAP_DRAWN_S = 86400; // the gap axis ends at a day, as the paper's does
 const MEAN_HIT_RATIO_AXIS_LOW = 0.7; // the bars start here, as in the paper, so their differences show
 
-const PLAIN_NUMBER_FORMAT = "~g"; // the gap axis writes 0.1 and 1000, not Plot's SI "100m" (which reads as minutes) and "1k"
 const HIT_RATIO_DOMAIN = Object.freeze([0, 1]); // a hit ratio runs from none of the input cached to all of it
 const CAUSE_MARGIN_LEFT = 96; // pixels; room for the longest cause name, "Ask-User Tool"
 const VALUE_MARGIN_RIGHT = 40; // pixels; room for a value written after a bar that reaches 1
@@ -47,7 +45,7 @@ export const GAP_FIGURES = Object.freeze({
   hitRatioByGapBin: Object.freeze({
     name: "hit_ratio_cdf_by_gap_bin",
     title: "Hit ratio by gap before the request",
-    definition: "CDF of the hit ratio (cached over input tokens) of requests in each of six bins of the gap before them (the wait since the previous request of their session ended), shortest gap lightest.",
+    definition: "CDF of the hit ratio (cached over input tokens) of requests in each of six bins of the gap before them (the wait since the previous request of their session ended), shortest gap lightest; a bin with too few requests to show a shape is hidden.",
     query: "figures/hit_ratio_cdf_by_gap_bin",
     binColumn: "series",
     seriesColumn: "series",
@@ -67,7 +65,7 @@ export const GAP_FIGURES = Object.freeze({
   meanHitRatioByCause: Object.freeze({
     name: "mean_hit_ratio_by_cause",
     title: "Mean hit ratio by cause",
-    definition: "Mean hit ratio (cached over input tokens) of requests by what the gap before them waited for, on an axis from 0.7 to 1.",
+    definition: "Mean hit ratio (cached over input tokens) of requests by what the gap before them waited for, on an axis from 0.7 to 1, where a mean below 0.7 is drawn ending at the axis, its value written beside it.",
     query: "figures/mean_hit_ratio_by_cause",
     binColumn: "waited_for",
     draw: drawMeanHitRatioByCause,
@@ -91,11 +89,6 @@ export function gapBinColours() {
     colours.set(GAP_BIN_LABELS[index], GAP_BIN_SLOTS[index]);
   }
   return colours;
-}
-
-/** A map from each cause, by its `waited_for` value in the paper's order, to its colour. */
-export function causeColours() {
-  return new Map(Object.entries(CAUSE_COLOURS));
 }
 
 /** The gap-bin figure's legend: the bins of the rows, shortest gap first. */

@@ -14,7 +14,7 @@ SITE_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site"
 GAP_BIN_QUERY = SITE_FOLDER / "queries" / "figures" / "hit_ratio_cdf_by_gap_bin.sql"  # bins the gaps
 CAUSE_QUERY = SITE_FOLDER / "queries" / "figures" / "mean_hit_ratio_by_cause.sql"  # orders the causes
 CACHING_GAPS_MODULE = SITE_FOLDER / "js" / "figures" / "caching_gaps.js"  # the bins' labels, the causes' names
-CHARTS_MODULE = SITE_FOLDER / "js" / "shared" / "charts.js"  # the causes' colours
+COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the causes' colours
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the causes a wait bar names
 OPEN_ENDED = "'infinity'::DOUBLE"  # how the query writes the last bin's upper bound
 
@@ -55,7 +55,7 @@ def test_the_cause_names_are_the_pipeline_s_in_its_order() -> None:
 
 
 def test_every_cause_has_a_colour_and_the_query_orders_them_as_the_pipeline() -> None:
-    assert list(javascript_object(CHARTS_MODULE, "CAUSE_COLOURS")) == list(gaps.CAUSE_NAMES)
+    assert list(javascript_object(COLOURS_MODULE, "CAUSE_COLOURS")) == list(gaps.CAUSE_NAMES)
     assert [cause for cause, _order in CAUSE_ROW.findall(CAUSE_QUERY.read_text())] == list(gaps.CAUSE_NAMES)
 
 

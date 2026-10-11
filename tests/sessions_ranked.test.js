@@ -9,8 +9,8 @@ import {
   stackedSharePoints,
 } from "../site/js/figures/sessions_ranked.js";
 import { dropThinGroups, restingCountText } from "../site/js/figures/figure_rows.js";
-import { REQUEST_PART_COLOURS, waitColours } from "../site/js/session_charts/timeline_bars.js";
-import { TOKEN_PART_COLOURS } from "../site/js/shared/charts.js";
+import { REQUEST_PART_COLOURS } from "../site/js/session_charts/timeline_bars.js";
+import { causeColours, TOKEN_PART_COLOURS } from "../site/js/theme/colours.js";
 
 // Two rank bins of a cost share query, the first of 55 sessions, the second of 54, of 109 sessions ranked.
 const BIN_ROWS = [
@@ -54,8 +54,8 @@ test("the session time's legend draws model time in a request's ink and waits in
   const legend = SESSION_TIME_BY_PART.legend();
   assert.deepEqual(legend.series.map((one) => one.name), ["model", "tool", "human"]);
   assert.equal(legend.colours.get("model"), REQUEST_PART_COLOURS.whole);
-  assert.equal(legend.colours.get("tool"), waitColours().get("tool"));
-  assert.equal(legend.colours.get("human"), waitColours().get("user"));
+  assert.equal(legend.colours.get("tool"), causeColours().get("tool"));
+  assert.equal(legend.colours.get("human"), causeColours().get("user"));
 });
 
 test("the cost share's legend draws each token part in its token colour", () => {

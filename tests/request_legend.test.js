@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { legendEntries } from "../site/js/session_requests/request_legend.js";
-import { assignColours } from "../site/js/shared/charts.js";
+import { assignColours } from "../site/js/theme/colours.js";
 
 // A site-wide order of ten categories: the last two fold into the Other colour.
 const SITE_ORDER = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];

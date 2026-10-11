@@ -1,7 +1,7 @@
 /**
  * What the Explore page does to a figure's rows before drawing them: thin bins hidden, the caption's row
  * count, harnesses, weeks and note on hidden bins, the series its legend lists, a CDF query's points grouped into
- * series, and the labels of a crowded axis.
+ * series, and the labels of a crowded axis or a log one.
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
  * a CDF series), or, when `binColumn` is null, each row alone. Every row of a bin carries the bin's count, the number
@@ -11,6 +11,9 @@
 import { dropThinBins, MIN_ROWS_PER_BIN } from "../shared/charts.js";
 import { formatCount } from "../shared/format.js";
 import { harnessesText, isDefaultHarnessChoice } from "../shared/selection.js";
+
+/** How a log axis writes its ticks: 0.1 and 1000, not Plot's SI "100m" (which reads as minutes) and "1k". */
+export const PLAIN_NUMBER_FORMAT = "~g";
 
 // The column of every figure query that holds a bin's count: the number of rows of the data behind the bin.
 const COUNT_COLUMN = "rows";

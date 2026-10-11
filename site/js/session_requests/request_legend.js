@@ -1,7 +1,7 @@
 /** The legend of the Requests view: the colours of a bar's parts, and of the tool categories of the chips. */
 
 import { categoryEntries, legendLine } from "../session/legend.js";
-import { OTHER_SERIES, TOKEN_PART_COLOURS } from "../shared/charts.js";
+import { OTHER_SERIES, TOKEN_PART_COLOURS } from "../theme/colours.js";
 
 /**
  * The legend's two lines, `{ tokens, categories }`, each `[{ name, colour }]`: the bar parts (with "no cache

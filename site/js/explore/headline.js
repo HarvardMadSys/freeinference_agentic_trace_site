@@ -6,7 +6,8 @@
  * A section's `context` is what the page gives every section; see `pages/explore.js`.
  */
 
-import { assignColours, showError, showLoading, showNote } from "../shared/charts.js";
+import { showError, showLoading, showNote } from "../shared/charts.js";
+import { assignColours } from "../theme/colours.js";
 import { cachedShare, formatCount, formatOptionalShare, formatShare, formatTokens } from "../shared/format.js";
 import { statStrip } from "../shared/tiles.js";
 

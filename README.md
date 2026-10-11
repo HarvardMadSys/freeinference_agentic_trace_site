@@ -107,6 +107,7 @@ site/              exactly the files that are deployed
                    the stat strip, the header and footer
   js/engine/       DuckDB in the page: duckdb_start (starting it), duckdb_views (its views and setup),
                    duckdb_files (the weeks' files and their streaming in)
+  js/theme/        the site's colours as the style tokens give them
   js/pages/        one module per page
   js/explore/      the Explore page's sections, one module each: selection_pickers, trends, headline,
                    distributions, figure_sections (the figure runner), sessions_table; and legend, the legend

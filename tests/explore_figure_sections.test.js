@@ -4,9 +4,9 @@ import { test } from "node:test";
 import {
   drawFigureSeries, figureColours, figuresToStart, newFigureRun, noteVisibility,
 } from "../site/js/explore/figure_sections.js";
-import { SERIES_SLOTS } from "../site/js/shared/charts.js";
+import { SERIES_SLOTS } from "../site/js/theme/colours.js";
 
-test("the figures' colours follow the model, category and provider orders, each from the first series colour", async () => {
+test("the figures' colours follow the model, category and provider orders, each from the first slot", async () => {
   const orders = {
     models: Promise.resolve([{ model: "model-b" }, { model: "model-a" }]),
     categories: Promise.resolve([{ category: "Read" }, { category: "Edit" }]),

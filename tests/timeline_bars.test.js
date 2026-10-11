@@ -4,7 +4,7 @@ import { test } from "node:test";
 import {
   barAt, ganttBars, ganttRows, placedInRow, pointerPlace, requestPartEntries, undrawnCounts, waitEntries, WAIT_OPACITY,
 } from "../site/js/session_charts/timeline_bars.js";
-import { assignColours } from "../site/js/shared/charts.js";
+import { assignColours } from "../site/js/theme/colours.js";
 
 // The fixture's tree: `root` spawns `child` and `sibling` from step 1, whose requests overlap; `child` spawns
 // `grandchild`. Times are in seconds from 1,000.

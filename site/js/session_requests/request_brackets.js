@@ -7,7 +7,7 @@
  * separate lanes of the gutter; a bracket that finds no free lane is not drawn, and the view says how many.
  */
 
-import { SERIES_SLOTS } from "../shared/charts.js";
+import { SERIES_SLOTS } from "../theme/colours.js";
 
 /** The number of lanes in the gutter: more brackets crossing one row than this are not drawn. */
 export const MAX_LANES = 6;
