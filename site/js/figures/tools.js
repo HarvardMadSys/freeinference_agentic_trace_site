@@ -88,7 +88,7 @@ async function drawQuantileRanges(rows, body, categoryColours, range) {
     marginLeft: CATEGORY_MARGIN_LEFT,
     x: { type: "log" },
     y: { type: "band", domain: categories },
-    color: colourScale(categoryColours, categories, false),
+    color: colourScale(categoryColours, categories),
     marks: [
       Plot.gridX(GRID_STYLE),
       // The labels are given as text: a narrow log axis's own tick format would leave all but one power of ten bare.

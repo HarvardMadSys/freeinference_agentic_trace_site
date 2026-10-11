@@ -8,6 +8,7 @@ import {
   hiddenText,
   restingCountText,
   restingRowCount,
+  seriesLegend,
   sparseTickFormat,
 } from "../site/js/figures/figure_rows.js";
 
@@ -66,14 +67,22 @@ test("the hidden note names what was hidden, in the singular or the plural", () 
 
 test("CDF rows become series in the order of the names given, with a missing series left out", () => {
   assert.deepEqual(cdfSeries(CDF_ROWS, ["tool_steps", "user_steps", "requests"]), [
-    { name: "tool_steps", points: [{ x: 0, share: 0 }, { x: 12, share: 1 }] },
-    { name: "requests", points: [{ x: 3, share: 0 }, { x: 40, share: 1 }] },
+    { name: "tool_steps", label: "tool_steps", points: [{ x: 0, share: 0 }, { x: 12, share: 1 }] },
+    { name: "requests", label: "requests", points: [{ x: 3, share: 0 }, { x: 40, share: 1 }] },
   ]);
 });
 
-test("a CDF series is drawn under its label where it has one", () => {
+test("a CDF series keeps its name and is labelled by its label where it has one", () => {
   const series = cdfSeries(CDF_ROWS, ["requests", "tool_steps"], { labels: { tool_steps: "Tool steps" } });
-  assert.deepEqual(series.map((one) => one.name), ["requests", "Tool steps"]);
+  assert.deepEqual(series.map((one) => one.name), ["requests", "tool_steps"]);
+  assert.deepEqual(series.map((one) => one.label), ["requests", "Tool steps"]);
+});
+
+test("a legend lists the series the rows hold, in the colours' order, each labelled where it has a label", () => {
+  const colours = new Map([["requests", "red"], ["user_steps", "blue"], ["tool_steps", "green"]]);
+  const legend = seriesLegend(CDF_ROWS, "series", colours, { tool_steps: "Tool steps" });
+  assert.deepEqual(legend.series, [{ name: "requests", label: "requests" }, { name: "tool_steps", label: "Tool steps" }]);
+  assert.equal(legend.colours, colours);
 });
 
 test("a CDF value below the floor is drawn at the floor", () => {

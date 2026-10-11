@@ -101,7 +101,7 @@ function drawChart(Plot, boxes, tree, requests, split) {
     width,
     x: { domain: [0, maxElapsed] },
     y: { nice: true },
-    color: colourScale(new Map(parts.map((part) => [part.name, part.colour])), parts.map((part) => part.name), false),
+    color: colourScale(new Map(parts.map((part) => [part.name, part.colour])), parts.map((part) => part.name)),
     marks: [
       Plot.gridY(GRID_STYLE),
       Plot.areaY(areaRows(tree, requests, split), {

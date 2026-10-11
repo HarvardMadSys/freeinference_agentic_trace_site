@@ -4,14 +4,15 @@
  * eviction policy would keep.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines; a figure that `isSimulation` draws
- * the simulation of the paper's harnesses whatever harnesses are selected.
+ * the simulation of the paper's harnesses whatever harnesses are selected. A figure of more than one series colours
+ * each from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
  */
 
 import {
   AXIS_STYLE, assignColours, chartFrame, colourScale, DASH, distinct, drawBars, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
 } from "../shared/charts.js";
 import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
-import { sparseTickFormat } from "./figure_rows.js";
+import { seriesLegend, sparseTickFormat } from "./figure_rows.js";
 
 // The idle-gap bins mirror the pipeline's `gaps.IDLE_GAP_EDGES_S`: 26 bins between 27 geometric edges from 10 s to
 // one hour, each 1.25 times as wide as the one before. tests/test_pipeline_mirrors.py checks these three constants,
@@ -50,6 +51,8 @@ export const FIGURES = Object.freeze([
     definition: "Median hit ratio (cached over input tokens) of requests per bin of idle gap (the time since the same user's previous request at the provider finished; 26 geometric bins from 10 s to 1 h, each drawn at its middle), one line per provider, where the paper merges a bin of fewer than 20 requests into the next, draws it at its requests' median gap and shows the four providers with most idle gaps.",
     query: "figures/hit_ratio_by_idle_gap",
     binColumn: null,
+    seriesColumn: "provider",
+    legend: idleGapLegend,
     draw: drawIdleGapRetention,
   }),
   Object.freeze({
@@ -58,6 +61,8 @@ export const FIGURES = Object.freeze([
     definition: "Mean hit ratio (cached over input tokens) of the requests that append to the context before them, mutate it, or switch model or provider, where the paper draws the CDFs of appends and mutations and leaves switches out.",
     query: "figures/hit_ratio_by_transition",
     binColumn: "transition",
+    seriesColumn: "transition",
+    legend: transitionLegend,
     draw: drawTransitionHitRatios,
   }),
   Object.freeze({
@@ -66,8 +71,10 @@ export const FIGURES = Object.freeze([
     definition: "Hit tokens over hit and missed tokens in the prefix-cache simulation of the paper's harnesses, whatever harnesses are selected, per cache TTL and eviction policy, where the paper draws the TTL-only policy's misses as prefill against storage.",
     query: "figures/simulated_hit_ratio_by_ttl",
     binColumn: "policy",
+    seriesColumn: "policy",
     seriesOverSameRows: true,
     isSimulation: true,
+    legend: policyLegend,
     draw: drawSimulatedHitRatios,
   }),
   Object.freeze({
@@ -76,8 +83,10 @@ export const FIGURES = Object.freeze([
     definition: "Token-seconds that cached blocks stay after their last read over those of the blocks requests in flight hold, in the prefix-cache simulation of the paper's harnesses, whatever harnesses are selected, per cache TTL and eviction policy, where the paper draws the TTL-only and reclaim-mutate policies only up to a day.",
     query: "figures/dead_over_active_by_policy",
     binColumn: "policy",
+    seriesColumn: "policy",
     seriesOverSameRows: true,
     isSimulation: true,
+    legend: policyLegend,
     draw: drawDeadOverActive,
   }),
 ]);
@@ -87,12 +96,32 @@ export function idleGapEdgeSeconds(edge) {
   return FIRST_IDLE_GAP_EDGE_S * (LAST_IDLE_GAP_EDGE_S / FIRST_IDLE_GAP_EDGE_S) ** (edge / IDLE_GAP_BINS);
 }
 
+/** The idle-gap figure's legend: each provider of the rows, in their order, as "Provider A". */
+function idleGapLegend(rows) {
+  const providers = distinct(rows.map((row) => row.provider));
+  const labels = {};
+  for (const provider of providers) {
+    labels[provider] = providerLabel(provider);
+  }
+  return seriesLegend(rows, "provider", assignColours(providers), labels);
+}
+
+/** The transition figure's legend: the transitions, in their order. */
+function transitionLegend(rows) {
+  return seriesLegend(rows, "transition", assignColours(TRANSITIONS));
+}
+
+/** A simulation figure's legend: the eviction policies, in their order, by the names they are drawn under. */
+function policyLegend(rows) {
+  return seriesLegend(rows, "policy", assignColours(Object.keys(POLICY_NAMES)), POLICY_NAMES);
+}
+
 /** Draw one line per provider of its median hit ratio per idle-gap bin, on a log axis of seconds, with markers. */
-async function drawIdleGapRetention(rows, body) {
+async function drawIdleGapRetention(rows, body, colours) {
   // Plot is loaded here, not at the top, so node can test the section's figure list.
   const { Plot } = await import("../shared/libraries.js");
   const points = rows.map((row) => ({
-    provider: `Provider ${row.provider}`,
+    provider: row.provider,
     seconds: idleGapEdgeSeconds(row.idle_gap_bin + 0.5), // the bin's geometric middle
     hitRatio: row.median_hit_ratio,
     row,
@@ -102,7 +131,7 @@ async function drawIdleGapRetention(rows, body) {
     ...chartFrame(body),
     x: { type: "log", domain: [FIRST_IDLE_GAP_EDGE_S, LAST_IDLE_GAP_EDGE_S] },
     y: { domain: [0, 1] },
-    color: colourScale(assignColours(providers), providers, true),
+    color: colourScale(colours.series, providers),
     marks: [
       Plot.gridX({ ...GRID_STYLE, ticks: IDLE_GAP_TICK_SECONDS }),
       Plot.gridY(GRID_STYLE),
@@ -118,14 +147,14 @@ async function drawIdleGapRetention(rows, body) {
 }
 
 /** Draw one bar per transition of the mean hit ratio of the requests after it. */
-async function drawTransitionHitRatios(rows, body) {
+async function drawTransitionHitRatios(rows, body, colours) {
   const present = new Set(rows.map((row) => row.transition));
   await drawBars(body, rows, {
     x: "transition",
     y: "mean_hit_ratio",
     fill: "transition",
     order: TRANSITIONS,
-    colours: assignColours(TRANSITIONS),
+    colours: colours.series,
     xDomain: TRANSITIONS.filter((transition) => present.has(transition)),
     xLabel: "Transition",
     yLabel: "Mean hit ratio",
@@ -134,31 +163,31 @@ async function drawTransitionHitRatios(rows, body) {
 }
 
 /** Draw one line per policy of its simulated hit ratio per TTL. */
-async function drawSimulatedHitRatios(rows, body) {
-  await drawPolicyLines(rows, body, { column: "hit_ratio", yLabel: "Simulated hit ratio", logY: false });
+async function drawSimulatedHitRatios(rows, body, colours) {
+  await drawPolicyLines(rows, body, colours.series, { column: "hit_ratio", yLabel: "Simulated hit ratio", logY: false });
 }
 
 /** Draw one line per policy of its dead over active token-seconds per TTL, on a log axis, with a line at one. */
-async function drawDeadOverActive(rows, body) {
-  await drawPolicyLines(rows, body, { column: "dead_over_active", yLabel: "Dead / active", logY: true });
+async function drawDeadOverActive(rows, body, colours) {
+  await drawPolicyLines(rows, body, colours.series, { column: "dead_over_active", yLabel: "Dead / active", logY: true });
 }
 
 /**
- * Draw one line per eviction policy, in the fixed policy order and colours, of `row[column]` over the TTLs in their
- * fixed order, with markers. A share axis runs from 0 to 1; a log axis (`logY`) marks one with a dashed line.
+ * Draw one line per eviction policy, in the fixed policy order and in its colour from `policyColours`, of
+ * `row[column]` over the TTLs in their fixed order, with markers. A share axis runs from 0 to 1; a log axis (`logY`)
+ * marks one with a dashed line.
  */
-async function drawPolicyLines(rows, body, { column, yLabel, logY }) {
+async function drawPolicyLines(rows, body, policyColours, { column, yLabel, logY }) {
   // Plot is loaded here, not at the top, so node can test the section's figure list.
   const { Plot } = await import("../shared/libraries.js");
   const points = policyPoints(rows, column);
-  const policyNames = Object.values(POLICY_NAMES);
-  const shown = policyNames.filter((name) => points.some((point) => point.policy === name));
+  const shown = Object.keys(POLICY_NAMES).filter((policy) => points.some((point) => point.policy === policy));
   const reference = logY ? [Plot.ruleY([1], { ...AXIS_STYLE, strokeDasharray: DASH })] : [];
   const chart = Plot.plot({
     ...chartFrame(body),
     x: { type: "point", domain: TTLS },
     y: logY ? { type: "log" } : { domain: [0, 1] },
-    color: colourScale(assignColours(policyNames), shown, true),
+    color: colourScale(policyColours, shown),
     marks: [
       Plot.gridY(GRID_STYLE),
       ...reference,
@@ -175,15 +204,19 @@ async function drawPolicyLines(rows, body, { column, yLabel, logY }) {
 /** One point per policy and TTL with a value, `{ policy, ttl, value }`, each policy's points in TTL order. */
 function policyPoints(rows, column) {
   const points = [];
-  for (const [policy, name] of Object.entries(POLICY_NAMES)) {
+  for (const policy of Object.keys(POLICY_NAMES)) {
     for (const ttl of TTLS) {
       const row = rows.find((candidate) => candidate.policy === policy && candidate.ttl === ttl);
       if (row !== undefined && row[column] !== null) {
-        points.push({ policy: name, ttl, value: row[column] });
+        points.push({ policy, ttl, value: row[column] });
       }
     }
   }
   return points;
+}
+
+function providerLabel(provider) {
+  return `Provider ${provider}`;
 }
 
 function idleGapTickLabel(seconds) {
@@ -203,12 +236,12 @@ function ttlLabel(ttl) {
 
 function policyTipText(point, yLabel, logY) {
   const value = logY ? point.value.toPrecision(3) : formatShare(point.value);
-  return `${point.policy}\nTTL ${ttlLabel(point.ttl)}\n${yLabel}: ${value}`;
+  return `${POLICY_NAMES[point.policy]}\nTTL ${ttlLabel(point.ttl)}\n${yLabel}: ${value}`;
 }
 
 function idleGapTipText(point) {
   const bin = point.row.idle_gap_bin;
   const from = bin === 0 ? "up" : formatSeconds(idleGapEdgeSeconds(bin));
   const gap = `${from} to ${formatSeconds(idleGapEdgeSeconds(bin + 1))} idle`;
-  return `${point.provider}\n${gap}\nmedian hit ratio ${formatShare(point.hitRatio)}\n${formatCount(point.row.rows)} requests`;
+  return `${providerLabel(point.provider)}\n${gap}\nmedian hit ratio ${formatShare(point.hitRatio)}\n${formatCount(point.row.rows)} requests`;
 }

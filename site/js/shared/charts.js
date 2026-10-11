@@ -161,9 +161,9 @@ export function renderFigure(container, { title, definition, caption }) {
 }
 
 /**
- * Draw into `body` one line per series of `series`, `[{ name, points: [{ x, share }] }]`, with share running 0 to 1.
- * Colours come from `colours` (a map from series name to colour, as `assignColours` gives) when given; otherwise they
- * follow the series' order, every series past the eighth in the Other colour. `format` writes an x value in the tooltip.
+ * Draw into `body` one line per series of `series`, `[{ name, label, points: [{ x, share }] }]`, with share running
+ * 0 to 1, each in its colour from `colours` (a map from series name to colour, as `assignColours` gives); the tooltip
+ * names a series by its label. `format` writes an x value in the tooltip.
  */
 export async function drawCdf(body, series, { xLabel, logX = false, format = String, colours }) {
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
@@ -174,7 +174,7 @@ export async function drawCdf(body, series, { xLabel, logX = false, format = Str
     ...chartFrame(body),
     x: { type: logX ? "log" : "linear" },
     y: { domain: [0, 1] },
-    color: colourScale(colours ?? assignColours(names), names, true),
+    color: colourScale(colours, names),
     marks: [
       Plot.gridX(GRID_STYLE),
       Plot.gridY(GRID_STYLE),
@@ -208,7 +208,7 @@ export async function drawBars(body, rows, options) {
   const chart = Plot.plot({
     ...chartFrame(body),
     x: { type: "band", domain: xDomain ?? distinct(foldedRows.map((row) => row[x])) },
-    color: colourScale(colours, shown, shown.length > 1),
+    color: colourScale(colours, shown),
     marks: [
       Plot.gridY(GRID_STYLE),
       Plot.axisX({ ...AXIS_STYLE, tickFormat: xTickFormat, label: xLabel }),
@@ -239,20 +239,22 @@ function chartWidth(body) {
   return body.clientWidth || FALLBACK_WIDTH;
 }
 
-// A bar chart's colours: the fixed order's, with the folded "Other" always in the other colour.
-function barColours(names) {
+/** A bar chart's colours: each of the first eight of `names` in its series colour, and "Other", which the rest fold into. */
+export function barColours(names) {
   const colours = assignColours(names.slice(0, SERIES_SLOTS.length));
   colours.set(OTHER_NAME, OTHER_SERIES);
   return colours;
 }
 
-/** Plot's colour scale for the `shown` names, each in its colour from the map `colours`, with a legend when `hasLegend`. */
-export function colourScale(colours, shown, hasLegend) {
+/**
+ * Plot's colour scale for the `shown` names, each in its colour from the map `colours`. It draws no legend: a chart of
+ * more than one series has the Explore page's legend of buttons, or the Session page's legend line, instead.
+ */
+export function colourScale(colours, shown) {
   return {
     type: "ordinal",
     domain: shown,
     range: shown.map((name) => colours.get(name)),
-    legend: hasLegend,
   };
 }
 
@@ -268,14 +270,14 @@ function cdfPoints(series) {
   const points = [];
   for (const one of series) {
     for (const point of one.points) {
-      points.push({ name: one.name, x: point.x, share: point.share });
+      points.push({ name: one.name, label: one.label, x: point.x, share: point.share });
     }
   }
   return points;
 }
 
 function cdfTipText(point, format) {
-  return `${point.name}\n${format(point.x)}\n${formatShare(point.share)} of rows`;
+  return `${point.label}\n${format(point.x)}\n${formatShare(point.share)} of rows`;
 }
 
 function barTipText(row, { x, y, fill, yLabel, format }) {

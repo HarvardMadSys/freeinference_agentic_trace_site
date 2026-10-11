@@ -131,10 +131,9 @@ test("every chart starts from the same frame, as wide as its body", () => {
 
 test("a colour scale keeps each shown name's colour from the map, in the order shown", () => {
   const colours = assignColours(["m1", "m2", "m3"]);
-  assert.deepEqual(colourScale(colours, ["m3", "m1"], true), {
+  assert.deepEqual(colourScale(colours, ["m3", "m1"]), {
     type: "ordinal",
     domain: ["m3", "m1"],
     range: ["var(--series-3)", "var(--series-1)"],
-    legend: true,
   });
 });

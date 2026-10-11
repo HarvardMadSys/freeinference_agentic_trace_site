@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { figureColours, figuresToStart, newFigureRun, noteVisibility } from "../site/js/explore/figure_sections.js";
+import {
+  drawFigureSeries, figureColours, figuresToStart, newFigureRun, noteVisibility,
+} from "../site/js/explore/figure_sections.js";
 import { SERIES_SLOTS } from "../site/js/shared/charts.js";
 
 test("the figures' colours follow the model and category orders, each from the first series colour", async () => {
@@ -62,4 +64,30 @@ test("intersection entries add the cards in view and remove the cards that left 
     { target: { id: "third" }, isIntersecting: true },
   ]);
   assert.deepEqual([...visible].sort(), ["first", "third"]);
+});
+
+// Rows of two series, as a long-format figure's query returns them.
+const SERIES_ROWS = [{ series: "a", x: 1 }, { series: "b", x: 2 }, { series: "a", x: 3 }];
+
+/** A figure entry that keeps the arguments it is drawn with; `seriesColumn` is left out when undefined. */
+function recordingFigure(seriesColumn) {
+  const calls = [];
+  const figure = { draw: (...args) => calls.push(args) };
+  if (seriesColumn !== undefined) {
+    figure.seriesColumn = seriesColumn;
+  }
+  return { figure, calls };
+}
+
+test("a long-format figure is drawn from the rows of its shown series, without the hidden set", async () => {
+  const { figure, calls } = recordingFigure("series");
+  await drawFigureSeries(figure, SERIES_ROWS, "body", "colours", new Set(["b"]));
+  assert.deepEqual(calls, [[[{ series: "a", x: 1 }, { series: "a", x: 3 }], "body", "colours"]]);
+});
+
+test("a wide-format figure is drawn from every row and given the hidden set", async () => {
+  const { figure, calls } = recordingFigure(undefined);
+  const hidden = new Set(["cached"]);
+  await drawFigureSeries(figure, SERIES_ROWS, "body", "colours", hidden);
+  assert.deepEqual(calls, [[SERIES_ROWS, "body", "colours", hidden]]);
 });

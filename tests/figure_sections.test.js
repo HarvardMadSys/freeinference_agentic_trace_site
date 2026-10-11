@@ -69,6 +69,41 @@ test("every figure has a title, a one-sentence definition, a bin column and a dr
   }
 });
 
+// How each figure of more than one series names its series: by the column its rows name it in (long format), or by
+// its columns, its draw function taking the hidden set as a fourth argument (wide format). A figure not listed has one
+// series and no legend.
+const LONG_FORMAT_SERIES_COLUMNS = {
+  requests_per_session_cdf: "series",
+  duration_cdf: "series",
+  tokens_per_request_cdf: "series",
+  token_split_by_week: "part",
+  context_share_by_role: "role",
+  ttft_cdf_by_model: "series",
+  hit_ratio_by_idle_gap: "provider",
+  hit_ratio_by_transition: "transition",
+  simulated_hit_ratio_by_ttl: "policy",
+  dead_over_active_by_policy: "policy",
+};
+const WIDE_FORMAT_FIGURES = ["token_growth_by_messages"];
+
+test("every long-format figure of more than one series names its series column and has a legend", async () => {
+  for (const { figures } of await sections()) {
+    for (const figure of figures) {
+      assert.equal(figure.seriesColumn, LONG_FORMAT_SERIES_COLUMNS[figure.name], figure.name);
+      const hasSeries = figure.name in LONG_FORMAT_SERIES_COLUMNS || WIDE_FORMAT_FIGURES.includes(figure.name);
+      assert.equal(typeof figure.legend === "function", hasSeries, figure.name);
+    }
+  }
+});
+
+test("a wide-format figure's draw function takes the hidden set", async () => {
+  for (const { figures } of await sections()) {
+    for (const figure of figures.filter((one) => WIDE_FORMAT_FIGURES.includes(one.name))) {
+      assert.equal(figure.draw.length, 4, figure.name);
+    }
+  }
+});
+
 test("no figure name is used twice, so every element id is unique", async () => {
   const names = (await sections()).flatMap((section) => section.names);
   assert.equal(new Set(names).size, names.length);

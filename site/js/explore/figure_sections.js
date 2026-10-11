@@ -11,11 +11,16 @@
  * Each layout makes fresh places, so a run that a newer one replaced draws into places no longer on the page. A run's
  * `context` is what the page gives every section; see `pages/explore.js`. Each figure shows its own loading state,
  * error or note.
+ *
+ * A figure with a `legend` draws it as buttons above its chart (`explore/legend.js`); a click hides or shows a series
+ * and draws the chart again from the rows already fetched. The hidden series belong to the card's drawing in the
+ * current run, so a new selection, which starts a new run, shows every series again.
  */
 
 import { assignColours, MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote, weeksText } from "../shared/charts.js";
 import { isDefaultSelection } from "../shared/selection.js";
 import { drawnHarnessesAndWeeks, dropThinGroups, hiddenText, restingCountText } from "../figures/figure_rows.js";
+import { drawWithLegend, shownRows } from "./legend.js";
 
 // Each figure section of the page: the element its figures go in, and the module listing them. Every section module
 // exports its figures as `FIGURES`, so each is imported by its path rather than under a second name.
@@ -160,11 +165,38 @@ async function drawFigure(figure, place, context) {
     } else if (shown.length === 0) {
       showNote(place.body, ALL_THIN_NOTE);
     } else {
-      await figure.draw(shown, place.body, colours);
+      await drawFigureRows(figure, shown, place.body, colours);
     }
   } catch (error) {
     showError(place.body, error);
   }
+}
+
+/**
+ * Draw `figure`'s rows with the series named in `hidden` left out: a figure whose rows each name their series in
+ * `seriesColumn` is drawn from the rows of the other series; any other is given `hidden` and leaves those series out
+ * of its marks.
+ */
+export async function drawFigureSeries(figure, rows, body, colours, hidden) {
+  if (figure.seriesColumn !== undefined) {
+    await figure.draw(shownRows(rows, figure.seriesColumn, hidden), body, colours);
+  } else {
+    await figure.draw(rows, body, colours, hidden);
+  }
+}
+
+/**
+ * Draw a figure's rows into `body`. A figure of more than one series (one with a `legend`) gets its legend of buttons
+ * above the chart, and its draw function its legend's colours as `colours.series`.
+ */
+async function drawFigureRows(figure, rows, body, colours) {
+  if (figure.legend === undefined) {
+    await figure.draw(rows, body, colours);
+    return;
+  }
+  const legend = figure.legend(rows, colours);
+  const seriesColours = { ...colours, series: legend.colours };
+  await drawWithLegend(body, legend, (hidden) => drawFigureSeries(figure, rows, body, seriesColours, hidden));
 }
 
 /** A figure's caption: the rows it rests on, the harnesses and weeks they come from, and how many bins were hidden. */

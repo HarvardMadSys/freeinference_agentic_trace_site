@@ -1,7 +1,7 @@
 /**
  * What the Explore page does to a figure's rows before drawing them: thin bins hidden, the caption's row
- * count, harnesses, weeks and note on hidden bins, a CDF query's points grouped into series, and the labels of a crowded
- * axis.
+ * count, harnesses, weeks and note on hidden bins, the series its legend lists, a CDF query's points grouped into
+ * series, and the labels of a crowded axis.
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
  * a CDF series), or, when `binColumn` is null, each row alone. Every row of a bin carries the bin's count, the number
@@ -103,8 +103,24 @@ export function hiddenText(hidden, binColumn) {
 }
 
 /**
+ * The legend of a figure whose rows each name their series in `seriesColumn`: `{ series, colours }`, the series of
+ * `colours` (a Map from series name to colour, in the order the legend lists them) that the rows hold, each
+ * `{ name, label }` with its label from `labels` where it has one, else its name, and `colours` itself.
+ */
+export function seriesLegend(rows, seriesColumn, colours, labels = {}) {
+  const present = new Set(rows.map((row) => row[seriesColumn]));
+  const series = [];
+  for (const name of colours.keys()) {
+    if (present.has(name)) {
+      series.push({ name, label: Object.hasOwn(labels, name) ? labels[name] : name });
+    }
+  }
+  return { series, colours };
+}
+
+/**
  * The series of a CDF query's rows `{ series, x, share }`, in the order of `names` (series names in the rows), as
- * `[{ name, points: [{ x, share }] }]`; a series is drawn under `labels[name]` when given, else under its own name.
+ * `[{ name, label, points: [{ x, share }] }]`; a series' label is `labels[name]` when given, else its name.
  * A series with no rows is left out. An `x` below `floor` is drawn at `floor`, so a zero has a place on a log axis.
  */
 export function cdfSeries(rows, names, { labels = {}, floor = -Infinity } = {}) {
@@ -117,7 +133,7 @@ export function cdfSeries(rows, names, { labels = {}, floor = -Infinity } = {}) 
       }
     }
     if (points.length > 0) {
-      series.push({ name: Object.hasOwn(labels, name) ? labels[name] : name, points });
+      series.push({ name, label: Object.hasOwn(labels, name) ? labels[name] : name, points });
     }
   }
   return series;

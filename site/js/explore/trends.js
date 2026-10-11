@@ -1,14 +1,20 @@
 /**
  * The weekly trends: top-level sessions per week stacked by harness, their requests per week stacked by model, and
  * their input tokens per week split by whether the provider reports cache reads, over every week whatever the selection. The selected weeks'
- * bars are drawn solid, the others faint, and a click on a bar selects its week alone.
+ * bars are drawn solid, the others faint, and a click on a bar selects its week alone. Each chart's legend is a row
+ * of buttons that hide and show its series (`explore/legend.js`).
  *
  * A section's `context` is what the page gives every section; see `pages/explore.js`.
  */
 
-import { OTHER_SERIES, TOKEN_PART_COLOURS, captionText, drawBars, renderFigure, showError, showLoading } from "../shared/charts.js";
+import {
+  barColours, captionText, drawBars, foldToOther, OTHER_SERIES, renderFigure, showError, showLoading, sumFolded,
+  TOKEN_PART_COLOURS,
+} from "../shared/charts.js";
+import { seriesLegend } from "../figures/figure_rows.js";
 import { formatTokens, monthAndDay } from "../shared/format.js";
 import { harnessesText, weeksByMonth } from "../shared/selection.js";
+import { drawWithLegend, shownRows } from "./legend.js";
 
 // A bar of a week outside the selection is drawn at this opacity, so the selected weeks stand out.
 const UNSELECTED_BAR_OPACITY = 0.3;
@@ -92,14 +98,8 @@ async function drawSessionsPerWeek(place, context) {
     definition: `Top-level sessions per week, stacked by harness, of the selected harnesses. ${CLICK_HINT}`,
     caption: everyWeekCaption(columnTotal(rows, "sessions"), context),
   });
-  const chart = await drawBars(body, rows, {
-    ...weekBarOptions(context),
-    y: "sessions",
-    fill: "harness",
-    order: harnessRows.map((row) => row.harness),
-    yLabel: "Sessions",
-  });
-  listenForWeekClick(body, chart, context.onWeekClick);
+  const order = harnessRows.map((row) => row.harness);
+  await drawTrend(body, rows, context, { y: "sessions", fill: "harness", order, colours: barColours(order), yLabel: "Sessions" });
 }
 
 async function drawRequestsPerWeek(place, context) {
@@ -111,14 +111,8 @@ async function drawRequestsPerWeek(place, context) {
     caption: everyWeekCaption(columnTotal(rows, "requests"), context),
   });
   // The models' order, which every figure colours them by: the eight with most requests take the series colours.
-  const chart = await drawBars(body, rows, {
-    ...weekBarOptions(context),
-    y: "requests",
-    fill: "model",
-    order: modelRows.map((row) => row.model),
-    yLabel: "Requests",
-  });
-  listenForWeekClick(body, chart, context.onWeekClick);
+  const order = modelRows.map((row) => row.model);
+  await drawTrend(body, rows, context, { y: "requests", fill: "model", order, colours: barColours(order), yLabel: "Requests" });
 }
 
 async function drawInputTokensPerWeek(place, context) {
@@ -129,8 +123,7 @@ async function drawInputTokensPerWeek(place, context) {
       + `the provider reports cache reads, unreported where it does not. ${CLICK_HINT}`,
     caption: everyWeekCaption(columnTotal(rows, "requests"), context),
   });
-  const chart = await drawBars(body, tokenPartRows(rows), {
-    ...weekBarOptions(context),
+  await drawTrend(body, tokenPartRows(rows), context, {
     y: "tokens",
     fill: "part",
     order: TOKEN_PARTS.map((part) => part.part),
@@ -138,7 +131,25 @@ async function drawInputTokensPerWeek(place, context) {
     yLabel: "Input tokens",
     format: formatTokens,
   });
-  listenForWeekClick(body, chart, context.onWeekClick);
+}
+
+/**
+ * Draw into `body` a trend's bars of `rows`, one stack per week, `options` saying which column is the height (`y`),
+ * which the series (`fill`), the series' `order` and `colours`, and how the y axis reads. Above them goes the legend
+ * that hides and shows a series; a series past the eighth of the order is first folded into "Other", so the legend
+ * hides "Other" as one. A click on a bar selects its week.
+ */
+async function drawTrend(body, rows, context, options) {
+  const { y, fill, order, colours } = options;
+  const folded = sumFolded(foldToOther(rows, fill, order), { x: "week", y, fill });
+  body.classList.add("is-clickable");
+  const drawShown = (hidden) => drawTrendBars(body, shownRows(folded, fill, hidden), context, options);
+  await drawWithLegend(body, seriesLegend(folded, fill, colours), drawShown);
+}
+
+async function drawTrendBars(body, rows, context, options) {
+  const chart = await drawBars(body, rows, { ...weekBarOptions(context), ...options });
+  chart.addEventListener("click", () => selectPointedWeek(chart, context.onWeekClick));
 }
 
 // What every trend chart shares: one stacked bar per week of every week, the selected weeks solid.
@@ -156,11 +167,6 @@ function weekBarOptions(context) {
 function everyWeekCaption(rowCount, context) {
   const harnesses = harnessesText(context.selection.harnesses, context.harnesses);
   return captionText({ rows: rowCount, harnesses, weeks: context.weeks.map((entry) => entry.week) });
-}
-
-function listenForWeekClick(body, chart, onWeekClick) {
-  body.classList.add("is-clickable");
-  chart.addEventListener("click", () => selectPointedWeek(chart, onWeekClick));
 }
 
 function selectPointedWeek(chart, onWeekClick) {
