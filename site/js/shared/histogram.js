@@ -131,6 +131,6 @@ function percentileLegend() {
 function emptyNote() {
   const note = document.createElement("p");
   note.className = "note";
-  note.textContent = "No rows in the selected weeks and scope.";
+  note.textContent = "No rows in the selected weeks and harnesses.";
   return note;
 }

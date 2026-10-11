@@ -1,5 +1,5 @@
 /**
- * The headline numbers of the top-level sessions in the selected weeks and scope, each with its definition
+ * The headline numbers of the top-level sessions in the selected weeks and harnesses, each with its definition
  * on hover, and the model mix: each model's share of their requests, largest first, coloured by the
  * global model order so a model has the same colour on every page.
  *
@@ -84,7 +84,7 @@ async function drawModelMix(place, context) {
   const orderRows = await context.orders.models;
   const rows = await context.database.runQuery("explore/model_mix");
   if (rows.length === 0) {
-    showNote(place, "No requests in the selected weeks and scope.");
+    showNote(place, "No requests in the selected weeks and harnesses.");
     return;
   }
   const colours = assignColours(orderRows.map((row) => row.model));
@@ -109,6 +109,6 @@ function modelChip(model, colour) {
   chip.className = "chip";
   chip.style.setProperty("--chip-color", colour);
   chip.textContent = `${model.model} · ${formatShare(model.share)}`;
-  chip.title = `${formatCount(model.requests)} top-level requests in the selected weeks and scope went to ${model.model}.`;
+  chip.title = `${formatCount(model.requests)} top-level requests in the selected weeks and harnesses went to ${model.model}.`;
   return chip;
 }

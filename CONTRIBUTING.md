@@ -65,13 +65,16 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   one `<script type="module">`. It holds no data and no inline script.
 - The page module mounts the header and footer, reads the selection from the
   URL, opens the database, and fills each section.
-- `shared/database.js` fetches `weeks.json`, opens DuckDB once, registers
-  the Parquet files as the views `requests`, `tool_calls`, `sessions` and
-  `simulation`, and runs a query by name: `runQuery("explore/request_count")`
-  fetches `queries/explore/request_count.sql`.
-- `shared/selection.js` owns the week picker, the scope switch and the URL
-  keys that hold them, and calls the page back with each new selection; the
-  page fills the selection tables with it.
+- `shared/database.js` fetches `weeks.json` and `harnesses.json`, opens
+  DuckDB once, registers each week's Parquet files as the views `requests`,
+  `tool_calls`, `sessions` and `simulation`, fills `benchmark_harness`, and
+  runs a query by name: `runQuery("explore/request_count")` fetches
+  `queries/explore/request_count.sql`.
+- `shared/selection.js` owns the selection and the URL keys `weeks`, `month`
+  and `harnesses` that hold it (none for the default: every week and the
+  paper's harnesses); `explore/selection_pickers.js` draws the week and
+  harness pickers and calls the page back with each new selection; the page
+  fills the selection tables with it.
 - A figure is a figure entry (below), listed in its section's module under
   `js/figures/`.
 
@@ -124,7 +127,7 @@ and calls `draw`:
   series' name with the plural noun of what it counts; the caption then gives
   each count ("84,239 turns · 12,002 sessions").
 - `isSimulation` (optional): true for a figure of the cache simulation, which
-  covers the Agentic scope and the simulated weeks only; the caption says so.
+  covers the paper's harnesses and the simulated weeks only; the caption says so.
 - `isWide` (optional): true for a figure that takes the whole width of its
   section's grid, such as a table.
 - `draw(rows, body, colours)`: draws the rows left after thin bins are hidden
@@ -184,7 +187,7 @@ which is plain HTML.
   `--chart-label`. Text is never coloured by series.
 - **One axis.** Two measures of different scale are two charts.
 - **Captions.** A figure shows its title, a one-sentence definition, the
-  number of rows it rests on, and the scope and weeks it shows. Where the
+  number of rows it rests on, and the harnesses and weeks it shows. Where the
   site draws more simply than the paper, the definition says so.
 
 ## Verifying a change

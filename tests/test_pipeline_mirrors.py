@@ -14,7 +14,6 @@ from simulation import cache
 SITE_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site"
 CACHING_MODULE = SITE_FOLDER / "js" / "figures" / "caching.js"  # the idle-gap bins, the TTLs and the policies
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the wait causes
-SELECTION_MODULE = SITE_FOLDER / "js" / "shared" / "selection.js"  # the scopes and the release scopes each holds
 TOOL_OVERVIEW_QUERY = SITE_FOLDER / "queries" / "figures" / "tool_overview.sql"  # the failed outcomes
 EDGE_TOLERANCE = 1e-9  # relative; the browser computes the geometric edges itself, so they agree only to rounding
 
@@ -67,28 +66,6 @@ def test_the_policies_are_the_simulation_s_in_its_order() -> None:
 
 def test_the_wait_causes_are_the_release_s_waited_for_values() -> None:
     assert sorted(javascript_object_keys(TIMELINE_BARS_MODULE, "WAIT_CAUSES")) == sorted(schema.WAITED_FOR)
-
-
-def browser_scope_members() -> dict[str, list[str]]:
-    """The object `SCOPE_MEMBERS` of selection.js: each scope the visitor picks, with the release scopes it holds."""
-    body = declaration(SELECTION_MODULE, r"const SCOPE_MEMBERS = Object\.freeze\(\{(.*?)\}\);").group(1)
-    members = {}
-    for scope, listed in re.findall(r'"?([\w-]+)"?\s*:\s*\[(.*?)\]', body):
-        members[scope] = re.findall(r'"([^"]+)"', listed)
-    return members
-
-
-def pipeline_scope_members() -> dict[str, list[str]]:
-    """Each scope the pipeline names, with the scopes of the sessions it selects."""
-    return {
-        population.AGENTIC: [population.AGENTIC],
-        population.SWE_BENCH: [population.SWE_BENCH],
-        population.ALL_SCOPES: [population.AGENTIC, population.SWE_BENCH],
-    }
-
-
-def test_the_browser_s_scopes_are_the_pipeline_s() -> None:
-    assert browser_scope_members() == pipeline_scope_members()
 
 
 def test_the_benchmark_harness_of_the_harness_index_is_the_pipeline_s(data_directory: pathlib.Path) -> None:

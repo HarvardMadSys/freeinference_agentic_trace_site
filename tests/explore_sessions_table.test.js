@@ -33,9 +33,20 @@ const WEEKS = [
   { week: "2026-08-09", last_day: "2026-08-15", month: "2026-08", simulated: true },
   { week: "2026-08-16", last_day: "2026-08-22", month: "2026-08", simulated: true },
 ];
+const HARNESSES = [
+  { harness: "codex", sessions: 30, benchmark: false },
+  { harness: "eval:swe-bench", sessions: 20, benchmark: true },
+  { harness: "kilo", sessions: 10, benchmark: false },
+];
+
+/** A section's context holding the selection of `weeks` and `harnesses`, as a link needs it. */
+function contextOf(weeks, harnesses) {
+  const selection = { weeks, harnesses, unknownWeeks: [], unknownMonth: null, unknownHarnesses: [] };
+  return { selection, weeks: WEEKS, harnesses: HARNESSES };
+}
 
 test("a URL with no table keys gives the default state", () => {
-  assert.deepEqual(readTableState(new URLSearchParams("weeks=all&scope=All")), DEFAULT_STATE);
+  assert.deepEqual(readTableState(new URLSearchParams("month=2026-08&harnesses=codex")), DEFAULT_STATE);
 });
 
 test("the state reads back what it wrote, and the selection's keys are untouched", () => {
@@ -47,16 +58,16 @@ test("the state reads back what it wrote, and the selection's keys are untouched
     sort: { key: "requests", direction: "ascending" },
     pageNumber: 3,
   };
-  const params = writeTableState(new URLSearchParams("weeks=2026-08-09&scope=All"), state);
+  const params = writeTableState(new URLSearchParams("weeks=2026-08-09&harnesses=codex"), state);
   assert.equal(params.get("weeks"), "2026-08-09");
-  assert.equal(params.get("scope"), "All");
+  assert.equal(params.get("harnesses"), "codex");
   assert.equal(params.get("min_requests"), "100");
   assert.deepEqual(readTableState(params), state);
 });
 
 test("the default state writes no table key", () => {
-  const params = writeTableState(new URLSearchParams("scope=All&page=4&search=x"), DEFAULT_STATE);
-  assert.equal(params.toString(), "scope=All");
+  const params = writeTableState(new URLSearchParams("harnesses=codex&page=4&search=x"), DEFAULT_STATE);
+  assert.equal(params.toString(), "harnesses=codex");
 });
 
 test("a page or a minimum that is not a number falls back to page 1 and no minimum", () => {
@@ -104,16 +115,16 @@ test("a second click on the sorted column reverses it; a new column sorts number
 
 test("a row opens the Session page with its week and id, and the selection", () => {
   const row = { week: "2026-08-09", session_id: "aaaa1111-x" };
-  const selection = { weeks: ["2026-08-09"], scope: "All", unknownWeeks: [], unknownMonth: null };
-  const link = sessionLink(row, new URLSearchParams(), selection, WEEKS);
-  assert.equal(link, "session.html?week=2026-08-09&id=aaaa1111-x&weeks=2026-08-09&scope=All");
+  const context = contextOf(["2026-08-09"], ["codex", "eval:swe-bench", "kilo"]);
+  const link = sessionLink(row, new URLSearchParams(), context);
+  assert.equal(link, "session.html?week=2026-08-09&id=aaaa1111-x&weeks=2026-08-09&harnesses=codex,eval%3Aswe-bench,kilo");
 });
 
 test("a row's link carries the table's sort, direction and page, so the way back reopens the table as it was", () => {
   const row = { week: "2026-08-09", session_id: "aaaa1111-x" };
-  const selection = { weeks: ["2026-08-09"], scope: "Agentic", unknownWeeks: [], unknownMonth: null };
+  const context = contextOf(["2026-08-09"], ["codex", "kilo"]);
   const exploreParams = new URLSearchParams("month=2026-08&sort=duration_s&direction=ascending&page=2");
-  const link = sessionLink(row, exploreParams, selection, WEEKS);
+  const link = sessionLink(row, exploreParams, context);
   assert.equal(link, "session.html?week=2026-08-09&id=aaaa1111-x&sort=duration_s&direction=ascending&page=2&weeks=2026-08-09");
 });
 
@@ -128,11 +139,11 @@ test("a filter's choices are the rows' distinct values and the current one, sort
 });
 
 test("the session column links each row to its Session page, as the row click does", () => {
-  const selection = { weeks: ["2026-08-09"], scope: "All", unknownWeeks: [], unknownMonth: null };
+  const context = contextOf(["2026-08-09"], ["codex", "eval:swe-bench", "kilo"]);
   const exploreParams = new URLSearchParams("page=2");
-  const columns = linkedColumns({ selection, weeks: WEEKS }, exploreParams);
+  const columns = linkedColumns(context, exploreParams);
   const row = { week: "2026-08-09", session_id: "aaaa1111-x" };
   const sessionColumn = columns.find((column) => column.key === "session_id");
-  assert.equal(sessionColumn.href(row), sessionLink(row, exploreParams, selection, WEEKS));
+  assert.equal(sessionColumn.href(row), sessionLink(row, exploreParams, context));
   assert.equal(columns.filter((column) => column.href !== undefined).length, 1);
 });

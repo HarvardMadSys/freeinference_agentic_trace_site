@@ -1,5 +1,5 @@
 /**
- * The eight distribution cards of the top-level requests and sessions in the selected weeks and scope:
+ * The eight distribution cards of the top-level requests and sessions in the selected weeks and harnesses:
  * each a histogram of the bins its `<name>_bins` query computed, with the exact percentiles, count and
  * maximum of its `<name>_stats` query. A card whose queries fail shows its error in its own place.
  *

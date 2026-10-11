@@ -109,11 +109,12 @@ test("counts that DuckDB returns as BigInt are compared like numbers", () => {
 
 test("a caption over several weeks gives their count", () => {
   const weeks = Array.from({ length: 16 }, (_, index) => `week-${index}`);
-  assert.equal(captionText({ rows: 1186582, scope: "Agentic", weeks }), "1,186,582 rows · Agentic · 16 weeks");
+  const caption = captionText({ rows: 1186582, harnesses: "the paper's harnesses", weeks });
+  assert.equal(caption, "1,186,582 rows · the paper's harnesses · 16 weeks");
 });
 
 test("a caption over one week names its Sunday", () => {
-  assert.equal(captionText({ rows: 4100, scope: "All", weeks: ["2026-08-09"] }), "4,100 rows · All · 1 week (2026-08-09)");
+  assert.equal(captionText({ rows: 4100, harnesses: "codex", weeks: ["2026-08-09"] }), "4,100 rows · codex · 1 week (2026-08-09)");
 });
 
 test("a caption's weeks are counted, or the one week named by its Sunday", () => {

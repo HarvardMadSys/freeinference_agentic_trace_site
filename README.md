@@ -15,12 +15,13 @@ and Observable Plot draws the results. There is no server and no build step.
 | Page | File | What it shows |
 |---|---|---|
 | Explore | `index.html` | Weekly trends, headline numbers, distribution cards and a searchable table of the selected weeks' sessions |
-| Paper figures | `figures.html` | The paper's figures, redrawn for the selected weeks and scope |
+| Paper figures | `figures.html` | The paper's figures, redrawn for the selected weeks and harnesses |
 | Session | `session.html` | One session and its subagents: a bar per request, context over time, and a timeline per agent |
 | About | `about.html` | Definitions, how the data were built, and links |
 
-The chosen weeks, month and scope live in the URL (`?month=2026-07&scope=All`),
-so any view can be shared as a link.
+The chosen weeks or month and harnesses live in the URL
+(`?month=2026-07&harnesses=hermes,codex`), so any view can be shared as a
+link; every week and the paper's harnesses, the default, write no key.
 
 ## Running it
 

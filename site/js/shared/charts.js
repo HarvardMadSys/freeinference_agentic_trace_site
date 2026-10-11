@@ -106,9 +106,12 @@ export function dropThinBins(rows, countKey) {
   return { rows: kept, hidden: rows.length - kept.length };
 }
 
-/** A figure's caption: "1,186,582 rows · Agentic · 16 weeks", or "… · 1 week (2026-08-09)" naming a single week's Sunday. */
-export function captionText({ rows, scope, weeks }) {
-  return `${formatCount(rows)} rows · ${scope} · ${weeksText(weeks)}`;
+/**
+ * A figure's caption, `harnesses` being the text that names them: "1,186,582 rows · the paper's harnesses · 16 weeks",
+ * or "… · 1 week (2026-08-09)" naming a single week's Sunday.
+ */
+export function captionText({ rows, harnesses, weeks }) {
+  return `${formatCount(rows)} rows · ${harnesses} · ${weeksText(weeks)}`;
 }
 
 /** The weeks a caption names: "16 weeks", or "1 week (2026-08-09)" naming a single week's Sunday. */

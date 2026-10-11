@@ -4,12 +4,12 @@ import { test } from "node:test";
 import { requestsPerModel, sessionFacts } from "../site/js/session/facts.js";
 
 const TOP_LEVEL = {
-  depth: 0, harness: "claude-code", scope: "Agentic", first_start_ms: Date.UTC(2026, 7, 9, 14, 3, 59),
+  depth: 0, harness: "claude-code", first_start_ms: Date.UTC(2026, 7, 9, 14, 3, 59),
   duration_s: 754, user_steps: 4, requests: 30, subagents: 3, subagent_requests: 40, tool_calls: 25,
   input_tokens: 9_000, cached_tokens: 6_000, output_tokens: 500, reported_input_tokens: 8_000,
 };
 const SUBAGENT = {
-  depth: 1, harness: "claude-code", scope: "Agentic", first_start_ms: 0, duration_s: 10, user_steps: 1,
+  depth: 1, harness: "claude-code", first_start_ms: 0, duration_s: 10, user_steps: 1,
   requests: 40, subagents: 0, subagent_requests: 0, tool_calls: 7,
   input_tokens: 1_000, cached_tokens: 0, output_tokens: 100, reported_input_tokens: 2_000,
 };
@@ -53,7 +53,7 @@ test("the start is the UTC minute and the models carry their requests", () => {
   const requests = [{ model: "model-y" }, { model: "model-x" }, { model: "model-y" }];
   const values = factValues([TOP_LEVEL], requests);
   assert.deepEqual(values["Started"], ["2026-08-09 14:03", "UTC"]);
-  assert.deepEqual(values["Harness"], ["claude-code", "Agentic scope"]);
+  assert.deepEqual(values["Harness"], ["claude-code", "of the top-level session"]);
   assert.deepEqual(values["Models"], ["2", "model-y · 2, model-x · 1"]);
 });
 

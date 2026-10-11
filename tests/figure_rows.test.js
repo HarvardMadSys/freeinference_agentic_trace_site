@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import {
   cdfSeries,
-  drawnScopeAndWeeks,
+  drawnHarnessesAndWeeks,
   dropThinGroups,
   hiddenText,
   restingCountText,
@@ -108,19 +108,30 @@ const WEEK_ENTRIES = [
   { week: "2026-08-09", simulated: true },
   { week: "2026-08-16", simulated: false },
 ];
+// Three harnesses of `harnesses.json`, the second the benchmark.
+const HARNESS_ENTRIES = [
+  { harness: "hermes", sessions: 30, benchmark: false },
+  { harness: "eval:swe-bench", sessions: 20, benchmark: true },
+  { harness: "codex", sessions: 10, benchmark: false },
+];
 
-test("a figure draws the selection's scope and weeks", () => {
-  const selection = { scope: "All", weeks: ["2026-08-09", "2026-08-16"] };
-  assert.deepEqual(drawnScopeAndWeeks({}, selection, WEEK_ENTRIES), selection);
+test("a figure draws the selection's harnesses and weeks", () => {
+  const selection = { harnesses: ["codex"], weeks: ["2026-08-09", "2026-08-16"] };
+  assert.deepEqual(drawnHarnessesAndWeeks({}, selection, WEEK_ENTRIES, HARNESS_ENTRIES), {
+    harnesses: "codex",
+    weeks: ["2026-08-09", "2026-08-16"],
+  });
 });
 
-test("a simulation figure draws the Agentic scope in the selected weeks that were simulated, and says so", () => {
+test("a simulation figure draws the paper's harnesses in the selected weeks that were simulated, and says so", () => {
   const figure = { isSimulation: true };
-  assert.deepEqual(drawnScopeAndWeeks(figure, { scope: "Agentic", weeks: ["2026-08-09", "2026-08-16"] }, WEEK_ENTRIES), {
-    scope: "Agentic",
+  const paperSelection = { harnesses: ["hermes", "codex"], weeks: ["2026-08-09", "2026-08-16"] };
+  assert.deepEqual(drawnHarnessesAndWeeks(figure, paperSelection, WEEK_ENTRIES, HARNESS_ENTRIES), {
+    harnesses: "the paper's harnesses",
     weeks: ["2026-08-09"],
   });
-  const underAll = drawnScopeAndWeeks(figure, { scope: "SWE-Bench", weeks: ["2026-08-02"] }, WEEK_ENTRIES);
-  assert.equal(underAll.scope, "Agentic only, the scope the simulation covers");
-  assert.deepEqual(underAll.weeks, ["2026-08-02"]);
+  const benchmarkSelection = { harnesses: ["eval:swe-bench"], weeks: ["2026-08-02"] };
+  const underBenchmark = drawnHarnessesAndWeeks(figure, benchmarkSelection, WEEK_ENTRIES, HARNESS_ENTRIES);
+  assert.equal(underBenchmark.harnesses, "the paper's harnesses only, which the simulation replays");
+  assert.deepEqual(underBenchmark.weeks, ["2026-08-02"]);
 });

@@ -1,5 +1,5 @@
 /**
- * The sessions table: every top-level session of the selected weeks and scope, searched by id, filtered by
+ * The sessions table: every top-level session of the selected weeks and harnesses, searched by id, filtered by
  * harness, main model and a minimum of requests, sorted and paged in the browser. Its state lives in the
  * URL keys `search`, `harness`, `model`, `min_requests`, `sort`, `direction` and `page`, read back on every
  * change; the selection's keys are never touched. A row click opens the Session page.
@@ -60,7 +60,7 @@ export function linkedColumns(context, exploreParams) {
   const columns = [];
   for (const column of COLUMNS) {
     if (column.key === "session_id") {
-      columns.push({ ...column, href: (row) => sessionLink(row, exploreParams, context.selection, context.weeks) });
+      columns.push({ ...column, href: (row) => sessionLink(row, exploreParams, context) });
     } else {
       columns.push(column);
     }
@@ -137,17 +137,17 @@ export function nextSort(sort, key) {
 
 /**
  * The Session page's address for `row`: its week and id, then every other key of `exploreParams` (the table's
- * search, filters, sort and page), then the selection's keys. The Session page passes the keys it does not read
- * on to its link back to Explore.
+ * search, filters, sort and page), then the keys of `context.selection`, written against `context.weeks` and
+ * `context.harnesses`. The Session page passes the keys it does not read on to its link back to Explore.
  */
-export function sessionLink(row, exploreParams, selection, weeks) {
+export function sessionLink(row, exploreParams, context) {
   const params = new URLSearchParams({ week: row.week, id: row.session_id });
   for (const [key, value] of exploreParams) {
     if (!params.has(key)) {
       params.append(key, value);
     }
   }
-  return `session.html${selectionQuery(writeSelection(params, selection, weeks))}`;
+  return `session.html${selectionQuery(writeSelection(params, context.selection, context.weeks, context.harnesses))}`;
 }
 
 /** A copy of a session row with its cached share, null when none of its input was reported. */
@@ -232,7 +232,7 @@ function drawTable(view) {
     summary: `${formatCount(shown.length)} of ${formatCount(view.rows.length)} sessions`,
     onSort: (key) => sortBy(view, key),
     onPage: (pageNumber) => changeTable(view, { ...currentState(), pageNumber }),
-    onRowClick: (row) => window.location.assign(sessionLink(row, exploreParams, view.context.selection, view.context.weeks)),
+    onRowClick: (row) => window.location.assign(sessionLink(row, exploreParams, view.context)),
   });
 }
 

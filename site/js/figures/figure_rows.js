@@ -1,6 +1,6 @@
 /**
  * What the Paper figures page does to a figure's rows before drawing them: thin bins hidden, the caption's row
- * count, scope, weeks and note on hidden bins, a CDF query's points grouped into series, and the labels of a crowded
+ * count, harnesses, weeks and note on hidden bins, a CDF query's points grouped into series, and the labels of a crowded
  * axis.
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
@@ -10,6 +10,7 @@
 
 import { dropThinBins, MIN_ROWS_PER_BIN } from "../shared/charts.js";
 import { formatCount } from "../shared/format.js";
+import { harnessesText, isDefaultHarnessChoice } from "../shared/selection.js";
 
 // The column of every figure query that holds a bin's count: the number of rows of the data behind the bin.
 const COUNT_COLUMN = "rows";
@@ -24,8 +25,9 @@ const HIDDEN_NOUNS = Object.freeze({
 });
 const DEFAULT_HIDDEN_NOUN = ["bin", "bins"];
 
-// The one scope the cache simulation was run for: a simulation figure draws it whatever scope is selected.
-const SIMULATED_SCOPE = "Agentic";
+// What a simulation figure's caption names while other than the paper's harnesses are selected: the simulation
+// replays the paper's population only, so the figure draws it whatever harnesses are selected.
+const SIMULATED_HARNESSES_TEXT = "the paper's harnesses only, which the simulation replays";
 
 /**
  * `{ rows, hidden }`: the rows of the bins whose count is at least `MIN_ROWS_PER_BIN`, in their order, and how
@@ -72,20 +74,22 @@ export function restingCountText(rows, figure) {
 }
 
 /**
- * `{ scope, weeks }`: the scope and the weeks (Sundays) a figure's rows come from. That is the selection's, except
- * for a simulation figure (`isSimulation`), whose rows are the simulated scope's in the selected weeks the simulation
- * covers, by `weekEntries` (the entries of `weeks.json`); its scope then says so when another scope is selected.
+ * `{ harnesses, weeks }`: the text naming the harnesses a figure's rows come from, and the weeks (Sundays) they come
+ * from. That is the selection's, by `harnessEntries` (the entries of `harnesses.json`), except for a simulation figure
+ * (`isSimulation`), whose rows are the paper's harnesses' in the selected weeks the simulation covers, by `weekEntries`
+ * (the entries of `weeks.json`); its text then says so when other harnesses are selected.
  */
-export function drawnScopeAndWeeks(figure, selection, weekEntries) {
+export function drawnHarnessesAndWeeks(figure, selection, weekEntries, harnessEntries) {
+  const selectedText = harnessesText(selection.harnesses, harnessEntries);
   if (figure.isSimulation !== true) {
-    return { scope: selection.scope, weeks: selection.weeks };
+    return { harnesses: selectedText, weeks: selection.weeks };
   }
   const simulated = new Set(weekEntries.filter((entry) => entry.simulated).map((entry) => entry.week));
   const weeks = selection.weeks.filter((week) => simulated.has(week));
-  if (selection.scope === SIMULATED_SCOPE) {
-    return { scope: SIMULATED_SCOPE, weeks };
+  if (isDefaultHarnessChoice(selection.harnesses, harnessEntries)) {
+    return { harnesses: selectedText, weeks };
   }
-  return { scope: `${SIMULATED_SCOPE} only, the scope the simulation covers`, weeks };
+  return { harnesses: SIMULATED_HARNESSES_TEXT, weeks };
 }
 
 /** The caption's note on hidden bins: "2 bins hidden (fewer than 50 rows each)"; "" when none is hidden. */

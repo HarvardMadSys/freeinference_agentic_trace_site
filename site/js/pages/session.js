@@ -9,7 +9,7 @@ import { mountRequestsView } from "../session_requests/requests.js";
 import { mountTimelineView } from "../session_charts/timeline.js";
 import { OPEN_REQUEST_EVENT } from "../session/view_chart.js";
 import { assignColours, showError, showLoading, showNote } from "../shared/charts.js";
-import { openDatabase } from "../shared/database.js";
+import { fetchHarnesses, fetchWeeks, openDatabase } from "../shared/database.js";
 import { shortSessionId } from "../shared/format.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
 import { selectionQuery } from "../shared/selection.js";
@@ -41,7 +41,8 @@ async function openSession(address) {
     showNotFound("This link names no session. Open one from the sessions table of the Explore page.");
     return;
   }
-  const database = await openDatabase(new URL("data/", window.location.href).href);
+  const [weeks, harnesses] = await Promise.all([fetchWeeks(), fetchHarnesses()]);
+  const database = await openDatabase(new URL("data/", window.location.href).href, weeks, harnesses);
   const session = await loadSession(database, address);
   if (session === null) {
     showNotFound(`Session not found in this week: no session ${address.id} in the week of ${address.week}.`);

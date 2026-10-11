@@ -2,7 +2,7 @@
  * The header and footer every page shares.
  *
  * The header's links carry the current selection, so moving between pages
- * keeps the chosen weeks and scope.
+ * keeps the chosen weeks and harnesses.
  */
 
 import { selectionQuery } from "./selection.js";

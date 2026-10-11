@@ -4,7 +4,7 @@
  * eviction policy would keep.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines; a figure that `isSimulation` draws
- * the simulation's Agentic rows whatever scope is selected.
+ * the simulation of the paper's harnesses whatever harnesses are selected.
  */
 
 import {
@@ -63,7 +63,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "simulated_hit_ratio_by_ttl",
     title: "Simulated hit ratio by TTL",
-    definition: "Hit tokens over hit and missed tokens in the prefix-cache simulation of the Agentic scope, whatever scope is selected, per cache TTL and eviction policy, where the paper draws the TTL-only policy's misses as prefill against storage.",
+    definition: "Hit tokens over hit and missed tokens in the prefix-cache simulation of the paper's harnesses, whatever harnesses are selected, per cache TTL and eviction policy, where the paper draws the TTL-only policy's misses as prefill against storage.",
     query: "figures/simulated_hit_ratio_by_ttl",
     binColumn: "policy",
     seriesOverSameRows: true,
@@ -73,7 +73,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "dead_over_active_by_policy",
     title: "Dead over active cache by policy",
-    definition: "Token-seconds that cached blocks stay after their last read over those of the blocks requests in flight hold, in the prefix-cache simulation of the Agentic scope, whatever scope is selected, per cache TTL and eviction policy, where the paper draws the TTL-only and reclaim-mutate policies only up to a day.",
+    definition: "Token-seconds that cached blocks stay after their last read over those of the blocks requests in flight hold, in the prefix-cache simulation of the paper's harnesses, whatever harnesses are selected, per cache TTL and eviction policy, where the paper draws the TTL-only and reclaim-mutate policies only up to a day.",
     query: "figures/dead_over_active_by_policy",
     binColumn: "policy",
     seriesOverSameRows: true,

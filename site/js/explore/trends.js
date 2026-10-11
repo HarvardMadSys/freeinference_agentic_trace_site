@@ -8,7 +8,7 @@
 
 import { OTHER_SERIES, TOKEN_PART_COLOURS, captionText, drawBars, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { formatTokens, monthAndDay } from "../shared/format.js";
-import { weeksByMonth } from "../shared/selection.js";
+import { harnessesText, weeksByMonth } from "../shared/selection.js";
 
 // A bar of a week outside the selection is drawn at this opacity, so the selected weeks stand out.
 const UNSELECTED_BAR_OPACITY = 0.3;
@@ -86,7 +86,7 @@ async function drawSessionsPerWeek(place, context) {
   const rows = await context.database.runQuery("explore/sessions_per_week_by_harness");
   const body = renderFigure(place, {
     title: "Sessions per week",
-    definition: `Top-level sessions per week, stacked by harness, in the selected scope. ${CLICK_HINT}`,
+    definition: `Top-level sessions per week, stacked by harness, of the selected harnesses. ${CLICK_HINT}`,
     caption: everyWeekCaption(columnTotal(rows, "sessions"), context),
   });
   const chart = await drawBars(body, rows, {
@@ -103,7 +103,7 @@ async function drawInputTokensPerWeek(place, context) {
   const rows = await context.database.runQuery("explore/input_tokens_per_week");
   const body = renderFigure(place, {
     title: "Input tokens per week",
-    definition: "Input tokens of the top-level requests per week, in the selected scope: cached and uncached where "
+    definition: "Input tokens of the top-level requests per week, of the selected harnesses: cached and uncached where "
       + `the provider reports cache reads, unreported where it does not. ${CLICK_HINT}`,
     caption: everyWeekCaption(columnTotal(rows, "requests"), context),
   });
@@ -132,7 +132,8 @@ function weekBarOptions(context) {
 }
 
 function everyWeekCaption(rowCount, context) {
-  return captionText({ rows: rowCount, scope: context.selection.scope, weeks: context.weeks.map((entry) => entry.week) });
+  const harnesses = harnessesText(context.selection.harnesses, context.harnesses);
+  return captionText({ rows: rowCount, harnesses, weeks: context.weeks.map((entry) => entry.week) });
 }
 
 function listenForWeekClick(body, chart, onWeekClick) {

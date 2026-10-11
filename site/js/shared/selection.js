@@ -1,53 +1,74 @@
 /**
- * The week picker, the scope switch, and the URL keys `weeks`, `month` and `scope` that hold their choice.
+ * The selection of weeks and harnesses a page shows, the URL keys `weeks`, `month` and `harnesses` that hold it, and
+ * the notes and caption text that describe it. The pickers that change it are in `explore/selection_pickers.js`.
  *
- * A selection is `{ weeks, scope, unknownWeeks, unknownMonth }`: the selected Sundays oldest first, one
- * scope, the weeks the URL named that `weeks.json` does not hold, and the month the URL named that holds
- * no week (or null). `weeks` below is the array `weeks.json` holds, oldest first:
- * `{ week, last_day, month, simulated }`.
+ * A selection is `{ weeks, harnesses, unknownWeeks, unknownMonth, unknownHarnesses }`: the selected Sundays oldest
+ * first, the selected harnesses in the order of `harnesses.json`, the weeks and harnesses the URL named that the data
+ * do not hold, and the month the URL named that holds no week (or null). `weeks` below is the array `weeks.json`
+ * holds, oldest first: `{ week, last_day, month, simulated }`; `harnesses` is the array `harnesses.json` holds, most
+ * sessions first: `{ harness, sessions, benchmark }`. The default selection is every week and every harness but the
+ * benchmark, which is the paper's population; it writes no key to the URL.
  */
 
-// The scope a page shows when the URL names none, or names one that does not exist.
-const DEFAULT_SCOPE = "Agentic";
+// A value of the URL key `weeks` that selects every week, as no key does; it is read, never written.
+const EVERY_WEEK_VALUE = "all";
 
-// Each scope a visitor can choose, with the scopes of the data it covers; the pipeline's scopes, checked by
-// tests/test_pipeline_mirrors.py.
-const SCOPE_MEMBERS = Object.freeze({
-  Agentic: ["Agentic"],
-  "SWE-Bench": ["SWE-Bench"],
-  All: ["Agentic", "SWE-Bench"],
-});
+// The URL keys writing a selection replaces: its own three, and `scope`, which is read as the default and so removed.
+const SELECTION_KEYS = Object.freeze(["weeks", "month", "harnesses", "scope"]);
 
-// The value of the URL key `weeks` that selects every week.
-const ALL_WEEKS = "all";
+// The note under the pickers while the selection is the default.
+const DEFAULT_SELECTION_NOTE = "Every week and the paper's harnesses: precomputed.";
 
-/** The selection the URL names; with no valid week named, the latest week. */
-export function readSelection(params, weeks) {
+// The note under the pickers for any other selection, which DuckDB computes in the page.
+const COMPUTED_SELECTION_NOTE = "Computed in your browser; a narrowed selection may take a few seconds.";
+
+/** The selection the URL names; with no known week named, every week; with no known harness named, the default ones. */
+export function readSelection(params, weeks, harnesses) {
   const requested = requestedWeeks(params, weeks);
-  const known = weeks.map((entry) => entry.week);
-  const selected = known.filter((week) => requested.includes(week));
+  const knownWeeks = weeks.map((entry) => entry.week);
+  const selectedWeeks = knownWeeks.filter((week) => requested.includes(week));
+  const named = namedHarnesses(params);
+  const knownHarnesses = harnesses.map((entry) => entry.harness);
+  const selectedHarnesses = knownHarnesses.filter((harness) => named.includes(harness));
   return {
-    weeks: selected.length > 0 ? selected : latestWeek(weeks),
-    scope: knownScope(params.get("scope")),
-    unknownWeeks: unique(requested.filter((week) => !known.includes(week))),
+    weeks: selectedWeeks.length > 0 ? selectedWeeks : knownWeeks,
+    harnesses: selectedHarnesses.length > 0 ? selectedHarnesses : defaultHarnesses(harnesses),
+    unknownWeeks: unique(requested.filter((week) => !knownWeeks.includes(week))),
     unknownMonth: unknownMonth(params, weeks),
+    unknownHarnesses: unique(named.filter((harness) => !knownHarnesses.includes(harness))),
   };
 }
 
+/** The harnesses selected by default: every harness of `harnesses.json` but the benchmark, in its order. */
+export function defaultHarnesses(harnesses) {
+  return harnesses.filter((entry) => !entry.benchmark).map((entry) => entry.harness);
+}
+
+/** Whether the selection is the default: every week, and exactly the default harnesses. */
+export function isDefaultSelection(selection, weeks, harnesses) {
+  return holdsAllWeeks(selection.weeks, weeks) && isDefaultHarnessChoice(selection.harnesses, harnesses);
+}
+
+/** Whether `selectedHarnesses` are exactly the default harnesses, in any order. */
+export function isDefaultHarnessChoice(selectedHarnesses, harnesses) {
+  return sameMembers(selectedHarnesses, defaultHarnesses(harnesses));
+}
+
 /**
- * A copy of `params` with the selection written in its shortest form and every other key untouched.
- * A selection with no week writes neither `weeks` nor `month`, so the URL opens on the default.
+ * A copy of `params` with the selection written in its shortest form and every other key untouched. Every week
+ * selected, or none, writes neither `weeks` nor `month`; the default harnesses, or none, write no `harnesses`; a
+ * `scope` key is dropped. A URL without these keys opens on the default.
  */
-export function writeSelection(params, selection, weeks) {
+export function writeSelection(params, selection, weeks, harnesses) {
   const written = new URLSearchParams(params);
-  written.delete("weeks");
-  written.delete("month");
-  written.delete("scope");
-  if (selection.weeks.length > 0) {
+  for (const key of SELECTION_KEYS) {
+    written.delete(key);
+  }
+  if (selection.weeks.length > 0 && !holdsAllWeeks(selection.weeks, weeks)) {
     writeWeeks(written, selection.weeks, weeks);
   }
-  if (selection.scope !== DEFAULT_SCOPE) {
-    written.set("scope", selection.scope);
+  if (selection.harnesses.length > 0 && !isDefaultHarnessChoice(selection.harnesses, harnesses)) {
+    written.set("harnesses", selection.harnesses.join(","));
   }
   return written;
 }
@@ -59,18 +80,32 @@ export function selectionQuery(params) {
   return query === "" ? "" : `?${query}`;
 }
 
-/** The scopes of the data a chosen scope covers: what fills `selected_scopes`; an unknown scope covers the default's. */
-export function scopesOf(scope) {
-  return [...SCOPE_MEMBERS[knownScope(scope)]];
-}
-
-/** The note naming the weeks and the month the URL asked for that `weeks.json` does not hold; "" when it named none. */
+/** The note naming the weeks, month and harnesses the URL asked for that the data do not hold; "" when it named none. */
 export function unknownSelectionNote(selection) {
   const unknown = [...selection.unknownWeeks];
   if (selection.unknownMonth !== null) {
     unknown.push(`month ${selection.unknownMonth}`);
   }
+  for (const harness of selection.unknownHarnesses) {
+    unknown.push(`harness ${harness}`);
+  }
   return unknown.length === 0 ? "" : `Not in the data, so not selected: ${unknown.join(", ")}.`;
+}
+
+/** The note saying where the selection's numbers come from: precomputed for the default, the browser otherwise. */
+export function computationNote(selection, weeks, harnesses) {
+  return isDefaultSelection(selection, weeks, harnesses) ? DEFAULT_SELECTION_NOTE : COMPUTED_SELECTION_NOTE;
+}
+
+/** The harnesses a caption names: "the paper's harnesses", "every harness", the one harness, or "3 harnesses". */
+export function harnessesText(selectedHarnesses, harnesses) {
+  if (isDefaultHarnessChoice(selectedHarnesses, harnesses)) {
+    return "the paper's harnesses";
+  }
+  if (selectedHarnesses.length === harnesses.length) {
+    return "every harness";
+  }
+  return selectedHarnesses.length === 1 ? selectedHarnesses[0] : `${selectedHarnesses.length} harnesses`;
 }
 
 /** The weeks grouped by the month of their Sunday, months oldest first: `[{ month, weeks: [entry…] }]`. */
@@ -87,36 +122,13 @@ export function weeksByMonth(weeks) {
   return groups;
 }
 
-/**
- * Draw the week picker and scope switch in `container`, with `unknownSelectionNote` under them when it has one.
- * Every change redraws them and calls `onChange(selection)`; unticking the last week gives a selection with no week.
- */
-export function mountSelection(container, weeks, selection, onChange) {
-  const picker = { container, weeks, selection, onChange };
-  const focusedChoice = choiceInFocus(container);
-  const weekControls = document.createElement("div");
-  weekControls.className = "controls";
-  for (const group of weeksByMonth(weeks)) {
-    weekControls.append(monthGroup(picker, group));
-  }
-  weekControls.append(allWeeksGroup(picker));
-  container.replaceChildren(weekControls, scopeGroup(picker));
-  const note = document.createElement("p");
-  note.className = "note";
-  note.textContent = unknownSelectionNote(selection);
-  if (note.textContent !== "") {
-    container.append(note);
-  }
-  restoreFocus(container, focusedChoice);
-}
-
 function requestedWeeks(params, weeks) {
   const named = params.get("weeks");
-  if (named === ALL_WEEKS) {
+  if (named === EVERY_WEEK_VALUE) {
     return weeks.map((entry) => entry.week);
   }
   if (named !== null) {
-    return named.split(",").map((week) => week.trim()).filter((week) => week !== "");
+    return namesIn(named);
   }
   const month = params.get("month");
   if (month !== null) {
@@ -125,8 +137,14 @@ function requestedWeeks(params, weeks) {
   return [];
 }
 
-function latestWeek(weeks) {
-  return weeks.slice(-1).map((entry) => entry.week);
+function namedHarnesses(params) {
+  const named = params.get("harnesses");
+  return named === null ? [] : namesIn(named);
+}
+
+/** The comma-separated names of a URL value, each trimmed, empty ones dropped. */
+function namesIn(value) {
+  return value.split(",").map((name) => name.trim()).filter((name) => name !== "");
 }
 
 function unknownMonth(params, weeks) {
@@ -137,23 +155,25 @@ function unknownMonth(params, weeks) {
   return weeks.some((entry) => entry.month === month) ? null : month;
 }
 
-function knownScope(scope) {
-  return Object.hasOwn(SCOPE_MEMBERS, scope) ? scope : DEFAULT_SCOPE;
-}
-
 function unique(values) {
   return [...new Set(values)];
 }
 
-function holdsAll(selectedWeeks, someWeeks) {
-  return someWeeks.every((week) => selectedWeeks.includes(week));
+function holdsAll(selectedValues, someValues) {
+  return someValues.every((value) => selectedValues.includes(value));
+}
+
+function holdsAllWeeks(selectedWeeks, weeks) {
+  return holdsAll(selectedWeeks, weeks.map((entry) => entry.week));
+}
+
+function sameMembers(first, second) {
+  return first.length === second.length && holdsAll(first, second);
 }
 
 function writeWeeks(written, selectedWeeks, weeks) {
   const month = wholeMonth(selectedWeeks, weeks);
-  if (holdsAll(selectedWeeks, weeks.map((entry) => entry.week))) {
-    written.set("weeks", ALL_WEEKS);
-  } else if (month !== null) {
+  if (month !== null) {
     written.set("month", month);
   } else {
     written.set("weeks", selectedWeeks.join(","));
@@ -162,125 +182,9 @@ function writeWeeks(written, selectedWeeks, weeks) {
 
 function wholeMonth(selectedWeeks, weeks) {
   for (const group of weeksByMonth(weeks)) {
-    const monthWeeks = group.weeks.map((entry) => entry.week);
-    if (monthWeeks.length === selectedWeeks.length && holdsAll(selectedWeeks, monthWeeks)) {
+    if (sameMembers(selectedWeeks, group.weeks.map((entry) => entry.week))) {
       return group.month;
     }
   }
   return null;
-}
-
-// ---------- The picker ----------
-// `picker` is `{ container, weeks, selection, onChange }`: what one drawing of the picker was given.
-
-function monthGroup(picker, group) {
-  const element = controlGroup(monthName(group.month));
-  const monthWeeks = group.weeks.map((entry) => entry.week);
-  element.append(weeksPill(picker, monthWeeks, monthName(group.month), `month ${group.month}`));
-  for (const entry of group.weeks) {
-    const pill = weeksPill(picker, [entry.week], dayName(entry.week), `week ${entry.week}`);
-    pill.title = `${entry.week} to ${entry.last_day}`;
-    element.append(pill);
-  }
-  return element;
-}
-
-function allWeeksGroup(picker) {
-  const element = controlGroup("Every week");
-  const allWeeks = picker.weeks.map((entry) => entry.week);
-  element.append(weeksPill(picker, allWeeks, "All weeks", "all weeks"));
-  return element;
-}
-
-function scopeGroup(picker) {
-  const element = controlGroup("Scope");
-  const label = document.createElement("span");
-  label.className = "control-label";
-  label.textContent = "Scope";
-  element.append(label);
-  for (const scope of Object.keys(SCOPE_MEMBERS)) {
-    element.append(scopePill(picker, scope));
-  }
-  return element;
-}
-
-/** A checkbox pill that toggles `pillWeeks`: ticked when all are selected, half-ticked when some are. */
-function weeksPill(picker, pillWeeks, text, choice) {
-  const selectedCount = pillWeeks.filter((week) => picker.selection.weeks.includes(week)).length;
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.dataset.choice = choice;
-  input.checked = selectedCount === pillWeeks.length;
-  input.indeterminate = selectedCount > 0 && selectedCount < pillWeeks.length;
-  const toggledWeeks = toggled(picker.selection.weeks, pillWeeks);
-  input.addEventListener("change", () => choose(picker, toggledWeeks, picker.selection.scope));
-  return pill(input, text);
-}
-
-function scopePill(picker, scope) {
-  const input = document.createElement("input");
-  input.type = "radio";
-  input.name = "scope";
-  input.dataset.choice = `scope ${scope}`;
-  input.checked = picker.selection.scope === scope;
-  input.addEventListener("change", () => choose(picker, picker.selection.weeks, scope));
-  return pill(input, scope);
-}
-
-function pill(input, text) {
-  const element = document.createElement("label");
-  element.className = input.checked ? "pill is-selected" : "pill";
-  element.append(input, text);
-  return element;
-}
-
-function controlGroup(name) {
-  const element = document.createElement("div");
-  element.className = "control-group";
-  element.setAttribute("role", "group");
-  element.setAttribute("aria-label", name);
-  return element;
-}
-
-/** Remove `pillWeeks` from the selection when all are selected; otherwise add the missing ones. */
-function toggled(selectedWeeks, pillWeeks) {
-  if (holdsAll(selectedWeeks, pillWeeks)) {
-    return selectedWeeks.filter((week) => !pillWeeks.includes(week));
-  }
-  return unique([...selectedWeeks, ...pillWeeks]);
-}
-
-function choose(picker, chosenWeeks, scope) {
-  const next = {
-    weeks: picker.weeks.map((entry) => entry.week).filter((week) => chosenWeeks.includes(week)),
-    scope,
-    // After a change the URL no longer names what was unknown.
-    unknownWeeks: [],
-    unknownMonth: null,
-  };
-  mountSelection(picker.container, picker.weeks, next, picker.onChange);
-  picker.onChange(next);
-}
-
-function choiceInFocus(container) {
-  const focused = document.activeElement;
-  return focused !== null && container.contains(focused) ? focused.dataset.choice : undefined;
-}
-
-function restoreFocus(container, choice) {
-  if (choice !== undefined) {
-    container.querySelector(`[data-choice="${CSS.escape(choice)}"]`)?.focus();
-  }
-}
-
-/** "2026-05" → "May 2026". */
-function monthName(month) {
-  const firstDay = new Date(`${month}-01T00:00:00Z`);
-  return firstDay.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
-}
-
-/** "2026-05-31" → "May 31". */
-function dayName(sunday) {
-  const day = new Date(`${sunday}T00:00:00Z`);
-  return day.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 }
