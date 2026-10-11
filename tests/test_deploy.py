@@ -1,11 +1,17 @@
-"""make deploy, run against a local bare repository: the hosting branch holds one commit with the site's files, and nothing is left behind."""
+"""make deploy, run against a local bare repository: the hosting branch holds one commit with the site's files, and nothing is left behind;
+answers whose queries changed since make data are not published."""
 
+import json
 import os
 import pathlib
 import shutil
 import subprocess
+import sys
 
 import pytest
+
+import site_data.answers
+import site_data.paths
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 HOSTING_BRANCH = "gh-pages"
@@ -24,6 +30,10 @@ def write_fake_site(site: pathlib.Path, data_home: pathlib.Path) -> None:
     (site / "js" / "page.js").write_text("export const page = 'explore';\n")
     data_home.mkdir()
     (data_home / "weeks.json").write_text('[{"week": "2026-05-31"}]\n')
+    # The hashes of this repository's queries, which make deploy checks the answers against.
+    (data_home / site_data.paths.ANSWERS_FOLDER).mkdir()
+    hashes_path = data_home / site_data.paths.ANSWERS_FOLDER / site_data.paths.QUERY_HASHES_FILE
+    hashes_path.write_text(json.dumps(site_data.answers.query_hashes()))
     (site / "data").symlink_to(data_home)
 
 
@@ -53,10 +63,11 @@ def remote(tmp_path: pathlib.Path) -> pathlib.Path:
 
 
 def deploy(repository: pathlib.Path, remote: pathlib.Path, temporary: pathlib.Path) -> subprocess.CompletedProcess:
-    """Run `make deploy` in `repository` towards `remote`, with temporary folders made under `temporary`."""
+    """Run `make deploy` in `repository` towards `remote`, with temporary folders made under `temporary`, its answer
+    check run by this Python on this repository's `site_data` and queries."""
     temporary.mkdir(exist_ok=True)
-    environment = {**os.environ, "TMPDIR": str(temporary)}
-    command = ["make", "--no-print-directory", "-C", str(repository), "deploy",
+    environment = {**os.environ, "TMPDIR": str(temporary), "PYTHONPATH": str(ROOT)}
+    command = ["make", "--no-print-directory", "-C", str(repository), "deploy", f"PYTHON={sys.executable}",
                f"DEPLOY_REMOTE={remote}", f"DEPLOY_BRANCH={HOSTING_BRANCH}"]
     return subprocess.run(command, env=environment, capture_output=True, text=True)
 
@@ -81,8 +92,9 @@ def test_the_hosting_branch_holds_the_site_and_its_data_as_files(repository, rem
     for line in git(remote, "ls-tree", "-r", HOSTING_BRANCH).splitlines():
         description, path = line.split("\t")
         modes[path] = description.split()[0]
+    hashes_file = f"data/{site_data.paths.ANSWERS_FOLDER}/{site_data.paths.QUERY_HASHES_FILE}"
     assert modes == {"index.html": "100644", "js/page.js": "100644", ".nojekyll": "100644",
-                     "data/weeks.json": "100644"}
+                     "data/weeks.json": "100644", hashes_file: "100644"}
 
 
 def test_a_deploy_leaves_no_worktree_branch_or_folder_behind(repository, remote, tmp_path) -> None:
@@ -115,6 +127,17 @@ def test_without_data_make_deploy_fails_with_the_same_message(repository, remote
     result = deploy(repository, remote, tmp_path / "temporary")
     assert result.returncode != 0  # make reports a failed recipe as 2
     assert "run make data first" in result.stderr
+
+
+def test_answers_of_a_query_changed_since_make_data_are_not_published(repository, remote, tmp_path) -> None:
+    hashes_path = repository / "site" / "data" / site_data.paths.ANSWERS_FOLDER / site_data.paths.QUERY_HASHES_FILE
+    recorded = json.loads(hashes_path.read_text())
+    recorded["explore/request_count"] = "0" * 64
+    hashes_path.write_text(json.dumps(recorded))
+    result = deploy(repository, remote, tmp_path / "temporary")
+    assert result.returncode != 0
+    assert "explore/request_count: its text changed since make data wrote its answer" in result.stderr
+    assert git(remote, "branch") == ""
 
 
 def test_an_existing_staging_branch_is_left_untouched_and_named(repository, remote, tmp_path) -> None:

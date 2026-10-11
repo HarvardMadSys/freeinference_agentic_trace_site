@@ -32,9 +32,11 @@ runs every Explore and figure query once with that selection, and the colour
 orders under `setup/`, and writes each answer as
 `site/data/all_weeks/<page>/<query>.json`, so the default page loads neither
 DuckDB nor any Parquet file. **Rerun `make data` after editing any of those
-queries**: the default view reads the answer, not the query, and no test sees
-a stale answer in `site/data` (`tests/test_answers.py` checks the answers
-written for the fixture).
+queries**: the default view reads the answer, not the query. `make test`
+checks the answers written for the fixture (`tests/test_answers.py`), not
+those in `site/data`; for those, `make data` records the hash of each query's
+text in `all_weeks/queries.json`, and `make deploy` first runs
+`make check-answers`, which refuses when a query changed since.
 
 Any other selection loads DuckDB-WASM and runs the same queries in the
 browser. After the first view is drawn, the page streams every week's row
@@ -69,6 +71,7 @@ make data            # site/data/ from the release: a Parquet file per kind of r
 make serve           # http://localhost:8000, with the range requests DuckDB needs
 make test            # the Python tests and the node tests
 make setup-browser   # a headless Chromium and Playwright, for checking pages by hand; make test does not need it
+make check-answers   # check that no query changed since make data wrote its answer; make deploy runs it first
 make deploy          # publish site/ as the only commit of gh-pages on origin, force-pushed (git 2.42 or later)
 ```
 
@@ -86,7 +89,7 @@ make data RELEASE=~/freeinference_agentic_trace/release SIMULATION=~/freeinferen
 README.md          this file
 CONTRIBUTING.md    the rules, the patterns, and how to add a query, a figure or a page
 CLAUDE.md          a pointer to the two files above and the git rules
-Makefile           setup · setup-browser · data · serve · test · deploy
+Makefile           setup · setup-browser · data · serve · test · check-answers · deploy
 deploy.sh          what make deploy runs: copies site/ onto an orphan branch and force-pushes it
 serve.py           what make serve runs: a local server that answers byte-range requests, as the host does
 pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
@@ -99,6 +102,7 @@ site_data/         builds site/data/ from a release, and opens a database over i
                    one module per kind of row, each column from the pipeline's functions
   site_database.py the browser's database in Python DuckDB: the views over the week files, the selection tables
   answers.py       the default selection's answers: every Explore and figure query and colour order, run once
+  check_answers.py what make deploy checks first: every answered query's text is the one its answer came from
   paths.py         the names of the folders and files the step writes
 site/              exactly the files that are deployed
   *.html           one file per page: index (Explore), session, about
@@ -125,7 +129,7 @@ site/              exactly the files that are deployed
                    only for the weeks it covers
     harnesses.json, weeks.json
                    the indexes of harnesses and weeks, read before DuckDB loads
-    all_weeks/     the default selection's answers, <page>/<query>.json
+    all_weeks/     the default selection's answers, <page>/<query>.json, and queries.json, each query's text hash
 tests/             what make test runs
   conftest.py, fixture_release.py, site_database.py
                    a two-week fixture release, the site data built from it, and a database over it set up as

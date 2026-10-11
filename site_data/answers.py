@@ -1,5 +1,10 @@
 """The answers of the default selection: every Explore and figure query, and the colour orders, run once over the data
-folder as the browser runs it, each written as `all_weeks/<folder>/<query>.json`.
+folder as the browser runs it, each written as `all_weeks/<folder>/<query>.json`, and the SHA-256 of each such
+query's text, written to `all_weeks/queries.json` as `{"<folder>/<query>": "<hex>"}`, so a query edited since can be
+found (`site_data/check_answers.py`).
+
+The answers are written into `all_weeks.partial/`, which replaces `all_weeks/` only once every answer is written: a run
+that fails leaves the previous answers in place.
 
 The default selection is every week of `weeks.json` and every harness of
 `harnesses.json` that is not the benchmark's. The database is opened and the
@@ -19,6 +24,7 @@ other failure stops the step.
 """
 
 import dataclasses
+import hashlib
 import json
 import math
 import pathlib
@@ -63,21 +69,37 @@ def default_selection(data_directory: pathlib.Path) -> DefaultSelection:
     return DefaultSelection(weeks=week_list, harnesses=harness_list)
 
 
-def answered_query_names() -> list[str]:
-    """The name of every query of the answered pages, `<page>/<query>`, and of every colour order, sorted."""
+def answered_query_names(queries_folder: pathlib.Path = site_database.QUERIES_FOLDER) -> list[str]:
+    """The name of every query of the answered pages in `queries_folder`, `<page>/<query>`, and of every colour order,
+    sorted."""
     names = []
     for page in ANSWERED_PAGES:
-        for path in sorted((site_database.QUERIES_FOLDER / page).glob("*.sql")):
+        for path in sorted((queries_folder / page).glob("*.sql")):
             names.append(f"{page}/{path.stem}")
     return sorted([*names, *COLOUR_ORDER_QUERIES])
 
 
 def write_answers(data_directory: pathlib.Path) -> WrittenAnswers:
     """Replace the data folder's answers folder with the answer of every answered query under the default selection,
-    except a query that fails because it reads the missing `simulation` view."""
+    except a query that fails because it reads the missing `simulation` view, and the hash of every answered query's
+    text."""
+    partial_directory = data_directory / paths.PARTIAL_ANSWERS_FOLDER
+    if partial_directory.exists():
+        shutil.rmtree(partial_directory)  # left by a run that failed
+    partial_directory.mkdir()
+    written = write_answer_files(data_directory, partial_directory)
+    hashes_text = json.dumps(query_hashes(), indent=1, sort_keys=True) + "\n"
+    (partial_directory / paths.QUERY_HASHES_FILE).write_text(hashes_text)
     answers_directory = data_directory / paths.ANSWERS_FOLDER
     if answers_directory.exists():
         shutil.rmtree(answers_directory)  # a query since removed keeps no answer
+    partial_directory.rename(answers_directory)
+    return written
+
+
+def write_answer_files(data_directory: pathlib.Path, answers_directory: pathlib.Path) -> WrittenAnswers:
+    """Write into `answers_directory` the answer of every answered query under the data folder's default selection,
+    except a query that fails because it reads the missing `simulation` view."""
     any_simulated = any(entry.simulated for entry in weeks.read_weeks_file(data_directory))
     selection = default_selection(data_directory)
     files, size, unanswered = 0, 0, []
@@ -89,12 +111,26 @@ def write_answers(data_directory: pathlib.Path) -> WrittenAnswers:
             if rows is None:
                 unanswered.append(name)
                 continue
-            path = data_directory / paths.answer_file(name)
+            path = answers_directory / paths.answer_file_in_folder(name)
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(answer_text(rows))
             files += 1
             size += path.stat().st_size
     return WrittenAnswers(files=files, bytes=size, unanswered=unanswered)
+
+
+def query_hashes(queries_folder: pathlib.Path = site_database.QUERIES_FOLDER) -> dict[str, str]:
+    """Each answered query of `queries_folder`, by name, to the SHA-256 of its text as hex. A query left without an
+    answer because no week is simulated is included: its text is what the step ran."""
+    hashes = {}
+    for name in answered_query_names(queries_folder):
+        hashes[name] = query_text_hash(queries_folder, name)
+    return hashes
+
+
+def query_text_hash(queries_folder: pathlib.Path, name: str) -> str:
+    """The SHA-256, as hex, of the bytes of the query `name`, the file `<queries_folder>/<name>.sql`."""
+    return hashlib.sha256((queries_folder / f"{name}.sql").read_bytes()).hexdigest()
 
 
 def rows_unless_simulation_is_missing(connection: duckdb.DuckDBPyConnection, query_name: str,

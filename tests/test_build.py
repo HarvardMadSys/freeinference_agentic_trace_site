@@ -53,7 +53,8 @@ def answer_files() -> list[str]:
 
 def test_every_week_s_file_of_every_kind_and_every_answer_is_written(tmp_path: pathlib.Path) -> None:
     out = build(tmp_path)
-    expected = [*INDEX_FILES, *answer_files()]
+    hashes_file = f"{site_data.paths.ANSWERS_FOLDER}/{site_data.paths.QUERY_HASHES_FILE}"
+    expected = [*INDEX_FILES, *answer_files(), hashes_file]
     for kind_folder in KIND_FOLDERS:
         for week in [FIRST_SUNDAY, SECOND_SUNDAY]:
             if kind_folder != "simulation" or week == FIRST_SUNDAY:  # the second week is not simulated

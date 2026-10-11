@@ -203,9 +203,12 @@ stays. The deploy step stays.
 
 - **[A query file is edited and `make data` is not rerun]** → The default
   view would show the old answer while a narrowed selection shows the new.
-  The test compares both ways on the fixture, so a mismatch cannot pass
-  `make test`; on the deployed site, `make deploy` always follows
-  `make data`.
+  `tests/test_answers.py` ties the fixture's answers to the queries, run
+  live, so a query whose answer differs cannot pass `make test`; it does not
+  see `site/data`. `make data` records the SHA-256 of each answered query's
+  text in `all_weeks/queries.json`, and `make deploy` first runs
+  `make check-answers` (`site_data/check_answers.py`), which refuses when a
+  query changed, or was added, since `make data`.
 - **[Streaming 73 MB to every visitor]** → It starts only after the default
   view is drawn, at low priority, and stops when the visitor leaves; a
   visitor who never narrows the selection has lost nothing visible. If a

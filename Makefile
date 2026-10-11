@@ -11,7 +11,7 @@ SIMULATION ?= $(PIPELINE)/data/v1/simulation
 DEPLOY_REMOTE ?= origin
 DEPLOY_BRANCH ?= gh-pages
 
-.PHONY: setup setup-browser data serve test deploy
+.PHONY: setup setup-browser data serve test check-answers deploy
 
 # Create the virtual environment; install the pipeline's package from its
 # repository, then this package with its test tools.
@@ -40,6 +40,11 @@ test:
 	FREEINFERENCE_PIPELINE=$(PIPELINE) $(PYTHON) -m pytest
 	node --test "tests/*.test.js"
 
-# Publish site/, with its data, as the only commit of $(DEPLOY_BRANCH) on $(DEPLOY_REMOTE), force-pushed.
-deploy:
+# Check that every answer in site/data comes from its query as the query is now: one edited since make data fails.
+check-answers:
+	$(PYTHON) -m site_data.check_answers
+
+# Publish site/, with its data, as the only commit of $(DEPLOY_BRANCH) on $(DEPLOY_REMOTE), force-pushed, once the
+# answers are checked.
+deploy: check-answers
 	./deploy.sh $(DEPLOY_REMOTE) $(DEPLOY_BRANCH)
