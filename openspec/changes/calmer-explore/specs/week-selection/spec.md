@@ -45,6 +45,10 @@ as the default; each SHALL be rewritten.
 - **WHEN** the URL's `weeks=` names a week that is not in `weeks.json`
 - **THEN** the table SHALL filter to the months of the other weeks it names and show a note naming the unknown one
 
+#### Scenario: A link from the first release
+- **WHEN** a visitor opens a link with `?weeks=all&scope=All`
+- **THEN** the page SHALL open with the table unfiltered and the URL SHALL be rewritten without either key
+
 #### Scenario: A link from an earlier release
 - **WHEN** a visitor opens a link with `?weeks=2026-07-05,2026-07-12&scope=All`
 - **THEN** the table SHALL filter to July 2026 and the URL SHALL be rewritten as `months=2026-07`

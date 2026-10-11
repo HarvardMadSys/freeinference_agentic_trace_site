@@ -95,6 +95,14 @@ top-level sessions, the benchmark's marked, so the table can be filtered
 to any harness in the browser. The step SHALL print each answer's rows and
 size, and the Explore page SHALL draw from the answers alone.
 
+#### Scenario: An answer equals the live query
+- **WHEN** a query is run in Python with every week and the paper's harnesses selected
+- **THEN** its rows SHALL equal the rows of its answer file, column for column
+
+#### Scenario: A query file without an answer
+- **WHEN** a page asks for an answer file that does not exist
+- **THEN** the page SHALL show that query's error in its own place
+
 #### Scenario: A query edited after the data was built
 - **WHEN** the text of an answered query changes and `make data` has not been rerun
 - **THEN** `make test` SHALL fail naming the query
