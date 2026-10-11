@@ -14,7 +14,6 @@ they are not compared:
   request and bins the requests;
 - `ttft_cdf_by_model` draws the five models with most requests, where the paper draws two chosen models (their
   medians are compared through `ttft_median_by_model` instead);
-- `hit_ratio_by_transition` shows mean hit ratios, where the paper reports medians;
 - `hit_ratio_by_idle_gap` bins idle gaps by fixed edges and hides thin bins, where the paper merges a thin bin into
   the next, so its per-provider medians at the longest gap fall in other bins.
 """

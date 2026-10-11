@@ -25,7 +25,7 @@ const SECTION_FIGURES = {
     "hit_ratio_by_idle_gap",
     "gap_cdf_by_cause",
     "mean_hit_ratio_by_cause",
-    "hit_ratio_by_transition",
+    "hit_ratio_cdf_by_transition",
     "simulated_hit_ratio_by_ttl",
     "dead_over_active_by_policy",
   ],
@@ -85,7 +85,7 @@ const LONG_FORMAT_SERIES_COLUMNS = {
   hit_ratio_cdf_by_gap_bin: "series",
   hit_ratio_by_idle_gap: "provider",
   gap_cdf_by_cause: "series",
-  hit_ratio_by_transition: "transition",
+  hit_ratio_cdf_by_transition: "series",
   simulated_hit_ratio_by_ttl: "policy",
   dead_over_active_by_policy: "policy",
 };

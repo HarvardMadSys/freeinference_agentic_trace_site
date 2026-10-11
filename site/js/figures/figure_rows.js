@@ -20,7 +20,6 @@ const HIDDEN_NOUNS = Object.freeze({
   series: ["series", "series"],
   week: ["week", "weeks"],
   category: ["category", "categories"],
-  transition: ["transition", "transitions"],
   policy: ["policy", "policies"],
 });
 const DEFAULT_HIDDEN_NOUN = ["bin", "bins"];

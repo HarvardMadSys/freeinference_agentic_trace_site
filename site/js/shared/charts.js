@@ -37,6 +37,9 @@ export const CAUSE_COLOURS = Object.freeze({
   tool: "var(--cause-tool)", ask_user_tool: "var(--cause-ask-user)", user: "var(--cause-user)", subagent: "var(--cause-subagent)",
 });
 
+/** The colour of each transition the figures draw: a request appended to its context, or rewrote it. */
+export const TRANSITION_COLOURS = Object.freeze({ append: "var(--transition-append)", mutation: "var(--transition-mutation)" });
+
 /** The six gap-bin colours, shortest gap first: one blue from light to dark. */
 export const GAP_BIN_SLOTS = Object.freeze([
   "var(--gap-bin-1)", "var(--gap-bin-2)", "var(--gap-bin-3)", "var(--gap-bin-4)", "var(--gap-bin-5)", "var(--gap-bin-6)",

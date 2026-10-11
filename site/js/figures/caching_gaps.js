@@ -1,14 +1,15 @@
 /**
  * The Prefix-caching section's figures of what came before a request: the hit ratio after a gap of each length, how
- * long a gap is by what it waited for, and the mean hit ratio by the same. A request's gap is the wait since the
- * previous request of its session ended, of 0 s or more, with what it waited for; the queries pick those requests.
+ * long a gap is by what it waited for, the mean hit ratio by the same, and the hit ratio after the context was appended
+ * to or rewritten. A request's gap is the wait since the previous request of its session ended, of 0 s or more, with
+ * what it waited for; the queries pick those requests.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines; `caching.js` lists them with the section's other
- * figures. A cause and a gap bin have the same colour in every chart, from `shared/charts.js`.
+ * figures. A cause, a transition and a gap bin have the same colour in every chart, from `shared/charts.js`.
  */
 
 import {
-  AXIS_STYLE, CAUSE_COLOURS, chartFrame, colourScale, drawCdf, GAP_BIN_SLOTS, GRID_STYLE, TIP_STYLE,
+  AXIS_STYLE, CAUSE_COLOURS, chartFrame, colourScale, drawCdf, GAP_BIN_SLOTS, GRID_STYLE, TIP_STYLE, TRANSITION_COLOURS,
 } from "../shared/charts.js";
 import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
 import { cdfSeries, seriesLegend } from "./figure_rows.js";
@@ -24,6 +25,10 @@ const CAUSE_NAMES = Object.freeze({
   user: "User Idle",
   subagent: "Subagent",
 });
+
+// The transitions the figure draws, in their order, with the names it draws them under. A switch to another model or
+// provider is routing, not a change of context, and is not drawn, as in the paper.
+const TRANSITION_NAMES = Object.freeze({ append: "Append", mutation: "Mutation" });
 
 const MIN_GAP_DRAWN_S = 0.1; // a shorter gap is drawn at it, on the log axis, as in the paper
 const MAX_GAP_DRAWN_S = 86400; // the gap axis ends at a day, as the paper's does
@@ -66,6 +71,16 @@ export const GAP_FIGURES = Object.freeze({
     binColumn: "waited_for",
     draw: drawMeanHitRatioByCause,
   }),
+  hitRatioByTransition: Object.freeze({
+    name: "hit_ratio_cdf_by_transition",
+    title: "Hit ratio after a context change",
+    definition: "CDF of the hit ratio (cached over input tokens) of requests that append to the context before them and of those that rewrite it (a mutation); requests that switch model or provider are not drawn, as in the paper.",
+    query: "figures/hit_ratio_cdf_by_transition",
+    binColumn: "series",
+    seriesColumn: "series",
+    legend: transitionLegend,
+    draw: drawHitRatioByTransition,
+  }),
 });
 
 /** A map from each gap bin's label, shortest gap first, to its colour. */
@@ -90,6 +105,11 @@ export function gapBinLegend(rows) {
 /** The gap-by-cause figure's legend: the causes of the rows, in the paper's order, by the paper's names. */
 export function causeLegend(rows) {
   return seriesLegend(rows, "series", causeColours(), CAUSE_NAMES);
+}
+
+/** The transition figure's legend: appends, then mutations, each in its transition colour. */
+export function transitionLegend(rows) {
+  return seriesLegend(rows, "series", new Map(Object.entries(TRANSITION_COLOURS)), TRANSITION_NAMES);
 }
 
 /**
@@ -124,6 +144,12 @@ async function drawGapByCause(rows, body, colours) {
     format: formatSeconds,
     colours: colours.series,
   });
+}
+
+/** Draw one CDF line of the hit ratio per transition. */
+async function drawHitRatioByTransition(rows, body, colours) {
+  const series = cdfSeries(rows, Object.keys(TRANSITION_NAMES), { labels: TRANSITION_NAMES });
+  await drawCdf(body, series, { xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, format: formatShare, colours: colours.series });
 }
 
 /** Draw one horizontal bar per cause from the axis's low end to its mean hit ratio, each with its value written after it. */

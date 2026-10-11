@@ -1,7 +1,8 @@
 /**
  * The Prefix-caching section of the Explore page's figures: how much of a request's input the provider served from
  * cache, after a gap of each length and cause, after an idle gap and after each kind of context change, and what the
- * cache simulation says each TTL and eviction policy would keep. The gap figures are drawn in `caching_gaps.js`.
+ * cache simulation says each TTL and eviction policy would keep. The figures of the gap or change before a request are
+ * drawn in `caching_gaps.js`.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines; a figure that `isSimulation` draws
  * the simulation of the paper's harnesses whatever harnesses are selected. A figure of more than one series colours
@@ -9,7 +10,7 @@
  */
 
 import {
-  AXIS_STYLE, assignColours, chartFrame, colourScale, DASH, distinct, drawBars, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
+  AXIS_STYLE, assignColours, chartFrame, colourScale, DASH, distinct, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
 } from "../shared/charts.js";
 import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
 import { GAP_FIGURES } from "./caching_gaps.js";
@@ -24,9 +25,6 @@ const IDLE_GAP_BINS = 26;
 // The idle gaps the axis marks, in seconds, each with its label.
 const IDLE_GAP_TICKS = Object.freeze({ 10: "10s", 60: "1m", 300: "5m", 900: "15m", 3600: "1h" });
 const IDLE_GAP_TICK_SECONDS = Object.freeze(Object.keys(IDLE_GAP_TICKS).map(Number));
-
-// A request's transition, how its context changed from the request before it, in the order the bars are drawn.
-const TRANSITIONS = Object.freeze(["append", "mutation", "switch"]);
 
 // The simulated TTLs, shortest first, then no TTL at all, in the order of the pipeline's `cache.TTLS`.
 const TTLS = Object.freeze(["1s", "10s", "30s", "1m", "5m", "10m", "15m", "30m", "1h", "3h", "6h", "1d", "none"]);
@@ -59,16 +57,7 @@ export const FIGURES = Object.freeze([
   }),
   GAP_FIGURES.gapByCause,
   GAP_FIGURES.meanHitRatioByCause,
-  Object.freeze({
-    name: "hit_ratio_by_transition",
-    title: "Hit ratio after a context change",
-    definition: "Mean hit ratio (cached over input tokens) of the requests that append to the context before them, mutate it, or switch model or provider, where the paper draws the CDFs of appends and mutations and leaves switches out.",
-    query: "figures/hit_ratio_by_transition",
-    binColumn: "transition",
-    seriesColumn: "transition",
-    legend: transitionLegend,
-    draw: drawTransitionHitRatios,
-  }),
+  GAP_FIGURES.hitRatioByTransition,
   Object.freeze({
     name: "simulated_hit_ratio_by_ttl",
     title: "Simulated hit ratio by TTL",
@@ -110,11 +99,6 @@ function idleGapLegend(rows) {
   return seriesLegend(rows, "provider", assignColours(providers), labels);
 }
 
-/** The transition figure's legend: the transitions, in their order. */
-function transitionLegend(rows) {
-  return seriesLegend(rows, "transition", assignColours(TRANSITIONS));
-}
-
 /** A simulation figure's legend: the eviction policies, in their order, by the names they are drawn under. */
 function policyLegend(rows) {
   return seriesLegend(rows, "policy", assignColours(Object.keys(POLICY_NAMES)), POLICY_NAMES);
@@ -148,22 +132,6 @@ async function drawIdleGapRetention(rows, body, colours) {
     ],
   });
   body.replaceChildren(chart);
-}
-
-/** Draw one bar per transition of the mean hit ratio of the requests after it. */
-async function drawTransitionHitRatios(rows, body, colours) {
-  const present = new Set(rows.map((row) => row.transition));
-  await drawBars(body, rows, {
-    x: "transition",
-    y: "mean_hit_ratio",
-    fill: "transition",
-    order: TRANSITIONS,
-    colours: colours.series,
-    xDomain: TRANSITIONS.filter((transition) => present.has(transition)),
-    xLabel: "Transition",
-    yLabel: "Mean hit ratio",
-    format: formatShare,
-  });
 }
 
 /** Draw one line per policy of its simulated hit ratio per TTL. */

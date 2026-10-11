@@ -81,14 +81,23 @@ def test_the_idle_gap_bins_hold_each_provider_s_gaps_up_to_an_hour(connection: d
     assert rows.idle_gap_bin.between(0, 25).all()
 
 
-def test_the_mean_hit_ratio_after_each_transition(connection: duckdb.DuckDBPyConnection,
-                                                  fixture_weeks: list[str]) -> None:
-    # The paper's harnesses' nine top-level requests after a first step: `mutation`'s step 1 reads nothing from cache.
+def test_the_hit_ratio_cdf_after_each_transition(connection: duckdb.DuckDBPyConnection,
+                                                 fixture_weeks: list[str]) -> None:
+    # The paper's harnesses' nine top-level requests after a first step, those of `AGENTIC_GAPS`: `mutation`'s step 1
+    # rewrites its context and reads nothing from cache; the other eight append.
     site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
-    rows = site_database.run_query(connection, "figures/hit_ratio_by_transition").set_index("transition")
-    assert rows.rows.to_dict() == {"append": 8, "mutation": 1}
-    assert rows.mean_hit_ratio["mutation"] == 0.0
-    assert 0.0 < rows.mean_hit_ratio["append"] <= 1.0
+    rows = site_database.run_query(connection, "figures/hit_ratio_cdf_by_transition")
+    assert rows.groupby("series").rows.first().to_dict() == {"append": 8, "mutation": 1}
+    assert rows[rows.series == "mutation"].x.unique().tolist() == [0.0]
+    # Of 1/2, 2/3, 3/4, 3/4, 4/5, 5/6, 5/6 and 6/7, the middle two are 3/4 and 4/5.
+    assert cdf_median(rows, "append") == pytest.approx((3 / 4 + 4 / 5) / 2)
+
+
+def test_a_switch_is_not_drawn_after_a_context_change(connection: duckdb.DuckDBPyConnection,
+                                                      fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
+    rows = site_database.run_query(connection, "figures/hit_ratio_cdf_by_transition")
+    assert set(rows.series) <= {"append", "mutation"}
 
 
 # The gaps of the paper's harnesses' top-level requests, counted by hand from `fixture_release.REQUESTS`, each as

@@ -16,7 +16,8 @@ import site_database
 import test_paper_parity
 
 SECTION = "prefix_caching"  # the section of `numbers.json` every compared item is in
-COMPARED_ITEMS = ["hit_ratio_by_gap_bin", "gap_by_cause", "mean_hit_ratio_by_cause"]
+COMPARED_ITEMS = ["hit_ratio_by_gap_bin", "gap_by_cause", "mean_hit_ratio_by_cause", "hit_ratio_after_transition"]
+TRANSITIONS = ["append", "mutation"]  # the transitions whose median hit ratio the paper reports
 PAPER_SCOPE = "Agentic"  # the scope `numbers.json` records with each compared item: the paper's harnesses
 
 
@@ -72,3 +73,13 @@ def test_the_mean_hit_ratio_of_each_cause(agentic: duckdb.DuckDBPyConnection, pa
     test_paper_parity.assert_match(paper_numbers, [
         comparison("mean_hit_ratio_by_cause", f"mean_hit_ratio_{cause}", float(means[cause]))
         for cause in gaps.CAUSE_NAMES])
+
+
+def test_the_median_hit_ratio_after_each_transition(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+    # `figures/hit_ratio_cdf_by_transition`'s `x` at share 0.5 of the series `append` and `mutation` against
+    # `prefix_caching.hit_ratio_after_transition.median_hit_ratio_append` and `_mutation`.
+    rows = site_database.run_query(agentic, "figures/hit_ratio_cdf_by_transition")
+    test_paper_parity.assert_match(paper_numbers, [
+        comparison("hit_ratio_after_transition", f"median_hit_ratio_{transition}",
+                   test_paper_parity.cdf_point(rows, transition, test_paper_parity.MEDIAN_SHARE))
+        for transition in TRANSITIONS])

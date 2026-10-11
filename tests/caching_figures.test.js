@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { idleGapEdgeSeconds } from "../site/js/figures/caching.js";
 import {
-  causeColours, causeLegend, gapBinColours, gapBinLegend, meanHitRatioBars,
+  causeColours, causeLegend, gapBinColours, gapBinLegend, meanHitRatioBars, transitionLegend,
 } from "../site/js/figures/caching_gaps.js";
 
 test("the idle-gap edges run geometrically from 10 s to one hour in 26 bins, as the pipeline's do", () => {
@@ -39,4 +39,11 @@ test("the mean-hit-ratio bars come in the paper's order, a mean below the axis e
     { cause: "tool", name: "Tool Gap", end: 0.97, mean: 0.97, rows: 900 },
     { cause: "user", name: "User Idle", end: 0.7, mean: 0.5, rows: 60 },
   ]);
+});
+
+test("the transition legend lists appends, then mutations, each in its transition colour", () => {
+  const legend = transitionLegend([{ series: "mutation" }, { series: "append" }]);
+  assert.deepEqual(legend.series, [{ name: "append", label: "Append" }, { name: "mutation", label: "Mutation" }]);
+  assert.equal(legend.colours.get("append"), "var(--transition-append)");
+  assert.equal(legend.colours.get("mutation"), "var(--transition-mutation)");
 });
