@@ -45,5 +45,7 @@ task says "measure", the measurement goes into `design.md`.
 
 ## 6. Deploy
 
-- [ ] 6.1 Range-request probe on the host (carried over): publish the data and a one-query page to `gh-pages`, run one narrowed-selection query, and check in the network panel that the Parquet responses are `206` and total well under the file size. Record the bytes in `design.md`. If range reads fail, stop and revisit decision 2.
-- [ ] 6.2 Check the deployed site end to end (carried over, with the new default): every page at 360 px and at desktop width, in light and dark mode; the default page is drawn before any DuckDB or Parquet fetch; the stream's total bytes and duration; a one-month selection draws its first figure in under five seconds before the stream and under two after it; the largest session's Requests view opens in under two seconds. Record the measured bytes and times in `design.md`.
+- [x] 6.1 Range-request probe on the host (carried over): publish the data and a one-query page to `gh-pages`, run one narrowed-selection query, and check in the network panel that the Parquet responses are `206` and total well under the file size. Record the bytes in `design.md`. If range reads fail, stop and revisit decision 2.
+- [x] 6.2 Check the deployed site end to end (carried over, with the new default): every page at 360 px and at desktop width, in light and dark mode; the default page is drawn before any DuckDB or Parquet fetch; the stream's total bytes and duration; a one-month selection draws its first figure in under five seconds before the stream and under two after it; the largest session's Requests view opens in under two seconds. Record the measured bytes and times in `design.md`.
+
+Tasks 6.1 and 6.2 (the deploy checks) are carried into `calmer-explore` task 8.1, pending a GitHub repository.
