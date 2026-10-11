@@ -104,25 +104,34 @@ gap).
 - **THEN** the site data step SHALL compute it by calling the pipeline's function, and the browser SHALL only read it
 
 ### Requirement: Navigation and the About page
-Every page SHALL share one header linking Explore, Paper figures and
-About, carrying the current selection in each link. The About page SHALL
-define session, top-level session, subagent, request, step, turn, scope,
-transition, wait and idle gap in the pipeline's words, say how the data were
-built and from which release, and link to the paper, the dataset and the
+Every page SHALL share one header linking Explore, its figure sections, its
+sessions table and About, carrying the current selection in each link. The
+About page SHALL say that the default selection is the paper's population
+(every harness but the benchmark replay) and define session, top-level
+session, subagent, request, step, turn, harness, transition, wait, idle gap
+and gap bin in the pipeline's words, say how the
+data were built and from which release, say which figures the site draws
+more simply than the paper, and link to the paper, the dataset and the
 pipeline repository.
 
 #### Scenario: Moving between pages
-- **WHEN** the visitor has selected July 2026 on Explore and clicks Paper figures
-- **THEN** the Paper figures page SHALL open with July 2026 selected
+- **WHEN** the visitor has selected July 2026 on Explore and opens About, then returns
+- **THEN** Explore SHALL open with July 2026 selected
 
 ### Requirement: Tests
 `make test` SHALL run the Python tests and `node --test`, and SHALL pass at
 every commit. Every `.sql` file SHALL be run by a test against data built from
 a small fixture release, with the selection tables filled, and SHALL return
-the columns its chart reads.
+the columns its chart reads. For every query that has a precomputed answer,
+a test SHALL check that the answer written for the fixture equals the query
+run live with the default selection.
 
 #### Scenario: A query that no longer matches the data
 - **WHEN** a column a query reads is renamed in the site data
+- **THEN** `make test` SHALL fail on that query
+
+#### Scenario: An answer that no longer matches its query
+- **WHEN** the answer writer rounds, renames or drops a column the live query returns
 - **THEN** `make test` SHALL fail on that query
 
 ### Requirement: Deployment
