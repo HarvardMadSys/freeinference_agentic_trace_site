@@ -5,6 +5,7 @@ import {
   cdfSeries,
   drawnHarnessesAndWeeks,
   dropThinGroups,
+  figureCaption,
   figureDrawnRows,
   hiddenText,
   restingCountText,
@@ -130,6 +131,7 @@ test("a figure draws the selection's harnesses and weeks", () => {
   assert.deepEqual(drawnHarnessesAndWeeks({}, selection, WEEK_ENTRIES, HARNESS_ENTRIES), {
     harnesses: "codex",
     weeks: ["2026-08-09", "2026-08-16"],
+    notSimulated: [],
   });
 });
 
@@ -139,6 +141,7 @@ test("a simulation figure draws the paper's harnesses in the selected weeks that
   assert.deepEqual(drawnHarnessesAndWeeks(figure, paperSelection, WEEK_ENTRIES, HARNESS_ENTRIES), {
     harnesses: "the paper's harnesses",
     weeks: ["2026-08-09"],
+    notSimulated: ["2026-08-16"],
   });
   const benchmarkSelection = { harnesses: ["eval:swe-bench"], weeks: ["2026-08-02"] };
   const underBenchmark = drawnHarnessesAndWeeks(figure, benchmarkSelection, WEEK_ENTRIES, HARNESS_ENTRIES);
@@ -152,4 +155,22 @@ test("a figure draws the rows its drawnRows keeps given the shared colours, or e
   const rows = [{ provider: "A" }, { provider: "B" }];
   assert.deepEqual(figureDrawnRows(keepsColoured, rows, colours), [{ provider: "A" }]);
   assert.deepEqual(figureDrawnRows({}, rows, colours), rows);
+});
+
+test("a simulation figure's caption names the selected weeks the simulation does not cover", () => {
+  const figure = { isSimulation: true, binColumn: "policy", seriesOverSameRows: true };
+  const selection = { harnesses: ["hermes", "codex"], weeks: ["2026-08-02", "2026-08-09", "2026-08-16"] };
+  const drawn = drawnHarnessesAndWeeks(figure, selection, WEEK_ENTRIES, HARNESS_ENTRIES);
+  const rows = [{ policy: "ttl_only", rows: 1200 }];
+  assert.equal(figureCaption(figure, rows, 0, drawn),
+    "1,200 rows · the paper's harnesses · 2 weeks · not simulated: 2026-08-16");
+});
+
+test("a figure's caption names no week left out when every selected week is drawn, and notes hidden bins", () => {
+  const figure = { binColumn: "week" };
+  const selection = { harnesses: ["codex"], weeks: ["2026-08-16"] };
+  const drawn = drawnHarnessesAndWeeks(figure, selection, WEEK_ENTRIES, HARNESS_ENTRIES);
+  const rows = [{ week: "2026-08-16", rows: 60 }];
+  assert.equal(figureCaption(figure, rows, 2, drawn),
+    "60 rows · codex · 1 week (2026-08-16) · 2 weeks hidden (fewer than 50 rows each)");
 });

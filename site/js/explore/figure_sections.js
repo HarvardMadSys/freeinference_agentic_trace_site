@@ -17,12 +17,10 @@
  * current run, so a new selection, which starts a new run, shows every series again.
  */
 
-import { MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote, weeksText } from "../shared/charts.js";
+import { MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote } from "../shared/charts.js";
 import { assignColours } from "../theme/colours.js";
 import { isDefaultSelection } from "../shared/selection.js";
-import {
-  drawnHarnessesAndWeeks, dropThinGroups, figureDrawnRows, hiddenText, restingCountText,
-} from "../figures/figure_rows.js";
+import { drawnHarnessesAndWeeks, dropThinGroups, figureCaption, figureDrawnRows } from "../figures/figure_rows.js";
 import { drawWithLegend, shownRows } from "./legend.js";
 
 // Each figure section of the page: the element its figures go in, and the module listing them. Every section module
@@ -167,7 +165,7 @@ async function drawFigure(figure, place, context) {
     const rows = figureDrawnRows(figure, await context.database.runQuery(figure.query), colours);
     const { rows: shown, hidden } = dropThinGroups(rows, figure.binColumn);
     const drawn = drawnHarnessesAndWeeks(figure, context.selection, context.weeks, context.harnesses);
-    place.caption.textContent = captionText(figure, shown, hidden, drawn);
+    place.caption.textContent = figureCaption(figure, shown, hidden, drawn);
     if (rows.length === 0) {
       showNote(place.body, NO_ROWS_NOTE);
     } else if (shown.length === 0) {
@@ -206,16 +204,6 @@ async function drawFigureRows(figure, rows, body, colours) {
   const legend = figure.legend(rows, colours, figure.seriesColumn);
   const seriesColours = { ...colours, series: legend.colours };
   await drawWithLegend(body, legend, (hidden) => drawFigureSeries(figure, rows, body, seriesColours, hidden));
-}
-
-/** A figure's caption: the rows it rests on, the harnesses and weeks they come from, and how many bins were hidden. */
-function captionText(figure, shownRows, hidden, { harnesses, weeks }) {
-  const parts = [restingCountText(shownRows, figure), harnesses, weeksText(weeks)];
-  const hiddenNote = hiddenText(hidden, figure.binColumn);
-  if (hiddenNote !== "") {
-    parts.push(hiddenNote);
-  }
-  return parts.join(" · ");
 }
 
 /** Fill every card with a fresh title, definition, body and empty caption; keep and return the places by name. */

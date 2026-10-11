@@ -1,14 +1,14 @@
 /**
- * What the Explore page does to a figure's rows before drawing them: thin bins hidden, the caption's row
- * count, harnesses, weeks and note on hidden bins, the series its legend lists, a CDF query's points grouped into
- * series, and the labels of a crowded axis or a log one.
+ * What the Explore page does to a figure's rows before drawing them: the rows it draws, thin bins hidden, its
+ * caption (the rows it rests on, its harnesses and weeks, the weeks not simulated and the bins hidden), the series its
+ * legend lists, a CDF query's points grouped into series, and the labels of a crowded axis or a log one.
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
  * a CDF series), or, when `binColumn` is null, each row alone. Every row of a bin carries the bin's count, the number
  * of rows of the data it rests on, in the column `rows`. These are plain functions, tested with `node --test`.
  */
 
-import { dropThinBins, MIN_ROWS_PER_BIN } from "../shared/charts.js";
+import { dropThinBins, MIN_ROWS_PER_BIN, weeksText } from "../shared/charts.js";
 import { formatCount } from "../shared/format.js";
 import { harnessesText, isDefaultHarnessChoice } from "../shared/selection.js";
 
@@ -84,22 +84,41 @@ export function restingCountText(rows, figure) {
 }
 
 /**
- * `{ harnesses, weeks }`: the text naming the harnesses a figure's rows come from, and the weeks (Sundays) they come
- * from. That is the selection's, by `harnessEntries` (the entries of `harnesses.json`), except for a simulation figure
- * (`isSimulation`), whose rows are the paper's harnesses' in the selected weeks the simulation covers, by `weekEntries`
- * (the entries of `weeks.json`); its text then says so when other harnesses are selected.
+ * `{ harnesses, weeks, notSimulated }`: the text naming the harnesses a figure's rows come from, the weeks (Sundays)
+ * they come from, and the selected weeks they leave out because the simulation does not cover them. That is the
+ * selection's, by `harnessEntries` (the entries of `harnesses.json`), with no week left out, except for a simulation
+ * figure (`isSimulation`), whose rows are the paper's harnesses' in the selected weeks the simulation covers, by
+ * `weekEntries` (the entries of `weeks.json`); its text then says so when other harnesses are selected.
  */
 export function drawnHarnessesAndWeeks(figure, selection, weekEntries, harnessEntries) {
   const selectedText = harnessesText(selection.harnesses, harnessEntries);
   if (figure.isSimulation !== true) {
-    return { harnesses: selectedText, weeks: selection.weeks };
+    return { harnesses: selectedText, weeks: selection.weeks, notSimulated: [] };
   }
   const simulated = new Set(weekEntries.filter((entry) => entry.simulated).map((entry) => entry.week));
   const weeks = selection.weeks.filter((week) => simulated.has(week));
+  const notSimulated = selection.weeks.filter((week) => !simulated.has(week));
   if (isDefaultHarnessChoice(selection.harnesses, harnessEntries)) {
-    return { harnesses: selectedText, weeks };
+    return { harnesses: selectedText, weeks, notSimulated };
   }
-  return { harnesses: SIMULATED_HARNESSES_TEXT, weeks };
+  return { harnesses: SIMULATED_HARNESSES_TEXT, weeks, notSimulated };
+}
+
+/**
+ * A figure's caption: the rows it rests on, the harnesses and weeks they come from (`drawn`, as
+ * `drawnHarnessesAndWeeks` gives them), the selected weeks the simulation does not cover, and how many bins were hidden:
+ * "1,234 rows · the paper's harnesses · 15 weeks · not simulated: 2026-08-16".
+ */
+export function figureCaption(figure, shownRows, hidden, drawn) {
+  const parts = [restingCountText(shownRows, figure), drawn.harnesses, weeksText(drawn.weeks)];
+  if (drawn.notSimulated.length > 0) {
+    parts.push(`not simulated: ${drawn.notSimulated.join(", ")}`);
+  }
+  const hiddenNote = hiddenText(hidden, figure.binColumn);
+  if (hiddenNote !== "") {
+    parts.push(hiddenNote);
+  }
+  return parts.join(" · ");
 }
 
 /** The caption's note on hidden bins: "2 bins hidden (fewer than 50 rows each)"; "" when none is hidden. */
