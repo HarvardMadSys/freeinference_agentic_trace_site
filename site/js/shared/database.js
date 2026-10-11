@@ -155,7 +155,9 @@ class Database {
   /**
    * Fetch each row file of the week `week` (a Sunday of the database's weeks) whole, one request per file, into
    * DuckDB's memory, so that the queries after it read memory; a file whose fetch fails stays on HTTP ranges, with a
-   * console warning. The files download while DuckDB starts. A page that reads one week awaits it before its
+   * console warning. The first file downloads while DuckDB starts; each of the others follows once DuckDB is up and
+   * the file before it is swapped in. The fetches run at low priority and pause while the tab is hidden, so a session
+   * opened in a background tab finishes loading when the tab is shown. A page that reads one week awaits it before its
    * queries; it rejects when DuckDB cannot start. A week the database does not have loads nothing, and DuckDB is not
    * started for it.
    */
