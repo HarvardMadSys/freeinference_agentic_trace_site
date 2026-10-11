@@ -41,9 +41,11 @@ export function showStreamedWeeks(container, streamedWeeks, weeks) {
   }
 }
 
-// `picker` is `{ container, weeks, harnesses, selection, onChange, streamedWeeks }`: what one drawing was given.
-
-/** The notes under the pickers: the URL's unknown names, and where the numbers come from with the weeks streamed in. */
+/**
+ * The notes under the pickers: the URL's unknown names, and where the numbers come from with the weeks streamed in.
+ * `picker`, here and in the functions below, is `{ container, weeks, harnesses, selection, onChange, streamedWeeks }`:
+ * what one drawing of the pickers was given.
+ */
 function notes(picker) {
   const elements = [];
   const unknown = unknownSelectionNote(picker.selection);

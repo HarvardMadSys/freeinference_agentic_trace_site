@@ -30,7 +30,8 @@ const BENCHMARK_TABLE_STATEMENT = "setup/create_benchmark_harness";
 export const ROW_KINDS = Object.freeze(Object.keys(VIEW_STATEMENTS));
 
 /**
- * A new DuckDB database and a connection to it, `{ engine, connection }`: the views of the files of `weeks` (the
+ * A new DuckDB database and a connection to it, `{ engine, connection, httpProtocol }` (the last being how a file
+ * registered as a URL is read): the views of the files of `weeks` (the
  * entries of `weeks.json`) in the data folder at `dataUrl`, read over HTTP ranges, the empty selection tables, and the
  * benchmark harnesses of `harnesses` (the entries of `harnesses.json`).
  */
@@ -51,7 +52,7 @@ export async function openDuckDB(dataUrl, weeks, harnesses, statementText) {
   const benchmarkEntries = harnesses.filter((entry) => entry.benchmark);
   const insertBenchmark = await statementText("setup/insert_benchmark_harness");
   await runEach(connection, insertBenchmark, benchmarkEntries.map((entry) => [entry.harness]));
-  return { engine, connection };
+  return { engine, connection, httpProtocol: duckdb.DuckDBDataProtocol.HTTP };
 }
 
 /** Run the statement `text`, which takes no parameters, on `connection`; its result is not read. */

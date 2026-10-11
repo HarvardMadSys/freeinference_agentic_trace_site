@@ -69,7 +69,6 @@ export function plainRow(row) {
   return plain;
 }
 
-
 /**
  * The queries of one page. The selection tables are filled before a DuckDB query whenever the selection has changed
  * since they were last filled. Each statement file is fetched once and its text kept by name. `#turn` settles when the
@@ -83,7 +82,7 @@ class Database {
   #harnesses;
   #selection = null; // the selection last set, `{ weeks, harnesses }`; null before the first
   #filledSelection = null; // the selection the selection tables hold; null while they hold none
-  #opening = null; // the promised `{ engine, connection }` of DuckDB, from the first time a query needed it
+  #opening = null; // the promised DuckDB, `{ engine, connection, httpProtocol }`, from the first query that needed it
   #statementTexts = new Map();
   #runningQueries = new Set(); // the promised results of the DuckDB queries started and not yet settled
   // Queries are not serialised by it, only started in it: they run side by side, as DuckDB's worker queues them anyway.
@@ -139,8 +138,8 @@ class Database {
       return;
     }
     try {
-      const { engine } = await this.#duckdb();
-      const swapIn = (name, bytes) => this.#afterEarlierChanges(() => this.#swapWhenIdle(engine, name, bytes));
+      const opened = await this.#duckdb();
+      const swapIn = (name, bytes) => this.#afterEarlierChanges(() => this.#swapWhenIdle(opened, name, bytes));
       await streamWeekFiles(this.#dataUrl, streamingOrder(this.#weeks, ROW_KINDS), swapIn, onProgress);
     } catch (error) {
       // The stream only speeds up later queries, which read HTTP ranges without it; so it stops and the page goes on.
@@ -185,9 +184,9 @@ class Database {
   }
 
   /** Register the file `name` as `bytes` once the running queries have settled; no query starts meanwhile. */
-  async #swapWhenIdle(engine, name, bytes) {
+  async #swapWhenIdle({ engine, httpProtocol }, name, bytes) {
     await Promise.allSettled([...this.#runningQueries]);
-    await swapFileToMemory(engine, name, bytes);
+    await swapFileToMemory(engine, this.#dataUrl, name, bytes, httpProtocol);
   }
 
   /** The DuckDB connection, its selection tables holding the latest selection when one has been set. */
@@ -210,7 +209,7 @@ class Database {
     await this.#runEach(connection, "setup/insert_selected_session", [[week, rootSessionId]]);
   }
 
-  /** DuckDB, `{ engine, connection }`, opened over the weeks' files the first time it is asked for. */
+  /** DuckDB, `{ engine, connection, httpProtocol }`, opened over the weeks' files the first time it is asked for. */
   #duckdb() {
     this.#opening ??= openDuckDB(this.#dataUrl, this.#weeks, this.#harnesses, (name) => this.#statementText(name));
     return this.#opening;

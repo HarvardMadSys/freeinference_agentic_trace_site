@@ -112,11 +112,24 @@ test("another selection, and a query before any selection, start DuckDB and fetc
   assert.deepEqual(asked.filter((file) => file.startsWith("data/all_weeks/")), []);
 });
 
-test("the rows stream in after the default view is drawn", () => {
-  assert.equal(STREAM_ROWS_AFTER_DRAW, true);
+test("streaming the rows is switched on or off by one boolean", () => {
+  assert.equal(typeof STREAM_ROWS_AFTER_DRAW, "boolean");
 });
 
-test("a stream that cannot start DuckDB warns once and does not reject", async (context) => {
+// The next two tests each run with the constant one way only: off, `streamRows` returns before DuckDB would start.
+const STREAMING_OFF = { skip: STREAM_ROWS_AFTER_DRAW };
+const STREAMING_ON = { skip: !STREAM_ROWS_AFTER_DRAW };
+
+test("with streaming switched off, streaming the rows does nothing", STREAMING_OFF, async (context) => {
+  const asked = [];
+  context.mock.method(globalThis, "fetch", fakeFetch({}, asked));
+  const warn = context.mock.method(console, "warn", () => undefined);
+  const progress = [];
+  await openDatabase("http://localhost:8000/data/", WEEKS, HARNESSES).streamRows((update) => progress.push(update));
+  assert.deepEqual([asked, progress, warn.mock.callCount()], [[], [], 0]);
+});
+
+test("a stream that cannot start DuckDB warns once and does not reject", STREAMING_ON, async (context) => {
   context.mock.method(globalThis, "fetch", fakeFetch({}, []));
   const warn = context.mock.method(console, "warn", () => undefined);
   const database = openDatabase("http://localhost:8000/data/", WEEKS, HARNESSES);

@@ -89,7 +89,7 @@ def test_every_explore_and_figure_query_and_colour_order_has_an_answer_and_nothi
     assert written_files(data_directory) == answer_files(expected_answer_names(data_directory))
 
 
-@pytest.mark.parametrize("name", COLOUR_ORDER_QUERIES)
+@pytest.mark.parametrize("name", site_data.answers.COLOUR_ORDER_QUERIES)
 def test_a_colour_order_is_its_answer_whatever_the_selection(connection: duckdb.DuckDBPyConnection,
                                                              data_directory: pathlib.Path, name: str) -> None:
     site_database.select_weeks(connection, [FIRST_SUNDAY], ["pi"])

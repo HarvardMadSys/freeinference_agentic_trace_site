@@ -65,65 +65,79 @@ export async function registerFiles(engine, dataUrl, fileNames, httpProtocol) {
   }
 }
 
-/** Register the file `name` with `engine` as `bytes` (a Uint8Array, handed over to DuckDB) in place of its URL. */
-export async function swapFileToMemory(engine, name, bytes) {
+/**
+ * Register the file `name` with `engine` as `bytes` (a Uint8Array, handed over to DuckDB) in place of its URL. When the
+ * bytes cannot be registered, the file's URL in the data folder at `dataUrl` is registered again, as `registerFiles`
+ * registers it, before the error is thrown: a query on the file then reads its ranges as before.
+ */
+export async function swapFileToMemory(engine, dataUrl, name, bytes, httpProtocol) {
   await engine.dropFile(name);
-  await engine.registerFileBuffer(name, bytes);
+  try {
+    await engine.registerFileBuffer(name, bytes);
+  } catch (error) {
+    await registerFiles(engine, dataUrl, [name], httpProtocol);
+    throw error;
+  }
 }
 
 /**
  * Fetch the files of `order` (as `streamingOrder` gives them) from the data folder at `dataUrl`, one at a time, and
  * hand each to `swapIn(name, bytes)`; after each week, call `onProgress({ streamedWeeks })` with the Sundays of the
- * weeks streamed so far, newest first. Stops for good when the page is hidden. A failed fetch rejects.
+ * weeks streamed so far, newest first. While the page is hidden the stream pauses, and a fetch under way is dropped;
+ * once the page is visible again it goes on from the file it had not finished. A failed fetch rejects.
  */
 export async function streamWeekFiles(dataUrl, order, swapIn, onProgress) {
-  const leaving = new AbortController();
-  function stopWhenHidden() {
-    if (document.visibilityState === "hidden") {
-      leaving.abort();
-    }
-  }
-  stopWhenHidden();
-  document.addEventListener("visibilitychange", stopWhenHidden);
-  try {
-    await streamUntilAborted({ dataUrl, order, swapIn, onProgress }, leaving.signal);
-  } finally {
-    document.removeEventListener("visibilitychange", stopWhenHidden);
-  }
-}
-
-/** `stream` is `{ dataUrl, order, swapIn, onProgress }`, as `streamWeekFiles` was given them. */
-async function streamUntilAborted(stream, signal) {
   const streamedWeeks = [];
-  for (const { week, names } of stream.order) {
+  for (const { week, names } of order) {
     for (const name of names) {
-      const bytes = await fetchUnlessAborted(fileUrl(stream.dataUrl, name), signal);
-      if (bytes === null) {
-        return;
-      }
-      await stream.swapIn(name, bytes);
+      await swapIn(name, await fetchWhileVisible(fileUrl(dataUrl, name)));
     }
     streamedWeeks.push(week);
-    stream.onProgress({ streamedWeeks: [...streamedWeeks] });
+    onProgress({ streamedWeeks: [...streamedWeeks] });
   }
 }
 
-/** The bytes of the file at `url`; null when `signal` is aborted before or while it is fetched. */
-async function fetchUnlessAborted(url, signal) {
-  if (signal.aborted) {
-    return null;
+/** The bytes of the file at `url`, fetched while the page is visible: a fetch the page's hiding cut off is redone. */
+async function fetchWhileVisible(url) {
+  let bytes = null;
+  while (bytes === null) {
+    await pageVisible();
+    bytes = await fetchUnlessHidden(url);
   }
+  return bytes;
+}
+
+/** Settles at once while the page is visible; otherwise when it next becomes visible. */
+function pageVisible() {
+  if (document.visibilityState !== "hidden") {
+    return Promise.resolve();
+  }
+  // While the page is hidden, its next change of visibility is to visible.
+  return new Promise((resolve) => document.addEventListener("visibilitychange", resolve, { once: true }));
+}
+
+/** The bytes of the file at `url`; null when the page is hidden while it is fetched, which aborts the fetch. */
+async function fetchUnlessHidden(url) {
+  const hiding = new AbortController();
+  function abortWhenHidden() {
+    if (document.visibilityState === "hidden") {
+      hiding.abort();
+    }
+  }
+  document.addEventListener("visibilitychange", abortWhenHidden);
   try {
-    const response = await fetch(url, { priority: STREAM_FETCH_PRIORITY, signal });
+    const response = await fetch(url, { priority: STREAM_FETCH_PRIORITY, signal: hiding.signal });
     if (!response.ok) {
       throw new Error(`Could not fetch ${url}: ${response.status} ${response.statusText}`);
     }
     return new Uint8Array(await response.arrayBuffer());
   } catch (error) {
-    // Leaving the page aborts the fetch; that ends the stream, it is not a failure.
-    if (signal.aborted) {
+    // Hiding the page aborts the fetch: no failure, as the stream fetches the file again once the page is visible.
+    if (hiding.signal.aborted) {
       return null;
     }
     throw error;
+  } finally {
+    document.removeEventListener("visibilitychange", abortWhenHidden);
   }
 }

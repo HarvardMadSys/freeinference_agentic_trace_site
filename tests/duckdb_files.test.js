@@ -15,21 +15,30 @@ const WEEKS = [
 const KINDS = ["requests", "tool_calls", "sessions", "simulation"];
 const DATA_URL = "http://localhost:8000/data/";
 
-/** A stand-in for the page's document: visible until `hide()`, which tells the listeners as the browser does. */
+/**
+ * A stand-in for the page's document: visible until `hide()`, visible again on `show()`, each telling the listeners as
+ * the browser does, a listener added with `once` only the first time.
+ */
 function fakeDocument() {
-  const listeners = new Set();
-  return {
+  const listeners = new Map(); // each listener, and whether it is removed after its first call
+  const page = {
     visibilityState: "visible",
-    addEventListener: (type, listener) => listeners.add(listener),
+    addEventListener: (type, listener, options) => listeners.set(listener, options?.once === true),
     removeEventListener: (type, listener) => listeners.delete(listener),
-    hide() {
-      this.visibilityState = "hidden";
-      for (const listener of listeners) {
-        listener();
-      }
-    },
+    hide: () => becomes("hidden"),
+    show: () => becomes("visible"),
     listenerCount: () => listeners.size,
   };
+  function becomes(state) {
+    page.visibilityState = state;
+    for (const [listener, once] of [...listeners]) {
+      if (once) {
+        listeners.delete(listener);
+      }
+      listener();
+    }
+  }
+  return page;
 }
 
 /** Make `page` the global document for the test of `context`; node has none of its own. */
@@ -94,15 +103,42 @@ test("the stream takes the newest week first, each week's files in the order of 
   assert.deepEqual(WEEKS.map((entry) => entry.week), ["2026-05-24", "2026-05-31"]);
 });
 
+/** A stand-in for DuckDB's engine, recording each call in `calls`; `registerFileBuffer` rejects when `bufferFails`. */
+function fakeEngine(calls, bufferFails) {
+  async function registerFileBuffer(name, bytes) {
+    calls.push(["buffer", name, bytes.length]);
+    if (bufferFails) {
+      throw new Error("out of memory");
+    }
+  }
+  return {
+    dropFile: async (name) => calls.push(["drop", name]),
+    registerFileBuffer,
+    registerFileURL: async (name, url, protocol, directIO) => calls.push(["url", name, url, protocol, directIO]),
+  };
+}
+
+// The protocol DuckDB-WASM names HTTP; a stand-in, as node cannot load the library.
+const HTTP_PROTOCOL = "http-protocol";
+const SWAPPED_NAME = "requests/week=2026-05-24/rows.parquet";
+
 test("a swap drops the file's URL, then registers its bytes under the same name", async () => {
   const calls = [];
-  const engine = {
-    dropFile: async (name) => calls.push(["drop", name]),
-    registerFileBuffer: async (name, bytes) => calls.push(["buffer", name, bytes.length]),
-  };
-  await swapFileToMemory(engine, "requests/week=2026-05-24/rows.parquet", new Uint8Array(5));
-  assert.deepEqual(calls, [["drop", "requests/week=2026-05-24/rows.parquet"],
-    ["buffer", "requests/week=2026-05-24/rows.parquet", 5]]);
+  await swapFileToMemory(fakeEngine(calls, false), DATA_URL, SWAPPED_NAME, new Uint8Array(5), HTTP_PROTOCOL);
+  assert.deepEqual(calls, [["drop", SWAPPED_NAME], ["buffer", SWAPPED_NAME, 5]]);
+});
+
+test("a swap whose bytes cannot be registered registers the file's URL again, then fails", async () => {
+  const calls = [];
+  await assert.rejects(
+    swapFileToMemory(fakeEngine(calls, true), DATA_URL, SWAPPED_NAME, new Uint8Array(5), HTTP_PROTOCOL),
+    /out of memory/,
+  );
+  assert.deepEqual(calls, [
+    ["drop", SWAPPED_NAME],
+    ["buffer", SWAPPED_NAME, 5],
+    ["url", SWAPPED_NAME, fileUrl(DATA_URL, SWAPPED_NAME), HTTP_PROTOCOL, false],
+  ]);
 });
 
 test("every file is fetched once at low priority and swapped in, and progress follows each week", async (context) => {
@@ -127,29 +163,72 @@ test("every file is fetched once at low priority and swapped in, and progress fo
   assert.equal(page.listenerCount(), 0);
 });
 
-test("hiding the page stops the stream for good, without an error", async (context) => {
+test("hiding the page pauses the stream, and showing it again goes on with the next file", async (context) => {
   const asked = [];
   context.mock.method(globalThis, "fetch", bytesFetch(asked));
   const page = fakeDocument();
   useDocument(context, page);
-  const progress = [];
-  async function swapThenHide() {
-    page.hide();
+  const swapped = [];
+  let fetchedWhileHidden = null;
+  function showAgain() {
+    fetchedWhileHidden = asked.length;
+    page.show();
   }
-  await streamWeekFiles(DATA_URL, streamingOrder(WEEKS, KINDS), swapThenHide, (update) => progress.push(update));
-  assert.equal(asked.length, 1);
-  assert.deepEqual(progress, []);
+  async function swapThenHideOnce(name) {
+    swapped.push(name);
+    if (swapped.length === 1) {
+      page.hide();
+      setTimeout(showAgain, 20);
+    }
+  }
+  const order = streamingOrder(WEEKS, KINDS);
+  await streamWeekFiles(DATA_URL, order, swapThenHideOnce, () => undefined);
+  assert.equal(fetchedWhileHidden, 1);
+  assert.deepEqual(swapped, order.flatMap((entry) => entry.names));
+  assert.equal(asked.length, swapped.length);
   assert.equal(page.listenerCount(), 0);
 });
 
-test("a page already hidden streams nothing", async (context) => {
+test("a fetch cut off by hiding the page is aborted and fetched again once the page is visible", async (context) => {
+  const asked = [];
+  const page = fakeDocument();
+  useDocument(context, page);
+  async function fetchHidingOnce(url, options) {
+    asked.push(url);
+    if (asked.length === 1) {
+      page.hide();
+      assert.equal(options.signal.aborted, true);
+      setTimeout(() => page.show(), 20);
+      throw new DOMException("The user aborted a request.", "AbortError"); // as fetch does when its signal aborts
+    }
+    return { ok: true, arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer };
+  }
+  context.mock.method(globalThis, "fetch", fetchHidingOnce);
+  const swapped = [];
+  const order = streamingOrder(WEEKS, KINDS);
+  await streamWeekFiles(DATA_URL, order, async (name) => swapped.push(name), () => undefined);
+  const names = order.flatMap((entry) => entry.names);
+  assert.deepEqual(asked, [fileUrl(DATA_URL, names[0]), ...names.map((name) => fileUrl(DATA_URL, name))]);
+  assert.deepEqual(swapped, names);
+  assert.equal(page.listenerCount(), 0);
+});
+
+test("a page already hidden streams nothing until it is visible", async (context) => {
   const asked = [];
   context.mock.method(globalThis, "fetch", bytesFetch(asked));
   const page = fakeDocument();
   page.visibilityState = "hidden";
   useDocument(context, page);
-  await streamWeekFiles(DATA_URL, streamingOrder(WEEKS, KINDS), async () => undefined, () => undefined);
+  const progress = [];
+  const streaming = streamWeekFiles(DATA_URL, streamingOrder(WEEKS, KINDS), async () => undefined, (update) => {
+    progress.push(update.streamedWeeks);
+  });
+  await new Promise((resolve) => setTimeout(resolve, 20));
   assert.equal(asked.length, 0);
+  page.show();
+  await streaming;
+  assert.equal(asked.length, 7);
+  assert.deepEqual(progress, [["2026-05-31"], ["2026-05-31", "2026-05-24"]]);
 });
 
 test("a failed fetch stops the stream with an error naming the file", async (context) => {
