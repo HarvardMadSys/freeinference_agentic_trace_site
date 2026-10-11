@@ -21,11 +21,19 @@ horizontal scrolling.
 - **WHEN** the Explore page is opened 360 pixels wide
 - **THEN** the page SHALL not scroll sideways
 
-### Requirement: DuckDB only where a session is read
-DuckDB-WASM SHALL be loaded by the Session page only. The Explore page
-SHALL import nothing from `js/engine/`, and `js/engine/` SHALL hold only
-what starting DuckDB and reading one week's files needs.
+### Requirement: The browser query path is kept behind a switch
+The code that lets the Explore page recompute its figures in the browser
+(the pickers, the selection tables' filling, DuckDB's start, the stream)
+SHALL stay in the repository with its tests, behind one named constant in
+the Explore page's module, `FIGURES_ARE_FROZEN`, true. With it true, the
+Explore page SHALL load no DuckDB module and no Parquet file; with it
+false, the page SHALL behave as the archived change `one-page-all-weeks`
+specified.
 
-#### Scenario: The Explore page's imports
-- **WHEN** the repository test scans the Explore page's module graph
-- **THEN** no module under `js/engine/` SHALL be reachable from it
+#### Scenario: The switch on
+- **WHEN** `FIGURES_ARE_FROZEN` is true and the Explore page is opened
+- **THEN** no `.wasm` and no `.parquet` SHALL be fetched
+
+#### Scenario: The switch off
+- **WHEN** `FIGURES_ARE_FROZEN` is false
+- **THEN** the week and harness pickers SHALL be mounted and a narrowed selection SHALL recompute the figures in the browser

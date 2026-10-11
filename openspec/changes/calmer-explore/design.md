@@ -7,9 +7,12 @@ Every module follows the repository's rules (`site-repository`).
 The answers under `site/data/all_weeks/` already hold every figure,
 trend, headline number and distribution for the default selection, and
 the default page already draws from them alone. This change makes that
-the only path: `runQuery` on the Explore page reads an answer file, and the
-code that fills selection tables, starts DuckDB, streams files and defers
-figures until they are in view goes. The queries and the selection tables
+the only path the page takes: one named constant, `FIGURES_ARE_FROZEN`
+in the Explore page's module, true, draws every section from its answer
+file, mounts no week or harness picker and starts neither DuckDB nor the
+stream; false restores the previous behaviour, which stays in the code and
+its tests so it can be turned back on. `STREAM_ROWS_AFTER_DRAW` is set to
+false. The queries and the selection tables
 stay as they are for `make data`, which fills them once with every week
 and the paper's harnesses; nothing in the browser fills them any more
 except the Session page's `selected_session`. The Explore page's time to
@@ -68,6 +71,16 @@ Each is one query over the site data and one chart, answered at
 Not drawn, because the public pipeline does not compute them: the
 subagent straggler figures and the user-intent figures, which rest on
 labels the release does not carry.
+
+## The look
+
+A reviewer with an eye for design goes through every page before the
+figures are touched and writes what to change, against three rules: a
+figure card shows a title and one short caption, with its definition and
+row count behind a small control; a chart carries no text its axes and
+legend already give; spacing, card sizes and type are the same from one
+card to the next. The findings are applied as one task, and the reviewer
+looks again at the end.
 
 ## The Session page's week
 

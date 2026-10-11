@@ -6,7 +6,10 @@ task that touches a view checks it in a browser at 360 px and at desktop
 width, in light and dark mode. Where a task says "measure", the
 measurement goes into `design.md`.
 
-Archive `one-page-all-weeks` and `ship-the-data` before this change.
+## 0. Before
+
+- [ ] 0.1 Archive `one-page-all-weeks` and `ship-the-data`, carrying their two unticked deploy checks into task 8.1 here.
+- [ ] 0.2 Aesthetic review: a reviewer goes through every page at desktop and 360 px, light and dark, and writes `design-review.md` beside this file: per page and per card, what to change so that a figure card is a title and one short caption with the definition and row count behind a control, a chart carries no text its axes and legend give, and spacing, sizes and type are consistent.
 
 ## 1. Site data
 
@@ -17,7 +20,7 @@ Archive `one-page-all-weeks` and `ship-the-data` before this change.
 
 ## 2. Explore: frozen figures, the table's filter
 
-- [ ] 2.1 Delete the week and harness pickers, `streamRows`, `duckdb_files` streaming, the figure runner's selection and in-view paths, the computation and streamed-weeks notes, and their tests; the Explore page reads answers only and never loads DuckDB; legends keep toggling series. Verify in the network panel that a visit fetches no `.wasm` and no `.parquet`, and measure the bytes transferred.
+- [ ] 2.1 `FIGURES_ARE_FROZEN = true` in the Explore page's module: with it, no week or harness picker is mounted, every section and figure is drawn from its answer, figures draw at once rather than when in view, and neither DuckDB nor the stream starts; with it false, the previous behaviour, whose code and tests stay. `STREAM_ROWS_AFTER_DRAW = false`. Legends keep toggling series. Verify in the network panel that a visit fetches no `.wasm` and no `.parquet`, and measure the bytes transferred.
 - [ ] 2.2 The sessions table's filter: a folded disclosure above the table, one line in words when closed, with month pills, harness pills (the benchmark marked), "every harness" and "the paper's harnesses", applied with the search to the answer's rows in the browser; `months` and `harnesses` in the URL set it, older keys are read and rewritten; the Session page's back link carries them. Node tests of the filter and the URL. Verify that `?months=2026-07&harnesses=codex` filters the table and changes no figure.
 
 ## 3. Figures
@@ -39,6 +42,15 @@ Archive `one-page-all-weeks` and `ship-the-data` before this change.
 
 - [ ] 5.1 `style.css`: base 18 px; no text under 14 px; chart tick labels and legends follow. Verify every page at 360 px and desktop, light and dark.
 
-## 6. Data and docs
+## 6. The look
 
-- [ ] 6.1 `make data`; commit `site/data`; README (what the page does, the measurements, the layout), About (figure list, definitions, the frozen population), CONTRIBUTING (adding a figure now ends at the answer), `tests/test_about_page.py` and `tests/test_repository.py` (the layout) follow.
+- [ ] 6.1 Apply `design-review.md`: figure cards with a title and one short caption, the definition and row count behind a control, chart text pruned, spacing and sizes made consistent, on every page; the About page's figure list follows the captions. Verify every page at 360 px and desktop, light and dark.
+- [ ] 6.2 The reviewer looks again and writes what remains at the end of `design-review.md`; what remains is fixed or ruled on.
+
+## 7. Data and docs
+
+- [ ] 7.1 `make data`; commit `site/data`; README (what the page does, the switch, the measurements, the layout), About (figure list, definitions, the frozen population), CONTRIBUTING (adding a figure now ends at the answer), `tests/test_about_page.py` and `tests/test_repository.py` follow.
+
+## 8. Deploy
+
+- [ ] 8.1 Once the site has a GitHub repository: `make deploy`, then check on the host that a Parquet range request is answered with 206 and that the deployed Explore and Session pages work end to end.

@@ -53,14 +53,20 @@ its definition beside it:
 | Prefix caching | `infrastructure_cost_by_ttl` | Simulated recompute and storage cost per TTL, stacked, as a multiple of the one-minute total, the minimum marked |
 
 Each figure SHALL be one query file, answered by `make data`, and one
-chart function. Each figure SHALL show a title, a one-sentence definition
-and the number of rows it rests on. A figure's legend SHALL hide and show
-its series. The sections SHALL have headings the header links to. Nothing
+chart function. Each figure SHALL show a title and one short caption; its
+full definition and the number of rows it rests on SHALL be shown on
+demand, behind a control on the card. A chart SHALL carry no text that its
+axes and legend already give. A figure's legend SHALL hide and show its
+series. The sections SHALL have headings the header links to. Nothing
 on the page SHALL run a query in the browser.
 
 #### Scenario: Opening the page
 - **WHEN** a visitor opens the Explore page
 - **THEN** every figure SHALL be drawn from its answer file, and no DuckDB module and no Parquet file SHALL be fetched
+
+#### Scenario: The definition on demand
+- **WHEN** the visitor opens a figure card's definition control
+- **THEN** the card SHALL show the figure's full definition and the rows it rests on, and hide them again when closed
 
 #### Scenario: A simulation figure for a week without a simulation
 - **WHEN** a week has no simulation rows

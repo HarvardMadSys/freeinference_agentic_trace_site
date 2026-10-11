@@ -23,8 +23,11 @@ the shape of every call's arguments.
   headline number and distribution card is drawn from the answers
   `make data` precomputes over every week and the paper's harnesses, and
   from nothing else. The week and harness pickers go, with the browser's
-  recomputation, the row stream and the lazy drawing. The Explore page
-  never loads DuckDB. Legends still hide and show series.
+  recomputation, the row stream and the lazy drawing out of the page. The
+  Explore page never loads DuckDB. The browser query path (the engine,
+  the selection tables, the stream, the pickers) stays in the code behind
+  one switch, off, so it can be turned back on. Legends still hide and
+  show series.
 - **The filter moves to the sessions table.** The table at the bottom
   gets a month and harness filter, with the search it has, applied in the
   browser to the sessions answer, which now holds every harness's
@@ -51,7 +54,10 @@ the shape of every call's arguments.
 - `site-data`: tool calls, the simulation rows (both scopes, one policy,
   the span), the cheaper-reads sums are not needed, a request's missed
   tokens with no TTL, user prompt tokens, every answer.
-- `site-repository`: a type-size requirement; the layout.
-- `site/js/engine`, `duckdb_files` streaming, `selection_pickers`, the
-  figure runner's selection path and their tests are deleted. The data is
-  rebuilt and committed with the change.
+- `site-repository`: a type-size requirement; the browser query path kept
+  behind a switch.
+- **A tidier look.** An aesthetic review of every page, then its
+  findings applied: figure cards with a title and one short caption, the
+  definition and row count behind a control, less text on the charts,
+  consistent spacing.
+- The data is rebuilt and committed with the change.
