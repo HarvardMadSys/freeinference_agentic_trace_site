@@ -9,13 +9,12 @@ from pyarrow import parquet
 
 import site_data.__main__
 import site_data.answers
-import site_data.site_database
+import site_data.paths
 
 import fixture_release
 
 KIND_FOLDERS = ["requests", "tool_calls", "sessions", "simulation"]  # in the order the step writes them
 INDEX_FILES = ["harnesses.json", "weeks.json"]  # written after the kinds' files, in this order
-ANSWERS_FOLDER = "all_weeks"  # written last: an answer per query of the answered pages, and of each colour order
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
 REQUEST_COLUMNS = [
@@ -48,14 +47,8 @@ def written_files(out: pathlib.Path) -> list[str]:
 
 
 def answer_files() -> list[str]:
-    """The answer file of every query of the answered pages and of every colour order, relative to the data folder."""
-    files = []
-    for page in site_data.answers.ANSWERED_PAGES:
-        for path in (site_data.site_database.QUERIES_FOLDER / page).glob("*.sql"):
-            files.append(f"{ANSWERS_FOLDER}/{page}/{path.stem}.json")
-    for name in site_data.answers.COLOUR_ORDER_QUERIES:
-        files.append(f"{ANSWERS_FOLDER}/{name}.json")
-    return files
+    """The answer file of every answered query, relative to the data folder."""
+    return [site_data.paths.answer_file(name) for name in site_data.answers.answered_query_names()]
 
 
 def test_every_week_s_file_of_every_kind_and_every_answer_is_written(tmp_path: pathlib.Path) -> None:
@@ -71,13 +64,13 @@ def test_every_week_s_file_of_every_kind_and_every_answer_is_written(tmp_path: p
 def test_each_kind_s_rows_over_every_week_are_printed(tmp_path: pathlib.Path, capsys: pytest.CaptureFixture) -> None:
     build(tmp_path)
     printed = capsys.readouterr().out.splitlines()
-    assert [line.split(":")[0] for line in printed] == [*KIND_FOLDERS, *INDEX_FILES, ANSWERS_FOLDER]
+    assert [line.split(":")[0] for line in printed] == [*KIND_FOLDERS, *INDEX_FILES, site_data.paths.ANSWERS_FOLDER]
     assert printed[0].startswith("requests: 21 rows, ")
     assert printed[1].startswith("tool_calls: 16 rows, ")
     assert printed[2].startswith("sessions: 9 rows, ")
     assert printed[3].startswith("simulation: 3 rows, ")
     assert printed[-2].startswith("weeks.json: 2 rows, ")
-    assert printed[-1].startswith(f"{ANSWERS_FOLDER}: {len(answer_files())} files, ")
+    assert printed[-1].startswith(f"{site_data.paths.ANSWERS_FOLDER}: {len(answer_files())} files, ")
 
 
 def mark_first_week_simulated_from_older_traces(tmp_path: pathlib.Path) -> None:

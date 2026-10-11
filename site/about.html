@@ -15,7 +15,7 @@
     </section>
     <section id="what-it-shows" class="card" aria-labelledby="what-it-shows-heading">
       <h2 id="what-it-shows-heading">What the site shows</h2>
-      <p>The site is one page and a session viewer. The Explore page shows, for the weeks and harnesses you pick, weekly trends, headline numbers, distribution cards, <a href="index.html#figures-sessions">20 figures of the paper</a> in three sections (Sessions, Tools, Prefix caching) and a table of the sessions; the Session page opens any one session.</p>
+      <p>The site has three pages: Explore, Session and About. The Explore page shows, for the weeks and harnesses you pick, weekly trends, headline numbers, distribution cards, <a href="index.html#figures-sessions">20 figures of the paper</a> in three sections (Sessions, Tools, Prefix caching) and a table of the sessions; the Session page opens any one session.</p>
       <p>The default selection is every week and every harness but <code>eval:swe-bench</code>, the SWE-bench benchmark replay: the paper's population. Its numbers are precomputed: when the site's data are built, the site's own queries are run once over every week and those harnesses, and the page reads their answers, so it draws at once without a database.</p>
       <p>Narrowing the selection, to some weeks or some harnesses, computes every number in your browser from the same queries. Once the first view is drawn, the page streams the weeks' rows into the browser one week at a time, newest first, so a narrowed selection soon reads memory instead of the network; the picker says how many weeks are in.</p>
     </section>
@@ -149,16 +149,21 @@
         <dd>Tokens times the seconds they are held. Active token-seconds are those of the blocks of requests in flight. A block held in the cache after a request completes is reusable when the block is read again later in the week, whether or not that read hits, and dead when it is never read again.</dd>
       </dl>
 
-      <h3>Where the site draws more simply than the paper</h3>
-      <p>Each figure's definition on the Explore page says where it differs; these are the differences in one place.</p>
+      <h3 id="simpler-than-the-paper">Where the site draws more simply than the paper</h3>
+      <p>Each figure's definition on the Explore page says where it differs from the paper; these are all the differences in one place.</p>
       <ul>
-        <li>Bins are fixed: powers of two of a request's messages or input tokens, and the pipeline's idle-gap bins. The paper fits its size bins to the data.</li>
-        <li>A bin with fewer than 50 rows is hidden, and the figure says how many were; the paper also drops thin size bins, but merges an idle-gap bin of fewer than 20 requests into the next one.</li>
-        <li>The session time by part splits a session's time into model time, tool waits and human waits; the paper also splits model time into prefill and decode, the site does not.</li>
-        <li>The TTFT and decode time by model draw the five models with most requests in the selection; the paper draws two fixed models, each with an estimate of its queueing time, which the site does not draw.</li>
-        <li>The cost share by session counts every token at the pipeline's prices, cached, uncached and output at 1 : 10 : 50, whatever its provider charged; the token split by week shows plain token shares.</li>
-        <li>The hit ratio after a context change draws appends and mutations only; a switch to another model or provider is routing, not a change of context.</li>
+        <li>Every figure: a bin with fewer than 50 rows is hidden, and the figure says how many were; the paper also drops thin size bins, but merges an idle-gap bin of fewer than 20 requests into the next one.</li>
+        <li><strong>Token growth with the context</strong>: fixed power-of-two bins of the messages in a request, where the paper fits its bins to the data.</li>
+        <li><strong>Context share by role</strong>: each role's share of the input pooled per power-of-two bin of input tokens, tool definitions included, where the paper takes each request's share per bin of messages and its main figure leaves tool definitions out.</li>
+        <li><strong>Token split by week</strong>: plain token shares per week, where the paper weights tokens by price and ranks sessions; <strong>Cost share by session</strong> does that, as the paper does, at the pipeline's prices: cached, uncached and output at 1 : 10 : 50.</li>
+        <li><strong>Time to first token by model</strong> and <strong>Decode time by model</strong>: the five models with most requests in the selection, where the paper draws two fixed models, each with its decode time and an estimate of its queueing time; the site draws no queueing estimate.</li>
+        <li><strong>Session time by part</strong>: model time, tool waits and human waits, where the paper also splits model time into prefill and decode.</li>
+        <li><strong>Tool latency by category</strong> and <strong>Tool result size by category</strong>: percentiles per category, where the paper also marks the mean.</li>
+        <li><strong>Hit ratio after an idle gap</strong>: the pipeline's fixed idle-gap bins, each drawn at its middle, a line for every provider, where the paper merges a thin bin into the next, draws each bin at its requests' median gap and shows the four providers with most idle gaps.</li>
+        <li><strong>Simulated hit ratio by TTL</strong>: the hit ratio of every policy, where the paper draws the TTL-only policy's misses as prefill against storage.</li>
+        <li><strong>Retained over active cache</strong> and <strong>Dead over active cache by policy</strong>: every TTL the simulation runs, where the paper draws the retained share, and the dead share of the TTL-only and reclaim-mutate policies, only up to a day.</li>
       </ul>
+      <p>As in the paper, the hit ratio after a context change leaves out a switch to another model or provider: it is routing, not a change of context.</p>
     </section>
     <section id="how-built" class="card" aria-labelledby="how-built-heading">
       <h2 id="how-built-heading">How the data were built</h2>

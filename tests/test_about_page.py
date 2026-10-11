@@ -1,12 +1,16 @@
 """The About page's hand-written numbers and lists are the ones the code uses: the default harnesses, the count of
-figures, the gap bins, the wait causes, the idle-gap bins, the thin-bin threshold, the prices and the release's and
-the simulation's named values. The page names no scope and links to the figures on the Explore page."""
+figures, the gap bins, the wait causes, the idle-gap bins, the thin-bin threshold, the prices, the models and
+providers the figures draw, and the release's and the simulation's named values. Its list of where the site draws
+more simply than the paper names every figure whose definition states a difference. The page names no scope and
+links to the figures on the Explore page."""
 
 import html
 import pathlib
 import re
 
+import paper.sessions.latency
 from paper.metrics import gaps, latency, prices
+from paper.prefix_caching import reuse
 from release import population, schema
 from simulation import cache
 
@@ -15,6 +19,11 @@ ABOUT_PAGE = SITE_FOLDER / "about.html"
 CHARTS_MODULE = SITE_FOLDER / "js" / "shared" / "charts.js"  # declares `MIN_ROWS_PER_BIN`
 FIGURE_MODULES = SITE_FOLDER / "js" / "figures"  # every figure entry, one `query: "figures/<name>"` each
 FIGURE_ENTRY_QUERY = re.compile(r'query: "figures/\w+"')
+FIGURE_TITLE_AND_DEFINITION = re.compile(r'title: "([^"]+)",\s*definition: "([^"]+)"')
+# Phrases of a figure's definition that name the paper without stating a difference from it.
+SAME_AS_THE_PAPER = ("as in the paper", "the paper's harnesses")
+FIGURE_QUERIES = SITE_FOLDER / "queries" / "figures"
+MODEL_QUERIES = [FIGURE_QUERIES / "ttft_cdf_by_model.sql", FIGURE_QUERIES / "decode_cdf_by_model.sql"]
 NUMBER_WORDS = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten")
 
 
@@ -38,6 +47,36 @@ def codes(text: str) -> list[str]:
 def listed(names: list[str]) -> str:
     """The names as prose writes them: "a, b and c"."""
     return ", ".join(names[:-1]) + " and " + names[-1]
+
+
+def simpler_than_the_paper() -> str:
+    """The HTML of the About page's list of where the site draws more simply than the paper."""
+    found = re.search(r'id="simpler-than-the-paper".*?</ul>', about_page(), re.DOTALL)
+    assert found is not None, "the About page has no list of where the site draws more simply than the paper"
+    return found.group(0)
+
+
+def figure_titles_and_definitions() -> list[tuple[str, str]]:
+    """Every figure entry's title and definition, from the Explore page's figure modules."""
+    entries = []
+    for module in sorted(FIGURE_MODULES.glob("*.js")):
+        entries.extend(FIGURE_TITLE_AND_DEFINITION.findall(module.read_text()))
+    return entries
+
+
+def differs_from_the_paper(definition: str) -> bool:
+    """Whether a figure's definition names the paper other than to say it does the same."""
+    remaining = definition
+    for phrase in SAME_AS_THE_PAPER:
+        remaining = remaining.replace(phrase, "")
+    return "the paper" in remaining
+
+
+def model_limit(path: pathlib.Path) -> int:
+    """The number of models the query keeps: the value of its `LIMIT`."""
+    found = re.search(r"\bLIMIT (\d+)", path.read_text())
+    assert found is not None, f"{path.name} has no LIMIT"
+    return int(found.group(1))
 
 
 def thin_bin_threshold() -> int:
@@ -115,3 +154,23 @@ def test_the_about_page_s_release_lists_are_the_release_s() -> None:
 def test_the_about_page_s_simulation_values_are_the_simulation_s() -> None:
     assert f"the {cache.BLOCK_TOKENS}-token blocks" in definition("cache-simulation")
     assert codes(definition("policy")) == list(cache.POLICIES)
+
+
+def test_the_list_of_differences_names_every_figure_whose_definition_states_one() -> None:
+    entries = figure_titles_and_definitions()
+    assert len(entries) == figure_count()
+    for title, definition in entries:
+        if differs_from_the_paper(definition):
+            assert f"<strong>{title}</strong>" in simpler_than_the_paper(), title
+
+
+def test_the_list_of_differences_leaves_out_what_the_paper_does_too() -> None:
+    assert "Hit ratio after a context change" not in simpler_than_the_paper()
+
+
+def test_the_about_page_s_models_and_providers_are_the_queries_and_the_paper_s() -> None:
+    limits = {model_limit(path) for path in MODEL_QUERIES}
+    assert len(limits) == 1, "the TTFT and decode figures keep as many models"
+    assert f"the {NUMBER_WORDS[limits.pop()]} models with most requests" in simpler_than_the_paper()
+    assert f"the paper draws {NUMBER_WORDS[len(paper.sessions.latency.MODELS)]} fixed models" in simpler_than_the_paper()
+    assert f"shows the {NUMBER_WORDS[reuse.PROVIDERS_DRAWN]} providers with most idle gaps" in simpler_than_the_paper()

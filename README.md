@@ -28,9 +28,15 @@ link; the default, every week and every harness but the benchmark replay
 ## The default view and the stream
 
 The default selection is answered from `site/data/all_weeks/`: `make data`
-runs every Explore and figure query once with that selection and writes each
-answer as JSON, so the default page loads neither DuckDB nor any Parquet
-file. Any other selection loads DuckDB-WASM and runs the same queries in the
+runs every Explore and figure query once with that selection, and the colour
+orders under `setup/`, and writes each answer as
+`site/data/all_weeks/<page>/<query>.json`, so the default page loads neither
+DuckDB nor any Parquet file. **Rerun `make data` after editing any of those
+queries**: the default view reads the answer, not the query, and no test sees
+a stale answer in `site/data` (`tests/test_answers.py` checks the answers
+written for the fixture).
+
+Any other selection loads DuckDB-WASM and runs the same queries in the
 browser. After the first view is drawn, the page streams every week's row
 files into DuckDB's memory, newest week first, so a later narrowed selection
 reads memory instead of HTTP ranges; `STREAM_ROWS_AFTER_DRAW` in
@@ -40,9 +46,10 @@ Measured on the full data (16 weeks) through `make serve` on the same
 machine, in headless Chromium:
 
 - The default page draws every number, figure and the table in 0.76–0.95 s
-  from its answers. The answers total 4.2 MB, of which the sessions table is
-  3.6 MB (0.7 MB gzipped, as the host serves JSON); no DuckDB module and no
-  Parquet file is fetched before the page is drawn.
+  from its answers (when measured, with 37 answers). The answers now total
+  4.2 MB in 48 files, of which the sessions table is 3.6 MB (0.7 MB gzipped,
+  as the host serves JSON); no DuckDB module and no Parquet file is fetched
+  before the page is drawn.
 - With one month selected (`?month=2026-07`) the first figure is drawn at
   3.8 s, most of it DuckDB-WASM starting; only the figures within a viewport
   height of view run their queries (4 when measured), the others when
@@ -72,12 +79,6 @@ copy of the dataset instead:
 ```bash
 make data RELEASE=~/freeinference_agentic_trace/release SIMULATION=~/freeinference_agentic_trace/simulation
 ```
-
-`make data` also writes `site/data/all_weeks/<page>/<query>.json`, the answer of
-every Explore and figure query for the default selection, and of the colour
-orders under `setup/`. **Rerun `make data` after editing any of those
-queries**: the default view reads the answer, not the query, and
-`tests/test_answers.py` fails until the answer matches.
 
 ## Layout
 
@@ -135,7 +136,7 @@ tests/             what make test runs
   test_queries.py, test_explore_queries.py, test_figure_queries.py, test_session_figure_queries.py,
   test_caching_queries.py
                    every .sql file run against the fixture data, its columns and its numbers
-  test_answers.py           every answer make data writes, against its query run live with the default selection
+  test_answers.py           every answer make data writes for the fixture, against its query run live there
   test_paper_parity.py, test_paper_parity_sessions.py, test_paper_parity_caching.py
                    with the default selection, the numbers a figure shares with the paper's numbers.json
   test_pipeline_mirrors.py, test_pipeline_mirrors_caching.py
