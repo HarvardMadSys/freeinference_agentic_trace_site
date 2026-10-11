@@ -4,7 +4,7 @@ This is the FreeInference trace site: a static, public visualizer and explorer
 for the agentic trace. Start with `README.md` (what it is and how to run it)
 and `CONTRIBUTING.md` (the rules, the patterns to copy, how to verify a
 change). The specifications are in `openspec/`; the change being built is
-`openspec/changes/one-page-all-weeks/`.
+`openspec/changes/ship-the-data/`.
 
 The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
 

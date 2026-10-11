@@ -129,9 +129,10 @@ default selection, and the colour orders `setup/*_order`, and writes each
 answer to `site/data/all_weeks/`. **Rerun `make data` after editing one of
 those queries**: the default view reads the answer, not the query.
 `tests/test_answers.py` checks each answer written for the fixture against its
-query run live; `make deploy` first runs `make check-answers`, which refuses
-when a query's text is not the one `make data` recorded in
-`all_weeks/queries.json`.
+query run live, and that the shipped answers under `site/data`, which the
+repository tracks, come from each query's current text: `make data` records
+the hash of each query in `all_weeks/queries.json`, and a query edited since
+fails `make test`, as it fails `make deploy` through `make check-answers`.
 
 **A pure JavaScript module with its test** (`site/js/shared/format.js`,
 `tests/format.test.js`): exported functions with one-line JSDoc, module-level
