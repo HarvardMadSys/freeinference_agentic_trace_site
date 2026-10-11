@@ -16,9 +16,7 @@ they are not compared:
   medians are compared through `ttft_median_by_model` instead);
 - `hit_ratio_by_transition` shows mean hit ratios, where the paper reports medians;
 - `hit_ratio_by_idle_gap` bins idle gaps by fixed edges and hides thin bins, where the paper merges a thin bin into
-  the next, so its per-provider medians at the longest gap fall in other bins;
-- `calls_per_request` counts requests, where the paper's batching profile counts calls;
-- `tool_overview`'s `sessions` is a count, where the paper gives a share of sessions.
+  the next, so its per-provider medians at the longest gap fall in other bins.
 """
 
 import json
@@ -44,7 +42,6 @@ EXACT = 0  # a count matches only when it is equal
 RELATIVE_TOLERANCE = 1e-6  # a median, share or ratio may differ by DuckDB's and numpy's float rounding, no more
 MEDIAN_SHARE = 0.5  # the CDF point whose `x` is the median
 NINETIETH_PERCENTILE_SHARE = 0.9  # the CDF point whose `x` is the 90th percentile
-PERCENT = 100  # the paper gives the tool overview's shares in percent
 MILLISECONDS_PER_SECOND = 1000  # the site's latencies are in milliseconds, the paper's in seconds
 LONGEST_TTL = "1d"  # the TTL at which the paper reports dead over active cache
 TTFT_MODELS = ["minimax-m2.7", "kimi-k2.7-code"]  # the models whose TTFT the paper decomposes
@@ -143,7 +140,6 @@ PAPER_SCOPES = {
     ("sessions", "turn_and_session_duration"): "Agentic",
     ("sessions", "ttft_decomposition_minimax-m2.7"): "Agentic",
     ("sessions", "ttft_decomposition_kimi-k2.7-code"): "Agentic",
-    ("tools", "tool_overview"): "Agentic",
     ("tools", "latency_by_category"): "Agentic",
     ("tools", "result_tokens_by_category"): "Agentic",
     ("prefix_caching", "retained_over_active"): "Agentic",
@@ -225,28 +221,6 @@ def paper_tool_categories(paper_numbers: dict) -> list[str]:
             categories.append(name.removesuffix(suffix))
     assert categories, "numbers.json names no tool category"
     return categories
-
-
-def test_the_tool_overview(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
-    # Per category, `figures/tool_overview`'s `share_of_calls` and `failed_share` (in percent) against
-    # `tools.tool_overview.<category>_calls_percent` and `.<category>_fail_percent`, its `median_latency_ms` (in
-    # seconds) against `tools.latency_by_category.<category>_median_latency_s`, and its `median_result_tokens`
-    # against `tools.result_tokens_by_category.<category>_median_result_tokens`.
-    overview = site_database.run_query(agentic, "figures/tool_overview").set_index("category")
-    comparisons = []
-    for category in paper_tool_categories(paper_numbers):
-        row = overview.loc[category]
-        comparisons += [
-            Comparison("tools", "tool_overview", f"{category}_calls_percent", PERCENT * row.share_of_calls,
-                       RELATIVE_TOLERANCE),
-            Comparison("tools", "tool_overview", f"{category}_fail_percent", PERCENT * row.failed_share,
-                       RELATIVE_TOLERANCE),
-            Comparison("tools", "latency_by_category", f"{category}_median_latency_s",
-                       row.median_latency_ms / MILLISECONDS_PER_SECOND, RELATIVE_TOLERANCE),
-            Comparison("tools", "result_tokens_by_category", f"{category}_median_result_tokens",
-                       row.median_result_tokens, RELATIVE_TOLERANCE),
-        ]
-    assert_match(paper_numbers, comparisons)
 
 
 def test_the_tool_latency_and_result_size_ranges(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:

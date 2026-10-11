@@ -574,11 +574,6 @@ button.is-primary {
   user-select: none;
 }
 
-/* A table that does not sort: its headings are not buttons. */
-.data-table.is-static th {
-  cursor: default;
-}
-
 .data-table th.is-sorted {
   color: var(--color-accent);
 }

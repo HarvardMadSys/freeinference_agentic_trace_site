@@ -1,30 +1,12 @@
 /**
- * The Tools section of the Paper figures page: which tools agents call, how many at once, how long each one waits
- * and how much each one returns.
+ * The Tools section of the Paper figures page: how long a tool call waits and how much it returns, per category.
  *
- * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Every row of a tool query is one category or
- * one number of calls, its count in `rows`, so a thin one is hidden whole.
+ * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Every row of a tool query is one category, its
+ * count in `rows`, so a thin one is hidden whole.
  */
 
-import { AXIS_STYLE, assignColours, chartFrame, colourScale, drawBars, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
-import {
-  formatCount, formatOptionalShare, formatSeconds, formatShare, formatTokens, MILLISECONDS_PER_SECOND, MISSING_TEXT,
-} from "../shared/format.js";
-
-// The tool overview's columns, left to right: the heading, the query's column, how a cell is written, and whether
-// the cell is a number (set right-aligned).
-const OVERVIEW_COLUMNS = Object.freeze([
-  Object.freeze({ heading: "Category", column: "category", format: String, isNumber: false }),
-  Object.freeze({ heading: "Calls", column: "rows", format: formatCount, isNumber: true }),
-  Object.freeze({ heading: "Share of calls", column: "share_of_calls", format: formatShare, isNumber: true }),
-  Object.freeze({ heading: "Sessions", column: "sessions", format: formatCount, isNumber: true }),
-  Object.freeze({ heading: "Failed", column: "failed_share", format: formatOptionalShare, isNumber: true }),
-  Object.freeze({ heading: "Median latency", column: "median_latency_ms", format: optionalMilliseconds, isNumber: true }),
-  Object.freeze({ heading: "Median result", column: "median_result_tokens", format: optionalTokens, isNumber: true }),
-]);
-
-// The one series of the calls-per-request bars, named as its tooltip names it.
-const REQUESTS_SERIES = "Requests";
+import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
+import { formatCount, formatSeconds, formatTokens, MILLISECONDS_PER_SECOND } from "../shared/format.js";
 
 // The percentile columns of a quantile-range query, low to high, with the name the tooltip gives each.
 const PERCENTILES = Object.freeze([
@@ -63,23 +45,6 @@ const RANGE_MARGINS_Y = 60; // pixels above and below the rows: the frame's top 
 /** The figures of the Tools section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
   Object.freeze({
-    name: "tool_overview",
-    title: "Tool categories",
-    definition: "Per tool category: its calls and share of calls, the sessions that called it, the share of its calls with an outcome that failed (an error, a denial or a timeout), its median latency over calls that were their request's only call, and its median result tokens, where the paper gives shares of sessions, result tokens and wait, and the batch mix.",
-    query: "figures/tool_overview",
-    binColumn: "category",
-    isWide: true,
-    draw: drawOverview,
-  }),
-  Object.freeze({
-    name: "calls_per_request",
-    title: "Tool calls per request",
-    definition: "Share of the requests that emitted tool calls by how many they emitted, nine or more counted together, where the paper counts calls, a request of three calls counting three times, and puts four or more together.",
-    query: "figures/calls_per_request",
-    binColumn: "tool_calls",
-    draw: drawCallsPerRequest,
-  }),
-  Object.freeze({
     name: "latency_by_category",
     title: "Tool latency by category",
     definition: "The 5th, 25th, 50th, 75th and 95th percentile of a tool call's latency (the wait after its request until the session's next) per category, over calls that were their request's only call, where the paper also marks the mean.",
@@ -96,46 +61,6 @@ export const FIGURES = Object.freeze([
     draw: drawResultTokens,
   }),
 ]);
-
-/** Draw the tool overview as a table, one row per category, most calls first. */
-async function drawOverview(rows, body) {
-  const table = document.createElement("table");
-  table.className = "data-table is-static";
-  const headingRow = table.createTHead().insertRow();
-  for (const { heading, isNumber } of OVERVIEW_COLUMNS) {
-    const cell = document.createElement("th");
-    cell.textContent = heading;
-    cell.classList.toggle("is-number", isNumber);
-    headingRow.append(cell);
-  }
-  const tableBody = table.createTBody();
-  for (const row of rows) {
-    const tableRow = tableBody.insertRow();
-    for (const { column, format, isNumber } of OVERVIEW_COLUMNS) {
-      const cell = tableRow.insertCell();
-      cell.textContent = format(row[column]);
-      cell.classList.toggle("is-number", isNumber);
-    }
-  }
-  const wrap = document.createElement("div");
-  wrap.className = "table-wrap"; // a phone scrolls the table sideways, not the page
-  wrap.append(table);
-  body.replaceChildren(wrap);
-}
-
-/** Draw one bar per number of calls of its share of the requests that emitted calls. */
-async function drawCallsPerRequest(rows, body) {
-  const bars = rows.map((row) => ({ ...row, series: REQUESTS_SERIES }));
-  await drawBars(body, bars, {
-    x: "tool_calls",
-    y: "share",
-    fill: "series",
-    colours: assignColours([REQUESTS_SERIES]),
-    xLabel: "Tool calls the request emitted",
-    yLabel: "Share of requests",
-    format: formatShare,
-  });
-}
 
 /** Draw each category's latency percentiles, in seconds on a log axis. */
 async function drawLatency(rows, body, colours) {
@@ -211,13 +136,4 @@ function rangeTipText(drawn, range) {
     lines.push(`${label}: ${range.format(drawn.row[column] * range.scale)}`);
   }
   return lines.join("\n");
-}
-
-// A median with no value, such as the latency of a category whose every call was batched, is shown as `MISSING_TEXT`.
-function optionalMilliseconds(milliseconds) {
-  return milliseconds === null ? MISSING_TEXT : formatSeconds(milliseconds / MILLISECONDS_PER_SECOND);
-}
-
-function optionalTokens(tokens) {
-  return tokens === null ? MISSING_TEXT : formatTokens(tokens);
 }

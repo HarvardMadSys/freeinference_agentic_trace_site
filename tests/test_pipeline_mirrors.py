@@ -7,14 +7,13 @@ import math
 import pathlib
 import re
 
-from paper.metrics import gaps, tools
+from paper.metrics import gaps
 from release import population, schema
 from simulation import cache
 
 SITE_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site"
 CACHING_MODULE = SITE_FOLDER / "js" / "figures" / "caching.js"  # the idle-gap bins, the TTLs and the policies
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the wait causes
-TOOL_OVERVIEW_QUERY = SITE_FOLDER / "queries" / "figures" / "tool_overview.sql"  # the failed outcomes
 EDGE_TOLERANCE = 1e-9  # relative; the browser computes the geometric edges itself, so they agree only to rounding
 
 
@@ -72,7 +71,3 @@ def test_the_benchmark_harness_of_the_harness_index_is_the_pipeline_s(data_direc
     listed = json.loads((data_directory / "harnesses.json").read_text())
     assert [entry["harness"] for entry in listed if entry["benchmark"]] == [population.BENCHMARK_HARNESS]
 
-
-def test_the_failed_outcomes_are_the_pipeline_s() -> None:
-    listed = declaration(TOOL_OVERVIEW_QUERY, r"outcome IN \(([^)]*)\)").group(1)
-    assert sorted(re.findall(r"'([^']+)'", listed)) == sorted(tools.FAILED_OUTCOMES)

@@ -17,8 +17,6 @@ const SECTION_FIGURES = {
     "ttft_cdf_by_model",
   ],
   "../site/js/figures/tools.js": [
-    "tool_overview",
-    "calls_per_request",
     "latency_by_category",
     "result_tokens_by_category",
   ],
