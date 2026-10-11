@@ -24,7 +24,7 @@ import {
 import { formatCount, formatSeconds, formatShare, formatTokens, monthAndDay } from "../shared/format.js";
 import { cdfSeries, seriesLegend, sparseTickFormat } from "./figure_rows.js";
 import { DECODE_CDF_BY_MODEL } from "./sessions_latency.js";
-import { COST_SHARE_BY_SESSION } from "./sessions_ranked.js";
+import { COST_SHARE_BY_SESSION, SESSION_TIME_BY_PART } from "./sessions_ranked.js";
 
 // The series of the requests-per-session CDF, by their name in the query, with the name each is drawn under.
 const SESSION_COUNT_SERIES = Object.freeze({ requests: "Requests", user_steps: "User steps", tool_steps: "Tool steps" });
@@ -130,6 +130,7 @@ export const FIGURES = Object.freeze([
     draw: drawTtftByModel,
   }),
   DECODE_CDF_BY_MODEL,
+  SESSION_TIME_BY_PART,
 ]);
 
 /** The requests-per-session CDF's legend: requests, user steps and tool steps, in that order. */

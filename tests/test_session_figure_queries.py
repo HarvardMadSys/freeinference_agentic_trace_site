@@ -101,3 +101,31 @@ def test_the_decode_median_is_the_median_over_trusted_ttfts(connection: duckdb.D
     site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
     rows = site_database.run_query(connection, "figures/decode_median_by_model")
     assert rows.values.tolist() == [["model-x", len(DECODE_TIMES_S), 9.0]]
+
+
+# The time of each top-level session of the paper's harnesses in seconds, (model, tool, human): its requests'
+# latencies summed, and its waits for a tool or a subagent and for the user. Only `idle-week-2` waits for the user.
+AGENTIC_SESSION_TIMES = {
+    "tree-root": (5 * 10, 10 + 70 + 10 + 170, 0),
+    "idle-week-1": (10 + 10 + 155, 20 + 5, 0),
+    "mutation": (3 * 10, 10 + 170, 0),
+    "idle-week-2": (2 * 10, 0, 90),
+}
+TIME_PARTS = ["model", "tool", "human"]
+
+
+def test_the_session_time_of_four_sessions_is_one_bin_of_their_mean_shares(connection: duckdb.DuckDBPyConnection,
+                                                                           fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
+    rows = site_database.run_query(connection, "figures/session_time_by_part")
+    assert len(rows) == 1
+    row = rows.iloc[0]
+    assert (row.percentile, row.rows) == (ONE_BIN_PERCENTILE, len(AGENTIC_SESSION_TIMES))
+    means = mean_shares(AGENTIC_SESSION_TIMES)
+    assert [row[part] for part in TIME_PARTS] == pytest.approx(means)
+    assert (row.mean_tool_share, row.mean_human_share) == pytest.approx((means[1], means[2]))
+
+
+def test_the_session_time_of_no_weeks_has_no_rows(connection: duckdb.DuckDBPyConnection) -> None:
+    site_database.select_weeks(connection, [], fixture_release.EVERY_HARNESS)
+    assert site_database.run_query(connection, "figures/session_time_by_part").empty

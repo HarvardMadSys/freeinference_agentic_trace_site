@@ -59,6 +59,8 @@ EXPECTED_COLUMNS = {
     "figures/ttft_median_by_model": ["model", "rows", "median_ttft_s"],
     "figures/decode_cdf_by_model": ["series", "x", "share", "rows"],
     "figures/decode_median_by_model": ["model", "rows", "median_decode_s"],
+    "figures/session_time_by_part": ["percentile", "model", "tool", "human", "rows", "mean_tool_share",
+                                     "mean_human_share"],
     "figures/latency_by_category": PERCENTILE_RANGE_COLUMNS,
     "figures/result_tokens_by_category": PERCENTILE_RANGE_COLUMNS,
     "figures/hit_ratio_cdf_by_gap_bin": ["series", "x", "share", "rows"],

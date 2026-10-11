@@ -17,6 +17,7 @@ const SECTION_FIGURES = {
     "context_share_by_role",
     "ttft_cdf_by_model",
     "decode_cdf_by_model",
+    "session_time_by_part",
   ],
   "../site/js/figures/tools.js": [
     "latency_by_category",
@@ -94,6 +95,7 @@ const LONG_FORMAT_SERIES_COLUMNS = {
   dead_over_active_by_policy: "policy",
 };
 const WIDE_FORMAT_FIGURES = ["token_growth_by_messages", "retained_over_active", "cost_share_by_session"];
+const WIDE_FORMAT_FIGURES = ["token_growth_by_messages", "cost_share_by_session", "session_time_by_part"];
 
 test("every long-format figure of more than one series names its series column and has a legend", async () => {
   for (const { figures } of await sections()) {

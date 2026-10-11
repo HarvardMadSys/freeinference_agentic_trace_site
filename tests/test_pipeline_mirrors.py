@@ -9,7 +9,7 @@ import re
 
 import pytest
 
-from paper.metrics import binning, gaps, prices
+from paper.metrics import binning, gaps, latency, prices
 from release import population, schema
 from simulation import cache
 
@@ -18,7 +18,8 @@ CACHING_MODULE = SITE_FOLDER / "js" / "figures" / "caching.js"  # the idle-gap b
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the wait causes
 FIGURE_QUERIES = SITE_FOLDER / "queries" / "figures"  # the figure queries
 COST_SHARE_QUERY = FIGURE_QUERIES / "cost_share_by_session.sql"  # the prices
-RANK_BIN_QUERIES = [COST_SHARE_QUERY]  # each cuts sessions into the pipeline's rank bins
+SESSION_TIME_QUERY = FIGURE_QUERIES / "session_time_by_part.sql"  # which waits are tool time and which a person's
+RANK_BIN_QUERIES = [COST_SHARE_QUERY, SESSION_TIME_QUERY]  # each cuts sessions into the pipeline's rank bins
 EDGE_TOLERANCE = 1e-9  # relative; the browser computes the geometric edges itself, so they agree only to rounding
 
 
@@ -43,6 +44,11 @@ def javascript_object_keys(path: pathlib.Path, constant: str) -> list[str]:
 def sql_number(path: pathlib.Path, column: str) -> float:
     """The value of the literal `<number> AS <column>` in the query at `path`."""
     return float(declaration(path, rf"([\d.]+) AS {column}\b").group(1))
+
+
+def sql_strings(path: pathlib.Path, column: str) -> list[str]:
+    """The quoted strings, in order, of the literal list `[...] AS <column>` in the query at `path`."""
+    return re.findall(r"'([^']+)'", declaration(path, rf"\[([^\]]*)\] AS {column}\b").group(1))
 
 
 def browser_idle_gap_edges() -> list[float]:
@@ -93,3 +99,8 @@ def test_the_cost_share_prices_are_the_pipeline_s() -> None:
 def test_the_rank_bins_are_the_pipeline_s(path: pathlib.Path) -> None:
     assert sql_number(path, "max_rank_bins") == binning.MAX_RANK_BINS
     assert sql_number(path, "sessions_per_rank_bin") == binning.SESSIONS_PER_RANK_BIN
+
+
+def test_the_session_time_s_waits_are_the_pipeline_s() -> None:
+    assert sql_strings(SESSION_TIME_QUERY, "tool_waits") == list(latency.TOOL_WAITS)
+    assert sql_strings(SESSION_TIME_QUERY, "human_waits") == list(latency.HUMAN_WAITS)
