@@ -5,3 +5,4 @@ TOOL_CALLS_FILE = "tool_calls.parquet"  # one row per tool call
 SESSIONS_FILE = "sessions.parquet"  # one row per session
 SIMULATION_FILE = "simulation.parquet"  # one row per simulated week, scope, policy and TTL
 WEEKS_FILE = "weeks.json"  # the index of weeks, read by every page before DuckDB loads
+HARNESSES_FILE = "harnesses.json"  # the index of harnesses, read by every page before DuckDB loads

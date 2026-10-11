@@ -1,6 +1,8 @@
 """The pipeline constants the browser holds a copy of, to draw, still equal the pipeline's own: each test parses
-the constant out of the JavaScript or SQL text and compares it with the value the pipeline names."""
+the constant out of the JavaScript or SQL text, or reads it from the data step's output on the fixture, and compares
+it with the value the pipeline names."""
 
+import json
 import math
 import pathlib
 import re
@@ -93,6 +95,11 @@ def test_the_browser_s_scopes_are_the_pipeline_s() -> None:
 
 def test_the_test_database_s_scopes_are_the_pipeline_s() -> None:
     assert site_database.SCOPES_OF == pipeline_scope_members()
+
+
+def test_the_benchmark_harness_of_the_harness_index_is_the_pipeline_s(data_directory: pathlib.Path) -> None:
+    listed = json.loads((data_directory / "harnesses.json").read_text())
+    assert [entry["harness"] for entry in listed if entry["benchmark"]] == [population.BENCHMARK_HARNESS]
 
 
 def test_the_failed_outcomes_are_the_pipeline_s() -> None:

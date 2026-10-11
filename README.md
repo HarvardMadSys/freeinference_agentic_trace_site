@@ -26,7 +26,7 @@ so any view can be shared as a link.
 
 ```bash
 make setup           # a virtual environment with the pipeline's package and the test tools
-make data            # site/data/ from the release: four Parquet files and weeks.json
+make data            # site/data/ from the release: four Parquet files, harnesses.json and weeks.json
 make serve           # http://localhost:8000, with the range requests DuckDB needs
 make test            # the Python tests and the node tests
 make setup-browser   # a headless Chromium and Playwright, for checking pages by hand; make test does not need it
@@ -70,7 +70,7 @@ tests/             what make test runs
                    a two-week fixture release, the site data built from it, and a database over it set up as
                    the browser sets it up
   test_fixture_release.py   the fixture is a release the pipeline's reader accepts
-  test_weeks.py, test_loading.py, test_requests.py, test_sessions.py, test_session_tree.py,
+  test_weeks.py, test_harnesses.py, test_loading.py, test_requests.py, test_sessions.py, test_session_tree.py,
   test_tool_calls.py, test_simulation.py, test_build.py
                    site_data's steps on the fixture release, against values counted by hand
   test_queries.py, test_*_queries.py

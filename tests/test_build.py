@@ -12,6 +12,7 @@ import site_data.__main__
 import fixture_release
 
 PARQUET_FILES = ["requests.parquet", "tool_calls.parquet", "sessions.parquet", "simulation.parquet"]
+INDEX_FILES = ["harnesses.json", "weeks.json"]  # written after the Parquet files, in this order
 REQUEST_COLUMNS = [
     "week", "session_id", "step", "start_ms", "end_ms", "ttft_ms", "model", "provider", "step_trigger",
     "waited_for", "prompt_tokens", "completion_tokens", "cache_read_tokens", "system_tokens", "user_tokens",
@@ -33,9 +34,9 @@ def build(tmp_path: pathlib.Path, out_name: str = "out") -> pathlib.Path:
 
 def test_every_file_is_written_and_its_rows_printed(tmp_path: pathlib.Path, capsys: pytest.CaptureFixture) -> None:
     out = build(tmp_path)
-    assert sorted(path.name for path in out.iterdir()) == sorted([*PARQUET_FILES, "weeks.json"])
+    assert sorted(path.name for path in out.iterdir()) == sorted([*PARQUET_FILES, *INDEX_FILES])
     printed = capsys.readouterr().out.splitlines()
-    assert [line.split(":")[0] for line in printed] == [*PARQUET_FILES, "weeks.json"]
+    assert [line.split(":")[0] for line in printed] == [*PARQUET_FILES, *INDEX_FILES]
     assert printed[0].startswith("requests.parquet: 21 rows, ")
     assert printed[-1].startswith("weeks.json: 2 rows, ")
 
@@ -68,7 +69,7 @@ def test_a_simulation_without_rows_has_the_columns_and_types_of_one_with_rows(tm
 
 def test_two_runs_write_identical_files(tmp_path: pathlib.Path) -> None:
     first, second = build(tmp_path, "first"), build(tmp_path, "second")
-    for file_name in [*PARQUET_FILES, "weeks.json"]:
+    for file_name in [*PARQUET_FILES, *INDEX_FILES]:
         assert (first / file_name).read_bytes() == (second / file_name).read_bytes(), file_name
 
 
