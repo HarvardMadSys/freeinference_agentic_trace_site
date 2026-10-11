@@ -9,10 +9,15 @@
  * section again. Once the first run has drawn, the database streams the weeks' rows in, and the picker's note counts
  * the weeks streamed.
  *
- * `page` is what the page owns: `{ weeks, harnesses, selection, database, orders, figures, latestRun, streamedWeeks }`,
- * the entries of `weeks.json` and `harnesses.json`, the current selection, the database, the colour orders, the
- * promised figures' cards and places (`explore/figure_sections.js`), placed after the pickers are drawn, the number of the latest run of the sections, so a run a
- * newer one replaced stops before it draws, and the Sundays streamed in so far (null when the page does not stream).
+ * `page` is what the page owns: `{ weeks, harnesses, selection, database, orders, figures, latestRun, streamedWeeks }`:
+ * - `weeks` and `harnesses`, the entries of `weeks.json` and `harnesses.json`;
+ * - `selection`, the current selection, and `database`, the database;
+ * - `orders`, the colour orders (below);
+ * - `figures`, what the figure sections keep (`explore/figure_sections.js`): null until the pickers are drawn, then a
+ *   promise of it that settles once every figure card is placed; it stays a promise, and each run awaits it;
+ * - `latestRun`, the number of the latest run of the sections, so a run that a newer one replaced stops before it
+ *   draws;
+ * - `streamedWeeks`, the Sundays streamed in so far (null when the page does not stream).
  * `orders` is `{ harnesses, models, categories }`, the promised rows of `setup/harness_order`, `setup/model_order` and
  * `setup/category_order`, asked for once. A section runs as `run(container, context)` with
  * `context = { database, orders, selection, weeks, harnesses, onWeekClick, replaceQuery }`, and lays out fresh places

@@ -11,7 +11,7 @@ import { selectionQuery } from "./selection.js";
 const PAGES = [
   { file: "index.html", anchor: "", title: "Explore" },
   { file: "index.html", anchor: "#figures-sessions", title: "Figures" },
-  { file: "index.html", anchor: "#sessions", title: "Sessions" },
+  { file: "index.html", anchor: "#sessions", title: "Sessions table" },
   { file: "about.html", anchor: "", title: "About" },
 ];
 

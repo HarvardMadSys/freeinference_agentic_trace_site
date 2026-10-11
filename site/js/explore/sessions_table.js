@@ -238,7 +238,7 @@ function drawTable(view) {
 
 function sectionTitle() {
   const title = document.createElement("h2");
-  title.textContent = "Sessions";
+  title.textContent = "Sessions table";
   return title;
 }
 

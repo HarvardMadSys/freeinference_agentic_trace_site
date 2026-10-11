@@ -18,7 +18,7 @@ test("the header links Explore, its figures, its sessions table and About, each 
   assert.deepEqual(headerLinks("session.html", new URLSearchParams("month=2026-07")), [
     ["Explore", "index.html?month=2026-07", false],
     ["Figures", "index.html?month=2026-07#figures-sessions", false],
-    ["Sessions", "index.html?month=2026-07#sessions", false],
+    ["Sessions table", "index.html?month=2026-07#sessions", false],
     ["About", "about.html?month=2026-07", false],
   ]);
 });
@@ -32,7 +32,7 @@ test("on the Explore page its sections are linked by anchor alone, so following 
   assert.deepEqual(headerLinks("index.html", new URLSearchParams("month=2026-07&sort=requests&page=2")), [
     ["Explore", "index.html?month=2026-07&sort=requests&page=2", true],
     ["Figures", "#figures-sessions", false],
-    ["Sessions", "#sessions", false],
+    ["Sessions table", "#sessions", false],
     ["About", "about.html?month=2026-07&sort=requests&page=2", false],
   ]);
 });
