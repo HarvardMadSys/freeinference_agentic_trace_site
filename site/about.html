@@ -11,7 +11,13 @@
   <main class="page prose">
     <section class="page-title">
       <h1>About</h1>
-      <p class="lede">What the words mean, how the data were built, and where they come from.</p>
+      <p class="lede">What the site shows, what the words mean, how the data were built, and where they come from.</p>
+    </section>
+    <section id="what-it-shows" class="card" aria-labelledby="what-it-shows-heading">
+      <h2 id="what-it-shows-heading">What the site shows</h2>
+      <p>The site is one page and a session viewer. The Explore page shows, for the weeks and harnesses you pick, weekly trends, headline numbers, distribution cards, <a href="index.html#figures-sessions">20 figures of the paper</a> in three sections (Sessions, Tools, Prefix caching) and a table of the sessions; the Session page opens any one session.</p>
+      <p>The default selection is every week and every harness but <code>eval:swe-bench</code>, the SWE-bench benchmark replay: the paper's population. Its numbers are precomputed: when the site's data are built, the site's own queries are run once over every week and those harnesses, and the page reads their answers, so it draws at once without a database.</p>
+      <p>Narrowing the selection, to some weeks or some harnesses, computes every number in your browser from the same queries. Once the first view is drawn, the page streams the weeks' rows into the browser one week at a time, newest first, so a narrowed selection soon reads memory instead of the network; the picker says how many weeks are in.</p>
     </section>
     <section id="definitions" class="card" aria-labelledby="definitions-heading">
       <h2 id="definitions-heading">Definitions</h2>
@@ -35,10 +41,7 @@
         <dd>The FreeInference account that sent a session's requests, released only as a hashed id. Accounts are counted as distinct ids.</dd>
 
         <dt id="harness">Harness</dt>
-        <dd>The agent program that sent a session's requests, such as claude-code or codex, recognised from its first request's prompt or user agent. <code>eval:swe-bench</code> is the SWE-bench benchmark scaffold.</dd>
-
-        <dt id="scope">Scope</dt>
-        <dd>A session's scope is SWE-Bench when its harness is the SWE-bench scaffold, and Agentic otherwise; All is the two together. The paper uses the Agentic scope unless it says otherwise.</dd>
+        <dd>The agent program that sent a session's requests, such as claude-code or codex, recognised from its first request's prompt or user agent. <code>eval:swe-bench</code> is the SWE-bench benchmark replay; the paper's population is every other harness.</dd>
 
         <dt id="model">Model and provider</dt>
         <dd>The model a request asked for, and the upstream provider that served it, released as an anonymous letter.</dd>
@@ -89,10 +92,13 @@
       <h3>Time</h3>
       <dl>
         <dt id="wait">Wait, and what a request waited for</dt>
-        <dd>A request's wait is its arrival minus the previous request's completion in the same session; a session's first request has none. A user step waited for the user. A tool step waited for a subagent when the previous request made a Subagent call, for the ask-user tool (a person answering a question) when it made an Ask User call, and for a tool otherwise.</dd>
+        <dd>A request's wait, or gap, is its arrival minus the previous request's completion in the same session; a session's first request has none. A user step waited for the user. A tool step waited for a subagent when the previous request made a Subagent call, for the ask-user tool (a person answering a question) when it made an Ask User call, and for a tool otherwise. The paper names these four causes Tool Gap, Ask-User Tool, User Idle and Subagent; the gap figures draw the requests with a wait of 0 s or more and a cause.</dd>
+
+        <dt id="gap-bin">Gap bin</dt>
+        <dd>One of six bins of a request's wait, each including its lower bound: <code>&lt;1m</code>, <code>1–5m</code>, <code>5–15m</code>, <code>15–30m</code>, <code>30m–1h</code> and <code>&gt;1h</code>.</dd>
 
         <dt id="idle-gap">Idle gap</dt>
-        <dd>A request's arrival minus the latest completion among the same account's earlier requests at the same provider, in top-level sessions of the same scope, in any week; a subagent's request has none. It is how long that provider's cache went unused by the account. It is kept for requests with a hit ratio whose account's previous request at that provider also reported cache reads. The idle-gap bins are 26 bins from 10 s to 1 h, each 1.25 times as wide as the one before; gaps under 10 s count as 10 s and gaps over 1 h are dropped.</dd>
+        <dd>A request's arrival minus the latest completion among the same account's earlier requests at the same provider, in top-level sessions, in any week; a subagent's request has none. The benchmark replay's requests look back over the benchmark replay's only, and every other harness's over the other harnesses' only, as in the paper. It is how long that provider's cache went unused by the account. It is kept for requests with a hit ratio whose account's previous request at that provider also reported cache reads. The idle-gap bins are 26 bins from 10 s to 1 h, each 1.25 times as wide as the one before; gaps under 10 s count as 10 s and gaps over 1 h are dropped.</dd>
 
         <dt id="ttft">TTFT</dt>
         <dd>Time to first token: from a request's arrival at the gateway to the first token of its response. A TTFT is trusted when it is positive and under 95% of the request's latency, its end minus its start; figures of TTFT use trusted ones only.</dd>
@@ -131,7 +137,7 @@
       <h3>Cache simulation</h3>
       <dl>
         <dt id="cache-simulation">Cache simulation</dt>
-        <dd>A replay of a prefix cache over the 16-token blocks of the inputs of a scope's top-level sessions, one week at a time, each week starting with an empty cache. It runs for Agentic and for SWE-Bench separately; there is no simulation of All. A request reads its blocks when it arrives and writes them when it completes; a read is a hit when the gap since the block's previous read completed is at most the TTL and no eviction signal removed the block first, or when the previous request is still in flight and will write the block. A block's first read of the week is a miss. The simulated hit ratio is hit tokens over hit and missed tokens.</dd>
+        <dd>A replay of a prefix cache over the 16-token blocks of the inputs of the paper's population's top-level sessions, one week at a time, each week starting with an empty cache. Its figures show that population whatever harnesses are selected. A request reads its blocks when it arrives and writes them when it completes; a read is a hit when the gap since the block's previous read completed is at most the TTL and no eviction signal removed the block first, or when the previous request is still in flight and will write the block. A block's first read of the week is a miss. The simulated hit ratio is hit tokens over hit and missed tokens.</dd>
 
         <dt id="ttl">TTL</dt>
         <dd>The longest gap after which the simulated cache can still serve a block.</dd>
@@ -144,17 +150,21 @@
       </dl>
 
       <h3>Where the site draws more simply than the paper</h3>
+      <p>Each figure's definition on the Explore page says where it differs; these are the differences in one place.</p>
       <ul>
         <li>Bins are fixed: powers of two of a request's messages or input tokens, and the pipeline's idle-gap bins. The paper fits its size bins to the data.</li>
-        <li>A bin with fewer than 50 rows is hidden, and the figure says how many were; the paper also drops thin size bins, but merges a thin idle-gap bin into the next one.</li>
-        <li>The token split is drawn as one bar per selected week; the paper splits each session's cost, weighting tokens by price (cached, uncached and output at 1 : 10 : 50), and stacks sessions in bins of their rank. The site shows plain token shares.</li>
+        <li>A bin with fewer than 50 rows is hidden, and the figure says how many were; the paper also drops thin size bins, but merges an idle-gap bin of fewer than 20 requests into the next one.</li>
+        <li>The session time by part splits a session's time into model time, tool waits and human waits; the paper also splits model time into prefill and decode, the site does not.</li>
+        <li>The TTFT and decode time by model draw the five models with most requests in the selection; the paper draws two fixed models, each with an estimate of its queueing time, which the site does not draw.</li>
+        <li>The cost share by session counts every token at the pipeline's prices, cached, uncached and output at 1 : 10 : 50, whatever its provider charged; the token split by week shows plain token shares.</li>
+        <li>The hit ratio after a context change draws appends and mutations only; a switch to another model or provider is routing, not a change of context.</li>
       </ul>
     </section>
     <section id="how-built" class="card" aria-labelledby="how-built-heading">
       <h2 id="how-built-heading">How the data were built</h2>
       <p>The site draws the v1 release of the FreeInference agentic trace, published on Hugging Face one week at a time: anonymous JSONL traces, one top-level session per line with each subagent nested under the call that spawned it, and Parquet tables of the sessions, requests and tool calls. The release holds no message text, prompt text, tool results or raw identifiers: accounts and sessions are hashed, providers are letters, and a tool call's arguments keep their structure with every value replaced by its type.</p>
-      <p><code>make data</code> reads every week of the release and of the pipeline's cache simulation, checks each week against its manifest and <code>tables.json</code> with the pipeline's reader, and writes <code>requests.parquet</code>, <code>tool_calls.parquet</code>, <code>sessions.parquet</code>, <code>simulation.parquet</code> and <code>weeks.json</code>. The Parquet files hold some of the release's columns, never its block ids, and columns computed by the pipeline's own functions: each row's week and scope, whether its session is top-level, its top-level session and depth; each request's turn, uncached tokens, hit ratio, wait, idle gap and idle-gap bin, whether its TTFT is trusted, and how many tool calls it emitted; and each session's totals over its own requests. The idle gap looks back across weeks, so it is computed over every week together, within each scope. <code>weeks.json</code> lists the weeks and says which ones the cache simulation covers.</p>
-      <p>In the browser, DuckDB-WASM queries those files over HTTP, reading only the columns and weeks a chart needs. It only filters, counts, sums and takes quantiles; it never decides what a turn, a scope, a wait or a cache hit is. With every week selected and the Agentic scope, every number a figure shares with the paper equals the paper's.</p>
+      <p><code>make data</code> reads every week of the release and of the pipeline's cache simulation, checks each week against its manifest and <code>tables.json</code> with the pipeline's reader, and writes one Parquet file per kind of row and week, <code>requests/week=&lt;sunday&gt;/rows.parquet</code> and the same under <code>tool_calls/</code>, <code>sessions/</code> and <code>simulation/</code> (the last only for the weeks the simulation covers), with <code>weeks.json</code> and <code>harnesses.json</code>. The Parquet files hold some of the release's columns, never its block ids, and columns computed by the pipeline's own functions: each row's week and harness, whether its session is top-level, its top-level session and depth; each request's turn, uncached tokens, hit ratio, wait, idle gap and idle-gap bin, whether its TTFT is trusted, and how many tool calls it emitted; and each session's totals over its own requests. The idle gap looks back across weeks, so it is computed over every week together, the benchmark replay apart from the other harnesses. <code>weeks.json</code> lists the weeks and says which ones the cache simulation covers; <code>harnesses.json</code> lists the harnesses with their sessions and says which one is the benchmark replay. Last, <code>make data</code> runs every query of the Explore page once in DuckDB, with every week and the paper's population selected, and writes each answer under <code>all_weeks/</code>.</p>
+      <p>In the browser, the default selection is drawn from those answers. Any other selection is computed by DuckDB-WASM from the Parquet files, over HTTP until a week's files have streamed into memory, reading only the columns and weeks a chart needs. It only filters, counts, sums and takes quantiles; it never decides what a turn, a wait or a cache hit is. With the default selection, every number a figure shares with the paper equals the paper's.</p>
     </section>
     <section id="links" class="card" aria-labelledby="links-heading">
       <h2 id="links-heading">Links</h2>
