@@ -14,8 +14,13 @@ The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
   dependency; library URLs only in `site/js/shared/libraries.js`.
 - SQL only in `site/queries/*.sql`; queries read the selection from the
   selection tables, never from assembled strings.
-- Every definition comes from the pipeline's functions, called by
-  `site_data`; the browser only filters, counts, sums and takes quantiles.
+- Every definition comes from the pipeline. Where a query restates one in
+  SQL (the cost share's prices, the rank bins, the wait classes), a mirror
+  test ties each copied constant to the pipeline's and a parity test ties the
+  number to the paper's: `figures/cost_share_by_session.sql` and
+  `figures/session_time_by_part.sql`. Otherwise `site_data` calls the
+  pipeline's functions, and the browser only filters, counts, sums and takes
+  quantiles.
 - Names are words; functions ≤ 50 lines; modules ≤ 300 lines; every module
   has tests.
 - `make data` follows every edit to a query under `site/queries/explore/`,

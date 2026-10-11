@@ -47,7 +47,7 @@ machine, in headless Chromium:
 
 - The default page draws every number, figure and the table in 0.76–0.95 s
   from its answers (when measured, with 37 answers). The answers now total
-  4.2 MB in 48 files, of which the sessions table is 3.6 MB (0.7 MB gzipped,
+  4.2 MB in 49 files, of which the sessions table is 3.6 MB (0.7 MB gzipped,
   as the host serves JSON); no DuckDB module and no Parquet file is fetched
   before the page is drawn.
 - With one month selected (`?month=2026-07`) the first figure is drawn at
@@ -151,12 +151,17 @@ openspec/          the specifications and the changes that built the site
 
 ## Where the numbers come from
 
-Every definition the site shows (session, turn, wait, cached share, idle
-gap) is computed by the pipeline's own functions when `make data` runs.
-The browser, and the answers `make data` precomputes with the browser's own
-queries, only filter, count, sum and take quantiles. With the default
-selection, every number a figure shares with the paper equals the paper's,
-and `tests/test_paper_parity*.py` checks each one.
+Every definition comes from the pipeline. The ones the site shows (session,
+turn, wait, cached share, idle gap) are computed by the pipeline's own
+functions when `make data` runs. Where a query restates one in SQL (the cost
+share's prices, the rank bins, the wait classes), a mirror test ties each
+copied constant to the pipeline's and a parity test ties the number to the
+paper's; two queries do, `figures/cost_share_by_session.sql` and
+`figures/session_time_by_part.sql`. Otherwise the browser, and the answers
+`make data` precomputes with the browser's own queries, only filter, count,
+sum and take quantiles. With the default selection, every number a figure
+shares with the paper equals the paper's, and `tests/test_paper_parity*.py`
+checks each one.
 
 - Dataset: https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace
 - Pipeline: https://github.com/HarvardMadSys/freeinference_agentic_trace

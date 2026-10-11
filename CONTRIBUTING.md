@@ -44,10 +44,16 @@ binding, and `make test` checks the countable ones.
   separated by commas (`engine/duckdb_files.js` in the browser,
   `site_data/site_database.py` in Python): HTTP has no directory listing, and
   a file registered under its name is what the stream can swap for its bytes.
-- **Every definition comes from the pipeline.** The browser filters, groups,
-  counts, sums and takes quantiles. It never decides what a turn, a wait or a
-  cache hit is; `site_data` computes those by calling the pipeline's
-  functions.
+- **Every definition comes from the pipeline.** Where a query restates one
+  in SQL (the cost share's prices, the rank bins, the wait classes), a mirror
+  test ties each copied constant to the pipeline's and a parity test ties the
+  number to the paper's. Two queries do: `figures/cost_share_by_session.sql`
+  (the prices and the rank bins) and `figures/session_time_by_part.sql` (the
+  rank bins and which waits are tool time and which a person's), checked by
+  `tests/test_pipeline_mirrors.py` and `tests/test_paper_parity_sessions.py`.
+  Otherwise the browser filters, groups, counts, sums and takes quantiles. It
+  never decides what a turn, a wait or a cache hit is; `site_data` computes
+  those by calling the pipeline's functions.
 - **No framework, no bundler, no npm dependency.** Plain HTML, CSS and ES
   modules. Libraries come from a CDN at exact versions, named only in
   `site/js/shared/libraries.js`.
@@ -209,7 +215,7 @@ tests:
    exported and tested with `node --test`. Add its name to the section's list
    in `tests/figure_sections.test.js`.
 4. **The legend**, for a figure of more than one series: `legend(rows,
-   colours)` (`seriesLegend` in `figures/figure_rows.js` builds one from rows
+   colours, seriesColumn)` (`seriesLegend` in `figures/figure_rows.js` builds one from rows
    that name their series), and either `seriesColumn` or a `draw` that takes
    `hidden`; list the figure under `LONG_FORMAT_SERIES_COLUMNS` or
    `WIDE_FORMAT_FIGURES` in `tests/figure_sections.test.js`. A series that is a

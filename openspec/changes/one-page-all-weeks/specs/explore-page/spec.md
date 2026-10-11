@@ -207,8 +207,8 @@ in the legend. The hidden set SHALL NOT be kept in the URL and SHALL reset
 when the selection changes.
 
 #### Scenario: Hiding a harness in the trend
-- **WHEN** the visitor clicks `Hermes` in the sessions-per-week legend
-- **THEN** the Hermes segments SHALL disappear from every bar, the bars SHALL rescale, and no query SHALL run
+- **WHEN** the visitor clicks `hermes` in the sessions-per-week legend
+- **THEN** the `hermes` segments SHALL disappear from every bar, the bars SHALL rescale, and no query SHALL run
 
 #### Scenario: Hiding a model in a CDF
 - **WHEN** the visitor clicks one model in the TTFT figure's legend

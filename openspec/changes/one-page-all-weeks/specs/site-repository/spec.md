@@ -25,6 +25,8 @@ site/             exactly the files that are deployed
   *.html          one file per page: index (Explore), session, about
   style.css       tokens, layout and components
   js/shared/      the database, the selection, the libraries, formatting, the table, charts, the histogram card, the stat strip, the layout
+  js/engine/      DuckDB in the page: starting it, its views and setup, the weeks' files and their streaming in
+  js/theme/       the site's colours as the style tokens give them
   js/pages/       one module per page
   js/explore/     the Explore page's sections: trends, headline, distribution cards, sessions table
   js/figures/     one module per figure section, and the row rules every figure shares

@@ -41,7 +41,7 @@ which. A `scope` key or `weeks=all` in the URL SHALL be read as the default
 and dropped.
 
 #### Scenario: Sharing a view
-- **WHEN** a visitor opens a link with `?month=2026-07&harnesses=Hermes,Codex`
+- **WHEN** a visitor opens a link with `?month=2026-07&harnesses=hermes,codex`
 - **THEN** the page SHALL open with July 2026's weeks and those two harnesses selected
 
 #### Scenario: An unknown week
@@ -81,11 +81,11 @@ sessions only; the weekly trends SHALL show every week of the selected
 harnesses.
 
 #### Scenario: Leaving out a harness
-- **WHEN** the visitor unticks `Hermes`
-- **THEN** every chart SHALL redraw without Hermes sessions, the URL SHALL list the remaining harnesses, and the picker SHALL say the charts are computed in the browser
+- **WHEN** the visitor unticks `hermes`
+- **THEN** every chart SHALL redraw without `hermes` sessions, the URL SHALL list the remaining harnesses, and the picker SHALL say the charts are computed in the browser
 
 #### Scenario: Ticking the benchmark in
-- **WHEN** the visitor ticks `SWE-Bench`
+- **WHEN** the visitor ticks `eval:swe-bench`
 - **THEN** every chart SHALL include the benchmark sessions, and the simulation figures SHALL say they show the paper's population whatever harnesses are selected
 
 ### Requirement: The rows stream in after the default view

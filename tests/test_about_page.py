@@ -17,6 +17,8 @@ from simulation import cache
 SITE_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site"
 ABOUT_PAGE = SITE_FOLDER / "about.html"
 CHARTS_MODULE = SITE_FOLDER / "js" / "shared" / "charts.js"  # declares `MIN_ROWS_PER_BIN`
+COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # declares `SERIES_SLOTS`, the eight series colours
+IDLE_GAP_TITLE = "Hit ratio after an idle gap"
 FIGURE_MODULES = SITE_FOLDER / "js" / "figures"  # every figure entry, one `query: "figures/<name>"` each
 FIGURE_ENTRY_QUERY = re.compile(r'query: "figures/\w+"')
 FIGURE_TITLE_AND_DEFINITION = re.compile(r'title: "([^"]+)",\s*definition: "([^"]+)"')
@@ -84,6 +86,28 @@ def thin_bin_threshold() -> int:
     declaration = re.search(r"export const MIN_ROWS_PER_BIN = (\d+);", CHARTS_MODULE.read_text())
     assert declaration is not None, f"{CHARTS_MODULE.name} declares no MIN_ROWS_PER_BIN"
     return int(declaration.group(1))
+
+
+def series_slot_count() -> int:
+    """How many series colours `SERIES_SLOTS` in colours.js lists: a line past that many would be in the Other grey."""
+    declaration = re.search(r"export const SERIES_SLOTS = Object\.freeze\(\[(.*?)\]\);", COLOURS_MODULE.read_text(),
+                            re.DOTALL)
+    assert declaration is not None, f"{COLOURS_MODULE.name} declares no SERIES_SLOTS"
+    return len(re.findall(r'"var\(--series-\d+\)"', declaration.group(1)))
+
+
+def figure_definition(title: str) -> str:
+    """The definition of the figure entry titled `title`."""
+    definitions = [definition for entry_title, definition in figure_titles_and_definitions() if entry_title == title]
+    assert len(definitions) == 1, f"no single figure is titled {title}"
+    return definitions[0]
+
+
+def difference_item(title: str) -> str:
+    """The HTML of the item of the About page's list of differences that names the figure titled `title`."""
+    found = re.search(rf"<li><strong>{title}</strong>.*?</li>", simpler_than_the_paper(), re.DOTALL)
+    assert found is not None, f"the list of differences names no {title}"
+    return found.group(0)
 
 
 def figure_count() -> int:
@@ -174,3 +198,11 @@ def test_the_about_page_s_models_and_providers_are_the_queries_and_the_paper_s()
     assert f"the {NUMBER_WORDS[limits.pop()]} models with most requests" in simpler_than_the_paper()
     assert f"the paper draws {NUMBER_WORDS[len(paper.sessions.latency.MODELS)]} fixed models" in simpler_than_the_paper()
     assert f"shows the {NUMBER_WORDS[reuse.PROVIDERS_DRAWN]} providers with most idle gaps" in simpler_than_the_paper()
+    slotted = NUMBER_WORDS[series_slot_count()]
+    assert f"that are among the {slotted} with most requests over every week" in simpler_than_the_paper()
+
+
+def test_the_about_page_s_idle_gap_providers_are_those_the_figure_draws() -> None:
+    drawn = f"the {NUMBER_WORDS[series_slot_count()]} providers with most requests"
+    assert drawn in figure_definition(IDLE_GAP_TITLE)
+    assert f"a line for each of {drawn}" in difference_item(IDLE_GAP_TITLE)

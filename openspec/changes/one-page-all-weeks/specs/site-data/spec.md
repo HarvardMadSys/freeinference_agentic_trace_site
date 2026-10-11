@@ -111,12 +111,12 @@ the answers folder's size.
 `harnesses.json` SHALL list every harness of the release, most sessions
 first, as `{harness, sessions, benchmark}`, where `sessions` counts its
 top-level sessions over every week and `benchmark` is whether the pipeline's
-population puts it in the SWE-Bench scope. It SHALL be small enough to load
+population puts it in the benchmark scope. It SHALL be small enough to load
 before DuckDB.
 
 #### Scenario: The benchmark harness
-- **WHEN** the release holds SWE-Bench sessions
-- **THEN** `harnesses.json` SHALL list `SWE-Bench` with `benchmark: true` and every other harness with `benchmark: false`
+- **WHEN** the release holds `eval:swe-bench` sessions
+- **THEN** `harnesses.json` SHALL list `eval:swe-bench` with `benchmark: true` and every other harness with `benchmark: false`
 
 ### Requirement: Precomputed answers for the default selection
 After writing the Parquet files, the step SHALL run every `.sql` file under
@@ -124,9 +124,14 @@ After writing the Parquet files, the step SHALL run every `.sql` file under
 with `selected_weeks` holding every week and `selected_harnesses` every
 harness that is not the benchmark, and write each answer to
 `site/data/all_weeks/<page>/<query>.json` as a list of row objects whose
-column names and values are what the browser's query would return. It SHALL
-write nothing for the `session` and `setup` queries. Rebuilding from the
-same release SHALL write identical answers.
+column names and values are what the browser's query would return. Every
+query under `figures/` is answered, including those only the parity tests
+run. The colour orders `setup/category_order`, `setup/harness_order`,
+`setup/model_order` and `setup/provider_order`, which read every week and
+every harness whatever the selection, SHALL be answered too, under
+`all_weeks/setup/`. It SHALL write nothing for the `session` queries and the
+other `setup` statements. Rebuilding from the same release SHALL write
+identical answers.
 
 #### Scenario: An answer equals the live query
 - **WHEN** a query is run in the browser with the default selection
