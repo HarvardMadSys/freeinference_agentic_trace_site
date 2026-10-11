@@ -24,6 +24,7 @@ const HIDDEN_NOUNS = Object.freeze({
   week: ["week", "weeks"],
   category: ["category", "categories"],
   policy: ["policy", "policies"],
+  waited_for: ["cause", "causes"],
 });
 const DEFAULT_HIDDEN_NOUN = ["bin", "bins"];
 

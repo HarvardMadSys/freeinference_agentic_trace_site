@@ -8,7 +8,7 @@
  */
 
 import { agentLabel, agentsInStartOrder, callsByRequest, requestKey } from "../session/tree.js";
-import { causeColours, OTHER_SERIES } from "../theme/colours.js";
+import { causeColours, OTHER_SERIES, REQUEST_PART_COLOURS } from "../theme/colours.js";
 import { elapsedSeconds, formatSeconds, MILLISECONDS_PER_SECOND } from "../shared/format.js";
 
 /**
@@ -21,16 +21,6 @@ export const WAIT_CAUSES = Object.freeze({
   ask_user_tool: "an ask-user tool",
   user: "the user",
   subagent: "subagents",
-});
-
-/**
- * The colour of each part of a request's bar: time to first token, the rest, and a request with no TTFT as one bar.
- * They are ink tones, not series colours, so that on the timeline a colour always means a tool category or a wait.
- */
-export const REQUEST_PART_COLOURS = Object.freeze({
-  ttft: "var(--color-text-muted)",
-  decode: "var(--color-text-faint)",
-  whole: "var(--color-text-faint)",
 });
 
 /** The opacity of a wait's bar: lighter than a request's, since nothing ran. */

@@ -65,6 +65,7 @@ test("the hidden note names what was hidden, in the singular or the plural", () 
   assert.equal(hiddenText(3, "bin_start"), "3 bins hidden (fewer than 50 rows each)");
   assert.equal(hiddenText(2, "series"), "2 series hidden (fewer than 50 rows each)");
   assert.equal(hiddenText(1, "week"), "1 week hidden (fewer than 50 rows each)");
+  assert.equal(hiddenText(2, "waited_for"), "2 causes hidden (fewer than 50 rows each)");
 });
 
 test("CDF rows become series in the order of the names given, with a missing series left out", () => {

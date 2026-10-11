@@ -104,8 +104,8 @@ export function computationNote(selection, weeks, harnesses) {
 }
 
 /**
- * The words appended to the computation note while the page streams the weeks' rows in: "3 of 16 weeks loaded in your
- * browser." for a selection DuckDB computes; "" for the default selection, with nothing selected, or when the page
+ * The words appended to the computation note while the page streams the weeks' rows in: "The newest 3 of 16 weeks
+ * loaded in your browser." for a selection DuckDB computes; "" for the default selection, with nothing selected, or when the page
  * does not stream (`streamedWeeks` null). `streamedWeeks` holds the Sundays streamed in so far.
  */
 export function streamedWeeksNote(selection, weeks, harnesses, streamedWeeks) {
@@ -113,10 +113,17 @@ export function streamedWeeksNote(selection, weeks, harnesses, streamedWeeks) {
   return isComputed && streamedWeeks !== null ? streamedWeeksText(streamedWeeks, weeks) : "";
 }
 
-/** "3 of 16 weeks loaded in your browser.": how many of the weeks of `weeks` are among `streamedWeeks`. */
+/**
+ * How many of the weeks of `weeks` are among `streamedWeeks`, and which: "The newest 3 of 16 weeks loaded in your
+ * browser.", or "0 of 16 weeks …" and "16 of 16 weeks …" when none or all are in. The stream fetches the newest week
+ * first, so the weeks in are the newest.
+ */
 export function streamedWeeksText(streamedWeeks, weeks) {
   const loaded = weeks.filter((entry) => streamedWeeks.includes(entry.week)).length;
-  return `${loaded} of ${weeks.length} weeks loaded in your browser.`;
+  if (loaded === 0 || loaded === weeks.length) {
+    return `${loaded} of ${weeks.length} weeks loaded in your browser.`;
+  }
+  return `The newest ${loaded} of ${weeks.length} weeks loaded in your browser.`;
 }
 
 /** The harnesses a caption names: "the paper's harnesses", "every harness", the one harness, or "3 harnesses". */

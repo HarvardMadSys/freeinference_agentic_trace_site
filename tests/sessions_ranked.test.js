@@ -9,8 +9,7 @@ import {
   stackedSharePoints,
 } from "../site/js/figures/sessions_ranked.js";
 import { dropThinGroups, restingCountText } from "../site/js/figures/figure_rows.js";
-import { REQUEST_PART_COLOURS } from "../site/js/session_charts/timeline_bars.js";
-import { causeColours, TOKEN_PART_COLOURS } from "../site/js/theme/colours.js";
+import { causeColours, REQUEST_PART_COLOURS, TOKEN_PART_COLOURS } from "../site/js/theme/colours.js";
 
 // Two rank bins of a cost share query, the first of 55 sessions, the second of 54, of 109 sessions ranked.
 const BIN_ROWS = [

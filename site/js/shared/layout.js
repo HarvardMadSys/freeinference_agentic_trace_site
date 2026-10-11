@@ -10,7 +10,9 @@ import { selectionQuery } from "./selection.js";
 // The header's links: the page's file, the anchor of a section on it ("" for its top), and the link's title.
 const PAGES = [
   { file: "index.html", anchor: "", title: "Explore" },
-  { file: "index.html", anchor: "#figures-sessions", title: "Figures" },
+  { file: "index.html", anchor: "#figures-sessions", title: "Sessions" },
+  { file: "index.html", anchor: "#figures-tools", title: "Tools" },
+  { file: "index.html", anchor: "#figures-caching", title: "Caching" },
   { file: "index.html", anchor: "#sessions", title: "Sessions table" },
   { file: "about.html", anchor: "", title: "About" },
 ];

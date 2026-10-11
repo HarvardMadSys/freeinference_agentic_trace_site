@@ -11,9 +11,8 @@
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
-import { causeColours, TOKEN_PART_COLOURS } from "../theme/colours.js";
+import { causeColours, REQUEST_PART_COLOURS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { formatCount, formatShare } from "../shared/format.js";
-import { REQUEST_PART_COLOURS } from "../session_charts/timeline_bars.js";
 
 // The parts of a session's cost, bottom up in the stack, with the label each is drawn under.
 const COST_PARTS = Object.freeze({ cached: "Cached input", uncached: "Uncached input", output: "Output" });

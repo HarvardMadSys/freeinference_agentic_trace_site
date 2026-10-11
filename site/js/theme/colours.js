@@ -32,6 +32,17 @@ export const TOKEN_PART_COLOURS = Object.freeze({
   output: "var(--token-output)",
 });
 
+/**
+ * The colour of each part of a request's bar: time to first token, the rest, and a request with no TTFT as one bar.
+ * They are ink tones, not series colours, so that on the Session page's Timeline a colour always means a
+ * tool category or a wait.
+ */
+export const REQUEST_PART_COLOURS = Object.freeze({
+  ttft: "var(--color-text-muted)",
+  decode: "var(--color-text-faint)",
+  whole: "var(--color-text-faint)",
+});
+
 /** The colour of each wait cause, by the release's `waited_for` value in the paper's order, the same in every chart. */
 export const CAUSE_COLOURS = Object.freeze({
   tool: "var(--cause-tool)",

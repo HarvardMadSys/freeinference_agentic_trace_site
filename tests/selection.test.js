@@ -197,11 +197,11 @@ test("with no week or no harness selected there is no computation to note", () =
   assert.equal(computationNote({ ...DEFAULT_SELECTION, harnesses: [] }, WEEKS, HARNESSES), "");
 });
 
-test("a computed selection's note counts the weeks streamed in out of every week", () => {
+test("a computed selection's note counts the weeks streamed in out of every week, the newest when some are in", () => {
   const narrowed = { ...DEFAULT_SELECTION, harnesses: ["hermes"] };
   assert.equal(streamedWeeksNote(narrowed, WEEKS, HARNESSES, []), "0 of 4 weeks loaded in your browser.");
   assert.equal(streamedWeeksNote(narrowed, WEEKS, HARNESSES, ["2026-06-14", "2026-06-07"]),
-    "2 of 4 weeks loaded in your browser.");
+    "The newest 2 of 4 weeks loaded in your browser.");
   assert.equal(streamedWeeksText(EVERY_WEEK, WEEKS), "4 of 4 weeks loaded in your browser.");
 });
 
@@ -212,7 +212,8 @@ test("the default selection, an empty one, or a page that does not stream count 
 });
 
 test("a streamed Sunday that is not a week of weeks.json is not counted", () => {
-  assert.equal(streamedWeeksText(["2026-06-14", "2025-01-05"], WEEKS), "1 of 4 weeks loaded in your browser.");
+  assert.equal(streamedWeeksText(["2026-06-14", "2025-01-05"], WEEKS),
+    "The newest 1 of 4 weeks loaded in your browser.");
 });
 
 test("a caption names the paper's harnesses, every harness, the one harness, or how many", () => {
