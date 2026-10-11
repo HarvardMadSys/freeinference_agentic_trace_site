@@ -1,9 +1,10 @@
 /**
  * The Paper figures page: the paper's figures, drawn for the selected weeks and harnesses.
  *
- * Every figure gets a card in its section's grid. A selection change rewrites the URL, refills the selection
- * tables and redraws every figure, without reloading the page. Figures run concurrently, and each shows its own
- * loading state, error or note; a run that a newer selection has replaced is dropped.
+ * Every figure gets a card in its section's grid. The default selection's figures are drawn from the precomputed
+ * answers; any other selection's are computed in DuckDB. A selection change rewrites the URL, gives the database the
+ * new selection and redraws every figure, without reloading the page. Figures run concurrently, and each shows its
+ * own loading state, error or note; a run that a newer selection has replaced is dropped.
  */
 
 import { assignColours, MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote, weeksText } from "../shared/charts.js";
@@ -32,16 +33,16 @@ const ALL_THIN_NOTE = `Too few rows: every bin of this selection has fewer than 
 startPage().catch((error) => showError(document.querySelector("#selection"), error));
 
 /**
- * Draw the header, the pickers and every figure's card, write the URL's selection back in its shortest form, open
- * the database, and draw the figures of that selection.
+ * Draw the header, the pickers and every figure's card, write the URL's selection back in its shortest form, and draw
+ * the figures of that selection.
  */
 async function startPage() {
   renderHeader(document.querySelector("#site-header"), PAGE_FILE, new URLSearchParams());
   renderFooter(document.querySelector("#site-footer"));
   const [weeks, harnesses] = await Promise.all([fetchWeeks(), fetchHarnesses()]);
   const selection = readSelection(new URLSearchParams(window.location.search), weeks, harnesses);
-  // What the page owns: the weeks and harnesses, every figure with its card, the open database, and the number of
-  // the latest run.
+  // What the page owns: the weeks and harnesses, every figure with its card, the database with the colours every
+  // figure shares, and the number of the latest run.
   const opening = openWithColours(weeks, harnesses);
   const page = { weeks, harnesses, cards: await placeCards(), opening, latestRun: 0 };
   writeSelectionToPage(page, selection);
@@ -144,7 +145,7 @@ async function placeCards() {
 
 /** The database over the data folder's files of `weeks`, and the colours every figure shares: `{ database, colours }`. */
 async function openWithColours(weeks, harnesses) {
-  const database = await openDatabase(new URL(DATA_FOLDER, window.location.href).href, weeks, harnesses);
+  const database = openDatabase(new URL(DATA_FOLDER, window.location.href).href, weeks, harnesses);
   const models = await database.runQuery("setup/model_order");
   const categories = await database.runQuery("setup/category_order");
   const colours = Object.freeze({

@@ -92,8 +92,14 @@ export function unknownSelectionNote(selection) {
   return unknown.length === 0 ? "" : `Not in the data, so not selected: ${unknown.join(", ")}.`;
 }
 
-/** The note saying where the selection's numbers come from: precomputed for the default, the browser otherwise. */
+/**
+ * The note saying where the selection's numbers come from: precomputed for the default, the browser otherwise; "" when
+ * no week or no harness is selected, since there are no numbers.
+ */
 export function computationNote(selection, weeks, harnesses) {
+  if (selection.weeks.length === 0 || selection.harnesses.length === 0) {
+    return "";
+  }
   return isDefaultSelection(selection, weeks, harnesses) ? DEFAULT_SELECTION_NOTE : COMPUTED_SELECTION_NOTE;
 }
 

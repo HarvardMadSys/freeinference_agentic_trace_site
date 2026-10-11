@@ -42,7 +42,7 @@ async function openSession(address) {
     return;
   }
   const [weeks, harnesses] = await Promise.all([fetchWeeks(), fetchHarnesses()]);
-  const database = await openDatabase(new URL("data/", window.location.href).href, weeks, harnesses);
+  const database = openDatabase(new URL("data/", window.location.href).href, weeks, harnesses);
   const session = await loadSession(database, address);
   if (session === null) {
     showNotFound(`Session not found in this week: no session ${address.id} in the week of ${address.week}.`);

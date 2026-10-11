@@ -1,10 +1,12 @@
-"""The answers of the default selection: every Explore and figure query, run once over the data folder as the browser
-runs it, each written as `all_weeks/<page>/<query>.json`.
+"""The answers of the default selection: every Explore and figure query, and the colour orders, run once over the data
+folder as the browser runs it, each written as `all_weeks/<folder>/<query>.json`.
 
 The default selection is every week of `weeks.json` and every harness of
 `harnesses.json` that is not the benchmark's. The database is opened and the
 selection tables filled by `site_database`, with the browser's own setup
 statements, so an answer holds the rows the browser's query would return.
+The colour orders read every week and every harness whatever the selection,
+so their answers hold for any selection, not only the default.
 
 An answer is a JSON list with one object per row, its keys the query's column
 names in the query's order. Integers are written as integers and other numbers
@@ -26,7 +28,10 @@ import duckdb
 
 from site_data import harnesses, paths, site_database, weeks
 
-ANSWERED_PAGES = ["explore", "figures"]  # the pages whose queries are answered; `session/` and `setup/` are not
+ANSWERED_PAGES = ["explore", "figures"]  # the pages whose queries are answered; `session/` is not
+# The setup queries that fix each harness's, model's and category's colour from every week and harness; answered so a
+# page draws its colours without DuckDB.
+COLOUR_ORDER_QUERIES = ["setup/category_order", "setup/harness_order", "setup/model_order"]
 SIMULATION_VIEW = "simulation"  # the view a data folder with no simulated week does not have
 # Commas and colons without spaces: the answers are fetched by every visitor, the sessions table's above all.
 JSON_SEPARATORS = (",", ":")
@@ -59,12 +64,12 @@ def default_selection(data_directory: pathlib.Path) -> DefaultSelection:
 
 
 def answered_query_names() -> list[str]:
-    """The name of every query of the answered pages, `<page>/<query>`, sorted."""
+    """The name of every query of the answered pages, `<page>/<query>`, and of every colour order, sorted."""
     names = []
     for page in ANSWERED_PAGES:
         for path in sorted((site_database.QUERIES_FOLDER / page).glob("*.sql")):
             names.append(f"{page}/{path.stem}")
-    return names
+    return sorted([*names, *COLOUR_ORDER_QUERIES])
 
 
 def write_answers(data_directory: pathlib.Path) -> WrittenAnswers:

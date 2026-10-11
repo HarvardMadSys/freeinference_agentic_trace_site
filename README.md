@@ -44,7 +44,8 @@ make data RELEASE=~/freeinference_agentic_trace/release SIMULATION=~/freeinferen
 
 `make data` also writes `site/data/all_weeks/<page>/<query>.json`, the answer of
 every Explore and figure query for the default selection (every week, the
-paper's harnesses), so rerun it after editing one of those queries.
+paper's harnesses), and of the colour orders under `setup/`, so rerun it after
+editing one of those queries.
 
 ## Layout
 

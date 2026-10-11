@@ -1,5 +1,5 @@
 """The answers the data step writes for the default selection equal the queries run live with that selection, and
-every Explore and figure query has one."""
+every Explore and figure query, and every colour order, has one."""
 
 import json
 import math
@@ -17,6 +17,8 @@ import site_database
 
 ANSWERS_FOLDER = "all_weeks"  # where the data step writes the answers, under the data folder
 ANSWERED_PAGES = ("explore/", "figures/")  # the pages whose queries are answered
+# The colour orders, answered too: they read every week and every harness, whatever the selection.
+COLOUR_ORDER_QUERIES = ["setup/category_order", "setup/harness_order", "setup/model_order"]
 RELATIVE_TOLERANCE = 1e-12  # an answer's number and the live query's are equal when this close
 # The queries that read the `simulation` view, which a data folder with no simulated week does not have.
 SIMULATION_QUERIES = ["figures/dead_over_active_by_policy", "figures/simulated_hit_ratio_by_ttl"]
@@ -25,8 +27,9 @@ SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
 
 
 def answered_query_names() -> list[str]:
-    """Every query under `explore/` and `figures/`, by name, sorted."""
-    return [name for name in site_database.query_names() if name.startswith(ANSWERED_PAGES)]
+    """Every query under `explore/` and `figures/`, and every colour order, by name, sorted."""
+    page_queries = [name for name in site_database.query_names() if name.startswith(ANSWERED_PAGES)]
+    return sorted([*page_queries, *COLOUR_ORDER_QUERIES])
 
 
 def expected_answer_names(data_directory: pathlib.Path) -> list[str]:
@@ -39,7 +42,7 @@ def expected_answer_names(data_directory: pathlib.Path) -> list[str]:
 
 
 def answer_files(names: list[str]) -> list[str]:
-    """The answer file of each query, by its path relative to the answers folder: `<page>/<query>.json`."""
+    """The answer file of each query, by its path relative to the answers folder: `<folder>/<query>.json`."""
     return [f"{name}.json" for name in names]
 
 
@@ -82,8 +85,16 @@ def test_an_answer_equals_its_query_run_live_with_the_default_selection(
                 f"{name} row {index} {column}: {answered_value!r} answered, {live_value!r} live"
 
 
-def test_every_explore_and_figure_query_has_an_answer_and_nothing_else_does(data_directory: pathlib.Path) -> None:
+def test_every_explore_and_figure_query_and_colour_order_has_an_answer_and_nothing_else_does(data_directory: pathlib.Path) -> None:
     assert written_files(data_directory) == answer_files(expected_answer_names(data_directory))
+
+
+def test_a_colour_order_reads_every_harness_whatever_the_selection(connection: duckdb.DuckDBPyConnection,
+                                                                   data_directory: pathlib.Path) -> None:
+    site_database.select_weeks(connection, [FIRST_SUNDAY], ["pi"])
+    live = site_database.run_query(connection, "setup/harness_order")
+    assert live.to_dict("records") == read_answer(data_directory, "setup/harness_order")
+    assert len(live) == len(fixture_release.EVERY_HARNESS)
 
 
 def test_the_default_selection_is_every_week_and_every_harness_but_the_benchmark_s(

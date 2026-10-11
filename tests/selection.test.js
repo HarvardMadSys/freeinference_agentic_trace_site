@@ -192,6 +192,11 @@ test("the default selection is precomputed, any other computed in the browser", 
   );
 });
 
+test("with no week or no harness selected there is no computation to note", () => {
+  assert.equal(computationNote({ ...DEFAULT_SELECTION, weeks: [] }, WEEKS, HARNESSES), "");
+  assert.equal(computationNote({ ...DEFAULT_SELECTION, harnesses: [] }, WEEKS, HARNESSES), "");
+});
+
 test("a caption names the paper's harnesses, every harness, the one harness, or how many", () => {
   assert.equal(harnessesText(PAPER_HARNESSES, HARNESSES), "the paper's harnesses");
   assert.equal(harnessesText(HARNESSES.map((entry) => entry.harness), HARNESSES), "every harness");

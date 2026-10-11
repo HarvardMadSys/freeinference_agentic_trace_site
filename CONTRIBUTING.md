@@ -65,11 +65,15 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   one `<script type="module">`. It holds no data and no inline script.
 - The page module mounts the header and footer, reads the selection from the
   URL, opens the database, and fills each section.
-- `shared/database.js` fetches `weeks.json` and `harnesses.json`, opens
-  DuckDB once, registers each week's Parquet files as the views `requests`,
-  `tool_calls`, `sessions` and `simulation`, fills `benchmark_harness`, and
-  runs a query by name: `runQuery("explore/request_count")` fetches
-  `queries/explore/request_count.sql`.
+- `shared/database.js` fetches `weeks.json` and `harnesses.json` and runs a
+  query by name: `runQuery("explore/request_count")` fetches
+  `queries/explore/request_count.sql`. While the selection is the default, an
+  Explore or figure query is answered from its file under `data/all_weeks/`
+  instead, as is a colour order (`setup/*_order`) whatever the selection.
+  DuckDB loads the first time a query needs it: it registers each week's
+  Parquet files as the views `requests`, `tool_calls`, `sessions` and
+  `simulation`, fills `benchmark_harness`, and fills the selection tables
+  before a query whenever the selection has changed.
 - `shared/selection.js` owns the selection and the URL keys `weeks`, `month`
   and `harnesses` that hold it (none for the default: every week and the
   paper's harnesses); `explore/selection_pickers.js` draws the week and
@@ -95,9 +99,9 @@ WHERE is_top_level
 The first line says what one row is. Columns are named in words. Every
 query is run by `tests/test_queries.py` against the fixture data.
 `make data` also runs every query under `explore/` and `figures/` once for the
-default selection and writes its answer to `site/data/all_weeks/`, so rerun
-`make data` after editing one of those queries; `tests/test_answers.py`
-checks each answer against its query.
+default selection, and the colour orders `setup/*_order`, and writes each
+answer to `site/data/all_weeks/`, so rerun `make data` after editing one of
+those queries; `tests/test_answers.py` checks each answer against its query.
 
 **A pure JavaScript module with its test** (`site/js/shared/format.js`,
 `tests/format.test.js`): exported functions with one-line JSDoc, module-level

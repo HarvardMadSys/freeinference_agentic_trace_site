@@ -1,38 +1,32 @@
 /**
- * The page's data: the weeks `weeks.json` lists, the harnesses `harnesses.json` lists, and the DuckDB database, with
- * the weeks' data files as the views `requests`, `tool_calls`, `sessions` and `simulation`, the selection tables every
- * query reads, the table of benchmark harnesses, and queries run by name.
+ * The page's data: the weeks `weeks.json` lists, the harnesses `harnesses.json` lists, and queries run by name. A
+ * query's name is its path under `site/queries/` without `.sql`: `runQuery("explore/request_count")` runs
+ * `queries/explore/request_count.sql`; `runQueryWith(name, parameters)` runs one that takes `?` parameters.
  *
- * A data file is `<kind>/week=<sunday>/rows.parquet` under the data folder, as `site_data/paths.py` writes it. Each is
- * registered with DuckDB under that name, as a URL DuckDB reads in HTTP ranges, and a view statement's `{files}`
- * placeholder is replaced with the names of its kind's files. Every week has a file of requests, tool calls and
- * sessions; only a simulated week has a simulation file; a kind no week has a file of gets no view, since DuckDB cannot
- * read an empty list of files.
- *
- * A query's name is its path under `site/queries/` without `.sql`: `runQuery("explore/request_count")`
- * runs `queries/explore/request_count.sql`, fetched relative to the page. `runQueryWith(name, parameters)`
- * runs a query that takes `?` parameters.
+ * A query `answerFileFor` names a file for is answered from it, which the data step wrote by running the query. Every
+ * other query runs in DuckDB, loaded the first time a query needs it, with the weeks' files as the views `requests`,
+ * `tool_calls`, `sessions` and `simulation`, the selection tables every query reads and the benchmark harness table.
+ * A data file is `<kind>/week=<sunday>/rows.parquet` under the data folder, registered with DuckDB under that name as
+ * a URL it reads in HTTP ranges; a view statement's `{files}` placeholder is replaced with its kind's files' names.
+ * Only a simulated week has a simulation file; a kind no week has a file of gets no view (DuckDB cannot read no file).
  */
+
+import { isDefaultSelection } from "./selection.js";
 
 // The placeholder in a view statement that stands for its files' names, each single-quoted, separated by commas.
 const FILES_PLACEHOLDER = "{files}";
 
-// A view statement's name is this prefix and the kind of row its view reads, which is also the kind's folder.
-const VIEW_STATEMENT_PREFIX = "setup/create_view_";
-
-// The statements that register each kind of row as a view, in the order they run; each holds the files placeholder.
-const VIEW_STATEMENTS = Object.freeze([
-  "setup/create_view_requests",
-  "setup/create_view_tool_calls",
-  "setup/create_view_sessions",
-  "setup/create_view_simulation",
-]);
+// The statement making each kind of row's view, holding the files placeholder, by the kind (also its folder), in order.
+const VIEW_STATEMENTS = Object.freeze({
+  requests: "setup/create_view_requests",
+  tool_calls: "setup/create_view_tool_calls",
+  sessions: "setup/create_view_sessions",
+  simulation: "setup/create_view_simulation",
+});
 
 // The statements that make the empty selection tables, run once after the views.
 const SELECTION_TABLE_STATEMENTS = Object.freeze([
-  "setup/create_selected_weeks",
-  "setup/create_selected_harnesses",
-  "setup/create_selected_session",
+  "setup/create_selected_weeks", "setup/create_selected_harnesses", "setup/create_selected_session",
 ]);
 
 // The statement that makes the table of benchmark harnesses, run after the selection tables and filled once.
@@ -41,31 +35,49 @@ const BENCHMARK_TABLE_STATEMENT = "setup/create_benchmark_harness";
 // The one kind of row whose files only the simulated weeks have.
 const SIMULATION_KIND = "simulation";
 
-// How query results arrive: 64-bit and 128-bit integers (a SUM of an integer column) and decimals as
-// JavaScript numbers. Every count and token total of this site fits a double exactly.
+// Query results give 64- and 128-bit integers (a SUM) and decimals as numbers; every count and total fits a double.
 const QUERY_CONFIG = Object.freeze({ castBigIntToDouble: true, castDecimalToDouble: true });
 
-// The indexes of weeks and harnesses, relative to a page; read before DuckDB is opened.
+// The indexes of weeks and harnesses, relative to a page; read before any query.
 const WEEKS_FILE = "data/weeks.json";
 const HARNESSES_FILE = "data/harnesses.json";
 
+// The folder of precomputed answers, relative to a page: the query `name`'s answer is `<folder><name>.json`.
+const ANSWERS_FOLDER = "data/all_weeks/";
+
+// The folders of the queries that have an answer for the default selection.
+const ANSWERED_PAGES = Object.freeze(["explore/", "figures/"]);
+
+// The colour orders: they read every week and harness whatever the selection, so their answers hold for any selection.
+const COLOUR_ORDER_QUERIES = Object.freeze(["setup/category_order", "setup/harness_order", "setup/model_order"]);
+
 /** The entries of `data/weeks.json`, oldest first: `{ week, last_day, month, simulated }`. */
-export function fetchWeeks() {
-  return fetchIndex(WEEKS_FILE);
+export async function fetchWeeks() {
+  return (await fetchFile(WEEKS_FILE)).json();
 }
 
 /** The entries of `data/harnesses.json`, most sessions first: `{ harness, sessions, benchmark }`. */
-export function fetchHarnesses() {
-  return fetchIndex(HARNESSES_FILE);
+export async function fetchHarnesses() {
+  return (await fetchFile(HARNESSES_FILE)).json();
 }
 
 /**
- * The database of one page, open over the data folder at `dataUrl` (an absolute URL) with the files of `weeks`
- * (the entries of `weeks.json`), empty selection tables, and the benchmark harnesses of `harnesses` (the entries of
- * `harnesses.json`). A page opens it once.
+ * The database of one page, over the data folder at `dataUrl` (an absolute URL) with the files of `weeks` (the entries
+ * of `weeks.json`) and the benchmark harnesses of `harnesses` (the entries of `harnesses.json`), and no selection yet.
+ * DuckDB is not loaded until a query needs it. A page opens it once.
  */
 export function openDatabase(dataUrl, weeks, harnesses) {
-  return Database.open(dataUrl, weeks, harnesses);
+  return new Database(dataUrl, weeks, harnesses);
+}
+
+/**
+ * The answer file of the query `name`, relative to the page: a colour order's always, an Explore or figure query's
+ * while the selection is the default (`isDefault`); null for every other query, which DuckDB runs.
+ */
+export function answerFileFor(name, isDefault) {
+  const isAnsweredPage = ANSWERED_PAGES.some((page) => name.startsWith(page));
+  const isAnswered = COLOUR_ORDER_QUERIES.includes(name) || (isDefault && isAnsweredPage);
+  return isAnswered ? `${ANSWERS_FOLDER}${name}.json` : null;
 }
 
 /** The names of the files of the kind of row `kind`, one per week of `weeks` that has one, in their order. */
@@ -104,52 +116,41 @@ export function plainRow(row) {
 }
 
 /**
- * One DuckDB connection with the selection tables, and the text of every statement it has fetched.
- * Each statement file is fetched once; its text is kept in `#statementTexts` by name.
- * `#selectionTurn` settles when the last selection or session change has finished; the next one waits for it.
+ * The queries of one page. The selection tables are filled before a DuckDB query whenever the selection has changed
+ * since they were last filled. Each statement file is fetched once and its text kept by name. `#turn` settles when the
+ * last change of the tables has finished; the next waits for it, so two quick changes never mix.
  */
 class Database {
-  #connection;
+  #dataUrl;
+  #weeks;
+  #harnesses;
+  #selection = null; // the selection last set, `{ weeks, harnesses }`; null before the first
+  #filledSelection = null; // the selection the selection tables hold; null while they hold none
+  #opening = null; // the promised DuckDB connection, from the first time a query needed it
   #statementTexts = new Map();
-  #selectionTurn = Promise.resolve();
+  #turn = Promise.resolve();
 
-  constructor(connection) {
-    this.#connection = connection;
-  }
-
-  /**
-   * A new database over the data folder at `dataUrl`: the views of the files of `weeks`, the empty selection tables,
-   * and the benchmark harness table holding the harnesses of `harnesses` marked as the benchmark.
-   */
-  static async open(dataUrl, weeks, harnesses) {
-    const duckDB = await startDuckDB();
-    const database = new Database(await duckDB.connect());
-    for (const name of VIEW_STATEMENTS) {
-      const kind = name.slice(VIEW_STATEMENT_PREFIX.length);
-      const fileNames = weekFileNames(kind, weeks);
-      if (fileNames.length > 0) {
-        await registerFiles(duckDB, dataUrl, fileNames);
-        await database.#connection.query(withFileNames(await database.#statementText(name), fileNames));
-      }
-    }
-    for (const name of SELECTION_TABLE_STATEMENTS) {
-      await database.#runStatement(name);
-    }
-    await database.#runStatement(BENCHMARK_TABLE_STATEMENT);
-    const benchmarkHarnesses = harnesses.filter((entry) => entry.benchmark).map((entry) => entry.harness);
-    await database.#insertEach("setup/insert_benchmark_harness", benchmarkHarnesses);
-    return database;
+  constructor(dataUrl, weeks, harnesses) {
+    this.#dataUrl = dataUrl;
+    this.#weeks = weeks;
+    this.#harnesses = harnesses;
   }
 
   /** The rows of the query `name`, as plain objects whose integers and decimals are numbers. */
   async runQuery(name) {
-    const result = await this.#connection.query(await this.#statementText(name));
-    return plainRows(result);
+    const answerFile = answerFileFor(name, this.#isDefault());
+    if (answerFile !== null) {
+      const answer = await (await fetchFile(answerFile)).json();
+      return answer.map(plainRow);
+    }
+    const connection = await this.#afterEarlierChanges(() => this.#connectionWithSelection());
+    return plainRows(await connection.query(await this.#statementText(name)));
   }
 
-  /** The rows of the query `name` run with `parameters` in place of its `?` placeholders, in order; as `runQuery`. */
+  /** The rows of the query `name` run in DuckDB with `parameters` in place of its `?` placeholders, in order. */
   async runQueryWith(name, parameters) {
-    const statement = await this.#connection.prepare(await this.#statementText(name));
+    const connection = await this.#connection();
+    const statement = await connection.prepare(await this.#statementText(name));
     try {
       return plainRows(await statement.query(...parameters));
     } finally {
@@ -158,13 +159,13 @@ class Database {
   }
 
   /**
-   * Empty `selected_weeks` and `selected_harnesses`, then fill them with `weeks` (Sundays) and `harnesses` (names).
-   * A call starts only after every earlier selection or session change has finished, so two quick calls
-   * never mix. A page still awaits it before running its queries, and drops the results of a run that a
-   * newer selection has replaced.
+   * Make `weeks` (Sundays) and `harnesses` (names) the selection: the default leaves DuckDB alone, any other fills
+   * `selected_weeks` and `selected_harnesses` once every earlier change of the tables has finished. A page awaits it
+   * before running its queries, and drops the results of a run that a newer selection has replaced.
    */
   setSelection({ weeks, harnesses }) {
-    return this.#afterEarlierChanges(() => this.#fillSelection(weeks, harnesses));
+    this.#selection = { weeks, harnesses };
+    return this.#afterEarlierChanges(() => (this.#isDefault() ? undefined : this.#connectionWithSelection()));
   }
 
   /** Empty `selected_session`, then hold the one session `rootSessionId` of `week`; ordered as `setSelection`. */
@@ -172,81 +173,114 @@ class Database {
     return this.#afterEarlierChanges(() => this.#fillSession(week, rootSessionId));
   }
 
-  /** Run `change` once the previous selection or session change has settled; its result or error is returned. */
+  #isDefault() {
+    return this.#selection !== null && isDefaultSelection(this.#selection, this.#weeks, this.#harnesses);
+  }
+
+  /** Run `change` once the previous change has settled; its result or error is returned. */
   #afterEarlierChanges(change) {
-    const turn = this.#selectionTurn.then(change);
+    const turn = this.#turn.then(change);
     // The caller gets `turn` and sees its error; the next change only needs to know it has settled.
-    this.#selectionTurn = turn.catch(() => undefined);
+    this.#turn = turn.catch(() => undefined);
     return turn;
   }
 
-  async #fillSelection(weeks, harnesses) {
-    await this.#runStatement("setup/clear_selected_weeks");
-    await this.#insertEach("setup/insert_selected_week", weeks);
-    await this.#runStatement("setup/clear_selected_harnesses");
-    await this.#insertEach("setup/insert_selected_harness", harnesses);
+  /** The DuckDB connection, its selection tables holding the latest selection when one has been set. */
+  async #connectionWithSelection() {
+    const connection = await this.#connection();
+    const selection = this.#selection;
+    if (selection !== null && selection !== this.#filledSelection) {
+      await this.#runStatement(connection, "setup/clear_selected_weeks");
+      await this.#runEach(connection, "setup/insert_selected_week", selection.weeks.map((week) => [week]));
+      await this.#runStatement(connection, "setup/clear_selected_harnesses");
+      await this.#runEach(connection, "setup/insert_selected_harness", selection.harnesses.map((harness) => [harness]));
+      this.#filledSelection = selection;
+    }
+    return connection;
   }
 
   async #fillSession(week, rootSessionId) {
-    await this.#runStatement("setup/clear_selected_session");
-    const insert = await this.#connection.prepare(await this.#statementText("setup/insert_selected_session"));
-    try {
-      await insert.query(week, rootSessionId);
-    } finally {
-      await insert.close();
+    const connection = await this.#connection();
+    await this.#runStatement(connection, "setup/clear_selected_session");
+    await this.#runEach(connection, "setup/insert_selected_session", [[week, rootSessionId]]);
+  }
+
+  /** The DuckDB connection, opened the first time it is asked for. */
+  #connection() {
+    this.#opening ??= this.#open();
+    return this.#opening;
+  }
+
+  /** A new DuckDB connection: the views of the weeks' files, empty selection tables, the benchmark harness table. */
+  async #open() {
+    const { duckdb, engine } = await startDuckDB();
+    const connection = await engine.connect();
+    for (const [kind, name] of Object.entries(VIEW_STATEMENTS)) {
+      const fileNames = weekFileNames(kind, this.#weeks);
+      if (fileNames.length > 0) {
+        await registerFiles(engine, this.#dataUrl, fileNames, duckdb.DuckDBDataProtocol.HTTP);
+        await connection.query(withFileNames(await this.#statementText(name), fileNames));
+      }
     }
+    for (const name of SELECTION_TABLE_STATEMENTS) {
+      await this.#runStatement(connection, name);
+    }
+    await this.#runStatement(connection, BENCHMARK_TABLE_STATEMENT);
+    const benchmarkEntries = this.#harnesses.filter((entry) => entry.benchmark);
+    await this.#runEach(connection, "setup/insert_benchmark_harness", benchmarkEntries.map((entry) => [entry.harness]));
+    return connection;
   }
 
-  /** Run the statement `name`, which takes no parameters; its result is not read. */
-  async #runStatement(name) {
-    await this.#connection.query(await this.#statementText(name));
+  /** Run the statement `name`, which takes no parameters, on `connection`; its result is not read. */
+  async #runStatement(connection, name) {
+    await connection.query(await this.#statementText(name));
   }
 
-  /** Run the one-parameter statement `name` once for each of `values`. */
-  async #insertEach(name, values) {
-    const insert = await this.#connection.prepare(await this.#statementText(name));
+  /** Run the statement `name` on `connection` once for each of `parameterLists`, a list of its `?` parameters each. */
+  async #runEach(connection, name, parameterLists) {
+    const statement = await connection.prepare(await this.#statementText(name));
     try {
-      for (const value of values) {
-        await insert.query(value);
+      for (const parameters of parameterLists) {
+        await statement.query(...parameters);
       }
     } finally {
-      await insert.close();
+      await statement.close();
     }
   }
 
   /** The text of the statement `name`, fetched from `queries/<name>.sql` the first time it is asked for. */
   async #statementText(name) {
     if (!this.#statementTexts.has(name)) {
-      this.#statementTexts.set(name, await fetchStatement(name));
+      const response = await fetchFile(`queries/${name}.sql`);
+      this.#statementTexts.set(name, await response.text());
     }
     return this.#statementTexts.get(name);
   }
 }
 
-/** A new DuckDB-WASM database running in a worker, open and ready to connect to. */
+/** The DuckDB-WASM module and a database of it in a worker, open and ready to connect to: `{ duckdb, engine }`. */
 async function startDuckDB() {
   // Loaded here, not imported at the top, so node can load this module's pure functions for the tests.
-  const { duckdb } = await import("./libraries.js");
+  const { loadDuckDB } = await import("./libraries.js");
+  const duckdb = await loadDuckDB();
   const bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
   // A worker script must come from the page's own origin, so a one-line blob imports the CDN's worker.
   const workerScript = new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" });
   const workerUrl = URL.createObjectURL(workerScript);
   const worker = new Worker(workerUrl);
   // The VoidLogger keeps DuckDB's per-query log lines out of the console.
-  const database = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), worker);
-  await database.instantiate(bundle.mainModule, bundle.pthreadWorker);
+  const engine = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), worker);
+  await engine.instantiate(bundle.mainModule, bundle.pthreadWorker);
   URL.revokeObjectURL(workerUrl);
-  await database.open({ query: QUERY_CONFIG });
-  return database;
+  await engine.open({ query: QUERY_CONFIG });
+  return { duckdb, engine };
 }
 
-/** Register each of `fileNames` with `duckDB` under its own name, as the URL of that file in the data folder. */
-async function registerFiles(duckDB, dataUrl, fileNames) {
-  // Loaded here, not imported at the top, as in `startDuckDB`.
-  const { duckdb } = await import("./libraries.js");
+/** Register each of `fileNames` with `engine` under its own name, as the URL of that file in the data folder. */
+async function registerFiles(engine, dataUrl, fileNames, httpProtocol) {
   for (const name of fileNames) {
     // HTTP, so DuckDB reads the file in ranges as it reads a URL named in a query; direct I/O off, the library's default.
-    await duckDB.registerFileURL(name, fileUrl(dataUrl, name), duckdb.DuckDBDataProtocol.HTTP, false);
+    await engine.registerFileURL(name, fileUrl(dataUrl, name), httpProtocol, false);
   }
 }
 
@@ -255,21 +289,11 @@ function plainRows(result) {
   return result.toArray().map((row) => plainRow(row.toJSON()));
 }
 
-/** The text of `queries/<name>.sql`, fetched relative to the page; throws naming the file if it cannot be fetched. */
-async function fetchStatement(name) {
-  const file = `queries/${name}.sql`;
-  const response = await fetch(file);
-  if (!response.ok) {
-    throw new Error(`Could not fetch the query file ${file}: ${response.status} ${response.statusText}`);
-  }
-  return response.text();
-}
-
-/** The JSON of the index file `file`, fetched relative to the page; throws naming the file if it cannot be fetched. */
-async function fetchIndex(file) {
+/** The response to fetching `file` relative to the page; throws naming the file if it cannot be fetched. */
+async function fetchFile(file) {
   const response = await fetch(file);
   if (!response.ok) {
     throw new Error(`Could not fetch ${file}: ${response.status} ${response.statusText}`);
   }
-  return response.json();
+  return response;
 }

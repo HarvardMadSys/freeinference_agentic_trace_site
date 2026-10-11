@@ -5,6 +5,8 @@ import re
 import duckdb
 import pytest
 
+import site_data.site_database
+
 import fixture_release
 import site_database
 
@@ -98,8 +100,17 @@ def browser_statement_names(constant: str) -> list[str]:
     return re.findall(r'"([^"]+)"', declaration.group(1))
 
 
+def browser_view_statements() -> dict[str, str]:
+    """The kinds and statement names, in order, of the map `const VIEW_STATEMENTS = Object.freeze({...});` in
+    database.js."""
+    declaration = re.search(r"const VIEW_STATEMENTS = Object\.freeze\(\{(.*?)\}\);", DATABASE_MODULE.read_text(),
+                            re.DOTALL)
+    assert declaration is not None, f"{DATABASE_MODULE.name} declares no VIEW_STATEMENTS"
+    return dict(re.findall(r'(\w+): "([^"]+)"', declaration.group(1)))
+
+
 def test_the_setup_statements_run_in_the_browser_s_order() -> None:
-    assert site_database.VIEW_STATEMENTS == browser_statement_names("VIEW_STATEMENTS")
+    assert list(site_data.site_database.VIEW_STATEMENTS.items()) == list(browser_view_statements().items())
     assert site_database.SELECTION_TABLE_STATEMENTS == browser_statement_names("SELECTION_TABLE_STATEMENTS")
 
 

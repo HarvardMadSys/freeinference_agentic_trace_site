@@ -1,16 +1,17 @@
 /**
  * The Explore page: weekly trends, headline numbers, distribution cards and the sessions table of the selected weeks.
  *
- * The page draws its header, pickers and every section's loading state from `weeks.json` and `harnesses.json`
- * before DuckDB loads, writing the URL's selection back in its shortest form, then opens the database, fills the
- * selection tables and runs every section. A change of the selection, from the pickers or a trend bar, rewrites the
- * URL, refills the tables and runs every section again.
+ * The page draws its header, pickers and every section's loading state from `weeks.json` and `harnesses.json`,
+ * writing the URL's selection back in its shortest form, then gives the database the selection and runs every
+ * section: from the precomputed answers for the default selection, in DuckDB for any other. A change of the
+ * selection, from the pickers or a trend bar, rewrites the URL, gives the database the new selection and runs every
+ * section again.
  *
  * `page` is what the page owns: `{ weeks, harnesses, selection, database, orders, latestRun }`, the entries of
- * `weeks.json` and `harnesses.json`, the current selection, the open database and the colour orders (both null until
- * the database opens), and the number of the latest run of the sections, so a run a newer one replaced stops before
- * it draws. `orders` is `{ harnesses, models }`, the promised rows of `setup/harness_order` and `setup/model_order`,
- * run once per load. A section runs as `run(container, context)` with
+ * `weeks.json` and `harnesses.json`, the current selection, the database, the colour orders, and the number of the
+ * latest run of the sections, so a run a newer one replaced stops before it draws. `orders` is
+ * `{ harnesses, models }`, the promised rows of `setup/harness_order` and `setup/model_order`, asked for once. A
+ * section runs as `run(container, context)` with
  * `context = { database, orders, selection, weeks, harnesses, onWeekClick, replaceQuery }`, and lays out fresh places
  * in its container each time, so a run that a newer one replaced draws into places no longer on the page.
  */
@@ -42,7 +43,7 @@ const SECTIONS = Object.freeze([
 
 start();
 
-/** Draw everything `weeks.json` and `harnesses.json` allow, then open the database and run the sections. */
+/** Draw everything `weeks.json` and `harnesses.json` allow, then run the sections. */
 async function start() {
   renderFooter(document.querySelector("#site-footer"));
   let weeks;
@@ -57,30 +58,23 @@ async function start() {
   }
   const params = new URLSearchParams(window.location.search);
   const selection = readSelection(params, weeks, harnesses);
-  const page = { weeks, harnesses, selection, database: null, orders: null, latestRun: 0 };
+  const database = openDatabase(new URL("data/", window.location.href).href, weeks, harnesses);
+  // The orders cover every week and harness, so they do not change with the selection; a section awaits its own.
+  const orders = {
+    harnesses: database.runQuery("setup/harness_order"),
+    models: database.runQuery("setup/model_order"),
+  };
+  const page = { weeks, harnesses, selection, database, orders, latestRun: 0 };
   // The URL is written back in its shortest form: a key that says the default, or names no known week, goes.
   replaceQuery(writeSelection(params, selection, weeks, harnesses));
   renderPageHeader(page);
   mountPicker(page);
-  layoutEverySection();
-  try {
-    page.database = await openDatabase(new URL("data/", window.location.href).href, weeks, harnesses);
-  } catch (error) {
-    showErrorInEverySection(error);
-    return;
-  }
-  // The orders cover every week and harness, so they do not change with the selection; a section awaits its own.
-  page.orders = {
-    harnesses: page.database.runQuery("setup/harness_order"),
-    models: page.database.runQuery("setup/model_order"),
-  };
-  // The visitor may have changed the selection while the database opened; this runs the latest one.
   await runEverySection(page);
 }
 
 /**
- * Fill the selection tables with the page's selection, then run every section; with no week or no harness selected,
- * show the note instead.
+ * Give the database the page's selection, then run every section; with no week or no harness selected, show the note
+ * instead.
  */
 async function runEverySection(page) {
   page.latestRun += 1;
@@ -91,14 +85,12 @@ async function runEverySection(page) {
     return;
   }
   layoutEverySection();
-  // Before the database opens there is nothing to run: `start` runs the latest selection once it has opened.
-  if (page.database === null) {
-    return;
-  }
   try {
     await page.database.setSelection(selection);
   } catch (error) {
-    showErrorInEverySection(error);
+    if (run === page.latestRun) {
+      showErrorInEverySection(error); // a newer selection's run shows its own state instead
+    }
     return;
   }
   // A newer selection replaced this one while its tables were filled; that selection's run draws the page.
