@@ -20,13 +20,13 @@ deploy.sh         what make deploy runs
 serve.py          what make serve runs: a local server that answers range requests
 pyproject.toml    Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
 package.json      sets ES modules for node --test; no dependencies
-site_data/        builds site/data/ from a release folder, the precomputed answers included
+site_data/        builds site/data/ from a release folder: a file per kind and week, the indexes, the answers
 site/             exactly the files that are deployed
   *.html          one file per page: index (Explore), session, about
   style.css       tokens, layout and components
-  js/shared/      the database, the selection, the libraries, formatting, the table, charts, the stat strip, the layout
+  js/shared/      the database, the selection, the libraries, formatting, the table, charts, the histogram card, the stat strip, the layout
   js/pages/       one module per page
-  js/explore/     the Explore page's sections: trends, headline, figure sections, sessions table
+  js/explore/     the Explore page's sections: trends, headline, distribution cards, sessions table
   js/figures/     one module per figure section, and the row rules every figure shares
   js/session/     the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
   js/session_requests/  the Requests view: a row per request, its details, brackets and legend
@@ -47,9 +47,10 @@ fails on a folder under `site/js/` with more than nine.
 ### Requirement: Navigation and the About page
 Every page SHALL share one header linking Explore, its figure sections, its
 sessions table and About, carrying the current selection in each link. The
-About page SHALL say that the site shows the paper's Agentic population and
-define session, top-level session, subagent, request, step, turn,
-transition, wait, idle gap and gap bin in the pipeline's words, say how the
+About page SHALL say that the default selection is the paper's population
+(every harness but the benchmark replay) and define session, top-level
+session, subagent, request, step, turn, harness, transition, wait, idle gap
+and gap bin in the pipeline's words, say how the
 data were built and from which release, say which figures the site draws
 more simply than the paper, and link to the paper, the dataset and the
 pipeline repository.
@@ -64,7 +65,7 @@ every commit. Every `.sql` file SHALL be run by a test against data built from
 a small fixture release, with the selection tables filled, and SHALL return
 the columns its chart reads. For every query that has a precomputed answer,
 a test SHALL check that the answer written for the fixture equals the query
-run live with every week selected.
+run live with the default selection.
 
 #### Scenario: A query that no longer matches the data
 - **WHEN** a column a query reads is renamed in the site data

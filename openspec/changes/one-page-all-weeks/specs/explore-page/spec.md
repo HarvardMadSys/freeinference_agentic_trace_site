@@ -2,15 +2,31 @@
 
 ## Purpose
 
-The site's one exploring page: what the trace holds for the selected weeks,
-how it changed week to week, the paper's figures redrawn for those weeks,
-and, last, the table of sessions that leads into any one of them.
+The site's one exploring page: what the trace holds for the selected weeks
+and harnesses, how it changed week to week, how it is distributed, the
+paper's figures redrawn for that selection, and, last, the table of sessions
+that leads into any one of them.
 
 ## MODIFIED Requirements
 
+### Requirement: Weekly trends
+The Explore page SHALL show one bar per week, for every week whatever weeks
+are selected, of the selected harnesses' top-level sessions: sessions per
+week stacked by harness, requests per week stacked by model, and input
+tokens per week split into cached and uncached. The selected weeks SHALL be
+highlighted. Clicking a week's bar SHALL select that week alone.
+
+#### Scenario: Clicking a bar
+- **WHEN** the visitor clicks the bar of week 2026-08-09
+- **THEN** the selection SHALL become that week alone, the URL SHALL change, and every other part of the page SHALL redraw
+
+#### Scenario: Models per week
+- **WHEN** a week's requests were served by three models
+- **THEN** that week's requests bar SHALL have three segments, one per model, in the model colours the figures use
+
 ### Requirement: Headline numbers
 The Explore page SHALL show, for the top-level sessions of the selected
-weeks:
+weeks and harnesses:
 - sessions;
 - accounts (distinct `user_id`);
 - requests;
@@ -23,17 +39,31 @@ weeks:
 
 Each number SHALL carry its definition on hover.
 
-#### Scenario: Every week
-- **WHEN** every week is selected
-- **THEN** sessions, accounts, requests and tool calls SHALL equal the totals of the release's Agentic top-level sessions
-
 #### Scenario: Every week, scope All
-- **WHEN** a visitor opens a link from the first release with `?weeks=all&scope=All`
-- **THEN** the numbers SHALL be those of every week's Agentic top-level sessions, the scope key being ignored
+- **WHEN** every week and every harness, the benchmark included, are selected
+- **THEN** sessions, accounts, requests and tool calls SHALL equal the release's totals for its top-level sessions
+
+### Requirement: Distribution cards
+The Explore page SHALL show one histogram card for each of: input tokens per
+request, uncached input tokens per request, output tokens per request,
+requests per session, turns per session, subagents per session, session
+duration, and cached fraction per request, for the selected weeks and
+harnesses. Each card SHALL:
+- draw its bins on a log scale where the quantity spans more than two orders
+  of magnitude (token counts, counts per session, durations), on a linear
+  scale otherwise (the cached fraction), and say which on the card;
+- mark the 50th, 75th, 90th and 95th percentiles as dashed lines in fixed
+  colours, with a legend;
+- give `n`, the median, the 90th percentile and the maximum under its title;
+- show its definition on hover.
+
+#### Scenario: A card for one week
+- **WHEN** the selection is one week
+- **THEN** each card's median SHALL equal the median of that week's values, computed exactly, not from the bins
 
 ### Requirement: Sessions table
-The Explore page SHALL list the top-level sessions of the selected weeks as
-its last section, 50 rows a page, with the columns:
+The Explore page SHALL list the top-level sessions of the selected weeks and
+harnesses as its last section, 50 rows a page, with the columns:
 - session (a shortened id, linked);
 - week;
 - started (UTC);
@@ -71,27 +101,27 @@ the Session page. The table SHALL have an anchor the header links to.
 - **THEN** the page SHALL open at the sessions table with the same selection, sort, filters and page
 
 ### Requirement: The page appears before the data
-The Explore page SHALL draw its layout and week picker from `weeks.json`
-first. With every week selected it SHALL then draw every number, figure and
-the table from the precomputed answers, without loading DuckDB. With any
-other selection it SHALL show a loading state in place of each number,
-figure and table until its query returns. A failed query SHALL show its
+The Explore page SHALL draw its layout and pickers from `weeks.json` and
+`harnesses.json` first. With the default selection it SHALL then draw every
+number, card, figure and the table from the precomputed answers, without
+waiting for DuckDB. With any other selection it SHALL show a loading state
+in place of each part until its query returns. A failed query SHALL show its
 error in its own place without stopping the others.
 
 #### Scenario: The default view
 - **WHEN** a visitor opens the page with no selection in the URL
-- **THEN** every number, figure and the table SHALL be drawn from `data/all_weeks/` and no DuckDB or Parquet file SHALL be fetched
+- **THEN** every number, card, figure and the table SHALL be drawn from `data/all_weeks/` before any DuckDB module or Parquet file is fetched
 
 #### Scenario: A slow connection
 - **WHEN** the selection is one week and DuckDB-WASM takes several seconds to download
-- **THEN** the page SHALL already show the week picker and a loading state for each part
+- **THEN** the page SHALL already show the pickers and a loading state for each part
 
 ## ADDED Requirements
 
 ### Requirement: Paper figures
-Between the headline numbers and the sessions table, the Explore page SHALL
-draw these figures for the top-level sessions of the selected weeks, in
-three sections, each with its definition beside it:
+Between the distribution cards and the sessions table, the Explore page
+SHALL draw these figures for the top-level sessions of the selected weeks
+and harnesses, in three sections, each figure with its definition beside it:
 
 | Section | Figure | What it plots |
 |---|---|---|
@@ -99,6 +129,7 @@ three sections, each with its definition beside it:
 | Sessions | `duration_cdf` | CDF of turn durations and of session durations, in seconds |
 | Sessions | `tokens_per_request_cdf` | CDF over requests of input, uncached input and output tokens |
 | Sessions | `cost_share_by_session` | Each session's cost split between cached input, uncached input and output at the pipeline's prices, sessions ranked by cached share, in rank bins |
+| Sessions | `token_split_by_week` | Per selected week: the share of cached input, uncached input and output in all tokens |
 | Sessions | `token_growth_by_messages` | Median cached, uncached and output tokens per bin of messages in the request |
 | Sessions | `context_share_by_role` | Share of input held by system, user, assistant, tool results and tool definitions, per bin of input size |
 | Sessions | `ttft_cdf_by_model` | CDF of TTFT per model, for the five models with most requests, trusted TTFTs only |
@@ -117,19 +148,20 @@ three sections, each with its definition beside it:
 
 Each figure SHALL be one query file and one chart function. Each figure
 SHALL show a title, a one-sentence definition, the number of rows it rests
-on and the weeks it shows. The sections SHALL have headings the header
-links to.
+on and the weeks and harnesses it shows. The three simulated figures SHALL
+show the paper's population whatever harnesses are selected and say so. The
+sections SHALL have headings the header links to.
 
 #### Scenario: A figure for one month
 - **WHEN** the selection is `month=2026-07`
-- **THEN** every figure SHALL be computed from the top-level sessions of July 2026's weeks only
+- **THEN** every figure SHALL be computed from the selected harnesses' top-level sessions of July 2026's weeks only
 
 #### Scenario: A simulation figure for a week without a simulation
 - **WHEN** a selected week has no simulation rows
 - **THEN** the three simulated figures SHALL draw the other selected weeks and say which week is missing
 
 ### Requirement: Same definitions as the paper
-With every week selected, every number a figure shares with the paper's
+With the default selection, every number a figure shares with the paper's
 `numbers.json` (for example the median input tokens per request, the pooled
 cost shares, the median gap by cause, the mean hit ratio by cause, the
 median hit ratio after an append and after a mutation) SHALL equal the
@@ -139,11 +171,11 @@ merged, model time not split into prefill and decode, no queueing estimate),
 the figure's definition SHALL say so.
 
 #### Scenario: The median input tokens per request
-- **WHEN** every week is selected
+- **WHEN** the selection is the default
 - **THEN** the median of `tokens_per_request_cdf`'s input series SHALL equal `sessions.tokens_per_request.median_input` in the paper's `numbers.json`
 
 #### Scenario: The median gap after a tool
-- **WHEN** every week is selected
+- **WHEN** the selection is the default
 - **THEN** the median of `gap_cdf_by_cause`'s tool series SHALL equal the paper's `median_gap_s_tool`
 
 ### Requirement: Thin data is not drawn
@@ -156,31 +188,38 @@ for the selection SHALL say so instead of drawing empty axes.
 - **THEN** sparse bins SHALL be hidden and each figure SHALL either draw what remains or say it has too few rows
 
 ### Requirement: Figures draw when in view and redraw on selection change
-With every week selected, every figure SHALL be drawn from its precomputed
-answer as soon as the page opens. With any other selection, a figure's query
-SHALL start when its card scrolls into view, and a figure already drawn for
-the current selection SHALL NOT be queried again. Changing the selection
-SHALL mark every figure as not drawn and redraw the ones in view, and SHALL
-NOT reload the page.
+With the default selection, every figure SHALL be drawn from its
+precomputed answer as soon as the page opens. With any other selection, a
+figure's query SHALL start when its card scrolls into view, and a figure
+already drawn for the current selection SHALL NOT be queried again.
+Changing the selection SHALL mark every figure as not drawn and redraw the
+ones in view, and SHALL NOT reload the page.
 
 #### Scenario: A narrowed selection
 - **WHEN** the visitor unticks a week and the Tools section is below the viewport
 - **THEN** the figures in view SHALL redraw, and the Tools figures SHALL query when the visitor scrolls to them
 
+### Requirement: Legends toggle series
+In a figure or trend with more than one series, each legend entry SHALL be a
+button that hides or shows its series, redrawing the chart from the rows it
+already has without a query. A hidden series SHALL be shown struck through
+in the legend. The hidden set SHALL NOT be kept in the URL and SHALL reset
+when the selection changes.
+
+#### Scenario: Hiding a harness in the trend
+- **WHEN** the visitor clicks `Hermes` in the sessions-per-week legend
+- **THEN** the Hermes segments SHALL disappear from every bar, the bars SHALL rescale, and no query SHALL run
+
+#### Scenario: Hiding a model in a CDF
+- **WHEN** the visitor clicks one model in the TTFT figure's legend
+- **THEN** that model's line SHALL disappear and the figure's caption SHALL still give the rows the figure rests on
+
 ### Requirement: Readable in both colour schemes and on a phone
 Charts SHALL use one colour per series, consistent across figures (the same
-model, category, cause or policy has the same colour everywhere), SHALL be
-legible in light and dark mode, and SHALL fit a 360-pixel-wide screen without
-horizontal scrolling of the page.
+harness, model, category, cause or policy has the same colour everywhere),
+SHALL be legible in light and dark mode, and SHALL fit a 360-pixel-wide
+screen without horizontal scrolling of the page.
 
 #### Scenario: A phone
 - **WHEN** the page is opened 360 pixels wide
 - **THEN** figures SHALL stack in one column and the page SHALL not scroll sideways
-
-## REMOVED Requirements
-
-### Requirement: Distribution cards
-**Reason**: Every quantity a card showed is a paper figure (tokens per
-request, requests per session, session duration, hit ratio) or a headline
-number and a table column (turns, subagents per session).
-**Migration**: The cards, their sixteen queries and the histogram module go.
