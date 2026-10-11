@@ -23,7 +23,7 @@ REQUEST_COLUMNS = [
     "waited_for", "prompt_tokens", "completion_tokens", "cache_read_tokens", "system_tokens", "user_tokens",
     "assistant_tokens", "tool_tokens", "tool_definition_tokens", "n_messages", "finish_reason", "transition",
     "cause", "harness", "is_top_level", "root_session_id", "depth", "turn", "uncached_tokens", "hit_ratio", "wait_s",
-    "idle_gap_s", "idle_gap_bin", "is_trusted_ttft", "n_tool_calls",
+    "idle_gap_s", "idle_gap_bin", "is_trusted_ttft", "n_tool_calls", "user_prompt_tokens", "missed_tokens_no_ttl",
 ]
 
 
@@ -170,6 +170,8 @@ def test_nullable_integers_and_booleans_keep_their_types(tmp_path: pathlib.Path)
     path = week_file(build(tmp_path), "requests", FIRST_SUNDAY)
     schema = parquet.read_schema(path)
     assert str(schema.field("ttft_ms").type) == "int64" and str(schema.field("idle_gap_bin").type) == "int64"
+    assert str(schema.field("user_prompt_tokens").type) == "int64"
+    assert str(schema.field("missed_tokens_no_ttl").type) == "int64"
     assert str(schema.field("is_top_level").type) == "bool"
     written = pandas.read_parquet(path)
     assert written.ttft_ms.dtype == "Int64" and written.ttft_ms.isna().sum() == 1

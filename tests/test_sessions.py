@@ -4,7 +4,7 @@ import pathlib
 
 import pandas
 
-from site_data import loading, requests, sessions, weeks
+from site_data import loading, requests, sessions, simulation, weeks
 
 import fixture_release
 
@@ -22,7 +22,8 @@ def fixture_frames(tmp_path: pathlib.Path) -> tuple[pandas.DataFrame, pandas.Dat
     fixture_release.write_fixture_release(tmp_path / "release", tmp_path / "simulation")
     entries = weeks.weeks_index(tmp_path / "release", tmp_path / "simulation")
     release = loading.load_release(tmp_path / "release", entries)
-    site_requests = requests.requests_frame(release)
+    request_misses = simulation.request_misses_frame(tmp_path / "simulation", entries)
+    site_requests = requests.requests_frame(release, request_misses)
     site_sessions = sessions.sessions_frame(release, site_requests)
     return site_requests, site_sessions.set_index("session_id", drop=False)
 

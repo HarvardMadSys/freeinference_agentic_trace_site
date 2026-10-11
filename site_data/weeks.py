@@ -2,9 +2,9 @@
 
 A week folder is named `<sunday>_<saturday>`. A week's month is the month of
 its Sunday, so a week that spans two months belongs to the first. A week is
-simulated when the simulation's `sources.json` for it records, for both the
-tallies and the totals, the sha256 of the week's current manifest: a week
-simulated from older traces counts as not simulated.
+simulated when the simulation's `sources.json` for it records, for each of the
+tallies, the totals and the per-request misses, the sha256 of the week's
+current manifest: a week simulated from older traces counts as not simulated.
 
 Every week has a file of requests, tool calls and sessions; only a simulated
 week has a file of simulation rows.
@@ -19,7 +19,7 @@ from simulation import weekly_files
 from site_data import paths
 
 # The simulation's files the site reads; a week is simulated when each was computed from the week's current traces.
-SIMULATION_FILES = (weekly_files.TALLIES_FILE, weekly_files.TOTALS_FILE)
+SIMULATION_FILES = (weekly_files.TALLIES_FILE, weekly_files.TOTALS_FILE, weekly_files.REQUEST_MISSES_FILE)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -40,7 +40,8 @@ def week_entry(week_directory: pathlib.Path, simulation_directory: pathlib.Path)
 
 
 def is_simulated(week_directory: pathlib.Path, simulated_week: pathlib.Path) -> bool:
-    """Whether the simulation's tallies and totals of the week were both computed from its current traces."""
+    """Whether the simulation's tallies, totals and per-request misses of the week were each computed from its
+    current traces."""
     recorded = weekly_files.recorded_sources(simulated_week)
     current = weekly_files.traces_source(week_directory)
     for file_name in SIMULATION_FILES:

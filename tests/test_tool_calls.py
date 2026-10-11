@@ -6,7 +6,7 @@ import pathlib
 import pandas
 import pytest
 
-from site_data import loading, requests, tool_calls, weeks
+from site_data import loading, requests, simulation, tool_calls, weeks
 
 import fixture_release
 
@@ -21,7 +21,8 @@ def fixture_release_and_requests(tmp_path: pathlib.Path) -> tuple[loading.WeekTa
     fixture_release.write_fixture_release(tmp_path / "release", tmp_path / "simulation")
     entries = weeks.weeks_index(tmp_path / "release", tmp_path / "simulation")
     release = loading.load_release(tmp_path / "release", entries)
-    return release, requests.requests_frame(release)
+    request_misses = simulation.request_misses_frame(tmp_path / "simulation", entries)
+    return release, requests.requests_frame(release, request_misses)
 
 
 def fixture_calls(tmp_path: pathlib.Path) -> pandas.DataFrame:

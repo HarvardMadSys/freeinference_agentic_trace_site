@@ -82,7 +82,8 @@ def parsed_arguments(arguments: list[str] | None) -> argparse.Namespace:
 def site_frames(release: loading.WeekTaggedRelease, simulation_directory: pathlib.Path,
                 entries: list[weeks.WeekEntry]) -> dict[str, pandas.DataFrame]:
     """The four frames of the site, each with its `week` column, by the folder each is written to."""
-    site_requests = requests.requests_frame(release)
+    request_misses = simulation.request_misses_frame(simulation_directory, entries)
+    site_requests = requests.requests_frame(release, request_misses)
     return {
         paths.REQUESTS_FOLDER: site_requests,
         paths.TOOL_CALLS_FOLDER: tool_calls.tool_calls_frame(release, site_requests),

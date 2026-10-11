@@ -27,13 +27,16 @@ def test_an_entry_names_the_folder_it_was_read_from(tmp_path: pathlib.Path) -> N
     assert weeks.folder_name(weeks.week_entry(week_directory, tmp_path / "simulation")) == "2026-05-31_2026-06-06"
 
 
-def test_a_week_is_simulated_when_its_tallies_and_totals_were_computed_from_its_traces(tmp_path: pathlib.Path) -> None:
+def test_a_week_is_simulated_when_each_of_its_simulation_files_was_computed_from_its_traces(
+        tmp_path: pathlib.Path) -> None:
     week_directory = make_week(tmp_path / "release", "2026-08-30_2026-09-05")
     simulated_week = tmp_path / "simulation" / "2026-08-30_2026-09-05"
     simulated_week.mkdir(parents=True)
     weekly_files.record_sources(simulated_week, week_directory, [weekly_files.TALLIES_FILE])
     assert not weeks.week_entry(week_directory, tmp_path / "simulation").simulated  # the totals are not recorded
     weekly_files.record_sources(simulated_week, week_directory, [weekly_files.TOTALS_FILE])
+    assert not weeks.week_entry(week_directory, tmp_path / "simulation").simulated  # the misses are not recorded
+    weekly_files.record_sources(simulated_week, week_directory, [weekly_files.REQUEST_MISSES_FILE])
     assert weeks.week_entry(week_directory, tmp_path / "simulation").simulated
 
 

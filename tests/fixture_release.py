@@ -68,6 +68,7 @@ class FixtureRequest:
     provider: str = "A"
     transition: str = "append"  # against step - 1; the release has none at step 0
     cause: str | None = None
+    user_tokens: int = 200  # the input's tokens of the user role
 
 
 @dataclasses.dataclass(frozen=True)
@@ -124,7 +125,7 @@ REQUESTS = (
                    transition="mutation", cause="compaction"),
     FixtureRequest("mutation", 2, 1_200, 1_210, "tool", "tool", 1_800, 1_500),
     FixtureRequest("idle-week-2", 0, 4_200, 4_210, "user", None, 1_000, 800, provider="B"),
-    FixtureRequest("idle-week-2", 1, 4_300, 4_310, "user", "user", 1_200, 1_000, provider="B"),
+    FixtureRequest("idle-week-2", 1, 4_300, 4_310, "user", "user", 1_200, 1_000, provider="B", user_tokens=242),
     FixtureRequest("idle-benchmark", 0, 2_000, 2_010, "user", None, 600, 0, provider="B"),
 )
 
@@ -207,8 +208,8 @@ def request_row(request: FixtureRequest, week_start: int) -> dict:
         "prompt_tokens": request.prompt_tokens,
         "completion_tokens": 100,
         "cache_read_tokens": request.cache_read_tokens,
-        "role_tokens": {"system": 100, "user": 200, "assistant": 50 * request.step, "tool": 50 * request.step,
-                        "tool_definitions": 300},
+        "role_tokens": {"system": 100, "user": request.user_tokens, "assistant": 50 * request.step,
+                        "tool": 50 * request.step, "tool_definitions": 300},
         "n_messages": 2 * request.step + 2,
         "tool_definition_names": sorted(TOOLS),
         "finish_reason": "tool_calls" if request.calls else "stop",
@@ -249,7 +250,8 @@ def tool_call_row(request: FixtureRequest, call_index: int, name: str, latency_m
 
 
 def write_simulation(simulated_week: pathlib.Path, week_directory: pathlib.Path) -> None:
-    """A few tallies and the totals of one week, with `sources.json` naming the week's manifest."""
+    """A few tallies, the totals and the per-request misses of one week, with `sources.json` naming the week's
+    manifest."""
     simulated_week.mkdir(parents=True)
     tallies = pandas.DataFrame({
         "scope": ["Agentic", "Agentic", "Agentic", "SWE-Bench", "SWE-Bench"],
@@ -269,4 +271,17 @@ def write_simulation(simulated_week: pathlib.Path, week_directory: pathlib.Path)
     })
     tallies.to_parquet(simulated_week / weekly_files.TALLIES_FILE, index=False)
     totals.to_parquet(simulated_week / weekly_files.TOTALS_FILE, index=False)
-    weekly_files.record_sources(simulated_week, week_directory, [weekly_files.TALLIES_FILE, weekly_files.TOTALS_FILE])
+    request_misses_table().to_parquet(simulated_week / weekly_files.REQUEST_MISSES_FILE, index=False)
+    written = [weekly_files.TALLIES_FILE, weekly_files.TOTALS_FILE, weekly_files.REQUEST_MISSES_FILE]
+    weekly_files.record_sources(simulated_week, week_directory, written)
+
+
+def request_misses_table() -> pandas.DataFrame:
+    """The tokens each replayed request of the first week missed with no TTL, a multiple of the 16-token block: the
+    top-level requests of each scope, and no subagent's."""
+    return pandas.DataFrame({
+        "scope": ["Agentic"] * 8 + ["SWE-Bench"] * 2,
+        "session_id": ["tree-root"] * 5 + ["idle-week-1"] * 3 + ["swe-bench"] * 2,
+        "step": [0, 1, 2, 3, 4, 0, 1, 2, 0, 1],
+        "missed_tokens": [992, 1_008, 1_008, 1_008, 1_008, 992, 208, 208, 800, 208],
+    }).astype({"step": "int32"})

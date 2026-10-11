@@ -61,8 +61,10 @@ def test_only_the_first_week_is_simulated(tmp_path: pathlib.Path) -> None:
     simulated_week = tmp_path / "simulation" / "2026-05-31_2026-06-06"
     tallies = pandas.read_parquet(simulated_week / weekly_files.TALLIES_FILE)
     totals = pandas.read_parquet(simulated_week / weekly_files.TOTALS_FILE)
+    request_misses = pandas.read_parquet(simulated_week / weekly_files.REQUEST_MISSES_FILE)
     assert list(tallies.columns) == ["scope", "policy", "ttl", *weekly_files.TALLY_COLUMNS]
     assert list(totals.columns) == ["scope", *weekly_files.TOTAL_COLUMNS]
+    assert list(request_misses.columns) == ["scope", "session_id", "step", "missed_tokens"]
 
 
 def test_the_simulation_records_the_manifest_it_was_computed_from(tmp_path: pathlib.Path) -> None:
@@ -70,4 +72,5 @@ def test_the_simulation_records_the_manifest_it_was_computed_from(tmp_path: path
     week = "2026-05-31_2026-06-06"
     sources = weekly_files.recorded_sources(tmp_path / "simulation" / week)
     current = weekly_files.traces_source(tmp_path / "release" / week)
-    assert sources == {weekly_files.TALLIES_FILE: current, weekly_files.TOTALS_FILE: current}
+    assert sources == {weekly_files.TALLIES_FILE: current, weekly_files.TOTALS_FILE: current,
+                       weekly_files.REQUEST_MISSES_FILE: current}

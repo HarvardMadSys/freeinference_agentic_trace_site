@@ -67,3 +67,16 @@ def test_a_scope_with_tallies_and_no_totals_is_refused(tmp_path: pathlib.Path) -
     totals[totals.scope == population.AGENTIC].to_parquet(totals_path, index=False)
     with pytest.raises(ValueError, match="has tallies but no totals of SWE-Bench"):
         simulation.simulation_frame(tmp_path / "simulation", entries)
+
+
+def test_the_request_misses_are_the_simulated_week_s_each_with_its_week(tmp_path: pathlib.Path) -> None:
+    misses = simulation.request_misses_frame(tmp_path / "simulation", fixture_entries(tmp_path))
+    assert list(misses.columns) == ["week", "session_id", "step", "missed_tokens"]
+    assert misses.week.unique().tolist() == ["2026-05-31"]
+    assert sorted(misses.session_id.unique()) == ["idle-week-1", "swe-bench", "tree-root"]
+    assert misses.missed_tokens.sum() == 7_440
+
+
+def test_no_simulated_week_gives_no_request_misses(tmp_path: pathlib.Path) -> None:
+    misses = simulation.request_misses_frame(tmp_path / "simulation", fixture_entries(tmp_path)[1:])
+    assert misses.empty and misses.step.dtype == "int32"

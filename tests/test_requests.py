@@ -3,8 +3,9 @@
 import pathlib
 
 import pandas
+import pytest
 
-from site_data import loading, requests, weeks
+from site_data import loading, requests, simulation, weeks
 
 import fixture_release
 
@@ -13,7 +14,7 @@ SITE_COLUMNS = [
     "waited_for", "prompt_tokens", "completion_tokens", "cache_read_tokens", "system_tokens", "user_tokens",
     "assistant_tokens", "tool_tokens", "tool_definition_tokens", "n_messages", "finish_reason", "transition",
     "cause", "harness", "is_top_level", "root_session_id", "depth", "turn", "uncached_tokens", "hit_ratio", "wait_s",
-    "idle_gap_s", "idle_gap_bin", "is_trusted_ttft", "n_tool_calls",
+    "idle_gap_s", "idle_gap_bin", "is_trusted_ttft", "n_tool_calls", "user_prompt_tokens", "missed_tokens_no_ttl",
 ]
 
 
@@ -22,7 +23,8 @@ def fixture_requests(tmp_path: pathlib.Path) -> pandas.DataFrame:
     fixture_release.write_fixture_release(tmp_path / "release", tmp_path / "simulation")
     entries = weeks.weeks_index(tmp_path / "release", tmp_path / "simulation")
     release = loading.load_release(tmp_path / "release", entries)
-    return requests.requests_frame(release).set_index(["session_id", "step"], drop=False)
+    request_misses = simulation.request_misses_frame(tmp_path / "simulation", entries)
+    return requests.requests_frame(release, request_misses).set_index(["session_id", "step"], drop=False)
 
 
 def test_every_request_of_every_session_is_a_row(tmp_path: pathlib.Path) -> None:
@@ -133,3 +135,32 @@ def test_role_tokens_and_transitions_keep_their_release_values(tmp_path: pathlib
     assert (tool_step.system_tokens, tool_step.assistant_tokens, tool_step.tool_definition_tokens) == (100, 100, 300)
     mutation = site_requests.loc[("mutation", 1)]
     assert (mutation.transition, mutation.cause) == ("mutation", "compaction")
+
+
+def test_a_user_step_s_prompt_is_its_rise_in_user_tokens_and_a_tool_step_has_none(tmp_path: pathlib.Path) -> None:
+    prompts = fixture_requests(tmp_path).user_prompt_tokens
+    assert prompts.dtype == "Int64"
+    assert prompts[("tree-root", 0)] == 200  # step 0 counts its whole user tokens
+    assert pandas.isna(prompts[("tree-root", 1)])  # a tool step
+    assert prompts[("idle-week-2", 1)] == 42  # 242 user tokens after 200
+    assert prompts.notna().sum() == 10  # the nine sessions' step 0, and `idle-week-2`'s step 1
+
+
+def test_a_replayed_request_carries_its_misses_and_any_other_none(tmp_path: pathlib.Path) -> None:
+    missed = fixture_requests(tmp_path).missed_tokens_no_ttl
+    assert missed.dtype == "Int64"
+    assert missed[("tree-root", 1)] == 1_008
+    assert missed[("swe-bench", 0)] == 800  # the benchmark is simulated in its own scope
+    assert pandas.isna(missed[("tree-child", 0)])  # a subagent's request is not replayed
+    assert missed[[("idle-week-2", 0), ("mutation", 0)]].isna().all()  # the second week has no simulation
+    assert missed.sum() == 7_440  # the ten replayed requests of the first week
+
+
+def test_a_miss_of_no_request_is_refused(tmp_path: pathlib.Path) -> None:
+    fixture_release.write_fixture_release(tmp_path / "release", tmp_path / "simulation")
+    entries = weeks.weeks_index(tmp_path / "release", tmp_path / "simulation")
+    release = loading.load_release(tmp_path / "release", entries)
+    request_misses = simulation.request_misses_frame(tmp_path / "simulation", entries)
+    stray = request_misses.iloc[[0]].assign(step=99)
+    with pytest.raises(ValueError, match="1 request misses join no request, the first at step 99 of session tree-root"):
+        requests.requests_frame(release, pandas.concat([request_misses, stray]))
