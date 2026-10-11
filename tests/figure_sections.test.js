@@ -11,6 +11,7 @@ const SECTION_FIGURES = {
     "requests_per_session_cdf",
     "duration_cdf",
     "tokens_per_request_cdf",
+    "cost_share_by_session",
     "token_split_by_week",
     "token_growth_by_messages",
     "context_share_by_role",
@@ -90,7 +91,7 @@ const LONG_FORMAT_SERIES_COLUMNS = {
   simulated_hit_ratio_by_ttl: "policy",
   dead_over_active_by_policy: "policy",
 };
-const WIDE_FORMAT_FIGURES = ["token_growth_by_messages", "retained_over_active"];
+const WIDE_FORMAT_FIGURES = ["token_growth_by_messages", "retained_over_active", "cost_share_by_session"];
 
 test("every long-format figure of more than one series names its series column and has a legend", async () => {
   for (const { figures } of await sections()) {

@@ -7,13 +7,18 @@ import math
 import pathlib
 import re
 
-from paper.metrics import gaps
+import pytest
+
+from paper.metrics import binning, gaps, prices
 from release import population, schema
 from simulation import cache
 
 SITE_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site"
 CACHING_MODULE = SITE_FOLDER / "js" / "figures" / "caching.js"  # the idle-gap bins, the TTLs and the policies
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the wait causes
+FIGURE_QUERIES = SITE_FOLDER / "queries" / "figures"  # the figure queries
+COST_SHARE_QUERY = FIGURE_QUERIES / "cost_share_by_session.sql"  # the prices
+RANK_BIN_QUERIES = [COST_SHARE_QUERY]  # each cuts sessions into the pipeline's rank bins
 EDGE_TOLERANCE = 1e-9  # relative; the browser computes the geometric edges itself, so they agree only to rounding
 
 
@@ -33,6 +38,11 @@ def javascript_object_keys(path: pathlib.Path, constant: str) -> list[str]:
     """The keys, in order, of `const <constant> = Object.freeze({ key: …, … });`, quoted or not."""
     body = declaration(path, rf"const {constant} = Object\.freeze\(\{{(.*?)\}}\);").group(1)
     return re.findall(r'^\s*"?([\w-]+)"?\s*:', body, re.MULTILINE)
+
+
+def sql_number(path: pathlib.Path, column: str) -> float:
+    """The value of the literal `<number> AS <column>` in the query at `path`."""
+    return float(declaration(path, rf"([\d.]+) AS {column}\b").group(1))
 
 
 def browser_idle_gap_edges() -> list[float]:
@@ -71,3 +81,15 @@ def test_the_benchmark_harness_of_the_harness_index_is_the_pipeline_s(data_direc
     listed = json.loads((data_directory / "harnesses.json").read_text())
     assert [entry["harness"] for entry in listed if entry["benchmark"]] == [population.BENCHMARK_HARNESS]
 
+
+
+def test_the_cost_share_prices_are_the_pipeline_s() -> None:
+    assert sql_number(COST_SHARE_QUERY, "cached_price") == prices.CACHED_PRICE
+    assert sql_number(COST_SHARE_QUERY, "uncached_price") == prices.UNCACHED_PRICE
+    assert sql_number(COST_SHARE_QUERY, "output_price") == prices.OUTPUT_PRICE
+
+
+@pytest.mark.parametrize("path", RANK_BIN_QUERIES, ids=lambda path: path.stem)
+def test_the_rank_bins_are_the_pipeline_s(path: pathlib.Path) -> None:
+    assert sql_number(path, "max_rank_bins") == binning.MAX_RANK_BINS
+    assert sql_number(path, "sessions_per_rank_bin") == binning.SESSIONS_PER_RANK_BIN

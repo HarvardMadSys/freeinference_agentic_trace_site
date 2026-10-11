@@ -49,6 +49,8 @@ EXPECTED_COLUMNS = {
     "figures/requests_per_session_cdf": ["series", "x", "share", "rows"],
     "figures/duration_cdf": ["series", "x", "share", "rows"],
     "figures/tokens_per_request_cdf": ["series", "x", "share", "rows"],
+    "figures/cost_share_by_session": ["percentile", "cached", "uncached", "output", "rows", "pooled_cached",
+                                      "pooled_uncached", "pooled_output"],
     "figures/token_split_by_week": ["week", "part", "share", "rows"],
     "figures/token_growth_by_messages": ["bin_start", "rows", "median_cached_tokens", "median_uncached_tokens",
                                          "median_output_tokens"],

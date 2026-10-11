@@ -2,7 +2,8 @@
  * The Sessions section of the Explore page's figures: how long sessions are, and how their tokens are spent.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. A figure of more than one series colours each
- * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
+ * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden. The
+ * figures that rank sessions are entries of `sessions_ranked.js`, listed here in the section's order.
  */
 
 import {
@@ -21,6 +22,7 @@ import {
 } from "../shared/charts.js";
 import { formatCount, formatSeconds, formatShare, formatTokens, monthAndDay } from "../shared/format.js";
 import { cdfSeries, seriesLegend, sparseTickFormat } from "./figure_rows.js";
+import { COST_SHARE_BY_SESSION } from "./sessions_ranked.js";
 
 // The series of the requests-per-session CDF, by their name in the query, with the name each is drawn under.
 const SESSION_COUNT_SERIES = Object.freeze({ requests: "Requests", user_steps: "User steps", tool_steps: "Tool steps" });
@@ -85,6 +87,7 @@ export const FIGURES = Object.freeze([
     legend: tokensPerRequestLegend,
     draw: drawTokensPerRequest,
   }),
+  COST_SHARE_BY_SESSION,
   Object.freeze({
     name: "token_split_by_week",
     title: "Token split by week",
