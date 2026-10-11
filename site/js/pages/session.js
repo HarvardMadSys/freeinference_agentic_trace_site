@@ -42,8 +42,10 @@ async function openSession(address) {
     return;
   }
   const [weeks, harnesses] = await Promise.all([fetchWeeks(), fetchHarnesses()]);
-  const database = openDatabase(new URL("data/", window.location.href).href, weeks, harnesses);
-  const session = await loadSession(database, address);
+  // A session lies in one week, so the database reads that week's files alone; the others are never opened.
+  const sessionWeeks = weeks.filter((entry) => entry.week === address.week);
+  const database = openDatabase(new URL("data/", window.location.href).href, sessionWeeks, harnesses);
+  const session = sessionWeeks.length === 0 ? null : await loadSession(database, address);
   if (session === null) {
     showNotFound(`Session not found in this week: no session ${address.id} in the week of ${address.week}.`);
     return;
@@ -80,11 +82,11 @@ function openRequest(shownView, session, address, { sessionId, step }) {
 /**
  * `{ tree, requests, toolCalls, categoryColours }`: the rows of the tree holding the session `address.id`, whether
  * that is the top-level session or one of its subagents, and the site-wide colour of each tool category; null when
- * the id is unknown or belongs to another week.
+ * the id is not a session of the database's one week, the address's.
  */
 async function loadSession(database, address) {
   const roots = await database.runQueryWith("session/session_root", [address.id]);
-  if (roots.length === 0 || roots[0].week !== address.week) {
+  if (roots.length === 0) {
     return null;
   }
   await database.setSession({ week: address.week, rootSessionId: roots[0].root_session_id });

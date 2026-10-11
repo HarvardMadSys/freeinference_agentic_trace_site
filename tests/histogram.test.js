@@ -6,7 +6,7 @@ import { binsFromRows, cardDefinition, drawableBins, subtitle } from "../site/js
 
 const TOKENS_CARD = {
   title: "Input tokens per request",
-  definition: "Prompt tokens of each request, in the selected weeks and scope.",
+  definition: "Prompt tokens of each request, in the selected weeks and harnesses.",
   bins: [],
   percentiles: { p50: 129087, p75: 260000, p90: 512300, p95: 801000 },
   count: 1186582,
