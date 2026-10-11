@@ -30,9 +30,10 @@ setup-browser:
 data:
 	$(PYTHON) -m site_data --release $(RELEASE) --simulation $(SIMULATION) --out site/data
 
-# Serve the site locally at http://localhost:8000
+# Serve the site locally at http://localhost:8000. serve.py answers range requests, which DuckDB needs to read
+# only the parts of a Parquet file a query touches; python3 -m http.server would send whole files.
 serve:
-	cd site && python3 -m http.server 8000
+	python3 serve.py --directory site --port 8000
 
 # The paper-parity test reads the pipeline's numbers.json; it is told where the pipeline is and skips when it is absent.
 test:

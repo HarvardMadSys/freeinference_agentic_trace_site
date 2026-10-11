@@ -27,7 +27,7 @@ so any view can be shared as a link.
 ```bash
 make setup           # a virtual environment with the pipeline's package and the test tools
 make data            # site/data/ from the release: four Parquet files and weeks.json
-make serve           # http://localhost:8000
+make serve           # http://localhost:8000, with the range requests DuckDB needs
 make test            # the Python tests and the node tests
 make setup-browser   # a headless Chromium and Playwright, for checking pages by hand; make test does not need it
 make deploy          # publish site/ as the only commit of gh-pages on origin, force-pushed (git 2.42 or later)
@@ -48,6 +48,7 @@ README.md          this file
 CONTRIBUTING.md    the rules, the patterns, and how to add a query, a figure or a page
 Makefile           setup · setup-browser · data · serve · test · deploy
 deploy.sh          what make deploy runs: copies site/ onto an orphan branch and force-pushes it
+serve.py           what make serve runs: a local server that answers byte-range requests, as the host does
 pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas; pytest and duckdb for tests
 package.json       sets ES modules for node --test; no dependencies
 site_data/         builds site/data/ from a release
@@ -77,8 +78,8 @@ tests/             what make test runs
   test_paper_parity.py      with every week selected, the numbers a figure shares with the paper's numbers.json
   test_pipeline_mirrors.py  the pipeline constants the browser holds a copy of, against the pipeline's own
   test_about_page.py        the About page's hand-written numbers, against the code's
-  test_repository.py, test_deploy.py
-                   the repository's countable rules; make deploy against a local repository
+  test_repository.py, test_deploy.py, test_serve.py
+                   the repository's countable rules; make deploy against a local repository; make serve's byte ranges
   *.test.js        node --test, one file per JavaScript module with pure functions
 openspec/          the specifications and the changes that built the site
 ```
