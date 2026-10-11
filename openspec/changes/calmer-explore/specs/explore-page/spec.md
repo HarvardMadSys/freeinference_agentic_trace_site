@@ -64,6 +64,10 @@ on the page SHALL run a query in the browser.
 - **WHEN** a visitor opens the Explore page
 - **THEN** every figure SHALL be drawn from its answer file, and no DuckDB module and no Parquet file SHALL be fetched
 
+#### Scenario: A figure for one month
+- **WHEN** the URL carries `months=2026-07`
+- **THEN** every figure SHALL still show every week and the paper's harnesses; only the sessions table SHALL be filtered
+
 #### Scenario: The definition on demand
 - **WHEN** the visitor opens a figure card's definition control
 - **THEN** the card SHALL show the figure's full definition and the rows it rests on, and hide them again when closed
