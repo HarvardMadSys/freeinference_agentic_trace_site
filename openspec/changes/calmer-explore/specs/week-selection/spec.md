@@ -2,76 +2,70 @@
 
 ## Purpose
 
-The visitor chooses months and harnesses from a picker that stays out of
-the way until it is wanted.
+The figures are the paper's over the paper's data; the only thing a
+visitor narrows is the sessions table.
 
 ## REMOVED Requirements
 
 ### Requirement: Choosing weeks
-**Reason**: weeks are too many to pick one by one; a month is the unit a
-visitor thinks in, and every week of a month is drawn alike.
-**Migration**: a `weeks=` link selects the months its weeks fall in.
+**Reason**: every figure is drawn over every week; recomputing the paper's
+figures for a few weeks served no reader and cost every visitor a stream of
+row files.
+**Migration**: a `weeks=` or `month=` link filters the sessions table to
+those months and changes no figure.
 
-## ADDED Requirements
+### Requirement: Choosing harnesses
+**Reason**: the figures show the paper's population; a harness choice only
+narrows the sessions table now.
+**Migration**: a `harnesses=` link filters the sessions table.
 
-### Requirement: Choosing months
-The Explore page SHALL offer the months of `weeks.json`, each month being
-the weeks whose Sunday falls in it, with every month selected by default.
-The visitor SHALL be able to untick and tick single months and every month
-at once; weeks SHALL NOT be picked singly. The selection SHALL still reach
-the queries as weeks. With no month selected, the page SHALL say so instead
-of drawing empty charts. While the selection is not the default, the picker
-SHALL say that the charts are computed in the browser and which weeks'
-rows have already been streamed in.
-
-#### Scenario: Choosing a month
-- **WHEN** the visitor keeps only July 2026 selected
-- **THEN** every chart SHALL redraw for the weeks whose Sunday falls in July 2026, and the picker SHALL say the charts are computed in the browser
-
-#### Scenario: Nothing selected
-- **WHEN** the visitor unticks the last selected month
-- **THEN** the charts SHALL be replaced by a note asking for at least one month
-
-### Requirement: The picker folds away
-The selection card SHALL show one line, the selection in words (the months
-or "Every week" with the span's first and last month, and the harnesses or
-"the paper's harnesses"), with a control that opens the choices. The
-choices SHALL be closed when the page opens with the default selection and
-open when it opens with any other.
-
-#### Scenario: Opening the site
-- **WHEN** a visitor opens the Explore page with no selection in the URL
-- **THEN** the selection card SHALL be one line, every month SHALL be selected and every chart SHALL show every week
-
-#### Scenario: A shared link
-- **WHEN** a visitor opens a link with `?months=2026-07`
-- **THEN** the choices SHALL be open with July 2026 ticked alone
+### Requirement: The rows stream in after the default view
+**Reason**: nothing in the Explore page runs a query in the browser any
+more; the Session page reads its one week.
+**Migration**: none; `STREAM_ROWS_AFTER_DRAW` and the stream are deleted.
 
 ## MODIFIED Requirements
 
 ### Requirement: The selection lives in the URL
-The selection SHALL be written to the URL's query string as
+The sessions table's filter SHALL be written to the URL's query string as
 `months=<YYYY-MM>,<YYYY-MM>…` and `harnesses=<name>,<name>…`, and SHALL
-be read from it when a page opens. The default (every month, the paper's
-harnesses) SHALL write no key. Links between pages SHALL carry it, and the
-Session page SHALL carry it back to Explore. A month or harness in the URL
-that the data do not hold SHALL be ignored, and the page SHALL say which.
-A `month=` key SHALL be read as that month; a `weeks=` key SHALL select
-the months its weeks fall in; a `scope` key or `weeks=all` SHALL be read as
-the default; each SHALL be rewritten.
+be read from it when the page opens; it SHALL change nothing but the
+table. The default (every month, the paper's harnesses) SHALL write no
+key. The Session page SHALL carry the keys back to Explore. A month or
+harness in the URL that the data do not hold SHALL be ignored, and the
+table SHALL say which. A `month=` key SHALL be read as that month, a
+`weeks=` key as the months its weeks fall in, a `scope` key or `weeks=all`
+as the default; each SHALL be rewritten.
 
 #### Scenario: Sharing a view
 - **WHEN** a visitor opens a link with `?months=2026-07&harnesses=hermes,codex`
-- **THEN** the page SHALL open with July 2026's weeks and those two harnesses selected
+- **THEN** the sessions table SHALL list July 2026's sessions of those two harnesses, and every figure SHALL be as without the keys
 
 #### Scenario: An unknown week
 - **WHEN** the URL's `weeks=` names a week that is not in `weeks.json`
-- **THEN** the page SHALL select the months of the other weeks it names and show a note naming the unknown one
-
-#### Scenario: An unknown month
-- **WHEN** the URL names a month that no week of `weeks.json` falls in
-- **THEN** the page SHALL select the other months it names and show a note naming the unknown one
+- **THEN** the table SHALL filter to the months of the other weeks it names and show a note naming the unknown one
 
 #### Scenario: A link from an earlier release
 - **WHEN** a visitor opens a link with `?weeks=2026-07-05,2026-07-12&scope=All`
-- **THEN** the page SHALL open with July 2026 selected and the URL SHALL be rewritten as `months=2026-07`
+- **THEN** the table SHALL filter to July 2026 and the URL SHALL be rewritten as `months=2026-07`
+
+### Requirement: The selection reaches queries as tables
+The data step SHALL fill `selected_weeks` with every week and
+`selected_harnesses` with every harness but the benchmark's before it
+answers the Explore and figure queries, and `benchmark_harness` from
+`harnesses.json`; the queries SHALL read their population from those
+tables and from nothing else. The Explore page SHALL answer every query
+from `data/all_weeks/`. In the browser only the Session page SHALL fill a
+selection table, `selected_session(week, root_session_id)`.
+
+#### Scenario: The default selection
+- **WHEN** `make data` answers a figure query
+- **THEN** it SHALL have run with every week and every non-benchmark harness in the selection tables
+
+#### Scenario: Changing the selection
+- **WHEN** the visitor unticks one month in the sessions table's filter
+- **THEN** the table SHALL filter its answer's rows in the browser, no selection table SHALL be filled and no query SHALL run
+
+#### Scenario: The Session page
+- **WHEN** a session is opened
+- **THEN** `selected_session` SHALL hold its week and top-level session id, and no other selection table SHALL be filled

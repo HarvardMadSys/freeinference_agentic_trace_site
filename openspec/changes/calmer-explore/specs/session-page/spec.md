@@ -3,7 +3,7 @@
 ## Purpose
 
 A session opens with one request per file, and its tool calls name their
-programs.
+programs and the shape of their arguments.
 
 ## MODIFIED Requirements
 

@@ -2,7 +2,8 @@
 
 ## Purpose
 
-The pages are set in type large enough to read charts by.
+The pages are set in type large enough to read charts by, and the
+repository no longer holds a browser query engine for the Explore page.
 
 ## ADDED Requirements
 
@@ -19,3 +20,12 @@ horizontal scrolling.
 #### Scenario: A phone
 - **WHEN** the Explore page is opened 360 pixels wide
 - **THEN** the page SHALL not scroll sideways
+
+### Requirement: DuckDB only where a session is read
+DuckDB-WASM SHALL be loaded by the Session page only. The Explore page
+SHALL import nothing from `js/engine/`, and `js/engine/` SHALL hold only
+what starting DuckDB and reading one week's files needs.
+
+#### Scenario: The Explore page's imports
+- **WHEN** the repository test scans the Explore page's module graph
+- **THEN** no module under `js/engine/` SHALL be reachable from it
