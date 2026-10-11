@@ -10,6 +10,9 @@ The default selection is every week of `weeks.json` and every harness of
 `harnesses.json` that is not the benchmark's. The database is opened and the
 selection tables filled by `site_database`, with the browser's own setup
 statements, so an answer holds the rows the browser's query would return.
+The sessions table's query is the one exception: it is answered with every
+week and every harness, the benchmark's included, and the tables are then
+filled with the default selection again.
 The colour orders read every week and every harness whatever the selection,
 so their answers hold for any selection, not only the default.
 
@@ -38,6 +41,9 @@ ANSWERED_PAGES = ["explore", "figures"]  # the pages whose queries are answered;
 # The setup queries that fix each harness's, model's, category's and provider's colour from every week and harness;
 # answered so a page draws its colours without DuckDB.
 COLOUR_ORDER_QUERIES = ["setup/category_order", "setup/harness_order", "setup/model_order", "setup/provider_order"]
+# The query answered with every harness selected, the benchmark's too: the sessions table filters its answer in the
+# browser, so the answer holds every row any harness filter can show; its `benchmark` column marks the benchmark's.
+EVERY_HARNESS_QUERY = "explore/sessions_of_selection"
 # Commas and colons without spaces: the answers are fetched by every visitor, the sessions table's above all.
 JSON_SEPARATORS = (",", ":")
 
@@ -67,6 +73,11 @@ def default_selection(data_directory: pathlib.Path) -> DefaultSelection:
         if not entry.benchmark:
             harness_list.append(entry.harness)
     return DefaultSelection(weeks=week_list, harnesses=harness_list)
+
+
+def every_harness(data_directory: pathlib.Path) -> list[str]:
+    """Every harness of the data folder's `harnesses.json`, the benchmark's included, in its order."""
+    return [entry.harness for entry in harnesses.read_harnesses_file(data_directory)]
 
 
 def answered_query_names(queries_folder: pathlib.Path = site_database.QUERIES_FOLDER) -> list[str]:
@@ -99,15 +110,17 @@ def write_answers(data_directory: pathlib.Path) -> WrittenAnswers:
 
 def write_answer_files(data_directory: pathlib.Path, answers_directory: pathlib.Path) -> WrittenAnswers:
     """Write into `answers_directory` the answer of every answered query under the data folder's default selection,
-    except a query that fails because it reads the missing `simulation` view."""
+    and of `EVERY_HARNESS_QUERY` under every week and harness, except a query that fails because it reads the missing
+    `simulation` view."""
     any_simulated = any(entry.simulated for entry in weeks.read_weeks_file(data_directory))
     selection = default_selection(data_directory)
+    harness_list = every_harness(data_directory)
     files, size, unanswered = 0, 0, []
     # The block closes the connection whether or not a query fails.
     with site_database.open_site_database(data_directory) as connection:
         site_database.select_weeks(connection, selection.weeks, selection.harnesses)
         for name in answered_query_names():
-            rows = rows_unless_simulation_is_missing(connection, name, any_simulated)
+            rows = answered_rows(connection, name, selection, harness_list, any_simulated)
             if rows is None:
                 unanswered.append(name)
                 continue
@@ -131,6 +144,19 @@ def query_hashes(queries_folder: pathlib.Path = site_database.QUERIES_FOLDER) ->
 def query_text_hash(queries_folder: pathlib.Path, name: str) -> str:
     """The SHA-256, as hex, of the bytes of the query `name`, the file `<queries_folder>/<name>.sql`."""
     return hashlib.sha256((queries_folder / f"{name}.sql").read_bytes()).hexdigest()
+
+
+def answered_rows(connection: duckdb.DuckDBPyConnection, query_name: str, selection: DefaultSelection,
+                  harness_list: list[str], any_simulated: bool) -> list[dict] | None:
+    """The query's answer rows under the default selection the selection tables hold, or, for `EVERY_HARNESS_QUERY`,
+    under its weeks and every harness of `harness_list`, the tables then holding the default selection again; None as
+    `rows_unless_simulation_is_missing` gives it."""
+    if query_name != EVERY_HARNESS_QUERY:
+        return rows_unless_simulation_is_missing(connection, query_name, any_simulated)
+    site_database.select_weeks(connection, selection.weeks, harness_list)
+    rows = rows_unless_simulation_is_missing(connection, query_name, any_simulated)
+    site_database.select_weeks(connection, selection.weeks, selection.harnesses)
+    return rows
 
 
 def rows_unless_simulation_is_missing(connection: duckdb.DuckDBPyConnection, query_name: str,

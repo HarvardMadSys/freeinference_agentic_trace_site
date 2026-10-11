@@ -1,5 +1,6 @@
-"""The answers the data step writes for the default selection equal the queries run live with that selection, every
-Explore and figure query, and every colour order, has one, the hash of each one's text is recorded so a query edited
+"""The answers the data step writes for the default selection equal the queries run live with that selection, the
+sessions table's run with every harness and marking the benchmark's, every Explore and figure query, and every colour
+order, has one, the hash of each one's text is recorded so a query edited
 since is found, and a failed run leaves the previous answers in place."""
 
 import json
@@ -74,10 +75,13 @@ def same_value(answered: object, live: object) -> bool:
 
 
 @pytest.mark.parametrize("name", site_data.answers.answered_query_names())
-def test_an_answer_equals_its_query_run_live_with_the_default_selection(
+def test_an_answer_equals_its_query_run_live_with_the_selection_it_was_answered_with(
         connection: duckdb.DuckDBPyConnection, data_directory: pathlib.Path, name: str) -> None:
     selection = site_data.answers.default_selection(data_directory)
-    site_database.select_weeks(connection, selection.weeks, selection.harnesses)
+    harness_list = selection.harnesses
+    if name == site_data.answers.EVERY_HARNESS_QUERY:
+        harness_list = site_data.answers.every_harness(data_directory)
+    site_database.select_weeks(connection, selection.weeks, harness_list)
     live = site_database.run_query(connection, name)
     answer = read_answer(data_directory, name)
     assert len(live) > 0, f"{name}: no rows on the fixture, so its columns and values go unchecked"
@@ -113,6 +117,26 @@ def test_the_default_selection_is_every_week_and_every_harness_but_the_benchmark
     selection = site_data.answers.default_selection(data_directory)
     assert selection.weeks == [FIRST_SUNDAY, SECOND_SUNDAY]
     assert sorted(selection.harnesses) == sorted(fixture_release.PAPER_HARNESSES)
+
+
+def test_the_sessions_table_s_answer_holds_every_harness_s_sessions_with_the_benchmark_s_marked(
+        data_directory: pathlib.Path) -> None:
+    assert site_data.answers.EVERY_HARNESS_QUERY == "explore/sessions_of_selection"
+    assert sorted(site_data.answers.every_harness(data_directory)) == sorted(fixture_release.EVERY_HARNESS)
+    answer = read_answer(data_directory, site_data.answers.EVERY_HARNESS_QUERY)
+    assert {row["session_id"]: (row["harness"], row["benchmark"]) for row in answer} == {
+        "tree-root": ("claude-code", False), "mutation": ("codex", False), "idle-week-1": ("pi", False),
+        "idle-week-2": ("pi", False), "swe-bench": ("eval:swe-bench", True), "idle-benchmark": ("eval:swe-bench", True),
+    }
+
+
+def test_after_the_sessions_table_s_answer_the_next_query_is_answered_with_the_default_selection_again(
+        data_directory: pathlib.Path) -> None:
+    names = site_data.answers.answered_query_names()
+    after = names[names.index(site_data.answers.EVERY_HARNESS_QUERY) + 1]
+    assert after == "explore/sessions_per_week_by_harness"
+    harnesses_answered = {row["harness"] for row in read_answer(data_directory, after)}
+    assert sorted(harnesses_answered) == sorted(fixture_release.PAPER_HARNESSES)
 
 
 # 13 top-level requests of the paper's harnesses, counted by hand in tests/test_queries.py.

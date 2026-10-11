@@ -268,6 +268,16 @@ def test_the_sessions_table_lists_the_selection_s_top_level_sessions_most_input_
         (FIRST_SUNDAY, 5, 1, 3)
 
 
+def test_the_sessions_table_marks_the_benchmark_s_sessions(connection: duckdb.DuckDBPyConnection,
+                                                          fixture_weeks: list[str]) -> None:
+    select(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
+    rows = records(connection, "explore/sessions_of_selection")
+    assert {row["session_id"]: row["benchmark"] for row in rows} == {
+        "tree-root": False, "mutation": False, "idle-week-1": False, "idle-week-2": False,
+        "swe-bench": True, "idle-benchmark": True,
+    }
+
+
 def test_the_sessions_table_keeps_to_the_selected_weeks_and_harnesses(connection: duckdb.DuckDBPyConnection) -> None:
     select(connection, [SECOND_SUNDAY], fixture_release.PAPER_HARNESSES)
     rows = records(connection, "explore/sessions_of_selection")
