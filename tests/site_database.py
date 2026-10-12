@@ -16,6 +16,7 @@ SETUP_FOLDER = site_data.site_database.SETUP_FOLDER  # the statements that creat
 VIEW_STATEMENTS_BY_KIND = site_data.site_database.VIEW_STATEMENTS  # each kind of row's view statement, in order
 VIEW_STATEMENTS = list(VIEW_STATEMENTS_BY_KIND.values())  # in the order the views are made
 SELECTION_TABLE_STATEMENTS = site_data.site_database.SELECTION_TABLE_STATEMENTS
+SELECTION_VIEW_STATEMENTS = site_data.site_database.SELECTION_VIEW_STATEMENTS
 BENCHMARK_TABLE_STATEMENT = site_data.site_database.BENCHMARK_TABLE_STATEMENT
 
 open_site_database = site_data.site_database.open_site_database
@@ -43,3 +44,11 @@ def database_of_rows(requests: pyarrow.Table, tool_calls: pyarrow.Table) -> duck
     for name in [*SELECTION_TABLE_STATEMENTS, BENCHMARK_TABLE_STATEMENT]:
         connection.execute(statement_text(name))
     return connection
+
+
+def add_selection_views(connection: duckdb.DuckDBPyConnection) -> None:
+    """Make the views over the selection on a database of `database_of_rows`, whose requests then need every column
+    the views read: a view checks its columns when it is made, and most cases hold only the columns their query
+    reads."""
+    for name in SELECTION_VIEW_STATEMENTS:
+        connection.execute(statement_text(name))

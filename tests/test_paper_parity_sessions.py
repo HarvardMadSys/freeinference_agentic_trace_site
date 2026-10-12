@@ -1,6 +1,6 @@
 """The site's Sessions figures that rank sessions or split latency give the paper's numbers: each number such a
 figure shares with the paper's `numbers.json` is equal, and each rank bin equals the pipeline's `binning.rank_bins`
-over the same sessions, the session time's model share being the pipeline's prefill and decode shares summed.
+over the same sessions, the session time's user share being the pipeline's human share.
 
 The decode time figure draws the five models with most requests, where the paper decomposes two chosen models:
 `decode_median_by_model` compares the paper's two, and each model the figure draws has that query's median.
@@ -23,7 +23,8 @@ from test_paper_parity import MEDIAN_SHARE, RELATIVE_TOLERANCE, TTFT_MODELS, Com
 # Absolute; a bin's mean share comes out of DuckDB and of pandas with float rounding, no more.
 SHARE_TOLERANCE = 1e-9
 COST_PARTS = ["cached", "uncached", "output"]  # the cost share's parts, each a column of its rows
-TIME_PARTS = ["model", "tool", "human"]  # the session time's parts, each a column of its rows
+# The session time's parts, each a column of its rows, by the name the pipeline gives the part.
+TIME_PARTS = {"prefill": "prefill", "decode": "decode", "tool": "tool", "user": "human"}
 
 # The rows of the selection the pipeline's functions read: the top-level requests of the selected weeks and harnesses,
 # in session and step order, as the pipeline's population holds them.
@@ -101,22 +102,21 @@ def test_the_decode_cdf_s_median_is_the_decode_median_of_each_model_it_draws(
         assert math.isclose(cdf_point(rows, model, MEDIAN_SHARE), medians[model], rel_tol=RELATIVE_TOLERANCE), model
 
 
-def test_the_mean_tool_and_human_shares_of_session_time(agentic: duckdb.DuckDBPyConnection,
-                                                        paper_numbers: dict) -> None:
-    # `figures/session_time_by_part`'s `mean_tool_share` and `mean_human_share`, the same on every row, against
-    # `sessions.session_time_breakdown.mean_tool_share` and `.mean_human_share`.
+def test_the_mean_shares_of_session_time(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+    # `figures/session_time_by_part`'s `mean_prefill_share`, `mean_decode_share`, `mean_tool_share` and
+    # `mean_user_share`, the same on every row, against `sessions.session_time_breakdown.mean_prefill_share`,
+    # `.mean_decode_share`, `.mean_tool_share` and `.mean_human_share`.
     first_row = site_database.run_query(agentic, "figures/session_time_by_part").iloc[0]
     assert_match(paper_numbers, [
-        Comparison("sessions", "session_time_breakdown", f"mean_{part}_share", float(first_row[f"mean_{part}_share"]),
-                   RELATIVE_TOLERANCE)
-        for part in ["tool", "human"]])
+        Comparison("sessions", "session_time_breakdown", f"mean_{paper_part}_share",
+                   float(first_row[f"mean_{part}_share"]), RELATIVE_TOLERANCE)
+        for part, paper_part in TIME_PARTS.items()])
 
 
 def test_the_session_time_bins_are_the_pipeline_s_rank_bins(agentic: duckdb.DuckDBPyConnection) -> None:
     site_rows = site_database.run_query(agentic, "figures/session_time_by_part")
     pipeline_bins = binning.rank_bins(latency.time_shares(selected_requests(agentic)), ["human", "tool"])
-    pipeline_bins["model"] = pipeline_bins.prefill + pipeline_bins.decode
-    assert_bins_match(site_rows, pipeline_bins, TIME_PARTS)
+    assert_bins_match(site_rows, pipeline_bins.rename(columns={"human": "user"}), list(TIME_PARTS))
 
 
 def test_the_speedup_if_twice_as_fast(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:

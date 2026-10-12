@@ -1,6 +1,7 @@
 /**
  * The DuckDB database a page queries: the weeks' files as the views `requests`, `tool_calls`, `sessions` and
- * `simulation`, the empty selection tables every query reads, and the filled benchmark harness table.
+ * `simulation`, the empty selection tables every query reads, the views over the selected rows, and the filled
+ * benchmark harness table.
  *
  * A statement is named by its path under `site/queries/` without `.sql`; `statementText(name)`, given by the caller,
  * returns its text. A view statement's `{files}` placeholder is replaced with its kind's files' names. Only a simulated
@@ -23,7 +24,10 @@ const SELECTION_TABLE_STATEMENTS = Object.freeze([
   "setup/create_selected_weeks", "setup/create_selected_harnesses", "setup/create_selected_session",
 ]);
 
-// The statement that makes the table of benchmark harnesses, run after the selection tables and filled once.
+// The statements that make the views over the selected rows, run after the selection tables they read.
+const SELECTION_VIEW_STATEMENTS = Object.freeze(["setup/create_view_session_time"]);
+
+// The statement that makes the table of benchmark harnesses, run after the selection views and filled once.
 const BENCHMARK_TABLE_STATEMENT = "setup/create_benchmark_harness";
 
 /** The kinds of row, each a view and a folder of the data, in the order their views are made. */
@@ -32,8 +36,8 @@ export const ROW_KINDS = Object.freeze(Object.keys(VIEW_STATEMENTS));
 /**
  * A new DuckDB database and a connection to it, `{ engine, connection, httpProtocol }` (the last being how a file
  * registered as a URL is read): the views of the files of `weeks` (the
- * entries of `weeks.json`) in the data folder at `dataUrl`, read over HTTP ranges, the empty selection tables, and the
- * benchmark harnesses of `harnesses` (the entries of `harnesses.json`).
+ * entries of `weeks.json`) in the data folder at `dataUrl`, read over HTTP ranges, the empty selection tables, the
+ * views over them, and the benchmark harnesses of `harnesses` (the entries of `harnesses.json`).
  */
 export async function openDuckDB(dataUrl, weeks, harnesses, statementText) {
   const { duckdb, engine } = await startDuckDB();
@@ -45,7 +49,7 @@ export async function openDuckDB(dataUrl, weeks, harnesses, statementText) {
       await connection.query(withFileNames(await statementText(name), fileNames));
     }
   }
-  for (const name of SELECTION_TABLE_STATEMENTS) {
+  for (const name of [...SELECTION_TABLE_STATEMENTS, ...SELECTION_VIEW_STATEMENTS]) {
     await runStatement(connection, await statementText(name));
   }
   await runStatement(connection, await statementText(BENCHMARK_TABLE_STATEMENT));

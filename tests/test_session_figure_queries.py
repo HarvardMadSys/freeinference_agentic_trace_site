@@ -13,7 +13,7 @@ import pandas
 import pyarrow
 import pytest
 
-from paper.metrics import latency, turns
+from paper.metrics import binning, latency, turns
 
 import fixture_release
 import site_database
@@ -121,15 +121,16 @@ def test_the_decode_median_is_the_median_over_trusted_ttfts(connection: duckdb.D
     assert rows.values.tolist() == [["model-x", len(DECODE_TIMES_S), 9.0]]
 
 
-# The time of each top-level session of the paper's harnesses in seconds, (model, tool, human): its requests'
-# latencies summed, and its waits for a tool or a subagent and for the user. Only `idle-week-2` waits for the user.
+# The time of each top-level session of the paper's harnesses in seconds, (prefill, decode, tool, user): its
+# requests' prefill and decode with unsplit latency shared out, as the machine time below has them, and its waits for
+# a tool or a subagent and for the user. No tool wait reaches the cap. Only `idle-week-2` waits for the user.
 AGENTIC_SESSION_TIMES = {
-    "tree-root": (5 * 10, 10 + 70 + 10 + 170, 0),
-    "idle-week-1": (10 + 10 + 155, 20 + 5, 0),
-    "mutation": (3 * 10, 10 + 170, 0),
-    "idle-week-2": (2 * 10, 0, 90),
+    "tree-root": (20 / 3, 130 / 3, 10 + 70 + 10 + 170, 0),
+    "idle-week-1": (3, 172, 20 + 5, 0),
+    "mutation": (3, 27, 10 + 170, 0),
+    "idle-week-2": (2, 18, 0, 90),
 }
-TIME_PARTS = ["model", "tool", "human"]
+TIME_PARTS = ["prefill", "decode", "tool", "user"]
 
 
 def test_the_session_time_of_four_sessions_is_one_bin_of_their_mean_shares(connection: duckdb.DuckDBPyConnection,
@@ -142,7 +143,7 @@ def test_the_session_time_of_four_sessions_is_one_bin_of_their_mean_shares(conne
     assert (row.bin_sessions, row.rows) == (len(AGENTIC_SESSION_TIMES), len(AGENTIC_SESSION_TIMES))
     means = mean_shares(AGENTIC_SESSION_TIMES)
     assert [row[part] for part in TIME_PARTS] == pytest.approx(means)
-    assert (row.mean_tool_share, row.mean_human_share) == pytest.approx((means[1], means[2]))
+    assert [row[f"mean_{part}_share"] for part in TIME_PARTS] == pytest.approx(means)
 
 
 def test_the_session_time_of_no_weeks_has_no_rows(connection: duckdb.DuckDBPyConnection) -> None:
@@ -213,9 +214,24 @@ def test_the_speedup_caps_tool_waits_and_shares_unsplit_time_as_the_pipeline_doe
     requests = rule_requests()
     connection = site_database.database_of_rows(pyarrow.Table.from_pandas(requests, preserve_index=False),
                                                 pyarrow.table({"week": [RULES_WEEK]}))
+    site_database.add_selection_views(connection)
     site_database.select_weeks(connection, [RULES_WEEK], sorted(set(requests.harness)))
     rows = site_database.run_query(connection, SPEEDUP).set_index("part")
     connection.close()
     pipeline = latency.speedups(latency.time_breakdown(requests, cap_tool_waits=True))
     assert rows.speedup.to_dict() == pytest.approx(pipeline)
     assert rows.rows.unique().tolist() == [requests.session_id.nunique()]
+
+
+def test_the_session_time_shares_unsplit_time_and_leaves_tool_waits_uncapped_as_the_pipeline_does() -> None:
+    requests = rule_requests()
+    connection = site_database.database_of_rows(pyarrow.Table.from_pandas(requests, preserve_index=False),
+                                                pyarrow.table({"week": [RULES_WEEK]}))
+    site_database.add_selection_views(connection)
+    site_database.select_weeks(connection, [RULES_WEEK], sorted(set(requests.harness)))
+    rows = site_database.run_query(connection, "figures/session_time_by_part")
+    connection.close()
+    pipeline = binning.rank_bins(latency.time_shares(requests), ["human", "tool"]).rename(columns={"human": "user"})
+    assert len(rows) == len(pipeline)
+    for part in TIME_PARTS:
+        assert rows[part].tolist() == pytest.approx(pipeline[part].tolist()), part

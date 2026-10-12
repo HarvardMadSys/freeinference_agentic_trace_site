@@ -7,7 +7,7 @@ data` is to be run first. `make deploy` runs this check first and refuses to pub
 
     python -m site_data.check_answers [--data site/data]
 
-It prints "answers match N queries", or names each stale query and exits with status 1.
+It prints "answers match N queries and views", or names each stale one and exits with status 1.
 """
 
 import argparse
@@ -39,8 +39,8 @@ def hashes_file(data_directory: pathlib.Path) -> pathlib.Path:
 
 def stale_queries(data_directory: pathlib.Path,
                   queries_folder: pathlib.Path = site_database.QUERIES_FOLDER) -> list[StaleQuery]:
-    """Each answered query of `queries_folder` whose text's hash is not the one recorded in the data folder's
-    `queries.json`, by name."""
+    """Each answered query of `queries_folder`, or view over the selection, whose text's hash is not the one recorded in
+    the data folder's `queries.json`, by name."""
     recorded = json.loads(hashes_file(data_directory).read_text())
     stale = []
     for name, current_hash in answers.query_hashes(queries_folder).items():
@@ -66,7 +66,7 @@ def main(arguments: list[str] | None = None) -> None:
             print(f"{query.name}: {query.reason}", file=sys.stderr)
         print(f"{len(stale)} queries have stale answers: run make data", file=sys.stderr)
         raise SystemExit(1)
-    print(f"answers match {len(answers.answered_query_names())} queries")
+    print(f"answers match {len(answers.query_hashes())} queries and views")
 
 
 if __name__ == "__main__":

@@ -19,10 +19,13 @@ CACHING_MODULE = SITE_FOLDER / "js" / "figures" / "caching.js"  # the idle-gap b
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the wait causes
 FIGURE_QUERIES = SITE_FOLDER / "queries" / "figures"  # the figure queries
 COST_SHARE_QUERY = FIGURE_QUERIES / "cost_share_by_session.sql"  # the prices
-SESSION_TIME_QUERY = FIGURE_QUERIES / "session_time_by_part.sql"  # which waits are tool time and which a person's
+SESSION_TIME_QUERY = FIGURE_QUERIES / "session_time_by_part.sql"  # the rank bins
 RANK_BIN_QUERIES = [COST_SHARE_QUERY, SESSION_TIME_QUERY]  # each cuts sessions into the pipeline's rank bins
-SPEEDUP_QUERY = FIGURE_QUERIES / "speedup_if_twice_as_fast.sql"  # which waits are tool time, and their cap
-TOOL_TIME_QUERIES = [SESSION_TIME_QUERY, SPEEDUP_QUERY]  # each counts a session's waits for a tool as its tool time
+SPEEDUP_QUERY = FIGURE_QUERIES / "speedup_if_twice_as_fast.sql"
+# The one home of a session's time breakdown, which waits are tool time and which a person's, and the tool wait cap.
+SESSION_TIME_VIEW = SITE_FOLDER / "queries" / "setup" / "create_view_session_time.sql"
+TIME_QUERIES = [SESSION_TIME_QUERY, SPEEDUP_QUERY]  # each reads the breakdown from the view, restating none of it
+TIME_CONSTANTS = ["tool_waits", "user_waits", "tool_gap_cap_s"]  # the view's copies of the pipeline's constants
 SESSIONS_LATENCY_MODULE = SITE_FOLDER / "js" / "figures" / "sessions_latency.js"  # the speed-up axis's headroom
 TOOL_MIX_QUERY = FIGURE_QUERIES / "tool_mix_by_turn_position.sql"  # the tenths, the tool groups and the program sets
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the tool groups, each with its colour
@@ -144,17 +147,22 @@ def test_the_rank_bins_are_the_pipeline_s(path: pathlib.Path) -> None:
     assert sql_number(path, "sessions_per_rank_bin") == binning.SESSIONS_PER_RANK_BIN
 
 
-@pytest.mark.parametrize("path", TOOL_TIME_QUERIES, ids=lambda path: path.stem)
-def test_the_tool_waits_are_the_pipeline_s(path: pathlib.Path) -> None:
-    assert sql_strings(path, "tool_waits") == list(latency.TOOL_WAITS)
+def test_the_session_time_s_waits_and_tool_wait_cap_are_the_pipeline_s() -> None:
+    assert sql_strings(SESSION_TIME_VIEW, "tool_waits") == list(latency.TOOL_WAITS)
+    assert sql_strings(SESSION_TIME_VIEW, "user_waits") == list(latency.HUMAN_WAITS)
+    assert sql_number(SESSION_TIME_VIEW, "tool_gap_cap_s") == latency.TOOL_GAP_CAP_S
 
 
-def test_the_session_time_s_human_waits_are_the_pipeline_s() -> None:
-    assert sql_strings(SESSION_TIME_QUERY, "human_waits") == list(latency.HUMAN_WAITS)
+@pytest.mark.parametrize("path", TIME_QUERIES, ids=lambda path: path.stem)
+def test_a_time_figure_reads_the_one_breakdown_and_restates_none_of_it(path: pathlib.Path) -> None:
+    text = path.read_text()
+    assert "FROM session_time" in text
+    assert "FROM requests" not in text
+    for constant in TIME_CONSTANTS:
+        assert constant not in text, constant
 
 
-def test_the_speedup_s_tool_wait_cap_and_axis_headroom_are_the_pipeline_s() -> None:
-    assert sql_number(SPEEDUP_QUERY, "tool_gap_cap_s") == latency.TOOL_GAP_CAP_S
+def test_the_speedup_s_axis_headroom_is_the_pipeline_s() -> None:
     assert javascript_number(SESSIONS_LATENCY_MODULE, "SPEEDUP_AXIS_HEADROOM") == \
         paper.sessions.latency.SPEEDUP_AXIS_HEADROOM
 

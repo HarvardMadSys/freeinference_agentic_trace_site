@@ -41,23 +41,28 @@ binding, and `make test` checks the countable ones.
   (`setup/insert_*.sql`). One query takes a parameter: `session/session_root.sql`,
   run through `runQueryWith` with the session id from the URL as its one `?`:
   it finds the session's week and top-level session, which `selected_session`
-  is then filled with. Every other query takes none. The view statements
-  `setup/create_view_*.sql` hold the placeholder `{files}`, which the opener
+  is then filled with. Every other query takes none. The view statements of
+  the week files, `setup/create_view_*.sql` but `create_view_session_time`,
+  hold the placeholder `{files}`, which the opener
   replaces with the names of that kind's week files, each single-quoted and
   separated by commas (`engine/duckdb_files.js` in the browser,
   `site_data/site_database.py` in Python): HTTP has no directory listing, and
   a file registered under its name is what the Session page swaps for its
-  bytes once it has fetched the file whole.
+  bytes once it has fetched the file whole. One view reads the selection:
+  `setup/create_view_session_time.sql`, each selected top-level session's
+  time in prefill, decode, tool and user idle, made after the selection
+  tables; both figures of a session's time read it, so the breakdown has one
+  home.
 - **Every definition comes from the pipeline.** Where a query restates one
   in SQL (the cost share's prices, the rank bins, the wait classes, what a
   tool wait is and how long it counts for, the tool groups, the cache
   simulation's TTLs and costs, the mutation table), a mirror test ties each
   copied constant to the pipeline's and a parity test ties the number to the
   paper's. Ten queries do: `figures/cost_share_by_session.sql` (the prices
-  and the rank bins), `figures/session_time_by_part.sql` (the rank bins and
-  which waits are tool time and which a person's) and
-  `figures/speedup_if_twice_as_fast.sql` (which waits are tool time and their
-  cap), checked by `tests/test_pipeline_mirrors.py` and
+  and the rank bins), `figures/session_time_by_part.sql` (the rank bins) and
+  `figures/speedup_if_twice_as_fast.sql`, both reading the view
+  `setup/create_view_session_time.sql` (which waits are tool time and which
+  a person's, and the tool wait cap), checked by `tests/test_pipeline_mirrors.py` and
   `tests/test_paper_parity_sessions.py`;
   `figures/calls_per_request_by_category.sql` (the Ask User category) and
   `figures/latency_by_batch_width.sql` (what a tool wait is, the Ask User

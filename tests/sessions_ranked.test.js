@@ -8,7 +8,7 @@ import {
   stackedSharePoints,
 } from "../site/js/figures/sessions_ranked.js";
 import { dropThinGroups, restingCountText } from "../site/js/figures/figure_rows.js";
-import { causeColours, REQUEST_PART_COLOURS, TOKEN_PART_COLOURS } from "../site/js/theme/colours.js";
+import { TIME_PART_COLOURS, TOKEN_PART_COLOURS } from "../site/js/theme/colours.js";
 
 // Two rank bins of a cost share query, the first of 55 sessions, the second of 54, of 109 sessions ranked.
 const BIN_ROWS = [
@@ -37,12 +37,19 @@ test("a bin's tooltip points at the top of the shown parts and names each with i
   assert.equal(first.text, "Percentile 25.0\nCached input: 50%\nOutput: 25%\n55 sessions");
 });
 
-test("the session time's legend draws model time in a request's ink and waits in the Timeline's wait colours", () => {
+test("the session time's legend lists the paper's four parts bottom up, each in its part colour", () => {
   const legend = SESSION_TIME_BY_PART.legend();
-  assert.deepEqual(legend.series.map((one) => one.name), ["model", "tool", "human"]);
-  assert.equal(legend.colours.get("model"), REQUEST_PART_COLOURS.whole);
-  assert.equal(legend.colours.get("tool"), causeColours().get("tool"));
-  assert.equal(legend.colours.get("human"), causeColours().get("user"));
+  assert.deepEqual(legend.series.map((one) => one.name), ["prefill", "decode", "tool", "user"]);
+  assert.deepEqual(legend.series.map((one) => one.label), ["Prefill", "Decode", "Tools", "User idle"]);
+  assert.deepEqual([...legend.colours], Object.entries(TIME_PART_COLOURS));
+});
+
+test("the session time's tooltip names the four parts with their shares", () => {
+  const row = { percentile: 50, prefill: 0.125, decode: 0.125, tool: 0.25, user: 0.5, bin_sessions: 10 };
+  const labels = Object.fromEntries(SESSION_TIME_BY_PART.legend().series.map((one) => [one.name, one.label]));
+  const [tip] = rankTips([row], ["prefill", "decode", "tool", "user"], labels);
+  assert.equal(tip.top, 1);
+  assert.equal(tip.text, "Percentile 50.0\nPrefill: 12.5%\nDecode: 12.5%\nTools: 25%\nUser idle: 50%\n10 sessions");
 });
 
 test("the cost share's legend draws each token part in its token colour", () => {
@@ -54,9 +61,10 @@ test("the cost share's legend draws each token part in its token colour", () => 
 // Eight rank bins of 13 sessions each, every one under the page's 50 rows a bin, of 104 sessions ranked.
 const SMALL_BIN_ROWS = Array.from({ length: 8 }, (unused, bin) => ({
   percentile: (bin + 0.5) * 12.5,
-  model: 0.5,
+  prefill: 0.25,
+  decode: 0.25,
   tool: 0.25,
-  human: 0.25,
+  user: 0.25,
   bin_sessions: 13,
   ranked_bin: "ranked sessions",
   rows: 104,

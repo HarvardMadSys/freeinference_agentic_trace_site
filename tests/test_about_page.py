@@ -230,6 +230,7 @@ def test_the_list_of_differences_names_every_figure_whose_definition_states_one(
 
 def test_the_list_of_differences_leaves_out_what_the_paper_does_too() -> None:
     assert "Hit ratio after a context change" not in simpler_than_the_paper()
+    assert "Session time by part" not in simpler_than_the_paper()
 
 
 def test_the_about_page_s_models_and_providers_are_the_queries_and_the_paper_s() -> None:

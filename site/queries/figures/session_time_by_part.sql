@@ -1,49 +1,31 @@
--- One row per rank bin of the top-level sessions of the selected weeks and harnesses with any time: each session's
--- time split into `model` (its requests' latencies summed), `tool` (its waits for a tool or a subagent) and `human`
--- (its waits for a person: the user or an ask-user tool), a wait being the gap after the previous request and a
--- negative one counted as none; the sessions, each as the shares of its time, sorted by human share, then tool share,
--- then session id, and cut into equal rank bins. Per bin: `percentile`, its middle in percent of the sessions;
--- `model`, `tool` and `human`, the bin's mean shares rescaled to sum to 1; and `bin_sessions` (its sessions).
--- `mean_tool_share` and `mean_human_share`, the same on every row, are the mean over the sessions of each share.
+-- One row per rank bin of the top-level sessions of the selected weeks and harnesses with any time, read from the
+-- view `session_time`: each session as the shares of its time that are prefill, decode, tool time (uncapped) and user
+-- idle time, sorted by user share, then tool share, then session id, and cut into equal rank bins. Per bin:
+-- `percentile`, its middle in percent of the sessions; `prefill`, `decode`, `tool` and `user`, the bin's mean shares
+-- rescaled to sum to 1; and `bin_sessions` (its sessions). `mean_prefill_share`, `mean_decode_share`,
+-- `mean_tool_share` and `mean_user_share`, the same on every row, are the mean over the sessions of each share.
 -- `ranked_bin`, the same on every row, names the one bin the page counts the figure's rows in, so it is hidden only
 -- when the whole selection is thin, and `rows`, the same on every row, is the number of sessions ranked.
 WITH constants AS (
-  SELECT ['tool', 'subagent'] AS tool_waits, -- the pipeline's latency.TOOL_WAITS: tool time
-         ['user', 'ask_user_tool'] AS human_waits, -- latency.HUMAN_WAITS: a person's time
-         200 AS max_rank_bins, -- binning.MAX_RANK_BINS: never more bins than this
+  SELECT 200 AS max_rank_bins, -- the pipeline's binning.MAX_RANK_BINS: never more bins than this
          10 AS sessions_per_rank_bin -- binning.SESSIONS_PER_RANK_BIN: nor fewer sessions per bin than this
 ),
-request_times AS (
-  SELECT requests.session_id,
-         (requests.end_ms - requests.start_ms) / 1000 AS model, -- 1000 milliseconds to the second
-         CASE WHEN list_contains(constants.tool_waits, requests.waited_for) THEN greatest(requests.wait_s, 0) END AS tool,
-         CASE WHEN list_contains(constants.human_waits, requests.waited_for) THEN greatest(requests.wait_s, 0) END AS human
-  FROM requests, constants
-  WHERE requests.is_top_level
-    AND requests.week IN (SELECT week FROM selected_weeks)
-    AND requests.harness IN (SELECT harness FROM selected_harnesses)
-),
-session_times AS (
-  SELECT session_id,
-         coalesce(sum(model), 0) AS model,
-         coalesce(sum(tool), 0) AS tool,
-         coalesce(sum(human), 0) AS human
-  FROM request_times
-  GROUP BY session_id
-),
 session_shares AS (
-  SELECT session_id,
-         model / (model + tool + human) AS model_share,
-         tool / (model + tool + human) AS tool_share,
-         human / (model + tool + human) AS human_share
-  FROM session_times
-  WHERE model + tool + human > 0
+  SELECT week,
+         session_id,
+         prefill_s / (prefill_s + decode_s + tool_s + user_s) AS prefill_share,
+         decode_s / (prefill_s + decode_s + tool_s + user_s) AS decode_share,
+         tool_s / (prefill_s + decode_s + tool_s + user_s) AS tool_share,
+         user_s / (prefill_s + decode_s + tool_s + user_s) AS user_share
+  FROM session_time
+  WHERE prefill_s + decode_s + tool_s + user_s > 0
 ),
 ranked_sessions AS (
-  SELECT model_share,
+  SELECT prefill_share,
+         decode_share,
          tool_share,
-         human_share,
-         row_number() OVER (ORDER BY human_share, tool_share, session_id) - 1 AS session_rank,
+         user_share,
+         row_number() OVER (ORDER BY user_share, tool_share, session_id, week) - 1 AS session_rank,
          count(*) OVER () AS sessions
   FROM session_shares
 ),
@@ -56,25 +38,32 @@ bins AS (
   SELECT session_rank * bin_count // sessions AS bin,
          any_value(bin_count) AS bin_count,
          any_value(sessions) AS sessions,
-         avg(model_share) AS model,
+         avg(prefill_share) AS prefill,
+         avg(decode_share) AS decode,
          avg(tool_share) AS tool,
-         avg(human_share) AS human,
+         avg(user_share) AS user_idle,
          count(*) AS bin_sessions
   FROM binned_sessions
   GROUP BY bin
 ),
 mean_shares AS (
-  SELECT avg(tool_share) AS mean_tool_share, avg(human_share) AS mean_human_share
+  SELECT avg(prefill_share) AS mean_prefill_share,
+         avg(decode_share) AS mean_decode_share,
+         avg(tool_share) AS mean_tool_share,
+         avg(user_share) AS mean_user_share
   FROM session_shares
 )
 SELECT (bins.bin + 0.5) * 100 / bins.bin_count AS percentile,
-       bins.model / (bins.model + bins.tool + bins.human) AS model,
-       bins.tool / (bins.model + bins.tool + bins.human) AS tool,
-       bins.human / (bins.model + bins.tool + bins.human) AS human,
+       bins.prefill / (bins.prefill + bins.decode + bins.tool + bins.user_idle) AS prefill,
+       bins.decode / (bins.prefill + bins.decode + bins.tool + bins.user_idle) AS decode,
+       bins.tool / (bins.prefill + bins.decode + bins.tool + bins.user_idle) AS tool,
+       bins.user_idle / (bins.prefill + bins.decode + bins.tool + bins.user_idle) AS "user",
        bins.bin_sessions,
        'ranked sessions' AS ranked_bin,
        bins.sessions AS rows,
+       mean_shares.mean_prefill_share,
+       mean_shares.mean_decode_share,
        mean_shares.mean_tool_share,
-       mean_shares.mean_human_share
+       mean_shares.mean_user_share
 FROM bins, mean_shares
 ORDER BY percentile;

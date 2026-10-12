@@ -1,6 +1,6 @@
 /**
  * The Sessions figures that rank sessions by a share and stack each rank bin's mean shares: how a session's cost
- * splits between its token parts, and how its time splits between the model, tools and people.
+ * splits between its token parts, and how its time splits between prefill, decode, tools and user idle.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Every row of their queries is one rank bin:
  * its `percentile` (the bin's middle, in percent of the sessions ranked), one column per part holding the bin's mean
@@ -11,15 +11,15 @@
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
-import { causeColours, REQUEST_PART_COLOURS, TOKEN_PART_COLOURS } from "../theme/colours.js";
+import { TIME_PART_COLOURS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { formatCount, formatPercent, formatShare } from "../shared/format.js";
 import { partsLegend } from "./figure_rows.js";
 
 // The parts of a session's cost, bottom up in the stack, with the label each is drawn under.
 const COST_PARTS = Object.freeze({ cached: "Cached input", uncached: "Uncached input", output: "Output" });
 
-// The parts of a session's time, bottom up in the stack, with the label each is drawn under.
-const TIME_PARTS = Object.freeze({ model: "Model", tool: "Tools", human: "User" });
+// The parts of a session's time, bottom up in the stack as the paper stacks them, with the label each is drawn under.
+const TIME_PARTS = Object.freeze({ prefill: "Prefill", decode: "Decode", tool: "Tools", user: "User idle" });
 
 const PERCENTILE_DOMAIN = Object.freeze([0, 100]); // the x axis spans every ranked session, whatever bins are hidden
 const SHARE_DOMAIN = Object.freeze([0, 1]); // the y axis spans a whole share, whatever parts are hidden
@@ -37,12 +37,12 @@ export const COST_SHARE_BY_SESSION = Object.freeze({
   draw: drawCostShare,
 });
 
-/** The session time figure: each session's time split between the model, tools and people, ranked by user share. */
+/** The session time figure: each session's time in prefill, decode, tools and user idle, ranked by user-idle share. */
 export const SESSION_TIME_BY_PART = Object.freeze({
   name: "session_time_by_part",
   title: "Session time by part",
-  definition: "Each top-level session's time split between model time (its requests' latencies), tool time (its waits for a tool or a subagent) and user time (its waits for the user or an ask-user tool), with the sessions ranked by user share and each rank bin's mean shares stacked; the paper splits model time into prefill and decode, the site does not.",
-  caption: "Each session's time on the model, on tools and waiting for the user.",
+  definition: "Each top-level session's time as prefill, decode, tool waits (for a tool or subagent) and user idle (waits for the user or an ask-user tool), sessions ranked by user-idle share, each rank bin's mean shares stacked.",
+  caption: "Each session's time in prefill, decode, tools and user idle.",
   query: "figures/session_time_by_part",
   binColumn: "ranked_bin",
   seriesOverSameRows: true,
@@ -89,14 +89,9 @@ function costShareLegend() {
   return partsLegend(COST_PARTS, new Map(Object.entries(TOKEN_PART_COLOURS)));
 }
 
-/**
- * The session time's legend: model time in the ink of a request on the Session page's Timeline, and tool and user
- * time in the colours the Timeline gives a wait for a tool and for the user.
- */
+/** The session time's legend: prefill, decode, tools and user idle, in the paper's part colours. */
 function sessionTimeLegend() {
-  const waits = causeColours();
-  const colours = new Map([["model", REQUEST_PART_COLOURS.whole], ["tool", waits.get("tool")], ["human", waits.get("user")]]);
-  return partsLegend(TIME_PARTS, colours);
+  return partsLegend(TIME_PARTS, new Map(Object.entries(TIME_PART_COLOURS)));
 }
 
 /** Draw the cost share's rank bins as a stacked area of cached, uncached and output shares; hidden parts left out. */
@@ -110,7 +105,7 @@ async function drawCostShare(rows, body, colours, hidden) {
   });
 }
 
-/** Draw the session time's rank bins as a stacked area of model, tool and user shares; hidden parts left out. */
+/** Draw the session time's rank bins as a stacked area of prefill, decode, tool and user shares; hidden left out. */
 async function drawSessionTime(rows, body, colours, hidden) {
   await drawRankedShares(body, rows, {
     labels: TIME_PARTS,

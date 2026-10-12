@@ -13,18 +13,17 @@
 import { AXIS_STYLE, cdfPoints, chartFrame, colourScale, drawCdf, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
 import { durationTicks, extent, fewerOnNarrow, tickCountFor } from "../axes/ticks.js";
 import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
-import { CAUSE_COLOURS, REQUEST_PART_COLOURS, slottedColours } from "../theme/colours.js";
+import { slottedColours, TIME_PART_COLOURS } from "../theme/colours.js";
 import { cdfSeries, seriesLegend } from "./figure_rows.js";
 
 // The parts of the machine time, by their name in the speed-up query, top down, with the name each bar is drawn under.
 const SPEEDUP_PARTS = Object.freeze({ prefill: "Prefill", decode: "Decode", tool: "Tools" });
 
-// Each part's bar in the colour the Session page's Timeline gives it: a request's time to first token, the rest of
-// the request, and a wait for a tool.
+// Each part's bar in the paper's colour of that part of a session's time, as the session time figure draws it.
 const SPEEDUP_COLOURS = new Map([
-  ["prefill", REQUEST_PART_COLOURS.ttft],
-  ["decode", REQUEST_PART_COLOURS.decode],
-  ["tool", CAUSE_COLOURS.tool],
+  ["prefill", TIME_PART_COLOURS.prefill],
+  ["decode", TIME_PART_COLOURS.decode],
+  ["tool", TIME_PART_COLOURS.tool],
 ]);
 
 /** The speed-up axis runs this far past the largest bar's gain over 1×, leaving room for its label, as the paper's. */

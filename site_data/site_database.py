@@ -1,8 +1,8 @@
 """The site's database in DuckDB, set up and filled by the same `.sql` files the browser runs.
 
 The browser opens its database by running the `site/queries/setup/create_*.sql`
-statements in its own order: the four views, then the selection tables, then
-the benchmark harness table. A view statement's `{files}` placeholder is
+statements in its own order: the four views of the files, then the selection
+tables, then the views over the selection, then the benchmark harness table. A view statement's `{files}` placeholder is
 replaced by the files of the weeks that have that kind of row, as `weeks.json`
 lists them, each single-quoted and separated by commas; the benchmark harness
 table is filled with the harnesses `harnesses.json` marks as the benchmark's.
@@ -48,6 +48,12 @@ SELECTION_TABLE_STATEMENTS = [
     "setup/create_selected_session",
 ]
 
+# The statements that make the views over the selected rows, run after the selection tables they read, in the order
+# js/engine/duckdb_views.js runs them.
+SELECTION_VIEW_STATEMENTS = [
+    "setup/create_view_session_time",
+]
+
 # The statement that makes the table of benchmark harnesses, run after the selection tables.
 BENCHMARK_TABLE_STATEMENT = "setup/create_benchmark_harness"
 # The statement that adds one harness to the table of benchmark harnesses, run once per benchmark harness.
@@ -61,7 +67,7 @@ def statement_text(name: str) -> str:
 
 def open_site_database(data_directory: pathlib.Path) -> duckdb.DuckDBPyConnection:
     """A new in-memory database on `THREADS` threads over `data_directory`: the views of its week files, the empty
-    selection tables, and the benchmark harness table filled from its `harnesses.json`."""
+    selection tables, the views over them, and the benchmark harness table filled from its `harnesses.json`."""
     connection = duckdb.connect(config={"threads": THREADS})
     entries = weeks.read_weeks_file(data_directory)
     for kind_folder, name in VIEW_STATEMENTS.items():
@@ -69,7 +75,7 @@ def open_site_database(data_directory: pathlib.Path) -> duckdb.DuckDBPyConnectio
         if week_list:
             files = week_files(data_directory, kind_folder, week_list)
             connection.execute(statement_text(name).replace(FILES_PLACEHOLDER, quoted_list(files)))
-    for name in SELECTION_TABLE_STATEMENTS:
+    for name in [*SELECTION_TABLE_STATEMENTS, *SELECTION_VIEW_STATEMENTS]:
         connection.execute(statement_text(name))
     connection.execute(statement_text(BENCHMARK_TABLE_STATEMENT))
     for entry in harnesses.read_harnesses_file(data_directory):

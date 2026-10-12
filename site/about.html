@@ -166,7 +166,6 @@
         <li><strong>Context share by role</strong>: each role's share of the input pooled per power-of-two bin of input tokens, tool definitions included, where the paper takes each request's share per bin of messages and its main figure leaves tool definitions out.</li>
         <li><strong>Token split by week</strong>: plain token shares per week, where the paper weights tokens by price and ranks sessions; <strong>Cost share by session</strong> does that, as the paper does, at the pipeline's prices: cached, uncached and output at 1 : 10 : 50.</li>
         <li><strong>Time to first token by model</strong> and <strong>Decode time by model</strong>: the five models with most requests that are among the eight with most requests over every week, where the paper draws two fixed models, each with its decode time and an estimate of its queueing time; the site draws no queueing estimate.</li>
-        <li><strong>Session time by part</strong>: model time, tool waits and user waits, where the paper also splits model time into prefill and decode.</li>
         <li><strong>Tool latency by category</strong> and <strong>Tool result size by category</strong>: percentiles per category, where the paper also marks the mean.</li>
         <li><strong>Hit ratio after an idle gap</strong>: the pipeline's fixed idle-gap bins, each drawn at its middle, a line for each of the eight providers with most requests, where the paper merges a thin bin into the next, draws each bin at its requests' median gap and shows the four providers with most idle gaps.</li>
       </ul>

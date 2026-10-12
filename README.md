@@ -214,7 +214,9 @@ parity test ties the number to the paper's; ten queries do,
 `figures/speedup_if_twice_as_fast.sql`, `figures/calls_per_request_by_category.sql`,
 `figures/latency_by_batch_width.sql`, `figures/tool_mix_by_turn_position.sql`,
 `figures/prefill_against_storage.sql`, `figures/api_cost_by_ttl.sql`,
-`figures/infrastructure_cost_by_ttl.sql` and `figures/mutations_by_cause.sql`.
+`figures/infrastructure_cost_by_ttl.sql` and `figures/mutations_by_cause.sql`;
+the two time figures read a session's time breakdown from one view,
+`setup/create_view_session_time.sql`.
 Otherwise the queries, which `make data` runs
 for the answers and the Session page runs in the browser, only filter,
 count, sum and take quantiles, and the session list only filters its

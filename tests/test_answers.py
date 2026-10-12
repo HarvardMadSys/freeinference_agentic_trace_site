@@ -179,7 +179,8 @@ def test_without_a_simulated_week_only_the_simulation_queries_have_no_answer(
 def test_the_answers_record_the_hash_of_each_answered_query_s_text(data_directory: pathlib.Path) -> None:
     hashes_path = data_directory / site_data.paths.ANSWERS_FOLDER / site_data.paths.QUERY_HASHES_FILE
     recorded = json.loads(hashes_path.read_text())
-    assert sorted(recorded) == site_data.answers.answered_query_names()
+    assert sorted(recorded) == sorted([*site_data.answers.answered_query_names(),
+                                       *site_data.site_database.SELECTION_VIEW_STATEMENTS])
     assert recorded == site_data.answers.query_hashes()
     assert site_data.check_answers.stale_queries(data_directory) == []
 
@@ -187,20 +188,24 @@ def test_the_answers_record_the_hash_of_each_answered_query_s_text(data_director
 def test_the_check_prints_how_many_queries_the_answers_match(data_directory: pathlib.Path,
                                                              capsys: pytest.CaptureFixture) -> None:
     site_data.check_answers.main(["--data", str(data_directory)])
-    count = len(site_data.answers.answered_query_names())
-    assert capsys.readouterr().out == f"answers match {count} queries\n"
+    count = len(site_data.answers.answered_query_names()) + len(site_data.site_database.SELECTION_VIEW_STATEMENTS)
+    assert capsys.readouterr().out == f"answers match {count} queries and views\n"
 
 
-def test_a_query_edited_or_added_since_make_data_fails_the_check(data_directory: pathlib.Path,
+def test_a_query_or_view_edited_or_added_since_make_data_fails_the_check(data_directory: pathlib.Path,
                                                                  tmp_path: pathlib.Path) -> None:
     queries = tmp_path / "queries"
     shutil.copytree(site_data.site_database.QUERIES_FOLDER, queries)
     with (queries / "explore" / "request_count.sql").open("a") as query:
         query.write("-- edited\n")
     (queries / "figures" / "added_since.sql").write_text("SELECT 1 AS one;\n")
+    with (queries / "setup" / "create_view_session_time.sql").open("a") as view:
+        view.write("-- edited\n")
     assert site_data.check_answers.stale_queries(data_directory, queries) == [
         site_data.check_answers.StaleQuery(name="explore/request_count", reason=site_data.check_answers.CHANGED),
         site_data.check_answers.StaleQuery(name="figures/added_since", reason=site_data.check_answers.UNRECORDED),
+        site_data.check_answers.StaleQuery(name="setup/create_view_session_time",
+                                           reason=site_data.check_answers.CHANGED),
     ]
 
 

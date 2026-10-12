@@ -60,8 +60,9 @@ EXPECTED_COLUMNS = {
     "figures/ttft_median_by_model": ["model", "rows", "median_ttft_s"],
     "figures/decode_cdf_by_model": ["series", "x", "share", "rows"],
     "figures/decode_median_by_model": ["model", "rows", "median_decode_s"],
-    "figures/session_time_by_part": ["percentile", "model", "tool", "human", "bin_sessions", "ranked_bin", "rows",
-                                     "mean_tool_share", "mean_human_share"],
+    "figures/session_time_by_part": ["percentile", "prefill", "decode", "tool", "user", "bin_sessions", "ranked_bin",
+                                     "rows", "mean_prefill_share", "mean_decode_share", "mean_tool_share",
+                                     "mean_user_share"],
     "figures/speedup_if_twice_as_fast": ["part", "speedup", "rows"],
     "figures/latency_by_category": PERCENTILE_RANGE_COLUMNS,
     "figures/result_tokens_by_category": PERCENTILE_RANGE_COLUMNS,
@@ -136,6 +137,7 @@ def browser_view_statements() -> dict[str, str]:
 def test_the_setup_statements_run_in_the_browser_s_order() -> None:
     assert list(site_database.VIEW_STATEMENTS_BY_KIND.items()) == list(browser_view_statements().items())
     assert site_database.SELECTION_TABLE_STATEMENTS == browser_list(VIEWS_MODULE, "SELECTION_TABLE_STATEMENTS")
+    assert site_database.SELECTION_VIEW_STATEMENTS == browser_list(VIEWS_MODULE, "SELECTION_VIEW_STATEMENTS")
 
 
 def test_the_browser_answers_the_queries_the_data_step_answers() -> None:
@@ -147,7 +149,7 @@ def test_the_browser_answers_the_queries_the_data_step_answers() -> None:
 def test_every_create_statement_on_disk_is_run() -> None:
     on_disk = {f"setup/{path.stem}" for path in site_database.SETUP_FOLDER.glob("create_*.sql")}
     assert on_disk == {*site_database.VIEW_STATEMENTS, *site_database.SELECTION_TABLE_STATEMENTS,
-                       site_database.BENCHMARK_TABLE_STATEMENT}
+                       *site_database.SELECTION_VIEW_STATEMENTS, site_database.BENCHMARK_TABLE_STATEMENT}
 
 
 def test_the_fixture_has_two_weeks(fixture_weeks: list[str]) -> None:
