@@ -12,7 +12,7 @@ import {
 import { legendLine } from "../session/legend.js";
 import { elapsedAxis, listenForRequestClick, startChartView, viewChartWidth } from "../session/view_chart.js";
 import {
-  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, TIP_STYLE, renderFigure,
+  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, renderFigure, TIP_STYLE, X_INSET,
 } from "../shared/charts.js";
 import { formatQuantity, formatTokens } from "../shared/format.js";
 
@@ -99,7 +99,7 @@ function drawChart(Plot, boxes, tree, requests, split) {
   const chart = Plot.plot({
     ...chartFrame(boxes.body),
     width,
-    x: { domain: [0, maxElapsed] },
+    x: { domain: [0, maxElapsed], inset: X_INSET },
     y: { nice: true },
     color: colourScale(new Map(parts.map((part) => [part.name, part.colour])), parts.map((part) => part.name)),
     marks: [
