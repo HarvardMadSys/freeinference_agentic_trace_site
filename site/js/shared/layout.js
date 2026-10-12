@@ -30,13 +30,13 @@ const EXPLORE_FILE = "index.html";
 /** The Explore page's sections, linked from the header and from the footer's "On this site". */
 export const SECTIONS = Object.freeze([
   Object.freeze({ anchor: "#overview", title: "Overview" }),
-  Object.freeze({ anchor: "#figures", title: "Figures" }),
-  Object.freeze({ anchor: "#sessions", title: "Session list" }),
+  Object.freeze({ anchor: "#sessions", title: "Session Explorer" }),
+  Object.freeze({ anchor: "#insights", title: "Insights" }),
   Object.freeze({ anchor: "#cite", title: "Cite" }),
 ]);
 
 // The section whose header link a page marks as current, by the page's file: the Session page is opened from the
-// session list. The Explore page marks none, since all four are on it.
+// Session Explorer. The Explore page marks none, since all four are on it.
 const MARKED_SECTIONS = Object.freeze({ "session.html": "#sessions" });
 
 // The places off the site the header links, after its sections.

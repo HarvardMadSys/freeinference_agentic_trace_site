@@ -1,8 +1,8 @@
 /**
- * The figure sections of the Explore page: the Sessions, Tokens-and-cost, Latency, Tools, Prefix-caching and
- * Human-driven-against-benchmark figures, each a card in its section's grid, drawn for the selected weeks and harnesses,
- * its thin bins hidden and its line of rows written behind its Definition control. A histogram figure, one with a
- * `statsQuery`, is drawn by `shared/histogram.js` from its two queries' answers, every bin shown.
+ * The figure sections of the Explore page's Insights: the Session-structure, Tokens-and-cost, Latency, Tools,
+ * Prefix-caching and Human-driven-against-benchmark figures, each a card in its section's grid, drawn for the selected
+ * weeks and harnesses, its thin bins hidden and its line of rows written behind its Definition control. A histogram
+ * figure, one with a `statsQuery`, is drawn by `shared/histogram.js` from its two queries' answers, every bin shown.
  *
  * With the default selection every figure is drawn at once, from its precomputed answer. With any other, a figure's
  * query starts when its card comes into view, and a figure started for the current run is not started again. A page
@@ -33,12 +33,12 @@ import { drawWithLegend, shownRows } from "./legend.js";
  * Every section module exports its figures as `FIGURES`, so each is imported by its path rather than under a second name.
  */
 export const FIGURE_SECTIONS = Object.freeze([
-  Object.freeze({ selector: "#figures-sessions", module: "../figures/sessions.js" }),
-  Object.freeze({ selector: "#figures-tokens", module: "../figures/tokens.js" }),
-  Object.freeze({ selector: "#figures-latency", module: "../figures/latency.js" }),
-  Object.freeze({ selector: "#figures-tools", module: "../figures/tools.js" }),
-  Object.freeze({ selector: "#figures-caching", module: "../figures/caching.js" }),
-  Object.freeze({ selector: "#figures-comparison", module: "../comparison/comparison.js" }),
+  Object.freeze({ selector: "#insights-sessions", module: "../figures/sessions.js" }),
+  Object.freeze({ selector: "#insights-tokens", module: "../figures/tokens.js" }),
+  Object.freeze({ selector: "#insights-latency", module: "../figures/latency.js" }),
+  Object.freeze({ selector: "#insights-tools", module: "../figures/tools.js" }),
+  Object.freeze({ selector: "#insights-caching", module: "../figures/caching.js" }),
+  Object.freeze({ selector: "#insights-comparison", module: "../comparison/comparison.js" }),
 ]);
 
 // A card counts as in view from one viewport height above the viewport to one below it, so the row of figures after

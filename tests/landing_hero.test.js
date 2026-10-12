@@ -20,14 +20,14 @@ test("the title's first phrase counts the weeks, one week in the singular, and n
   assert.equal(titleLead(null), "Weeks of coding agents,");
 });
 
-test("the hero holds the eyebrow, the title with its accent phrase and the four buttons, the first to the figures", () => {
+test("the hero holds the eyebrow, the title with its accent phrase and the four buttons, the first to the Insights", () => {
   const container = { innerHTML: "" };
   renderHero(container, 16);
   assert.match(container.innerHTML, /FreeInference agentic trace<\/p>/);
   assert.match(container.innerHTML, /<h1 id="hero-title">Sixteen weeks of coding agents, <br><em>request by request\.<\/em><\/h1>/);
   const buttons = [...container.innerHTML.matchAll(/<a class="button[^"]*" href="([^"]*)"[^>]*>([^<]*)<\/a>/g)];
   assert.deepEqual(buttons.map((match) => [match[2], match[1]]), [
-    ["See the figures", "#figures"],
+    ["Insights", "#insights"],
     ["Dataset", "https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace"],
     ["Paper", "https://data.freeinference.org/pdf/paper/from-requests-to-sessions.pdf"],
     ["Code", "https://github.com/HarvardMadSys/freeinference_agentic_trace"],

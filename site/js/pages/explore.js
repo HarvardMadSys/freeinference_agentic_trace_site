@@ -1,6 +1,6 @@
 /**
- * The Explore page: the hero with its stats strip, the model and harness mixes, weekly trends, the paper's figures in
- * six sections, the sessions table, and the citation and the team.
+ * The Explore page: the hero with its stats strip, the model and harness mixes and weekly trends, the sessions table,
+ * the insights' figures in six topics, and the citation and the team.
  *
  * The page draws its header, hero, figure cards and every section's loading state from `weeks.json` and
  * `harnesses.json`, then gives the database the selection and runs every section.

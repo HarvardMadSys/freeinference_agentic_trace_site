@@ -912,7 +912,7 @@ section[id] {
   gap: clamp(1.5rem, 6vw, 5rem);
 }
 
-/* A part of the page opens as Open Data's sections do: an eyebrow over a large serif heading, with room above. */
+/* A part of the page opens as Open Data's sections do: a large serif heading, with room above. */
 .section-heading {
   margin-top: clamp(1.5rem, 4vw, 3rem);
 }
@@ -920,9 +920,14 @@ section[id] {
 .section-heading h2,
 .cite h2,
 .team h2 {
-  margin-top: 0.5rem;
+  margin-top: 0;
   font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.5rem);
   letter-spacing: -0.02em;
+}
+
+/* The Team's heading sits under its eyebrow. */
+.team h2 {
+  margin-top: 0.5rem;
 }
 
 .cite-copy-column p {

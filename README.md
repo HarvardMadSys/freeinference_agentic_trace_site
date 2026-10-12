@@ -14,7 +14,7 @@ charts. There is no server and no bundler.
 
 | Page | File | What it shows |
 |---|---|---|
-| Explore | `index.html` | The landing page: a hero with the stats strip (weeks, human-driven sessions, requests, input tokens, tool calls, harnesses), the model and harness mixes and the weekly trends (`#overview`), 29 of the paper's figures and two histograms in six sections (`#figures-sessions`, `#figures-tokens`, `#figures-latency`, `#figures-tools`, `#figures-caching`, `#figures-comparison`: Sessions, Tokens and cost, Latency, Tools, Prefix caching, Human-driven against benchmark) (`#figures`), the session list (`#sessions`), a table of every top-level session with its own filter, the paper's citation (`#cite`) and the team (`#team`) |
+| Explore | `index.html` | The landing page: a hero with the stats strip (weeks, human-driven sessions, requests, input tokens, tool calls, harnesses), the model and harness mixes and the weekly trends (Overview, `#overview`), the Session Explorer (`#sessions`), a table of every top-level session with its own filter, the Insights (`#insights`), 29 of the paper's figures and two histograms in six topics (`#insights-sessions`, `#insights-tokens`, `#insights-latency`, `#insights-tools`, `#insights-caching`, `#insights-comparison`: Session structure, Tokens and cost, Latency, Tools, Prefix caching, Human-driven against benchmark), the paper's citation (Cite, `#cite`) and the team (`#team`) |
 | Session | `session.html` | One session and its subagents: a bar per request with each tool call's programs and the skeleton of its arguments, context over time, and a timeline per agent |
 
 ## Frozen figures

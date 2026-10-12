@@ -18,8 +18,8 @@ const AUTHORS = Object.freeze([
   Object.freeze({ name: "Juncheng Yang", affiliation: "Harvard", url: "https://juncheng.seas.harvard.edu/" }),
 ]);
 
-const ABOUT = "We study LLM and agent serving to improve efficiency and broaden access to AI. This site shows the "
-  + "paper's figures on the trace and opens any session in it.";
+const ABOUT = "We study LLM and agent serving to improve efficiency and broaden access to AI. This site draws the "
+  + "trace's insights and opens any session in it.";
 
 /** Fill `container` with the Team section's content: its heading, the authors, and the About paragraph. */
 export function renderTeam(container) {

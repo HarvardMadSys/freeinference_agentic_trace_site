@@ -5,7 +5,7 @@ a view checks it in a browser at 1280 and 360 px, light and dark. No query
 and no data change is expected.
 
 ## 1. Order and names
-- [ ] 1.1 Reorder `index.html`: Overview, then Session Explorer (anchor `#sessions`), then Insights (anchor `#insights`, topics `#insights-sessions` … `#insights-comparison`, topic 01 titled "Session structure"), then Cite; each section one heading and no eyebrow; `SECTIONS` reads Overview, Session Explorer, Insights, Cite; the hero's primary button reads "Insights" and links to `#insights`; the Session page's back link reads "← Session Explorer"; every test and doc that names the old anchors or labels follows.
+- [x] 1.1 Reorder `index.html`: Overview, then Session Explorer (anchor `#sessions`), then Insights (anchor `#insights`, topics `#insights-sessions` … `#insights-comparison`, topic 01 titled "Session structure"), then Cite; each section one heading and no eyebrow; `SECTIONS` reads Overview, Session Explorer, Insights, Cite; the hero's primary button reads "Insights" and links to `#insights`; the Session page's back link reads "← Session Explorer"; every test and doc that names the old anchors or labels follows.
 - [ ] 1.2 The name and the footer: the hero's title is "FreeInference Agentic Dataset" (the second phrase in the accent), no eyebrow above it, the week count folded into the lede's first clause; the header and footer brand reads "FreeInference Agentic Dataset"; the footer keeps the brand line and the on-site and elsewhere links and loses the copyright line and the policy links; the `URLS` entries only they used go.
 
 ## 2. The insight line and the topic takeaway

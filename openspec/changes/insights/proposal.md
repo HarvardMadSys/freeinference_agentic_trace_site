@@ -34,7 +34,8 @@ site more than the paper.
 ## Impact
 - Specs: `explore-page` (the list's position and name, the figures
   requirement renamed Insights with the insight and takeaway rules, the
-  hero, the footer), `site-repository` (navigation names, the brand).
+  hero, the footer), `site-repository` (navigation names, the brand),
+  `session-page` (the back link's name).
 - Code: `site/index.html`, `js/shared/layout.js`, `js/landing/hero.js`,
   `js/shared/charts.js` (the insight line), every figure module's entries
   (an `insight` field), `style.css`, the word-count test; README and

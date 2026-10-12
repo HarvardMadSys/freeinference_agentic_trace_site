@@ -160,7 +160,7 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   which holds every harness's sessions, and writes them back; they reach
   nothing else.
 - A figure is a figure entry (below), listed in its section's module, in the
-  page's order: `js/figures/sessions.js` (Sessions), `tokens.js` (Tokens and
+  page's order: `js/figures/sessions.js` (Session structure), `tokens.js` (Tokens and
   cost), `latency.js` (Latency), `tools.js` (Tools), `caching.js` (Prefix
   caching) and `js/comparison/comparison.js` (Human-driven against
   benchmark), each taking entries from the modules beside it, from

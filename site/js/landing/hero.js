@@ -1,6 +1,6 @@
 /**
  * The Explore page's hero: an eyebrow naming the dataset, a title of two phrases whose first counts the weeks of
- * `weeks.json`, one sentence on what the trace holds, and the buttons to the figures, the dataset, the paper and the
+ * `weeks.json`, one sentence on what the trace holds, and the buttons to the Insights, the dataset, the paper and the
  * code.
  */
 
@@ -18,8 +18,8 @@ const TITLE_ACCENT = "request by request.";
 
 const LEDE = "An anonymised trace of the agent sessions FreeInference served: every request, tool call and subagent.";
 
-// The buttons under the lede: the first leads to the page's figures, the others leave the site.
-const FIGURES_BUTTON = Object.freeze({ title: "See the figures", href: "#figures" });
+// The buttons under the lede: the first leads to the page's Insights, the others leave the site.
+const INSIGHTS_BUTTON = Object.freeze({ title: "Insights", href: "#insights" });
 const EXTERNAL_BUTTONS = Object.freeze([
   Object.freeze({ title: "Dataset", url: URLS.dataset }),
   Object.freeze({ title: "Paper", url: URLS.paper }),
@@ -62,7 +62,7 @@ export function renderHero(container, weekCount) {
     <h1 id="hero-title">${titleLead(weekCount)} <br><em>${TITLE_ACCENT}</em></h1>
     <p class="hero-lede">${LEDE}</p>
     <div class="hero-actions">
-      <a class="button button--primary" href="${FIGURES_BUTTON.href}">${FIGURES_BUTTON.title}</a>
+      <a class="button button--primary" href="${INSIGHTS_BUTTON.href}">${INSIGHTS_BUTTON.title}</a>
       ${externalButtons.join("")}
     </div>`;
 }

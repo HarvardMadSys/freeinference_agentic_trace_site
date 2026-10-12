@@ -43,17 +43,17 @@ function footerList(heading) {
 test("on the Explore page the header links its four sections by anchor alone, none marked", () => {
   assert.deepEqual(sectionLinks("index.html", "months=2026-07&harnesses=codex&sort=requests&page=2"), [
     ["Overview", "#overview", false],
-    ["Figures", "#figures", false],
-    ["Session list", "#sessions", false],
+    ["Session Explorer", "#sessions", false],
+    ["Insights", "#insights", false],
     ["Cite", "#cite", false],
   ]);
 });
 
-test("on the Session page the header's section links carry the URL keys, and Session list is marked", () => {
+test("on the Session page the header's section links carry the URL keys, and Session Explorer is marked", () => {
   assert.deepEqual(sectionLinks("session.html", "months=2026-07&harnesses=codex&sort=requests&page=2"), [
     ["Overview", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#overview", false],
-    ["Figures", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#figures", false],
-    ["Session list", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#sessions", true],
+    ["Session Explorer", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#sessions", true],
+    ["Insights", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#insights", false],
     ["Cite", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#cite", false],
   ]);
 });
@@ -79,7 +79,7 @@ test("the header links no About page", () => {
 });
 
 test("the footer lists the sections on this site and the places elsewhere", () => {
-  assert.deepEqual(footerList("On this site"), ["Overview", "Figures", "Session list", "Cite"]);
+  assert.deepEqual(footerList("On this site"), ["Overview", "Session Explorer", "Insights", "Cite"]);
   assert.deepEqual(footerList("Elsewhere"), [
     "Dataset", "Paper", "Code (this trace)", "Open Data", "FreeInference", "MadSys on GitHub",
   ]);
@@ -87,7 +87,7 @@ test("the footer lists the sections on this site and the places elsewhere", () =
 
 test("the footer's section links carry the URL keys from the Session page", () => {
   const markup = rendered(renderFooter, "session.html", "months=2026-07");
-  assert.match(markup, /<a class="footer-link" href="index\.html\?months=2026-07#sessions">Session list<\/a>/);
+  assert.match(markup, /<a class="footer-link" href="index\.html\?months=2026-07#sessions">Session Explorer<\/a>/);
 });
 
 test("the footer holds the brand line, Harvard's copyright and its four policies", () => {
@@ -108,4 +108,21 @@ test("every section the header and footer link is an element of the Explore page
   for (const section of SECTIONS) {
     assert.match(page, new RegExp(`<section id="${section.anchor.slice(1)}"`), `index.html has no section ${section.anchor}`);
   }
+});
+
+test("the Explore page runs Overview, Session Explorer, Insights, Cite and Team, each of the four a heading alone", () => {
+  const page = readFileSync(EXPLORE_PAGE, "utf8");
+  const order = [...page.matchAll(/<section id="(overview|sessions|insights|cite|team)"/g)].map((match) => match[1]);
+  assert.deepEqual(order, ["overview", "sessions", "insights", "cite", "team"]);
+  for (const section of SECTIONS) {
+    const start = page.indexOf(`<section id="${section.anchor.slice(1)}"`);
+    const firstHeading = page.slice(start).match(/<h2 id="[^"]+">([^<]+)<\/h2>/)[1];
+    assert.equal(firstHeading, section.title, section.anchor);
+  }
+  assert.doesNotMatch(page, /class="eyebrow"/);
+});
+
+test("the Session page's link back reads Session Explorer and opens the Explore page at it", () => {
+  const page = readFileSync(new URL("../site/session.html", import.meta.url), "utf8");
+  assert.match(page, /<a id="back-link" href="index\.html#sessions">← Session Explorer<\/a>/);
 });

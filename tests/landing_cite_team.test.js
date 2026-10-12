@@ -77,7 +77,7 @@ test("the About paragraph says what the site is, with no links the header and fo
   const container = { innerHTML: "" };
   renderTeam(container);
   const about = container.innerHTML.split('class="team-about"')[1];
-  assert.match(about, /This site shows the paper's figures on the trace and opens any session in it\./);
+  assert.match(about, /This site draws the trace's insights and opens any session in it\./);
   assert.doesNotMatch(about, /href=/);
 });
 

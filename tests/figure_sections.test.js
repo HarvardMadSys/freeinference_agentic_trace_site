@@ -57,16 +57,16 @@ const SECTION_FIGURES = {
 
 // The figure sections of index.html, in order: each section's id, its number and its heading.
 const PAGE_SECTIONS = [
-  { id: "figures-sessions", number: "01", heading: "Sessions" },
-  { id: "figures-tokens", number: "02", heading: "Tokens and cost" },
-  { id: "figures-latency", number: "03", heading: "Latency" },
-  { id: "figures-tools", number: "04", heading: "Tools" },
-  { id: "figures-caching", number: "05", heading: "Prefix caching" },
-  { id: "figures-comparison", number: "06", heading: "Human-driven against benchmark" },
+  { id: "insights-sessions", number: "01", heading: "Session structure" },
+  { id: "insights-tokens", number: "02", heading: "Tokens and cost" },
+  { id: "insights-latency", number: "03", heading: "Latency" },
+  { id: "insights-tools", number: "04", heading: "Tools" },
+  { id: "insights-caching", number: "05", heading: "Prefix caching" },
+  { id: "insights-comparison", number: "06", heading: "Human-driven against benchmark" },
 ];
 const PAGE = readFileSync(new URL("../site/index.html", import.meta.url), "utf8");
 const PAGE_SECTION =
-  /<section id="(figures-\w+)" class="figure-section"[^>]*>\s*<h2[^>]*><span class="topic-number">(\d+)<\/span>([^<]+)<\/h2>/g;
+  /<section id="(insights-\w+)" class="figure-section"[^>]*>\s*<h2[^>]*><span class="topic-number">(\d+)<\/span>([^<]+)<\/h2>/g;
 
 // A histogram figure names its stats query beside its bins query; every other figure is drawn from one query.
 function isHistogram(figure) {
