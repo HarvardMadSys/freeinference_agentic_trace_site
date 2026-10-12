@@ -138,7 +138,7 @@ run live with the default selection.
 `make deploy` SHALL publish `site/`, including its generated data, to a
 static host that answers HTTP range requests: the Cloudflare Worker that
 `wrangler.jsonc` names, which serves `site/` as static assets. A push to
-`main` SHALL deploy the same way through the host's Git integration.
+`main` SHALL deploy the same way through the repository's deploy workflow.
 
 #### Scenario: Deploying a new week
 - **WHEN** a week is added to the release and `make data deploy` runs

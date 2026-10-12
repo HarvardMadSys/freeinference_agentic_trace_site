@@ -122,13 +122,17 @@ query changes, not routinely.
 ### Hosting
 
 The site is a Cloudflare Worker with static assets and no code of its own:
-`wrangler.jsonc` names the Worker and points it at `site/`. Pushes to `main`
-deploy it through the Cloudflare dashboard's Git integration (build command
-none, deploy command `npx wrangler deploy`, root `/`); `make deploy` does the
-same from a machine with `npm install` done and `npx wrangler login` or a
-`CLOUDFLARE_API_TOKEN`. Static assets allow 20,000 files of 25 MiB each; the
-site is a few hundred files, the largest under 10 MB. After a deploy, check
-that the host answers a range request with 206, as DuckDB needs:
+`wrangler.jsonc` names the Worker and points it at `site/`. Every push to
+`main` deploys it through `.github/workflows/deploy.yml`, which runs
+`wrangler deploy` with two repository secrets, `CLOUDFLARE_API_TOKEN` (a
+token made from the dashboard's "Edit Cloudflare Workers" template) and
+`CLOUDFLARE_ACCOUNT_ID`; set the repository variable
+`CLOUDFLARE_ACCOUNT_SUBDOMAIN` and the workflow also checks the deployed
+site. `make deploy` does the same from a machine with `npm install` done and
+the token in `CLOUDFLARE_API_TOKEN`. Static assets allow 20,000 files of
+25 MiB each; the site is a few hundred files, the largest under 10 MB. After
+a deploy, check that the host answers a range request with 206, as DuckDB
+needs:
 
 ```bash
 curl -sI -r 0-99 https://<the site>/data/weeks.json | head -1    # HTTP/2 206

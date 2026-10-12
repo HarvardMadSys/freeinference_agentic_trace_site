@@ -41,7 +41,7 @@ check-answers:
 	$(PYTHON) -m site_data.check_answers
 
 # Publish site/, with its data, to Cloudflare as the static assets of the Worker wrangler.jsonc names, once the
-# answers are checked. Needs `npm install` once and a Cloudflare login or API token (see README); pushes to main
-# deploy the same way through the dashboard's Git integration.
+# answers are checked. Needs `npm install` once and a Cloudflare API token (see README); a push to main deploys
+# the same way through .github/workflows/deploy.yml.
 deploy: check-answers
 	npx wrangler deploy

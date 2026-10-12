@@ -1,0 +1,66 @@
+name: Deploy
+
+# Deploys site/ to Cloudflare as the Worker's static assets on every push to main, with wrangler and an API token,
+# so no Cloudflare dashboard role beyond Workers Platform Admin is needed. The two secrets live under the
+# repository's Settings > Secrets and variables > Actions: CLOUDFLARE_API_TOKEN (a token with Workers Scripts: Edit,
+# from the dashboard's "Edit Cloudflare Workers" template) and CLOUDFLARE_ACCOUNT_ID.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One deploy at a time; a newer push waits for the running one rather than cancelling it mid-upload.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check Cloudflare credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          missing=""
+          [ -n "$CLOUDFLARE_API_TOKEN" ] || missing="$missing CLOUDFLARE_API_TOKEN"
+          [ -n "$CLOUDFLARE_ACCOUNT_ID" ] || missing="$missing CLOUDFLARE_ACCOUNT_ID"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secret(s):$missing. Add them under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run deploy
+
+      - name: Check the host answers a range request with 206
+        shell: bash
+        run: |
+          # The Worker answers at its workers.dev address until a custom domain is set in wrangler.jsonc.
+          host="freeinference-agentic-trace-site.${CLOUDFLARE_ACCOUNT_SUBDOMAIN:-}.workers.dev"
+          if [ -z "${CLOUDFLARE_ACCOUNT_SUBDOMAIN:-}" ]; then
+            echo "Set the CLOUDFLARE_ACCOUNT_SUBDOMAIN repository variable to check the deployed site; skipping."
+            exit 0
+          fi
+          status=$(curl -s -o /dev/null -w '%{http_code}' -r 0-99 "https://$host/data/weeks.json")
+          [ "$status" = "206" ] || { echo "::error::range request to $host answered $status, not 206"; exit 1; }
+        env:
+          CLOUDFLARE_ACCOUNT_SUBDOMAIN: ${{ vars.CLOUDFLARE_ACCOUNT_SUBDOMAIN }}
