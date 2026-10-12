@@ -31,6 +31,7 @@ EXPECTED_COLUMNS = {
     "explore/model_mix": ["model", "requests"],
     "explore/request_count": ["requests"],
     "explore/sessions_per_week_by_harness": ["week", "harness", "sessions"],
+    "explore/trace_totals": ["sessions", "requests", "input_tokens", "tool_calls", "harnesses", "benchmark_harnesses"],
     "explore/requests_per_week_by_model": ["week", "model", "requests"],
     "explore/sessions_of_selection": ["week", "session_id", "first_start_ms", "harness", "benchmark", "main_model",
                                       "requests", "turns", "tool_calls", "duration_s", "input_tokens",

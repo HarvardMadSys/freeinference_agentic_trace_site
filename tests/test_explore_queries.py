@@ -143,6 +143,23 @@ def test_the_headline_of_a_selection_with_no_sessions_is_zero(connection: duckdb
     assert set(headline.values()) == {0}
 
 
+# With every harness: the six top-level sessions with their 16 requests, 28,500 input tokens and 12 tool calls, as the
+# headline counts them, and four harnesses, `eval:swe-bench` the benchmark's.
+def test_the_trace_totals_count_every_harness_and_the_benchmark_s_apart(connection: duckdb.DuckDBPyConnection,
+                                                                         fixture_weeks: list[str]) -> None:
+    select(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
+    assert records(connection, "explore/trace_totals") == [{
+        "sessions": 6, "requests": 16, "input_tokens": 28_500, "tool_calls": 12, "harnesses": 4,
+        "benchmark_harnesses": 1}]
+
+
+def test_the_trace_totals_of_the_paper_s_harnesses_count_no_benchmark_harness(
+        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+    select(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
+    totals = records(connection, "explore/trace_totals")[0]
+    assert (totals["sessions"], totals["harnesses"], totals["benchmark_harnesses"]) == (4, 3, 0)
+
+
 def test_the_model_mix_counts_top_level_requests_per_model_largest_first(
         connection: duckdb.DuckDBPyConnection) -> None:
     select(connection, [FIRST_SUNDAY], fixture_release.EVERY_HARNESS)

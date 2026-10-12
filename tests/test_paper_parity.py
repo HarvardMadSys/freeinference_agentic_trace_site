@@ -151,6 +151,18 @@ def test_the_headline_totals_are_the_trace_summary(whole_trace: duckdb.DuckDBPyC
                                  for name in TRACE_SUMMARY_TOTALS])
 
 
+# `explore/trace_totals` over `All` against `dataset.trace_summary`, as the stats strip shows it: `sessions`,
+# `requests`, `tool_calls` and `input_tokens`, each the column of the same name, and the paper's `harnesses`, which
+# leaves the benchmark's out, the answer's harnesses less its benchmark harnesses.
+def test_the_trace_totals_are_the_trace_summary(whole_trace: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+    totals = site_database.run_query(whole_trace, "explore/trace_totals").iloc[0]
+    comparisons = [Comparison("dataset", "trace_summary", name, float(totals[name]), EXACT)
+                   for name in ["sessions", "requests", "tool_calls", "input_tokens"]]
+    human_driven_harnesses = float(totals["harnesses"] - totals["benchmark_harnesses"])
+    comparisons.append(Comparison("dataset", "trace_summary", "harnesses", human_driven_harnesses, EXACT))
+    assert_match(paper_numbers, comparisons)
+
+
 def test_the_median_counts_per_session(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
     # `figures/requests_per_session_cdf`'s `x` at share 0.5 of the series `requests`, `user_steps` and `tool_steps`
     # against `sessions.counts_per_session.median_requests`, `.median_user_steps` and `.median_tool_steps`.

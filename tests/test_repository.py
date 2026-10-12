@@ -16,6 +16,7 @@ LIBRARIES_MODULE = ROOT / "site" / "js" / "shared" / "libraries.js"  # the only 
 QUERIES_FOLDER = ROOT / "site" / "queries"  # the only place SQL is written
 DATA_FOLDER = "site/data"  # built by `make data` and tracked, so a clone serves the site without building
 ROW_KINDS = ("requests", "sessions", "tool_calls")  # the kinds of row every week has a file of; the simulation has fewer weeks
+BUCKETS_FOLDER = "session_buckets"  # every week's folder of session buckets, beside its index `index.json.gz`
 CDN_HOSTS = ("cdn.jsdelivr.net", "unpkg.com", "cdnjs.cloudflare.com", "esm.sh")
 
 # A static import of the libraries module, by any relative path: the `from` clause, or an import for its side effects.
@@ -142,7 +143,8 @@ def test_no_tracked_file_names_a_machine_path() -> None:
 
 
 def test_shipped_data_is_whole() -> None:
-    """Git tracks the indexes, the query hashes and every week's row files, so a clone serves every week."""
+    """Git tracks the indexes, the query hashes, every week's row files and every week's session buckets with their
+    index, so a clone serves every week and opens every session."""
     tracked = subprocess.run(["git", "ls-files", DATA_FOLDER], cwd=ROOT, capture_output=True, text=True, check=True)
     tracked_files = set(tracked.stdout.split())
     for name in ("weeks.json", "harnesses.json", "all_weeks/queries.json"):
@@ -153,3 +155,7 @@ def test_shipped_data_is_whole() -> None:
         for kind in ROW_KINDS:
             path = f"{DATA_FOLDER}/{kind}/week={entry['week']}/rows.parquet"
             assert path in tracked_files, f"{path} is not tracked"
+        index = f"{DATA_FOLDER}/{BUCKETS_FOLDER}/{entry['week']}/index.json.gz"
+        assert index in tracked_files, f"{index} is not tracked"
+        buckets = [name for name in tracked_files if name.startswith(f"{DATA_FOLDER}/{BUCKETS_FOLDER}/{entry['week']}/")]
+        assert len(buckets) > 1, f"{DATA_FOLDER}/{BUCKETS_FOLDER}/{entry['week']}/ holds no tracked bucket"

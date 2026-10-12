@@ -13,6 +13,7 @@
  "explore/sessions_per_week_by_harness": "b0fbbfb9693a42de8a2b3ef9ea0d6d4b15fcadcf5fe35dd4fbc1a2c2e2d3e9c8",
  "explore/subagents_per_session_bins": "1e2b97e80352966bc5fc0a60dec6bc29804f2d50b49f569e06b257429655448c",
  "explore/subagents_per_session_stats": "955a2623b8c3c0a87d7577771497aa9a23c9876fc827d9d7dcdd5da51cf3f4b8",
+ "explore/trace_totals": "a177fbcb193e3f9d7e86c2e8155175e3032ac9adc07c59ed593aae9f31c77622",
  "figures/api_cost_by_ttl": "82cd8050c459463200f85145a23058c027edb448789ad3fbdaf6c209d1fa2bcf",
  "figures/calls_per_request_by_category": "bec85d83436aa19ca73d9f61b72e17a1c96d78ce3f8c5e6241ce03d9030c80d5",
  "figures/context_share_by_role": "5def1fc9fbe7f8ece4fdc6ecd05454fb68ab52e16be198d7fcd6828982b3aeef",

@@ -11,9 +11,9 @@ The default selection is every week of `weeks.json` and every harness of
 `harnesses.json` that is not the benchmark's. The database is opened and the
 selection tables filled by `site_database`, with the browser's own setup
 statements, so an answer holds the rows the browser's query would return.
-The sessions table's query is the one exception: it is answered with every
-week and every harness, the benchmark's included, and the tables are then
-filled with the default selection again.
+The sessions table's query and the trace totals are the exceptions: they are
+answered with every week and every harness, the benchmark's included, and the
+tables are then filled with the default selection again.
 The colour orders read every week and every harness whatever the selection,
 so their answers hold for any selection, not only the default.
 
@@ -42,9 +42,10 @@ ANSWERED_PAGES = ["explore", "figures"]  # the folders whose queries are answere
 # The setup queries that fix each harness's, model's, category's and provider's colour from every week and harness;
 # answered so a page draws its colours without DuckDB.
 COLOUR_ORDER_QUERIES = ["setup/category_order", "setup/harness_order", "setup/model_order", "setup/provider_order"]
-# The query answered with every harness selected, the benchmark's too: the sessions table filters its answer in the
-# browser, so the answer holds every row any harness filter can show; its `benchmark` column marks the benchmark's.
-EVERY_HARNESS_QUERY = "explore/sessions_of_selection"
+# The queries answered with every harness selected, the benchmark's too: the sessions table filters its answer in the
+# browser, so the answer holds every row any harness filter can show, its `benchmark` column marking the benchmark's;
+# and the trace totals the stats strip shows count the whole trace, as the session list lists it.
+EVERY_HARNESS_QUERIES = ["explore/sessions_of_selection", "explore/trace_totals"]
 # Commas and colons without spaces: the answers are fetched by every visitor, the sessions table's above all.
 JSON_SEPARATORS = (",", ":")
 
@@ -111,8 +112,8 @@ def write_answers(data_directory: pathlib.Path) -> WrittenAnswers:
 
 def write_answer_files(data_directory: pathlib.Path, answers_directory: pathlib.Path) -> WrittenAnswers:
     """Write into `answers_directory` the answer of every answered query under the data folder's default selection,
-    and of `EVERY_HARNESS_QUERY` under every week and harness, except a query that fails because it reads the missing
-    `simulation` view."""
+    and of each of `EVERY_HARNESS_QUERIES` under every week and harness, except a query that fails because it reads
+    the missing `simulation` view."""
     any_simulated = any(entry.simulated for entry in weeks.read_weeks_file(data_directory))
     selection = default_selection(data_directory)
     harness_list = every_harness(data_directory)
@@ -152,10 +153,10 @@ def query_text_hash(queries_folder: pathlib.Path, name: str) -> str:
 
 def answered_rows(connection: duckdb.DuckDBPyConnection, query_name: str, selection: DefaultSelection,
                   harness_list: list[str], any_simulated: bool) -> list[dict] | None:
-    """The query's answer rows under the default selection the selection tables hold, or, for `EVERY_HARNESS_QUERY`,
-    under its weeks and every harness of `harness_list`, the tables then holding the default selection again; None as
-    `rows_unless_simulation_is_missing` gives it."""
-    if query_name != EVERY_HARNESS_QUERY:
+    """The query's answer rows under the default selection the selection tables hold, or, for one of
+    `EVERY_HARNESS_QUERIES`, under its weeks and every harness of `harness_list`, the tables then holding the default
+    selection again; None as `rows_unless_simulation_is_missing` gives it."""
+    if query_name not in EVERY_HARNESS_QUERIES:
         return rows_unless_simulation_is_missing(connection, query_name, any_simulated)
     site_database.select_weeks(connection, selection.weeks, harness_list)
     rows = rows_unless_simulation_is_missing(connection, query_name, any_simulated)

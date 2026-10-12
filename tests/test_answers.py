@@ -30,6 +30,8 @@ SIMULATION_QUERIES = [
 SHIPPED_DATA_FOLDER = site_database.QUERIES_FOLDER.parent / "data"  # the data the repository tracks, built by `make data`
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
+SESSIONS_TABLE_QUERY = "explore/sessions_of_selection"  # the Session Explorer's answer, every harness's sessions
+TRACE_TOTALS_QUERY = "explore/trace_totals"  # the stats strip's answer, the whole trace
 
 
 def expected_answer_names(data_directory: pathlib.Path) -> list[str]:
@@ -82,7 +84,7 @@ def test_an_answer_equals_its_query_run_live_with_the_selection_it_was_answered_
         connection: duckdb.DuckDBPyConnection, data_directory: pathlib.Path, name: str) -> None:
     selection = site_data.answers.default_selection(data_directory)
     harness_list = selection.harnesses
-    if name == site_data.answers.EVERY_HARNESS_QUERY:
+    if name in site_data.answers.EVERY_HARNESS_QUERIES:
         harness_list = site_data.answers.every_harness(data_directory)
     site_database.select_weeks(connection, selection.weeks, harness_list)
     live = site_database.run_query(connection, name)
@@ -124,9 +126,9 @@ def test_the_default_selection_is_every_week_and_every_harness_but_the_benchmark
 
 def test_the_sessions_table_s_answer_holds_every_harness_s_sessions_with_the_benchmark_s_marked(
         data_directory: pathlib.Path) -> None:
-    assert site_data.answers.EVERY_HARNESS_QUERY == "explore/sessions_of_selection"
+    assert site_data.answers.EVERY_HARNESS_QUERIES == [SESSIONS_TABLE_QUERY, TRACE_TOTALS_QUERY]
     assert sorted(site_data.answers.every_harness(data_directory)) == sorted(fixture_release.EVERY_HARNESS)
-    answer = read_answer(data_directory, site_data.answers.EVERY_HARNESS_QUERY)
+    answer = read_answer(data_directory, SESSIONS_TABLE_QUERY)
     assert {row["session_id"]: (row["harness"], row["benchmark"]) for row in answer} == {
         "tree-root": ("claude-code", False), "mutation": ("codex", False), "idle-week-1": ("pi", False),
         "idle-week-2": ("pi", False), "swe-bench": ("eval:swe-bench", True), "idle-benchmark": ("eval:swe-bench", True),
@@ -136,10 +138,17 @@ def test_the_sessions_table_s_answer_holds_every_harness_s_sessions_with_the_ben
 def test_after_the_sessions_table_s_answer_the_next_query_is_answered_with_the_default_selection_again(
         data_directory: pathlib.Path) -> None:
     names = site_data.answers.answered_query_names()
-    after = names[names.index(site_data.answers.EVERY_HARNESS_QUERY) + 1]
+    after = names[names.index(SESSIONS_TABLE_QUERY) + 1]
     assert after == "explore/sessions_per_week_by_harness"
     harnesses_answered = {row["harness"] for row in read_answer(data_directory, after)}
     assert sorted(harnesses_answered) == sorted(fixture_release.PAPER_HARNESSES)
+
+
+def test_the_trace_totals_count_the_sessions_the_session_explorer_lists(data_directory: pathlib.Path) -> None:
+    for data_folder in [data_directory, SHIPPED_DATA_FOLDER]:
+        [totals] = read_answer(data_folder, TRACE_TOTALS_QUERY)
+        assert totals["sessions"] == len(read_answer(data_folder, SESSIONS_TABLE_QUERY)), data_folder
+        assert totals["benchmark_harnesses"] == 1, data_folder
 
 
 # 13 top-level requests of the paper's harnesses, counted by hand in tests/test_queries.py.
