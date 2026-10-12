@@ -1,14 +1,16 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { FIGURES } from "../site/js/figures/sessions.js";
 import { formatSeconds, formatTokens } from "../site/js/shared/format.js";
 import {
-  binsFromRows, cardTicks, drawableBins, maximumText, percentileEntries, rowsText,
+  binsFromRows, cardTicks, drawableBins, histogramCard, maximumText, percentileEntries, rowsText,
 } from "../site/js/shared/histogram.js";
 
+// A card of token counts on a log axis, drawn but for its bins.
 const TOKENS_CARD = {
-  title: "Input tokens per request",
-  definition: "Prompt tokens of each request, in the selected weeks and harnesses.",
+  title: "Tokens per request",
+  definition: "Tokens of each request.",
   bins: [],
   percentiles: { p50: 129087, p75: 260000, p90: 512300, p95: 801000 },
   count: 1186582,
@@ -74,4 +76,33 @@ test("a log card draws only the bins that start above 0, a linear card every bin
   ];
   assert.deepEqual(drawableBins({ ...TOKENS_CARD, bins, logScale: true }), [{ x0: 2, x1: 4, count: 1 }]);
   assert.deepEqual(drawableBins({ ...TOKENS_CARD, bins, logScale: false }), bins);
+});
+
+// The Sessions section's histogram figure: its entry as the page draws it.
+const SUBAGENTS_ENTRY = FIGURES.find((figure) => figure.name === "subagents_per_session");
+
+test("a card takes its bins from the bins query and its percentiles, count and maximum from the stats row", () => {
+  const binRows = [
+    { bin_start: 0, bin_end: 1, rows: 5 },
+    { bin_start: 2, bin_end: 4, rows: 1 },
+  ];
+  const statsRow = { count: 6, max: 3, p50: 0, p75: 0, p90: 1.5, p95: 2.25 };
+  assert.deepEqual(histogramCard(SUBAGENTS_ENTRY, binRows, statsRow), {
+    ...SUBAGENTS_ENTRY,
+    bins: [
+      { x0: 0, x1: 1, count: 5 },
+      { x0: 2, x1: 4, count: 1 },
+    ],
+    percentiles: { p50: 0, p75: 0, p90: 1.5, p95: 2.25 },
+    count: 6,
+    max: 3,
+  });
+});
+
+test("a card with no rows has no bins and a count of 0", () => {
+  const statsRow = { count: 0, max: null, p50: null, p75: null, p90: null, p95: null };
+  const card = histogramCard(SUBAGENTS_ENTRY, [], statsRow);
+  assert.deepEqual(card.bins, []);
+  assert.equal(card.count, 0);
+  assert.equal(rowsText(card), "0 sessions");
 });

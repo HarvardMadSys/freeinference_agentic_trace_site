@@ -172,7 +172,7 @@ site/              exactly the files that are deployed
   js/session_requests/  the Requests view: a row per request, its details (each call's programs and argument
                         skeleton), brackets and legend
   js/session_charts/    the Context and Timeline views and the series and bars they draw
-  queries/         one .sql file per chart or table, in one folder per purpose: explore (23), figures (31: the 29
+  queries/         one .sql file per chart or table, in one folder per purpose: explore (11), figures (31: the 29
                    figures, and two per-model medians only the paper-parity test reads), session (4), setup (19)
   data/            built by make data and tracked, so a clone serves the site without building
     requests/, tool_calls/, sessions/, simulation/

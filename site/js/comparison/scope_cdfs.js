@@ -122,7 +122,7 @@ export const INPUT_PER_REQUEST_BY_SCOPE = Object.freeze({
 export const USER_PROMPT_TOKENS_BY_SCOPE = Object.freeze({
   name: "user_prompt_tokens_by_scope",
   title: "User prompt size",
-  definition: "CDF of the tokens of each new user prompt (a user step's rise in user tokens over the step before) in top-level sessions, human-driven and benchmark, each median marked with the ratio of the two.",
+  definition: "CDF of the tokens of each new user prompt (a user step's rise in user tokens over the step before, all of them at a session's first) in top-level sessions, human-driven and benchmark, medians marked with their ratio.",
   caption: "Tokens of each new user prompt, human-driven and benchmark.",
   drawsLines: true,
   query: "figures/user_prompt_tokens_by_scope",

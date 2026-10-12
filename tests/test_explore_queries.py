@@ -163,14 +163,8 @@ def test_the_model_order_counts_every_week_and_harness(connection: duckdb.DuckDB
 # Each pair of histogram queries, by their prefix: the folder of the rows they read, requests or sessions, and the column
 # they take.
 HISTOGRAM_QUERIES = {
-    "input_tokens": ("requests", "prompt_tokens"),
-    "uncached_tokens": ("requests", "uncached_tokens"),
-    "output_tokens": ("requests", "completion_tokens"),
     "cached_fraction": ("requests", "hit_ratio"),
-    "requests_per_session": ("sessions", "requests"),
-    "turns_per_session": ("sessions", "user_steps"),
     "subagents_per_session": ("sessions", "subagents"),
-    "session_duration": ("sessions", "duration_s"),
 }
 
 
@@ -204,13 +198,6 @@ def test_a_histogram_s_median_count_and_maximum_are_those_of_its_values(connecti
     assert stats["p50"] <= stats["p75"] <= stats["p90"] <= stats["p95"] <= stats["max"]
 
 
-# The first week's top-level input tokens: `tree-root` 1,000 to 5,000, `swe-bench` 800 and 1,000, `idle-week-1`
-# 1,000, 1,200 and 1,400; sorted, the middle two are 1,200 and 1,400.
-def test_one_week_s_input_tokens_median_is_counted_by_hand(connection: duckdb.DuckDBPyConnection) -> None:
-    select(connection, [FIRST_SUNDAY], fixture_release.EVERY_HARNESS)
-    assert records(connection, "explore/input_tokens_stats")[0]["p50"] == 1_300
-
-
 @pytest.mark.parametrize("histogram", sorted(HISTOGRAM_QUERIES))
 def test_a_histogram_s_bins_hold_every_value_once_smallest_first(connection: duckdb.DuckDBPyConnection,
                                                            fixture_weeks: list[str], histogram: str) -> None:
@@ -224,19 +211,8 @@ def test_a_histogram_s_bins_hold_every_value_once_smallest_first(connection: duc
         assert row["bin_start"] < row["bin_end"]
 
 
-# `tree-root` has 5 requests (in [4, 8)), `idle-week-1` and `mutation` 3 (in [2, 4)), `swe-bench` and
-# `idle-week-2` 2 (in [2, 4)), `idle-benchmark` 1 (in [1, 2)).
-def test_the_log_bins_are_powers_of_two(connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
-    select(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
-    assert records(connection, "explore/requests_per_session_bins") == [
-        {"bin_start": 1, "bin_end": 2, "rows": 1},
-        {"bin_start": 2, "bin_end": 4, "rows": 4},
-        {"bin_start": 4, "bin_end": 8, "rows": 1},
-    ]
-
-
-# Five top-level sessions spawned nothing and `tree-root` spawned three.
-def test_a_value_of_0_falls_in_the_first_bin(connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+# Five top-level sessions spawned nothing and `tree-root` spawned three, which falls in the power-of-two bin [2, 4).
+def test_a_value_of_0_falls_in_the_first_bin_and_the_others_in_powers_of_two(connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
     select(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
     assert records(connection, "explore/subagents_per_session_bins") == [
         {"bin_start": 0, "bin_end": 1, "rows": 5},

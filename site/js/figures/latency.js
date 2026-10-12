@@ -72,7 +72,7 @@ export const SPEEDUP_IF_TWICE_AS_FAST = Object.freeze({
   name: "speedup_if_twice_as_fast",
   title: "Speed-up if twice as fast",
   definition: "The top-level sessions' machine time (prefill, decode and tool time) over the same with one part alone halved, prefill being the time to first token where trusted and a tool wait counting for at most 15 minutes.",
-  caption: "How much faster sessions get if one part ran twice as fast.",
+  caption: "Machine-time speed-up if prefill, decode or tools ran twice as fast.",
   query: "figures/speedup_if_twice_as_fast",
   binColumn: null,
   seriesOverSameRows: true,

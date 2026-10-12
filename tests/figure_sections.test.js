@@ -72,13 +72,14 @@ function isHistogram(figure) {
   return figure.statsQuery !== undefined;
 }
 
+// Every figure of every section.
+async function everyFigure() {
+  return (await sections()).flatMap((section) => section.figures);
+}
+
 // Every figure of every section that is drawn from one query, as the chart tests below read them.
 async function chartFigures() {
-  const figures = [];
-  for (const section of await sections()) {
-    figures.push(...section.figures.filter((figure) => !isHistogram(figure)));
-  }
-  return figures;
+  return (await everyFigure()).filter((figure) => !isHistogram(figure));
 }
 
 // The figures of every section, as each module exports them, each list with its module's path.
@@ -144,20 +145,27 @@ test("every histogram runs a bins and a stats query of one Explore name, and bot
   }
 });
 
-test("every figure has a title and a one-sentence definition", async () => {
-  for (const { figures } of await sections()) {
-    for (const figure of figures) {
-      assert.ok(figure.title.length > 0, figure.name);
-      assert.ok(figure.definition.endsWith("."), figure.name);
-      assert.equal(figure.definition.split(". ").length, 1, `${figure.name}: one sentence`);
-    }
-  }
-});
-
 test("every chart has a bin column and a draw function", async () => {
   for (const figure of await chartFigures()) {
     assert.ok(typeof figure.binColumn === "string" || figure.binColumn === null, figure.name);
     assert.equal(typeof figure.draw, "function", figure.name);
+  }
+});
+
+// A sentence ends at a full stop, a question mark or an exclamation mark followed by a space; a line break also
+// starts a new one.
+const SENTENCE_BREAK = /[.?!] |\n/;
+
+// Whether `text` is one sentence: no sentence break before its end.
+function isOneSentence(text) {
+  return text.split(SENTENCE_BREAK).length === 1;
+}
+
+test("every figure has a title and a one-sentence definition", async () => {
+  for (const figure of await everyFigure()) {
+    assert.ok(figure.title.length > 0, figure.name);
+    assert.ok(figure.definition.endsWith("."), figure.name);
+    assert.ok(isOneSentence(figure.definition), `${figure.name}: one sentence`);
   }
 });
 
@@ -169,30 +177,33 @@ function wordCount(text) {
   return text.split(/\s+/).filter((word) => word.length > 0).length;
 }
 
+test("a second sentence is found after a full stop, a question or an exclamation, or a line break", () => {
+  assert.equal(isOneSentence("One sentence, at 4.5 s."), true);
+  for (const text of ["One. Two.", "One? Two.", "One! Two.", "One\nTwo."]) {
+    assert.equal(isOneSentence(text), false, text);
+  }
+});
+
 test("a word is a whitespace-separated token", () => {
   assert.equal(wordCount("Tool call latency per category, box 25th–75th."), 7);
   assert.equal(wordCount("  two\n words "), 2);
 });
 
 test("every figure has a caption of one short sentence, at most twelve words", async () => {
-  for (const { figures } of await sections()) {
-    for (const figure of figures) {
-      assert.equal(typeof figure.caption, "string", `${figure.name} has a caption`);
-      assert.ok(figure.caption.length > 0, `${figure.name}: a caption that says something`);
-      assert.ok(figure.caption.endsWith("."), figure.name);
-      assert.equal(figure.caption.split(". ").length, 1, `${figure.name}: one sentence`);
-      const words = wordCount(figure.caption);
-      assert.ok(words <= MAX_CAPTION_WORDS, `${figure.name}: a caption of ${words} words`);
-    }
+  for (const figure of await everyFigure()) {
+    assert.equal(typeof figure.caption, "string", `${figure.name} has a caption`);
+    assert.ok(figure.caption.length > 0, `${figure.name}: a caption that says something`);
+    assert.ok(figure.caption.endsWith("."), figure.name);
+    assert.ok(isOneSentence(figure.caption), `${figure.name}: one sentence`);
+    const words = wordCount(figure.caption);
+    assert.ok(words <= MAX_CAPTION_WORDS, `${figure.name}: a caption of ${words} words`);
   }
 });
 
 test("every figure's definition is at most forty words", async () => {
-  for (const { figures } of await sections()) {
-    for (const figure of figures) {
-      const words = wordCount(figure.definition);
-      assert.ok(words <= MAX_DEFINITION_WORDS, `${figure.name}: a definition of ${words} words`);
-    }
+  for (const figure of await everyFigure()) {
+    const words = wordCount(figure.definition);
+    assert.ok(words <= MAX_DEFINITION_WORDS, `${figure.name}: a definition of ${words} words`);
   }
 });
 

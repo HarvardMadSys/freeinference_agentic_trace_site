@@ -94,7 +94,7 @@ export const GAP_FIGURES = Object.freeze({
   mutationsByCause: Object.freeze({
     name: "mutations_by_cause",
     title: "Context mutations by cause",
-    definition: "Per transition (append or mutation) and mutation cause, over top-level requests after their session's first, model and provider switches left out: its share of steps, of sessions having one, and of the tokens missed with no TTL in the simulation.",
+    definition: "Per transition and mutation cause, over top-level requests after their session's first, model and provider switches left out: its share of steps, of sessions having one (for appends, having no mutation), and of simulated tokens missed with no TTL.",
     caption: "How often each kind of context change happens, and its prefill.",
     query: "figures/mutations_by_cause",
     binColumn: null,
