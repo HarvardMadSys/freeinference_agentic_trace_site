@@ -13,6 +13,7 @@
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
 import { causeColours, REQUEST_PART_COLOURS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { formatCount, formatShare } from "../shared/format.js";
+import { partsLegend } from "./figure_rows.js";
 
 // The parts of a session's cost, bottom up in the stack, with the label each is drawn under.
 const COST_PARTS = Object.freeze({ cached: "Cached input", uncached: "Uncached input", output: "Output" });
@@ -79,12 +80,6 @@ export function rankTips(rows, parts, labels) {
     tips.push({ percentile: row.percentile, top, text: lines.join("\n") });
   }
   return tips;
-}
-
-/** The legend of a figure whose parts are columns: each part of `labels` (part to label), in its colour of `colours`. */
-export function partsLegend(labels, colours) {
-  const series = Object.entries(labels).map(([name, label]) => ({ name, label }));
-  return { series, colours };
 }
 
 /** The cost share's legend: cached input, uncached input and output, in their token colours. */

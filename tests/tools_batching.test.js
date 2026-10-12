@@ -28,10 +28,12 @@ test("the widest width reads as that many calls or more", () => {
   assert.equal(widthLabel(WIDEST_DRAWN), "8+");
 });
 
-test("a duration tick is in seconds under a minute and in minutes from one", () => {
+test("a duration tick is in seconds under a minute and in minutes from one, to one decimal at most", () => {
   assert.equal(durationTick(0), "0 s");
   assert.equal(durationTick(50), "50 s");
   assert.equal(durationTick(120), "2 min");
+  assert.equal(durationTick(80), "1.3 min");
+  assert.equal(durationTick(90), "1.5 min");
 });
 
 test("the wait axis reaches past the highest line shown, and no further", () => {

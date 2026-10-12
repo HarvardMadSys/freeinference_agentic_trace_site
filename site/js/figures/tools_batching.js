@@ -12,7 +12,7 @@ import {
 } from "../shared/charts.js";
 import { BATCH_COLOURS } from "../theme/colours.js";
 import { formatCount, formatSeconds } from "../shared/format.js";
-import { partsLegend } from "./sessions_ranked.js";
+import { partsLegend } from "./figure_rows.js";
 
 /** The widest width the batch-width query draws on its own; requests of more calls are drawn with it. */
 export const WIDEST_DRAWN = 8;
@@ -63,9 +63,12 @@ export function widthLabel(width) {
   return width === WIDEST_DRAWN ? `${width}+` : String(width);
 }
 
-/** A duration as an axis writes it: "30 s" under a minute, "2 min" from one. */
+/** A duration as an axis writes it: "30 s" under a minute, "2 min" or "1.3 min" (one decimal at most) from one. */
 export function durationTick(seconds) {
-  return seconds < SECONDS_PER_MINUTE ? `${seconds} s` : `${seconds / SECONDS_PER_MINUTE} min`;
+  if (seconds < SECONDS_PER_MINUTE) {
+    return `${seconds} s`;
+  }
+  return `${Number((seconds / SECONDS_PER_MINUTE).toFixed(1))} min`;
 }
 
 /** The top of the wait axis: past the highest point of the lines in `shown`, the 90th percentile or the serial line. */

@@ -3,7 +3,6 @@ import { test } from "node:test";
 
 import {
   COST_SHARE_BY_SESSION,
-  partsLegend,
   rankTips,
   SESSION_TIME_BY_PART,
   stackedSharePoints,
@@ -36,17 +35,6 @@ test("a bin's tooltip points at the top of the shown parts and names each with i
   assert.equal(first.percentile, 25);
   assert.equal(first.top, 0.75);
   assert.equal(first.text, "Percentile 25.0\nCached input: 50.0%\nOutput: 25.0%\n55 sessions");
-});
-
-test("a legend of parts lists each part with its label, in order, with the colours given", () => {
-  const colours = new Map([["cached", "green"], ["uncached", "orange"], ["output", "blue"]]);
-  const legend = partsLegend(LABELS, colours);
-  assert.deepEqual(legend.series, [
-    { name: "cached", label: "Cached input" },
-    { name: "uncached", label: "Uncached input" },
-    { name: "output", label: "Output" },
-  ]);
-  assert.equal(legend.colours, colours);
 });
 
 test("the session time's legend draws model time in a request's ink and waits in the Timeline's wait colours", () => {

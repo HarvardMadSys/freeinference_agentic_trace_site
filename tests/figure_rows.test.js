@@ -10,6 +10,7 @@ import {
   hiddenText,
   restingCountText,
   restingRowCount,
+  partsLegend,
   seriesLegend,
   sparseTickFormat,
 } from "../site/js/figures/figure_rows.js";
@@ -174,4 +175,15 @@ test("a figure's caption names no week left out when every selected week is draw
   const rows = [{ week: "2026-08-16", rows: 60 }];
   assert.equal(figureCaption(figure, rows, 2, drawn),
     "60 rows · codex · 1 week (2026-08-16) · 2 weeks hidden (fewer than 50 rows each)");
+});
+
+test("a legend of parts lists each part with its label, in order, with the colours given", () => {
+  const colours = new Map([["cached", "green"], ["uncached", "orange"], ["output", "blue"]]);
+  const legend = partsLegend({ cached: "Cached input", uncached: "Uncached input", output: "Output" }, colours);
+  assert.deepEqual(legend.series, [
+    { name: "cached", label: "Cached input" },
+    { name: "uncached", label: "Uncached input" },
+    { name: "output", label: "Output" },
+  ]);
+  assert.equal(legend.colours, colours);
 });

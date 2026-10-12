@@ -147,6 +147,12 @@ export function seriesLegend(rows, seriesColumn, colours, labels = {}) {
   return { series, colours };
 }
 
+/** The legend of a figure whose parts are columns: each part of `labels` (part to label), in its colour of `colours`. */
+export function partsLegend(labels, colours) {
+  const series = Object.entries(labels).map(([name, label]) => ({ name, label }));
+  return { series, colours };
+}
+
 /**
  * The series of a CDF query's rows `{ series, x, share }`, in the order of `names` (series names in the rows), as
  * `[{ name, label, points: [{ x, share }] }]`; a series' label is `labels[name]` when given, else its name.

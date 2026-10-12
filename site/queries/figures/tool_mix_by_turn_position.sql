@@ -62,6 +62,7 @@ binned_requests AS (
   FROM calling_requests, constants
 ),
 -- One row per program label a top-level `*File Ops` call ran, with the label's first word, lower-cased.
+-- `\s` is ASCII whitespace only, where the pipeline's split() also splits on Unicode spaces.
 file_ops_words AS (
   SELECT tool_calls.week,
          tool_calls.session_id,
