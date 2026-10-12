@@ -232,7 +232,8 @@ function barHeight(y, stacked) {
   return { y2: y };
 }
 
-function cdfPoints(series) {
+/** The points of CDF series `[{ name, label, points: [{ x, share }] }]` as one list: `[{ name, label, x, share }]`. */
+export function cdfPoints(series) {
   const points = [];
   for (const one of series) {
     for (const point of one.points) {

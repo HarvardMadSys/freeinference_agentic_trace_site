@@ -9,15 +9,12 @@
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
-import { SCOPE_COLOURS, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
+import { SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { formatTokens } from "../shared/format.js";
 import { decadeTicks, multipleText, seriesLegend } from "./figure_rows.js";
+import { SCOPE_LABELS, scopeLegend } from "../comparison/scopes.js";
 
-// The simulation's scopes, as the pipeline's `population` names them, with the name each is drawn under, as the paper
-// names them. tests/test_pipeline_mirrors_caching.py checks these, the TTL names and the labelled TTLs below against
-// the pipeline.
-const SCOPE_NAMES = Object.freeze({ Agentic: "Human-driven", "SWE-Bench": "Benchmark" });
-
+// tests/test_pipeline_mirrors_caching.py checks the TTL names and the labelled TTLs below against the pipeline.
 const NO_TTL = "none"; // the TTL of a cache that keeps every block for the week
 const NO_TTL_LABEL = "∞"; // how a figure writes the TTL `none`, as the paper does
 
@@ -111,11 +108,6 @@ export const INFRASTRUCTURE_COST_BY_TTL = Object.freeze({
     labels: INFRASTRUCTURE_PARTS, flag: "is_lowest", word: "Lowest",
   }),
 });
-
-/** The legend of a figure of both scopes: human-driven, then benchmark, each in its scope colour. */
-export function scopeLegend(rows, colours, seriesColumn) {
-  return seriesLegend(rows, seriesColumn, new Map(Object.entries(SCOPE_COLOURS)), SCOPE_NAMES);
-}
 
 /** The name a figure writes for a TTL: its own, or "∞" for no TTL. */
 export function ttlLabel(ttl) {
@@ -246,7 +238,7 @@ function ttlNameMarks(Plot, points) {
 
 function prefillTipText(point) {
   const prefill = `prefill ${point.prefill.toFixed(2)}× the no-TTL floor`;
-  return `${SCOPE_NAMES[point.scope]}\nTTL ${point.label}\n${prefill}\n${formatTokens(point.retained)} tokens retained`;
+  return `${SCOPE_LABELS[point.scope]}\nTTL ${point.label}\n${prefill}\n${formatTokens(point.retained)} tokens retained`;
 }
 
 /**

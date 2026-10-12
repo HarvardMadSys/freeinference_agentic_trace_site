@@ -2,7 +2,7 @@
  * The tool mix along a turn: per tenth of a turn, the share of calls in each of the pipeline's eight tool groups, one
  * panel for the human-driven sessions and one for the benchmark's.
  *
- * Every row of its query is one scope, tenth and group with calls: `scope` (`human-driven` or `benchmark`), `tenth`
+ * Every row of its query is one scope, tenth and group with calls: `scope` (`Agentic` or `SWE-Bench`), `tenth`
  * (0 to 9), `tool_group`, its `calls`, their `share` of the tenth's calls, and `rows`, the scope's calls, so a scope
  * with too few calls is hidden whole. A group a tenth has no call of has no row and is drawn as a share of zero.
  */
@@ -11,15 +11,12 @@ import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../s
 import { TOOL_GROUP_COLOURS } from "../theme/colours.js";
 import { formatShare } from "../shared/format.js";
 import { seriesLegend } from "../figures/figure_rows.js";
+import { SCOPE_LABELS, SCOPES } from "./scopes.js";
 
 /** The tenths a turn is cut into; a tenth's area is drawn at its end, from 10% to 100% of the turn. */
 export const TENTHS = 10;
 const WHOLE_TURN_PERCENT = 100;
 const PERCENT_PER_TENTH = WHOLE_TURN_PERCENT / TENTHS;
-
-// The scopes, in the order their panels are drawn, by their name in the query, with the name each panel is drawn under.
-const SCOPE_LABELS = Object.freeze({ "human-driven": "Human-driven", benchmark: "Benchmark" });
-const SCOPES = Object.freeze(Object.keys(SCOPE_LABELS));
 
 // The ticks of a panel's axis, in percent of the turn: three, or on a narrow chart two, so that the last label of the
 // first panel does not run into the first label of the second.
@@ -36,7 +33,7 @@ export const TOOL_MIX_BY_TURN_POSITION = Object.freeze({
   caption: "The share of calls in each tool group at each tenth of a turn, human-driven and benchmark.",
   query: "figures/tool_mix_by_turn_position",
   binColumn: "scope",
-  seriesNouns: Object.freeze({ "human-driven": "human-driven calls", benchmark: "benchmark calls" }),
+  seriesNouns: Object.freeze({ Agentic: "human-driven calls", "SWE-Bench": "benchmark calls" }),
   seriesColumn: "tool_group",
   legend: toolGroupLegend,
   draw: drawToolMix,

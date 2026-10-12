@@ -15,6 +15,10 @@ CDF_SERIES = {
     "figures/duration_cdf": ["session", "turn"],
     "figures/tokens_per_request_cdf": ["input", "output", "uncached"],
     "figures/ttft_cdf_by_model": ["model-x", "model-y"],
+    "figures/turn_duration_by_scope": ["Agentic", "SWE-Bench"],
+    "figures/session_duration_by_scope": ["Agentic", "SWE-Bench"],
+    "figures/input_per_request_by_scope": ["Agentic", "SWE-Bench"],
+    "figures/user_prompt_tokens_by_scope": ["Agentic", "SWE-Bench"],
 }
 CDF_POINTS = 201  # every CDF series has this many points, its share running evenly from 0 to 1
 # How far a CDF's x may fall from one point to the next, relative to its value: quantile_cont interpolates between

@@ -23,7 +23,7 @@ CACHING_GAPS_MODULE = SITE_FOLDER / "js" / "figures" / "caching_gaps.js"  # the 
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the causes' colours
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the causes a wait bar names
 RETENTION_MODULE = SITE_FOLDER / "js" / "figures" / "caching_retention.js"  # the scopes' names, the labelled TTLs
-PREFILL_QUERY = SITE_FOLDER / "queries" / "figures" / "prefill_against_storage.sql"  # orders the TTLs, names the scopes
+PREFILL_QUERY = SITE_FOLDER / "queries" / "figures" / "prefill_against_storage.sql"  # orders the TTLs
 API_COST_QUERY = SITE_FOLDER / "queries" / "figures" / "api_cost_by_ttl.sql"  # the API's prices, the knee
 INFRASTRUCTURE_COST_QUERY = SITE_FOLDER / "queries" / "figures" / "infrastructure_cost_by_ttl.sql"  # the provider's
 COST_QUERIES = [API_COST_QUERY, INFRASTRUCTURE_COST_QUERY]  # each a multiple of its total at the normalising TTL
@@ -39,8 +39,6 @@ CAUSE_ROW = re.compile(r"\('(\w+)', (\d+)\)")
 OBJECT_ENTRY = re.compile(r'(\w+): "([^"]+)"')
 # A TTL of a query: `('<name>', <seconds>)`, the last one's seconds infinite.
 TTL_ROW = re.compile(r"\('(\w+)', (\d+|'infinity'::DOUBLE)\)")
-# A scope a query names a request's harness by: `THEN '<scope>' ELSE '<scope>'`.
-SCOPE_CASE = re.compile(r"THEN '([\w-]+)' ELSE '([\w-]+)'")
 # A key of a JavaScript object of TTLs: a quoted name, or the constant `[NO_TTL]`.
 TTL_ENTRY = re.compile(r'"([^"]+)":|\[NO_TTL\]:')
 
@@ -94,15 +92,7 @@ def test_a_query_s_ttls_are_the_simulation_s_in_its_order(path: pathlib.Path) ->
     assert query_ttls == [(name, float(seconds)) for name, seconds in cache.TTLS]
 
 
-def test_the_prefill_query_names_each_request_s_scope_as_the_pipeline_does() -> None:
-    # A request of the benchmark's harness is the benchmark replay's, any other the paper's harnesses'.
-    assert SCOPE_CASE.findall(PREFILL_QUERY.read_text()) == [(population.SWE_BENCH, population.AGENTIC)]
-
-
 def test_the_retention_figures_name_the_scopes_and_the_ttl_none_as_the_pipeline_and_the_paper() -> None:
-    scope_names = test_pipeline_mirrors.declaration(RETENTION_MODULE,
-                                                    r"const SCOPE_NAMES = Object\.freeze\(\{(.*?)\}\);")
-    assert re.findall(r'"?([\w-]+)"?: "', scope_names.group(1)) == [population.AGENTIC, population.SWE_BENCH]
     assert test_pipeline_mirrors.javascript_object_keys(COLOURS_MODULE, "SCOPE_COLOURS") == [
         population.AGENTIC, population.SWE_BENCH]
     assert javascript_string(RETENTION_MODULE, "NO_TTL") == cache_retention.NO_TTL

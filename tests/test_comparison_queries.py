@@ -1,5 +1,7 @@
-"""The Benchmark-against-production figures' queries: the tool mix along a turn on the fixture data, counted by hand,
-and its group of a call against the pipeline's on single calls."""
+"""The Benchmark-against-production figures' queries: the CDFs of the two scopes and the tool mix along a turn on the
+fixture data, counted by hand; each scope CDF's human-driven half against the Sessions CDF of the same quantity, so a
+turn's or a session's duration and a request's input are defined once; and the tool mix's group of a call against the
+pipeline's on single calls."""
 
 import collections.abc
 
@@ -9,6 +11,7 @@ import pyarrow
 import pytest
 
 from paper.metrics import trajectories
+from release import population
 
 import fixture_release
 import site_database
@@ -24,15 +27,15 @@ ONE_CALL_TENTH = 5  # a turn's only calling request (k = 0, n = 1) falls in tent
 # `idle-week-1`'s three (tenths 1, 5, 8) call Read, Read and bash; `mutation`'s two (tenths 2, 7) bash and Read;
 # `idle-week-2` calls nothing. Benchmark: `swe-bench`'s two (tenths 2, 7) each call bash.
 FIXTURE_TOOL_MIX = [
-    ("human-driven", 1, "Read", 2),
-    ("human-driven", 2, "Build/Test", 1),
-    ("human-driven", 3, "Other", 2),
-    ("human-driven", 5, "Read", 1),
-    ("human-driven", 6, "Write/Edit", 1),
-    ("human-driven", 7, "Read", 1),
-    ("human-driven", 8, "Build/Test", 2),
-    ("benchmark", 2, "Build/Test", 1),
-    ("benchmark", 7, "Build/Test", 1),
+    (population.AGENTIC, 1, "Read", 2),
+    (population.AGENTIC, 2, "Build/Test", 1),
+    (population.AGENTIC, 3, "Other", 2),
+    (population.AGENTIC, 5, "Read", 1),
+    (population.AGENTIC, 6, "Write/Edit", 1),
+    (population.AGENTIC, 7, "Read", 1),
+    (population.AGENTIC, 8, "Build/Test", 2),
+    (population.SWE_BENCH, 2, "Build/Test", 1),
+    (population.SWE_BENCH, 7, "Build/Test", 1),
 ]
 HUMAN_DRIVEN_CALLS = 10
 BENCHMARK_CALLS = 2
@@ -49,19 +52,72 @@ def test_the_tool_mix_bins_each_turn_s_calling_requests_into_tenths(connection: 
     rows = site_database.run_query(connection, TOOL_MIX)
     assert tool_mix(rows) == sorted(FIXTURE_TOOL_MIX)
     assert rows.share.tolist() == [1.0] * len(FIXTURE_TOOL_MIX)  # every tenth of the fixture holds one group
-    assert rows.groupby("scope").rows.unique().to_dict() == {"benchmark": [BENCHMARK_CALLS],
-                                                            "human-driven": [HUMAN_DRIVEN_CALLS]}
+    assert rows.groupby("scope").rows.unique().to_dict() == {population.SWE_BENCH: [BENCHMARK_CALLS],
+                                                            population.AGENTIC: [HUMAN_DRIVEN_CALLS]}
 
 
 def test_the_benchmark_s_tool_mix_is_drawn_whatever_harnesses_are_selected(connection: duckdb.DuckDBPyConnection,
                                                                            fixture_weeks: list[str]) -> None:
     site_database.select_weeks(connection, fixture_weeks, [])
     rows = site_database.run_query(connection, TOOL_MIX)
-    assert rows.scope.unique().tolist() == ["benchmark"]
+    assert rows.scope.unique().tolist() == [population.SWE_BENCH]
     site_database.select_weeks(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
     rows = site_database.run_query(connection, TOOL_MIX)
-    assert rows.groupby("scope").rows.first().to_dict() == {"benchmark": BENCHMARK_CALLS,
-                                                           "human-driven": HUMAN_DRIVEN_CALLS}
+    assert rows.groupby("scope").rows.first().to_dict() == {population.SWE_BENCH: BENCHMARK_CALLS,
+                                                           population.AGENTIC: HUMAN_DRIVEN_CALLS}
+
+
+# Each scope CDF of the fixture over both weeks, counted by hand from `fixture_release.REQUESTS`: per scope its rows and
+# median, and the larger median over the smaller. Human-driven: the turns of `tree-root` (310 s), `idle-week-1` (200 s),
+# `mutation` (210 s) and `idle-week-2` (two of 10 s); those sessions last 310, 200, 210 and 110 s; their 13 requests'
+# inputs run from 1,000 to 5,000 tokens, 1,500 the seventh; each first step's prompt is its 200 user tokens, and
+# `idle-week-2`'s second user step adds 42. Benchmark: `swe-bench` (one turn of 25 s, inputs 800 and 1,000) and
+# `idle-benchmark` (one of 10 s, input 600), each first prompt 200 tokens.
+FIXTURE_SCOPE_CDFS = {
+    "figures/turn_duration_by_scope": ({population.AGENTIC: (5, 200.0), population.SWE_BENCH: (2, 17.5)}, 200 / 17.5),
+    "figures/session_duration_by_scope": ({population.AGENTIC: (4, 205.0), population.SWE_BENCH: (2, 17.5)}, 205 / 17.5),
+    "figures/input_per_request_by_scope": ({population.AGENTIC: (13, 1500.0), population.SWE_BENCH: (3, 800.0)}, 1500 / 800),
+    "figures/user_prompt_tokens_by_scope": ({population.AGENTIC: (5, 200.0), population.SWE_BENCH: (2, 200.0)}, 1.0),
+}
+# Each scope CDF's quantity as a Sessions CDF draws it, for the selected harnesses: (query, series).
+SESSIONS_CDF_OF = {
+    "figures/turn_duration_by_scope": ("figures/duration_cdf", "turn"),
+    "figures/session_duration_by_scope": ("figures/duration_cdf", "session"),
+    "figures/input_per_request_by_scope": ("figures/tokens_per_request_cdf", "input"),
+}
+
+
+@pytest.mark.parametrize("name", sorted(FIXTURE_SCOPE_CDFS))
+def test_a_scope_cdf_gives_each_scope_s_rows_and_median_and_their_ratio(connection: duckdb.DuckDBPyConnection,
+                                                                         fixture_weeks: list[str], name: str) -> None:
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
+    rows = site_database.run_query(connection, name)
+    scopes, ratio = FIXTURE_SCOPE_CDFS[name]
+    for scope, (count, median) in scopes.items():
+        points = rows[rows.series == scope]
+        assert points.rows.unique().tolist() == [count], scope
+        assert points["median"].unique().tolist() == [median], scope
+        assert points[points.share == 0.5].x.tolist() == [median], scope
+    assert rows.median_ratio.unique().tolist() == [pytest.approx(ratio)]
+
+
+@pytest.mark.parametrize("name", sorted(FIXTURE_SCOPE_CDFS))
+def test_a_scope_cdf_draws_the_benchmark_whatever_harnesses_are_selected(connection: duckdb.DuckDBPyConnection,
+                                                                         fixture_weeks: list[str], name: str) -> None:
+    site_database.select_weeks(connection, fixture_weeks, [])
+    rows = site_database.run_query(connection, name)
+    assert rows.series.unique().tolist() == [population.SWE_BENCH]
+    assert rows.median_ratio.isna().all()  # one scope has no ratio
+
+
+@pytest.mark.parametrize("name", sorted(SESSIONS_CDF_OF))
+def test_a_scope_cdf_s_human_driven_half_is_the_sessions_cdf(connection: duckdb.DuckDBPyConnection,
+                                                             fixture_weeks: list[str], name: str) -> None:
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
+    rows = site_database.run_query(connection, name)
+    sessions_query, series = SESSIONS_CDF_OF[name]
+    sessions_rows = site_database.run_query(connection, sessions_query)
+    assert rows[rows.series == population.AGENTIC].x.tolist() == sessions_rows[sessions_rows.series == series].x.tolist()
 
 
 def one_call_database(category: str, programs: list[str] | None) -> duckdb.DuckDBPyConnection:
@@ -109,5 +165,5 @@ def single_call(request: pytest.FixtureRequest) -> collections.abc.Iterator[tupl
 def test_a_call_s_group_is_the_pipeline_s(single_call: tuple) -> None:
     category, programs, connection = single_call
     rows = site_database.run_query(connection, TOOL_MIX)
-    assert rows[["scope", "tenth", "calls", "share"]].values.tolist() == [["human-driven", ONE_CALL_TENTH, 1, 1.0]]
+    assert rows[["scope", "tenth", "calls", "share"]].values.tolist() == [[population.AGENTIC, ONE_CALL_TENTH, 1, 1.0]]
     assert rows.tool_group.tolist() == [trajectories.group_of_call(category, programs)]

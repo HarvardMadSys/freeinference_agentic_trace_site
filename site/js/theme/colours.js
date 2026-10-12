@@ -82,8 +82,8 @@ export const TOOL_GROUP_COLOURS = Object.freeze({
 });
 
 /**
- * The colour of each population the cache simulation replays, by the simulation's name of it: the paper's harnesses
- * (human-driven) blue and the benchmark replay red, as the paper draws them.
+ * The colour of each scope, by the pipeline's name of it, as the simulation's rows and the scope queries give it: the
+ * paper's harnesses (human-driven) blue and the benchmark replay red, as the paper draws them.
  */
 export const SCOPE_COLOURS = Object.freeze({
   Agentic: "var(--series-1)",

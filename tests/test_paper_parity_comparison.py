@@ -1,8 +1,9 @@
-"""The site's Benchmark-against-production figures give the paper's numbers: each share of a tool group in the first
-and the last tenth of a turn that `numbers.json` quotes, human-driven and benchmark, equals the tool mix's.
+"""The site's Benchmark-against-production figures give the paper's numbers: each scope CDF's two medians and their
+ratio equal the paper's, and each share of a tool group in the first and the last tenth of a turn that `numbers.json`
+quotes, human-driven and benchmark, equals the tool mix's.
 
-The query runs as the browser runs it, on the full site data with every week and the paper's harnesses selected,
-through the fixtures `agentic` and `paper_numbers` of `conftest.py`; its benchmark scope is the benchmark harness's
+The queries run as the browser runs them, on the full site data with every week and the paper's harnesses selected,
+through the fixtures `agentic` and `paper_numbers` of `conftest.py`; their benchmark scope is the benchmark harness's
 sessions whatever harnesses are selected. Like `test_paper_parity.py`, these tests are skipped when the full site data
 or `numbers.json` is missing.
 """
@@ -12,19 +13,42 @@ import pandas
 
 import site_database
 from paper.metrics import trajectories
+from release import population
 from test_paper_parity import RELATIVE_TOLERANCE, Comparison, assert_match
 
 SECTION = "benchmark_vs_production"
 # The item of `numbers.json` that quotes each scope of the tool mix, by the scope's name in the query.
-TOOL_MIX_ITEMS = {"human-driven": "trajectory_mix_human", "benchmark": "trajectory_mix_benchmark"}
+TOOL_MIX_ITEMS = {population.AGENTIC: "trajectory_mix_human", population.SWE_BENCH: "trajectory_mix_benchmark"}
 # The tenth each quoted share is of, by the suffix of its name: `<group>_share_first_tenth` and `…_last_tenth`.
 QUOTED_TENTHS = {"_share_first_tenth": 0, "_share_last_tenth": 9}
-PAPER_SCOPE = "Agentic and SWE-Bench"  # the scope `numbers.json` records with both items: the two scopes compared
+PAPER_SCOPE = "Agentic and SWE-Bench"  # the scope `numbers.json` records with every item: the two scopes compared
+# The item of `numbers.json` that gives each scope CDF's medians and their ratio, by the CDF's query.
+SCOPE_CDF_ITEMS = {
+    "figures/turn_duration_by_scope": "turn_duration",
+    "figures/session_duration_by_scope": "session_duration",
+    "figures/input_per_request_by_scope": "input_per_request",
+    "figures/user_prompt_tokens_by_scope": "user_prompt_size",
+}
+# The name of each scope's median in those items, by the scope's name in the queries.
+MEDIAN_NAMES = {population.AGENTIC: "median_human", population.SWE_BENCH: "median_benchmark"}
 
 
-def test_the_paper_counts_the_tool_mix_in_both_scopes(paper_numbers: dict) -> None:
-    for item in TOOL_MIX_ITEMS.values():
+def test_the_paper_counts_every_compared_item_in_both_scopes(paper_numbers: dict) -> None:
+    for item in [*TOOL_MIX_ITEMS.values(), *SCOPE_CDF_ITEMS.values()]:
         assert paper_numbers[SECTION][item]["scope"] == PAPER_SCOPE, item
+
+
+def test_the_medians_of_each_scope_cdf_and_their_ratio(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+    # Each scope CDF's `median` of each scope, and its `median_ratio`, against
+    # `benchmark_vs_production.<item>.median_human`, `.median_benchmark` and `.ratio`.
+    comparisons = []
+    for query, item in SCOPE_CDF_ITEMS.items():
+        rows = site_database.run_query(agentic, query)
+        for scope, name in MEDIAN_NAMES.items():
+            median = float(rows[rows.series == scope]["median"].iloc[0])
+            comparisons.append(Comparison(SECTION, item, name, median, RELATIVE_TOLERANCE))
+        comparisons.append(Comparison(SECTION, item, "ratio", float(rows.median_ratio.iloc[0]), RELATIVE_TOLERANCE))
+    assert_match(paper_numbers, comparisons)
 
 
 def group_share(rows: pandas.DataFrame, scope: str, tenth: int, group: str) -> float:

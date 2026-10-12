@@ -132,8 +132,8 @@ site/              exactly the files that are deployed
   js/figures/      one module per figure section (sessions, tools, caching), the modules they take figures from
                    (sessions_latency, sessions_ranked, tools_batching, caching_gaps), and figure_rows, the row rules
                    every figure shares
-  js/comparison/   the Benchmark-against-production figure section: its module, comparison, and the modules of its
-                   figures (tool_mix)
+  js/comparison/   the Benchmark-against-production figure section: its module, comparison, the modules of its
+                   figures (scope_cdfs, tool_mix), and scopes, the two scopes they compare
   js/session/      the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
   js/session_requests/  the Requests view: a row per request, its details, brackets and legend
   js/session_charts/    the Context and Timeline views and the series and bars they draw

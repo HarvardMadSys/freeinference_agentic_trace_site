@@ -91,7 +91,7 @@ js/explore/           the Explore page's sections, the figure runner (figure_sec
 js/figures/           the Explore page's figures: one module per section, listing its figure entries, the modules a
                       section takes entries from, and the row rules every figure shares (figure_rows.js)
 js/comparison/        the Explore page's Benchmark-against-production figures: the section's module, listing its
-                      figure entries, and one module per figure
+                      figure entries, the modules that draw them, and the two scopes the figures compare (scopes.js)
 js/session/           the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
 js/session_requests/  the Session page's Requests view
 js/session_charts/    the Session page's Context and Timeline views

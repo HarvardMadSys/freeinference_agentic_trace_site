@@ -40,6 +40,10 @@ const SECTION_FIGURES = {
     "infrastructure_cost_by_ttl",
   ],
   "../site/js/comparison/comparison.js": [
+    "turn_duration_by_scope",
+    "session_duration_by_scope",
+    "input_per_request_by_scope",
+    "user_prompt_tokens_by_scope",
     "tool_mix_by_turn_position",
   ],
 };

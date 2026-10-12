@@ -9,6 +9,7 @@ import re
 
 import pytest
 
+import paper.benchmark_vs_production.comparison
 import paper.sessions.latency
 from paper.metrics import binning, gaps, latency, prices, tools, trajectories
 from release import population, schema
@@ -26,6 +27,13 @@ SESSIONS_LATENCY_MODULE = SITE_FOLDER / "js" / "figures" / "sessions_latency.js"
 TOOL_MIX_QUERY = FIGURE_QUERIES / "tool_mix_by_turn_position.sql"  # the tenths, the tool groups and the program sets
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the tool groups, each with its colour
 TOOL_MIX_MODULE = SITE_FOLDER / "js" / "comparison" / "tool_mix.js"  # the tenths
+SCOPE_CDFS_MODULE = SITE_FOLDER / "js" / "comparison" / "scope_cdfs.js"  # where each scope CDF's axis starts
+SCOPES_MODULE = SITE_FOLDER / "js" / "comparison" / "scopes.js"  # the scopes' names and labels
+# The queries that name each row's scope by its harness: the comparison figures' and the prefill figure's.
+SCOPE_QUERIES = [FIGURE_QUERIES / f"{name}.sql" for name in [
+    "turn_duration_by_scope", "session_duration_by_scope", "input_per_request_by_scope", "user_prompt_tokens_by_scope",
+    "tool_mix_by_turn_position", "prefill_against_storage"]]
+SCOPE_CASE = re.compile(r"THEN '([\w-]+)' ELSE '([\w-]+)' END AS (?:scope|series)")  # benchmark's name, then the rest's
 CALLS_PER_REQUEST_QUERY = FIGURE_QUERIES / "calls_per_request_by_category.sql"  # the category left out
 BATCH_WIDTH_QUERY = FIGURE_QUERIES / "latency_by_batch_width.sql"  # what a tool wait is, the widths and quantiles
 BATCHING_MODULE = SITE_FOLDER / "js" / "figures" / "tools_batching.js"  # the widest width drawn on its own
@@ -69,6 +77,12 @@ def sql_pairs(path: pathlib.Path, table: str) -> dict[str, str]:
     """The rows of the literal table `<table> (…) AS (VALUES ('<key>', '<value>'), …)` in the query at `path`."""
     body = declaration(path, rf"{table} \([^)]*\) AS \(\s*VALUES(.*?)\n\)").group(1)
     return dict(re.findall(r"\('([^']+)', '([^']+)'\)", body))
+
+
+def javascript_object_values(path: pathlib.Path, constant: str) -> list[str]:
+    """The quoted values, in order, of `const <constant> = Object.freeze({ key: "value", … });`."""
+    body = declaration(path, rf"const {constant} = Object\.freeze\(\{{(.*?)\}}\);").group(1)
+    return re.findall(r':\s*"([^"]+)"', body)
 
 
 def javascript_quoted_keys(path: pathlib.Path, constant: str) -> list[str]:
@@ -171,3 +185,22 @@ def test_the_batch_width_s_tool_wait_widths_and_quantiles_are_the_pipeline_s() -
     assert sql_number(BATCH_WIDTH_QUERY, "widest_drawn") == tools.WIDEST_DRAWN
     assert javascript_number(BATCHING_MODULE, "WIDEST_DRAWN") == tools.WIDEST_DRAWN
     assert sql_percentile_columns(BATCH_WIDTH_QUERY, "tool_wait_s") == list(tools.BAND_QUANTILES)
+
+
+def test_the_scope_cdfs_floors_are_the_pipeline_s() -> None:
+    comparison = paper.benchmark_vs_production.comparison
+    assert javascript_number(SCOPE_CDFS_MODULE, "MIN_DURATION_DRAWN_S") == comparison.MIN_DURATION_DRAWN_S
+    assert javascript_number(SCOPE_CDFS_MODULE, "MIN_INPUT_DRAWN") == comparison.MIN_INPUT_DRAWN
+    assert javascript_number(SCOPE_CDFS_MODULE, "MIN_PROMPT_DRAWN") == comparison.MIN_PROMPT_DRAWN
+
+
+def test_the_scopes_are_the_pipeline_s_names_and_labels() -> None:
+    labels = paper.benchmark_vs_production.comparison.SCOPE_LABELS
+    assert javascript_object_keys(SCOPES_MODULE, "SCOPE_LABELS") == [population.AGENTIC, population.SWE_BENCH]
+    assert javascript_object_values(SCOPES_MODULE, "SCOPE_LABELS") == list(labels.values())
+
+
+@pytest.mark.parametrize("path", SCOPE_QUERIES, ids=lambda path: path.stem)
+def test_a_query_names_each_scope_as_the_pipeline_does(path: pathlib.Path) -> None:
+    # A request of the benchmark's harness is the benchmark replay's, any other the paper's harnesses'.
+    assert SCOPE_CASE.findall(path.read_text()) == [(population.SWE_BENCH, population.AGENTIC)]

@@ -6,8 +6,9 @@ import {
   causeLegend, GAP_FIGURES, gapBinColours, gapBinLegend, meanHitRatioBars, mutationTableLines, transitionLegend,
 } from "../site/js/figures/caching_gaps.js";
 import {
-  calloutPoint, costLegend, costStacks, prefillPoints, retainedDomain, scopeLegend, ttlLabel,
+  calloutPoint, costLegend, costStacks, prefillPoints, retainedDomain, ttlLabel,
 } from "../site/js/figures/caching_retention.js";
+import { scopeLegend } from "../site/js/comparison/scopes.js";
 import { decadeTicks, multipleText } from "../site/js/figures/figure_rows.js";
 import { assignColours, causeColours, OTHER_SERIES } from "../site/js/theme/colours.js";
 

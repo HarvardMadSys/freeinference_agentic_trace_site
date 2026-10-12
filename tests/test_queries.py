@@ -16,6 +16,8 @@ BIN_COLUMNS = ["bin_start", "bin_end", "rows"]
 STATS_COLUMNS = ["count", "max", "p50", "p75", "p90", "p95"]
 # The columns of a quantile-range figure's query: per category, its count and five percentiles.
 PERCENTILE_RANGE_COLUMNS = ["category", "rows", "p5", "p25", "p50", "p75", "p95"]
+# The columns of a CDF of two scopes: per scope and point, the scope's rows and median, and the ratio of the medians.
+SCOPE_CDF_COLUMNS = ["series", "x", "share", "rows", "median", "median_ratio"]
 
 # The columns each query returns, in order, by the query's name. Every query file outside `setup/` has an entry.
 EXPECTED_COLUMNS = {
@@ -76,6 +78,10 @@ EXPECTED_COLUMNS = {
     "figures/api_cost_by_ttl": ["ttl", "ttl_seconds", "part", "cost_multiple", "total_multiple", "is_knee", "rows"],
     "figures/infrastructure_cost_by_ttl": ["ttl", "ttl_seconds", "part", "cost_multiple", "total_multiple", "is_lowest",
                                            "rows"],
+    "figures/turn_duration_by_scope": SCOPE_CDF_COLUMNS,
+    "figures/session_duration_by_scope": SCOPE_CDF_COLUMNS,
+    "figures/input_per_request_by_scope": SCOPE_CDF_COLUMNS,
+    "figures/user_prompt_tokens_by_scope": SCOPE_CDF_COLUMNS,
     "session/session_root": ["root_session_id", "week"],
     "session/session_tree": [
         "session_id", "parent_session_id", "spawned_by_step", "depth", "harness", "main_model", "user_id",

@@ -1,11 +1,12 @@
--- One row per scope, tenth of a turn and tool group that holds a call: the human-driven scope is the top-level
--- sessions of the selected weeks and harnesses but the benchmark's, the benchmark scope the top-level sessions of the
--- benchmark harness in the selected weeks, whatever harnesses are selected. A turn is a user step and the tool steps
--- after it; its requests that made a call are numbered k = 0 … n−1 in step order, and request k falls in the tenth
--- min(⌊10 (k + 0.5) / n⌋, 9), as each of its calls does. A call's group is its category's; a `*File Ops` call is
--- Write/Edit when the first word of any program it ran changes files, else Read when one only looks, else Other.
--- Per row: `scope` (`human-driven` or `benchmark`), `tenth` (0 to 9), `tool_group`, its `calls`, their `share` of the
--- calls of the scope's tenth, and `rows`, the same on every row of a scope: the scope's calls.
+-- One row per scope, tenth of a turn and tool group that holds a call: the human-driven scope is the top-level sessions
+-- of the selected weeks and harnesses but the benchmark's, the benchmark scope the top-level sessions of the benchmark
+-- harness in the selected weeks, whatever harnesses are selected. A turn is a user step and the tool steps after it;
+-- its requests that made a call are numbered k = 0 … n−1 in step order, and request k falls in the tenth min(⌊10 (k +
+-- 0.5) / n⌋, 9), as each of its calls does. A call's group is its category's; a `*File Ops` call is Write/Edit when the
+-- first word of any program it ran changes files, else Read when one only looks, else Other. Per row: `scope`
+-- (`Agentic`, human-driven, or `SWE-Bench`, the benchmark, the pipeline's scope names), `tenth` (0 to 9), `tool_group`,
+-- its `calls`, their `share` of the calls of the scope's tenth, and `rows`, the same on every row of a scope: the
+-- scope's calls.
 WITH constants AS (
   SELECT 10 AS tenths, -- trajectories.BINS: a turn is cut into this many parts
          '*File Ops' AS file_ops_category, -- trajectories.FILE_OPS: the category whose group its programs decide
@@ -42,7 +43,7 @@ calling_requests AS (
   SELECT week,
          session_id,
          step,
-         CASE WHEN harness IN (SELECT harness FROM benchmark_harness) THEN 'benchmark' ELSE 'human-driven' END AS scope,
+         CASE WHEN harness IN (SELECT harness FROM benchmark_harness) THEN 'SWE-Bench' ELSE 'Agentic' END AS scope,
          row_number() OVER (PARTITION BY week, session_id, turn ORDER BY step) - 1 AS position_in_turn,
          count(*) OVER (PARTITION BY week, session_id, turn) AS calling_requests_in_turn
   FROM requests
@@ -113,4 +114,4 @@ SELECT scope,
        calls / sum(calls) OVER (PARTITION BY scope, tenth) AS share,
        CAST(sum(calls) OVER (PARTITION BY scope) AS BIGINT) AS rows
 FROM group_counts
-ORDER BY scope DESC, tenth, tool_group;
+ORDER BY scope, tenth, tool_group;
