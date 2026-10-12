@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  axisWithTicks, decadeDomain, decadeTicks, durationTicks, elapsedAxis, elapsedTicks, everyOther, firstWeekOfEachMonth,
+  atMost, axisWithTicks, fewerOnNarrow, tickCountFor, decadeDomain, decadeTicks, durationTicks, elapsedAxis, elapsedTicks, everyOther, firstWeekOfEachMonth,
   isNarrowChart, logAxisTicks, MAX_TICKS, maxTicksFor, NARROW_MAX_TICKS, sparseTickFormat, tickCount, weekTickFormat,
 } from "../site/js/axes/ticks.js";
 
@@ -98,4 +98,13 @@ test("a narrow chart's axes take at most three ticks, a wide one's six; every ot
 test("a week axis leaves out a month whose first week is under four weeks before the next month's", () => {
   const weeks = ["2026-05-17", "2026-05-24", "2026-05-31", "2026-06-07", "2026-07-05", "2026-08-02"];
   assert.deepEqual(firstWeekOfEachMonth(weeks), ["2026-06-07", "2026-07-05", "2026-08-02"]);
+});
+
+test("a narrow chart's axes thin their ticks in one place: at most so many, every other, or a smaller count", () => {
+  assert.deepEqual(atMost([1, 3, 10, 30], 6), [1, 3, 10, 30]);
+  assert.deepEqual(atMost([1, 3, 10, 30], 3), [1, 10]);
+  assert.deepEqual(fewerOnNarrow([0.1, 1, 60], 300), [0.1, 60]);
+  assert.deepEqual(fewerOnNarrow([0.1, 1, 60], 520), [0.1, 1, 60]);
+  assert.equal(tickCountFor(300, 5), NARROW_MAX_TICKS);
+  assert.equal(tickCountFor(520, 5), 5);
 });

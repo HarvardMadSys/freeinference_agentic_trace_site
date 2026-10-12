@@ -10,7 +10,7 @@
 import {
   AXIS_STYLE, categoryRowsFrame, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
 } from "../shared/charts.js";
-import { isNarrowChart, NARROW_MAX_TICKS } from "../axes/ticks.js";
+import { tickCountFor } from "../axes/ticks.js";
 import { BATCH_COLOURS } from "../theme/colours.js";
 import { formatCount, formatDurationTick, formatSeconds } from "../shared/format.js";
 import { partsLegend } from "./figure_rows.js";
@@ -85,7 +85,7 @@ async function drawCallsPerRequest(rows, body, colours) {
   const categories = rows.map((row) => row.category); // the query's order: most calls first
   const highest = Math.max(...rows.map((row) => row.mean_calls));
   const frame = categoryRowsFrame(body, categories.length);
-  const ticks = isNarrowChart(frame.width) ? NARROW_MAX_TICKS : CALLS_TICKS;
+  const ticks = tickCountFor(frame.width, CALLS_TICKS);
   const chart = Plot.plot({
     ...frame,
     x: { domain: [ONE_CALL, Math.max(MIN_CALLS_AXIS_END, highest * MEAN_CALLS_HEADROOM)] },

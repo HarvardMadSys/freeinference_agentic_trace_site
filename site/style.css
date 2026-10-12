@@ -318,17 +318,19 @@ code,
   padding: 1.25rem;
 }
 
+/* No gap between rows: a card spans five rows of its grid (see below), and a row gap would open between its parts;
+   a card's own margin parts it from the card below. */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
-  gap: 1.5rem;
+  gap: 0 1.5rem;
 }
 
 /* The weekly trends: three charts side by side on a wide screen, one above the other on a narrow one. */
 .trend-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.5rem;
+  gap: 0 1.5rem;
 }
 
 /*
@@ -343,6 +345,7 @@ code,
   grid-template-columns: minmax(0, 1fr); /* a part wider than the card, such as a table, scrolls inside it */
   row-gap: 0;
   min-width: 0;
+  margin-bottom: 1.5rem;
 }
 
 .card-grid > .card > .figure,

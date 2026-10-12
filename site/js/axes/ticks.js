@@ -56,8 +56,22 @@ export function logAxisTicks([low, high], maxTicks = MAX_TICKS) {
  * when there are more than `maxTicks`.
  */
 export function durationTicks([low, high], maxTicks = MAX_TICKS) {
-  const ticks = DURATION_TICKS_S.filter((seconds) => seconds >= low && seconds <= high);
+  return atMost(DURATION_TICKS_S.filter((seconds) => seconds >= low && seconds <= high), maxTicks);
+}
+
+/** `ticks`, or every other one of them when there are more than `maxTicks`. */
+export function atMost(ticks, maxTicks) {
   return ticks.length <= maxTicks ? ticks : everyOther(ticks);
+}
+
+/** The ticks of `ticks` an axis of a chart `width` pixels wide labels: every other one on a narrow chart, else all. */
+export function fewerOnNarrow(ticks, width) {
+  return isNarrowChart(width) ? everyOther(ticks) : ticks;
+}
+
+/** The tick count a linear axis of a chart `width` pixels wide asks Plot for: `count`, or fewer on a narrow chart. */
+export function tickCountFor(width, count) {
+  return isNarrowChart(width) ? NARROW_MAX_TICKS : count;
 }
 
 /** Whether a chart `width` pixels wide is narrow, so its axes take at most `NARROW_MAX_TICKS` ticks. */
@@ -122,8 +136,8 @@ export function sparseTickFormat(values, format, maxLabels) {
 }
 
 /**
- * The weeks (Sundays, in order) whose tick a week axis labels: the first of each month, but one fewer than
- * `MIN_WEEKS_BETWEEN_LABELS` weeks before the next such week, so labels never crowd.
+ * The weeks (Sundays, in order) whose tick a week axis labels: the first week of each month, leaving out any that
+ * comes fewer than `MIN_WEEKS_BETWEEN_LABELS` weeks before the next one, so labels never crowd.
  */
 export function firstWeekOfEachMonth(weeks) {
   const firsts = [];

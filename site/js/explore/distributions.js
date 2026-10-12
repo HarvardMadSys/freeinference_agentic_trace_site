@@ -7,7 +7,7 @@
  */
 
 import { showError, showLoading } from "../shared/charts.js";
-import { durationTicks, everyOther } from "../axes/ticks.js";
+import { atMost, durationTicks } from "../axes/ticks.js";
 import {
   formatCompactCount, formatDurationTick, formatPercent, formatSeconds, formatShare, formatTokens, formatWholeCount,
 } from "../shared/format.js";
@@ -70,8 +70,7 @@ const CARDS = Object.freeze([
 
 /** The subagents axis's ticks within `[low, high]`, the range its bins span, every other one past `maxTicks`. */
 export function subagentTicks([low, high], maxTicks) {
-  const ticks = SUBAGENT_TICKS.filter((tick) => tick >= low && tick <= high);
-  return ticks.length > maxTicks ? everyOther(ticks) : ticks;
+  return atMost(SUBAGENT_TICKS.filter((tick) => tick >= low && tick <= high), maxTicks);
 }
 
 /** Fill `container` with one place per card, each loading; return the places in the cards' order. */

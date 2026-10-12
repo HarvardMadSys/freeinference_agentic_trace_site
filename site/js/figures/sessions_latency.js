@@ -11,7 +11,7 @@
  */
 
 import { AXIS_STYLE, cdfPoints, chartFrame, colourScale, drawCdf, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
-import { durationTicks, everyOther, extent, isNarrowChart, NARROW_MAX_TICKS } from "../axes/ticks.js";
+import { durationTicks, extent, fewerOnNarrow, tickCountFor } from "../axes/ticks.js";
 import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
 import { CAUSE_COLOURS, REQUEST_PART_COLOURS, slottedColours } from "../theme/colours.js";
 import { cdfSeries, seriesLegend } from "./figure_rows.js";
@@ -120,7 +120,7 @@ async function drawModelCdf(rows, body, colours) {
   const series = cdfSeries(rows, [...colours.series.keys()]);
   const seconds = cdfPoints(series).map((point) => point.x);
   const ticks = durationTicks(extent(seconds));
-  const xTicks = isNarrowChart(chartFrame(body).width) ? everyOther(ticks) : ticks;
+  const xTicks = fewerOnNarrow(ticks, chartFrame(body).width);
   await drawCdf(body, series, {
     logX: true, xTicks, xTickFormat: formatDurationTick, format: formatSeconds,
     colours: colours.series,
@@ -134,7 +134,7 @@ async function drawSpeedups(rows, body) {
   const bars = speedupBars(rows);
   const sessions = rows.length > 0 ? rows[0].rows : 0;
   const frame = chartFrame(body);
-  const ticks = isNarrowChart(frame.width) ? NARROW_MAX_TICKS : SPEEDUP_TICKS;
+  const ticks = tickCountFor(frame.width, SPEEDUP_TICKS);
   const chart = Plot.plot({
     ...frame,
     marginTop: BARS_MARGIN_TOP,

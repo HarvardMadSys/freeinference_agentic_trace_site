@@ -9,7 +9,7 @@
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, drawCdf, TIP_STYLE } from "../shared/charts.js";
-import { durationTicks, everyOther, isNarrowChart } from "../axes/ticks.js";
+import { durationTicks, fewerOnNarrow } from "../axes/ticks.js";
 import { causeColours, GAP_BIN_SLOTS, TRANSITION_COLOURS } from "../theme/colours.js";
 import {
   formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare, MISSING_TEXT,
@@ -225,7 +225,7 @@ async function drawGapByCause(rows, body, colours) {
   await drawCdf(body, series, {
     logX: true,
     xDomain,
-    xTicks: isNarrowChart(chartFrame(body).width) ? everyOther(ticks) : ticks,
+    xTicks: fewerOnNarrow(ticks, chartFrame(body).width),
     xTickFormat: formatDurationTick,
     format: formatSeconds,
     colours: colours.series,
