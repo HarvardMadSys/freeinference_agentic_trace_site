@@ -96,8 +96,8 @@ Session:       session.html  →  js/pages/session.js  →  js/session*/ and js/
 
 ```
 js/pages/             one module per page
-js/shared/            what every page uses: the database, the selection, formatting, charts, the table, the header and
-                      footer
+js/shared/            what every page uses: the database, the selection, the libraries, formatting, charts, the
+                      histogram and CDF figures, the table, the header and footer
 js/landing/           the Explore page's own parts: the hero, the stats strip beside it, the model and harness
                       donuts, the citation's copy button and the team
 js/theme/             the site's colours as the style tokens give them
@@ -115,9 +115,11 @@ js/simulation/        the Prefix-caching section's figures of the cache simulati
 js/comparison/        the Explore page's figures that compare human-driven sessions with the benchmark's: the
                       Human-driven-against-benchmark section's module, listing its figure entries, the modules that
                       draw them, and the two scopes the figures compare (scopes.js)
-js/session/           the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
+js/session/           the Session page's address, agent tree, facts, legends, overlap grouping, token parts and
+                      chart frame
 js/session_requests/  the Session page's Requests view
-js/session_charts/    the Session page's Context and Timeline views
+js/session_charts/    the Session page's Context and Timeline views, their series, bars, range slider and the
+                      Timeline's pointer
 ```
 
 A folder holds one purpose and at most nine modules; `make test` counts them.

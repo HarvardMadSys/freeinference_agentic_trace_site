@@ -171,7 +171,7 @@ test("every figure has a title and a one-sentence definition", async () => {
 });
 
 const MAX_CAPTION_WORDS = 12; // a caption is one line a reader takes in at a glance
-const MAX_DEFINITION_WORDS = 40; // a definition says what is drawn and its one difference from the paper, no more
+const MAX_DEFINITION_WORDS = 40; // a definition says what is drawn, no more
 
 // The words of `text`: its whitespace-separated tokens.
 function wordCount(text) {

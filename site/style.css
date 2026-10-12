@@ -1188,34 +1188,6 @@ section[id] {
   min-height: var(--loading-card-height);
 }
 
-/* Running text and definition lists, kept to a readable line length. */
-.prose p,
-.prose ul,
-.prose dl {
-  max-width: 44rem;
-  overflow-wrap: anywhere;
-}
-
-/* A page of running text is as wide as its text, so its cards leave no empty band beside it. */
-.page.prose {
-  max-width: calc(44rem + 2 * var(--gutter) + 2.5rem);
-}
-
-/* A group heading inside a card: one step below the card's heading, with room above it. */
-.prose h3 {
-  margin-top: 2rem;
-  font-size: 1.25rem;
-}
-
-.prose dt {
-  font-weight: 600;
-  margin-top: 0.75rem;
-}
-
-.prose dd {
-  margin: 0.125rem 0 0;
-}
-
 /* ---------- Figures and cards ---------- */
 
 .figure {
@@ -1616,12 +1588,6 @@ button:disabled {
 button:disabled:hover {
   color: var(--color-text-muted);
   background: var(--color-surface);
-}
-
-button.is-primary {
-  color: var(--color-on-accent);
-  background: var(--color-accent);
-  border-color: var(--color-accent);
 }
 
 /* ---------- Tables ---------- */

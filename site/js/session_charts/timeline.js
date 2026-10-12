@@ -1,10 +1,10 @@
 /**
  * The Timeline view: a Gantt chart with one row per agent, the top-level session first, then each subagent in order
  * of its first request. Against time since the session's first request, a row shows its requests split into prefill
- * and decode, its tool calls in the tool part's green in a thinner band below, and its waits as pale bars in the
- * colour of the part of the session's time they count toward: on this chart a colour is always a part of the time,
- * and a tool call's category is in its tooltip. A click on a bar opens its request in the Requests view, and a range
- * slider under the chart narrows the time it shows.
+ * and decode, its tool calls in the tool part's green in a thinner band below, and its waits as pale bars: a wait for
+ * a tool or the user in the colour of the part of the session's time it counts toward, and a wait for subagents, which
+ * counts as tool time, in violet. A tool call's category is in its tooltip. A click on a bar opens its request in the
+ * Requests view, and a range slider under the chart narrows the time it shows.
  */
 
 import { legendLine } from "../session/legend.js";
@@ -35,13 +35,14 @@ function drawTimelineView(Plot, container, tree, requests, toolCalls) {
   const figure = document.createElement("div");
   const body = renderFigure(figure, {
     title: "Where the time went",
-    caption: "Each agent's time along the session, in the parts' colours.",
+    caption: "Each agent's time in the parts' colours; subagent waits in violet.",
     definition:
       "One row per agent; on a phone the subagents are numbered in start order, and a bar's tooltip names its " +
       "agent. Each request is split into prefill (time to first token) and decode (the rest); each tool call runs " +
       "from its request's end for its latency, in the thin band below, since the data hold no tool call's start; " +
       "its tooltip names its category. A pale bar is a wait before a request, in the colour of the part of the " +
-      "session's time it counts toward. Click a bar to open its request.",
+      "session's time it counts toward; a wait for subagents, which counts as tool time, is violet. Click a bar to " +
+      "open its request.",
     rows: timelineRows(tree, requests, toolCalls),
   });
   container.replaceChildren(figure);

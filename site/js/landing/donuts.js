@@ -73,9 +73,10 @@ async function drawModelMix(place, context) {
   const order = orderRows.map((row) => row.model);
   await drawMix(place, donutSlices(rows, "model", "requests", order), barColours(order), {
     title: "Model mix",
-    caption: "Each model's share of the requests.",
-    definition: "Requests of the top-level sessions over every week, by the model they asked for. The eight models "
-      + "with most requests over every harness are named, as the trends name them; the rest are Other.",
+    caption: "Each model's share of the human-driven requests.",
+    definition: "Requests of the top-level sessions of the paper's harnesses over every week, by the model they "
+      + "asked for. The eight models with most requests over every harness are named, as the trends name them; the "
+      + "rest are Other.",
     singular: "request",
     plural: "requests",
     formatTotal: formatCompactCount, // a million requests is too wide for the centre written in full
@@ -88,9 +89,10 @@ async function drawHarnessMix(place, context) {
   const order = orderRows.map((row) => row.harness);
   await drawMix(place, donutSlices(rows, "harness", "sessions", order), barColours(order), {
     title: "Harness mix",
-    caption: "Each harness's share of the top-level sessions.",
-    definition: "Top-level sessions over every week, by harness. The harnesses among the eight with most sessions over "
-      + "every harness, the benchmark replay counted, are named, as the trends name them; the rest are Other.",
+    caption: "Each harness's share of the human-driven sessions.",
+    definition: "Top-level sessions of the paper's harnesses over every week, by harness. The harnesses among the eight "
+      + "with most sessions over every harness are named, as the trends name them; the benchmark replay holds a "
+      + "colour but is not drawn, and the rest are Other.",
     singular: "session",
     plural: "sessions",
     formatTotal: formatCount,

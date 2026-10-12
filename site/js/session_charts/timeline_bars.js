@@ -1,8 +1,9 @@
 /**
  * The Timeline view's Gantt rows and bars: one row per agent, and on it, against time since the top-level session's
  * first request, each request split into time to first token and the rest in the prefill and decode colours, each tool
- * call from its request's end for its latency in the tool part's green, and each wait before a request as a pale tint
- * of the part of the session's time it counts toward, so that on this chart a colour is always a part of the time.
+ * call from its request's end for its latency in the tool part's green, and each wait before a request as a pale tint:
+ * a wait for a tool or the user of the part of the session's time it counts toward, and a wait for subagents, which
+ * counts as tool time, of violet, so that it is told apart from a wait for a tool.
  *
  * `tree` holds rows of `session/session_tree`, `requests` of `session/session_requests`, `toolCalls` of
  * `session/session_tool_calls`. A tool call's start is not in the data; it is taken as its request's end.
@@ -26,7 +27,8 @@ export const WAIT_CAUSES = Object.freeze({
   subagent: "subagents",
 });
 
-// The legend's entries of the waits, each the causes it draws in one colour, as Session time by part names its parts.
+// The legend's entries of the waits, each the causes it draws in one colour: a wait for a tool and the user's named as
+// the parts of a session's time they count toward, and a wait for subagents, which counts as tool time, on its own.
 const WAIT_LEGEND = Object.freeze([
   Object.freeze({ name: "Tool wait", causes: Object.freeze(["tool"]) }),
   Object.freeze({ name: "User idle", causes: Object.freeze(["user", "ask_user_tool"]) }),

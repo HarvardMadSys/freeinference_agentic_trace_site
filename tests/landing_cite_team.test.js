@@ -4,6 +4,7 @@ import { test } from "node:test";
 
 import { copySource, mountCopyButtons, renderCiteLine } from "../site/js/landing/cite.js";
 import { renderTeam } from "../site/js/landing/team.js";
+import { URLS } from "../site/js/shared/layout.js";
 
 // The Explore page, which holds the BibTeX block.
 const EXPLORE_PAGE = new URL("../site/index.html", import.meta.url);
@@ -23,10 +24,11 @@ function fakePage(text) {
   return { root, button, source, listeners };
 }
 
-test("the BibTeX block on the page is the paper's citation", () => {
+test("the BibTeX block on the page is the paper's citation, a misc entry with the paper's address", () => {
   const page = readFileSync(EXPLORE_PAGE, "utf8");
-  assert.match(page, /<pre id="bibtex"><code>@article\{freeinference2026requests,/);
-  assert.match(page, /author = \{Nixon, William and Tian, Muxin and Zheng, Yunjia\s+and Gunawi, Haryadi S\. and Yang, Juncheng\}/);
+  assert.match(page, /<pre id="bibtex"><code>@misc\{freeinference2026requests,/);
+  assert.match(page, /author\s+= \{Nixon, William and Tian, Muxin and Zheng, Yunjia\s+and Gunawi, Haryadi S\. and Yang, Juncheng\}/);
+  assert.ok(page.includes(`howpublished = {\\url{${URLS.paper}}}`), "the entry links the paper");
   assert.match(page, /<button class="cite-copy" type="button" data-copy="bibtex" hidden>Copy<\/button>/);
 });
 

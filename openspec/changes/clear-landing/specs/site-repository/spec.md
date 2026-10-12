@@ -44,7 +44,7 @@ site_data/        builds site/data/ from a release folder: a file per kind and w
 site/             exactly the files that are deployed
   *.html          one file per page: index (Explore, the landing page), session
   style.css       tokens, layout and components
-  js/shared/      the database, the selection, the libraries, formatting, charts, the table, the stat strip, the layout
+  js/shared/      the database, the selection, the libraries, formatting, charts, the histogram, the CDF, the table, the layout
   js/engine/      DuckDB in the page
   js/axes/        the ticks of every chart's axes
   js/theme/       the site's colours as the style tokens give them
@@ -53,9 +53,9 @@ site/             exactly the files that are deployed
   js/explore/     the Explore page's sections and the session list
   js/figures/, js/simulation/, js/comparison/
                   the figure sections' modules
-  js/session/     the Session page's address, agent tree, facts card, legends, overlap grouping and chart frame
+  js/session/     the Session page's address, agent tree, facts card, legends, overlap grouping, token parts and chart frame
   js/session_requests/  the Requests view
-  js/session_charts/    the Context and Timeline views, their series, bars and range slider
+  js/session_charts/    the Context and Timeline views, their series, bars, range slider and pointer
   queries/        one .sql file per chart or table, in one folder per purpose: explore, figures, session, setup
   data/           built by make data and tracked: a clone serves the site without building
 tests/            Python tests and node --test files
@@ -91,7 +91,7 @@ stack, uppercase and letter-spaced, for eyebrows, chips, the nav and the
 cite caption. Cards SHALL carry a 1px rule, a soft shadow and a 0.9rem
 radius. A dark scheme SHALL follow the visitor's system preference, with
 the paper, surfaces and inks retuned dark. The eight series slots SHALL
-be the same hues in both schemes, spread evenly, each at least 3:1 in
+be the same hues in both schemes, at least 30° apart in OKLCH, each at least 3:1 in
 contrast against its scheme's card, and a test SHALL check every colour
 token's contrast in both schemes. The parts of a session's time SHALL be
 coloured as the paper colours them: prefill blue, decode orange, tool

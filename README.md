@@ -146,8 +146,8 @@ site/              exactly the files that are deployed
   *.html           one file per page: index (Explore, the landing page), session
   style.css        tokens, layout and components
   js/shared/       database (answer files, queries by name, a week's files loaded whole), selection (the selection
-                   and its notes), libraries, format, charts, histogram (the histogram figures), table, layout (the
-                   header and footer)
+                   and its notes), libraries, format, charts, histogram (the histogram figures), cdf (the CDF
+                   figures), table, layout (the header and footer)
   js/landing/      the Explore page's opening: hero (the title, lede and buttons), stats (the stats strip beside it),
                    donuts (the model and harness mixes), arcs (a donut's shares and ring segments), cite (the
                    citation's copy button) and team (the authors and the About paragraph)
@@ -168,10 +168,12 @@ site/              exactly the files that are deployed
                    benchmark section's module, comparison, the modules that draw them (scope_cdfs, tool_mix; the
                    user prompt size and the tool mix are listed in the Sessions and Tools sections), and scopes, the
                    two scopes they compare
-  js/session/      the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
+  js/session/      the Session page's address, agent tree, facts, legends, overlap grouping, token parts and
+                   chart frame
   js/session_requests/  the Requests view: a row per request, its details (each call's programs and argument
                         skeleton), brackets and legend
-  js/session_charts/    the Context and Timeline views and the series and bars they draw
+  js/session_charts/    the Context and Timeline views, the series and bars they draw, their range slider and
+                        the Timeline's pointer
   queries/         one .sql file per chart or table, in one folder per purpose: explore (11), figures (31: the 29
                    figures, and two per-model medians only the paper-parity test reads), session (4), setup (20)
   data/            built by make data and tracked, so a clone serves the site without building
@@ -199,7 +201,8 @@ tests/             what make test runs
                    on the shipped data, the numbers a figure shares with the paper's numbers.json
   test_pipeline_mirrors.py, test_pipeline_mirrors_caching.py
                    the pipeline constants the browser holds a copy of, against the pipeline's own
-  test_differences.py       docs/differences.md names every figure that differs, with the queries' and pipeline's numbers
+  test_differences.py       docs/differences.md holds the queries' and pipeline's numbers, and no figure
+                            definition names the paper
   test_repository.py, test_deploy.py, test_serve.py
                    the repository's countable rules; make deploy against a local repository; make serve's byte ranges
   *.test.js        node --test, one file per JavaScript module with pure functions
@@ -229,8 +232,9 @@ answer. Every number a figure shares with the paper equals the paper's, and
 `tests/test_paper_parity*.py` checks each one against the shipped data.
 `tests/test_pipeline_mirrors.py` checks that a mirror test reads each of the
 ten queries and that this file, `CONTRIBUTING.md` and `CLAUDE.md` list
-exactly them. Where a figure is drawn more simply than the paper, its
-Definition says how, and `docs/differences.md` lists every such difference.
+exactly them. Where a figure is drawn more simply than the paper,
+`docs/differences.md` says how; the figure's Definition says what is drawn
+and leaves the paper out.
 
 - Dataset: https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace
 - Pipeline: https://github.com/HarvardMadSys/freeinference_agentic_trace

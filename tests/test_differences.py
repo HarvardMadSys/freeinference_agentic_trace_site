@@ -1,5 +1,6 @@
-"""`docs/differences.md`, the list of where the site draws more simply than the paper, names every figure whose
-definition states a difference, and its numbers are the queries', the browser's and the pipeline's."""
+"""`docs/differences.md`, the list of where the site draws more simply than the paper, holds the queries', the
+browser's and the pipeline's numbers; and no figure's definition names the paper, since the list says how each
+differs."""
 
 import pathlib
 import re
@@ -17,8 +18,8 @@ COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # declares `SERIES
 FIGURE_FOLDERS = [SITE_FOLDER / "js" / folder for folder in ("figures", "simulation", "comparison")]
 FIGURE_TITLE_AND_DEFINITION = re.compile(r'title: "([^"]+)",\s*definition: "([^"]+)"')
 FIGURE_ENTRY_QUERY = re.compile(r'query: "(?:figures|explore)/\w+"')  # one per figure entry, a chart's or a histogram's
-# Phrases of a figure's definition that name the paper without stating a difference from it.
-SAME_AS_THE_PAPER = ("as in the paper", "the paper's harnesses")
+# The phrase a figure's definition may use that names the paper: the population, not a difference from the paper.
+PAPER_POPULATION = "the paper's harnesses"
 FIGURE_QUERIES = SITE_FOLDER / "queries" / "figures"
 MODEL_QUERIES = [FIGURE_QUERIES / "ttft_cdf_by_model.sql", FIGURE_QUERIES / "decode_cdf_by_model.sql"]
 IDLE_GAP_TITLE = "Hit ratio after an idle gap"
@@ -53,12 +54,9 @@ def figure_definition(title: str) -> str:
     return definitions[0]
 
 
-def differs_from_the_paper(definition: str) -> bool:
-    """Whether a figure's definition names the paper other than to say it does the same."""
-    remaining = definition
-    for phrase in SAME_AS_THE_PAPER:
-        remaining = remaining.replace(phrase, "")
-    return "the paper" in remaining
+def names_the_paper(definition: str) -> bool:
+    """Whether a figure's definition names the paper other than as the population of the paper's harnesses."""
+    return "the paper" in definition.replace(PAPER_POPULATION, "")
 
 
 def model_limit(path: pathlib.Path) -> int:
@@ -81,13 +79,12 @@ def series_slot_count() -> int:
     return len(re.findall(r'"var\(--series-\d+\)"', slots))
 
 
-def test_the_list_names_every_figure_whose_definition_states_a_difference() -> None:
+def test_no_figure_definition_names_the_paper() -> None:
     entries = figure_titles_and_definitions()
     modules = [module for folder in FIGURE_FOLDERS for module in folder.glob("*.js")]
     assert len(entries) == sum(len(FIGURE_ENTRY_QUERY.findall(module.read_text())) for module in modules)
     for title, definition in entries:
-        if differs_from_the_paper(definition):
-            assert f"**{title}**" in differences(), title
+        assert not names_the_paper(definition), title
 
 
 def test_the_list_leaves_out_what_the_paper_does_too() -> None:
