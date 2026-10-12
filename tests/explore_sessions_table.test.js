@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import { linkedColumns, sessionLink } from "../site/js/explore/sessions_table.js";
 import {
+  benchmarkMark,
   choices,
   COLUMNS,
   harnessText,
@@ -102,10 +103,10 @@ test("an explicit sort in the URL is still read", () => {
   assert.deepEqual(state.sort, { key: "input_tokens", direction: "ascending" });
 });
 
-test("the columns are the session, its start, harness, model and five numbers", () => {
+test("the columns are the session, its start, harness and requests, which fit a phone, then the model and four numbers", () => {
   const titles = COLUMNS.map((column) => column.title);
   const expected = [
-    "Session", "Started (UTC)", "Harness", "Model", "Requests", "Turns", "Duration", "Input tokens", "Cached share",
+    "Session", "Started (UTC)", "Harness", "Requests", "Model", "Turns", "Duration", "Input tokens", "Cached share",
   ];
   assert.deepEqual(titles, expected);
 });
@@ -186,9 +187,13 @@ test("the Session page's link back carries the table's filters, search, sort and
   assert.equal(backQuery, "?months=2026-07&harnesses=eval%3Aswe-bench&search=aa&sort=requests&direction=ascending&page=2");
 });
 
-test("the benchmark's harness is marked as a benchmark replay", () => {
-  assert.equal(harnessText("eval:swe-bench", { benchmark: true }), "eval:swe-bench (benchmark replay)");
-  assert.equal(harnessText("codex", { benchmark: false }), "codex");
+test("the benchmark's harness is named without its prefix and marked with a chip that explains it", () => {
+  assert.equal(harnessText("eval:swe-bench"), "swe-bench");
+  assert.equal(harnessText("codex"), "codex");
+  assert.deepEqual(benchmarkMark({ benchmark: true }), {
+    text: "Benchmark", title: "A replay of SWE-bench tasks, not human-driven.",
+  });
+  assert.equal(benchmarkMark({ benchmark: false }), null);
 });
 
 test("a table of the page's selection keeps only the selected harnesses' rows, the benchmark's left out", () => {

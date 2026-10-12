@@ -90,12 +90,13 @@ export function monthChoices(weeks) {
 
 /**
  * The harness drop-down's choices, `[{ value, text }]`: "All harnesses" (value ""), then each harness in the order of
- * `harnesses.json`, the benchmark's named as a benchmark replay.
+ * `harnesses.json`, the benchmark's named "swe-bench (benchmark)".
  */
 export function harnessChoices(harnesses) {
   const choices = [{ value: "", text: EVERY_HARNESS_TEXT }];
   for (const entry of harnesses) {
-    choices.push({ value: entry.harness, text: harnessText(entry.harness, entry) });
+    const text = entry.benchmark ? `${harnessText(entry.harness)} (benchmark)` : harnessText(entry.harness);
+    choices.push({ value: entry.harness, text });
   }
   return choices;
 }

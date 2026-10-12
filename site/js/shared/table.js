@@ -7,8 +7,8 @@
  * the sort, the search, a filter or the page changes.
  */
 
-// Rows shown on one page of a table.
-export const ROWS_PER_PAGE = 50;
+// Rows shown on one page of a table: few enough that a page is one card, with the pager under its last row.
+export const ROWS_PER_PAGE = 20;
 
 // The mark after a sorted column's title, by sort direction.
 const SORT_ARROWS = { ascending: "▲", descending: "▼" };
@@ -40,8 +40,9 @@ export function pageRows(rows, pageNumber, rowsPerPage) {
 
 /**
  * Fill `container` with an optional summary line, one page of `rows` as a table, and a pager.
- * `columns` is `[{ key, title, format, isNumber, href }]`; `format(value, row)` writes a cell's value, as text by
- * default; `href(row)`, when given, makes the cell a link to that address. `sort` is `{ key, direction }`.
+ * `columns` is `[{ key, title, format, isNumber, href, mark }]`; `format(value, row)` writes a cell's value, as text by
+ * default; `href(row)`, when given, makes the cell a link to that address; `mark(row)`, when given, is a chip after
+ * the cell's text, `{ text, title }`, or null for none. `sort` is `{ key, direction }`.
  * Clicking a header calls `onSort(key)`, a pager button `onPage(pageNumber)`, a row `onRowClick(row)`.
  */
 export function mountTable(container, { columns, rows, sort, pageNumber, summary, onSort, onPage, onRowClick }) {
@@ -58,6 +59,8 @@ export function mountTable(container, { columns, rows, sort, pageNumber, summary
   }
   container.append(wrap, pager(page, onPage));
   showSortedColumn(wrap);
+  markHiddenColumns(wrap);
+  wrap.addEventListener("scroll", () => markHiddenColumns(wrap));
 }
 
 /**
@@ -82,6 +85,11 @@ function showSortedColumn(wrap) {
   if (sortedRightEdge > wrap.clientWidth) {
     wrap.scrollLeft = sortedRightEdge - wrap.clientWidth;
   }
+}
+
+/** Mark `wrap` while columns lie beyond its right edge, so the page fades that edge to say the table scrolls. */
+function markHiddenColumns(wrap) {
+  wrap.classList.toggle("has-hidden-columns", wrap.scrollLeft + wrap.clientWidth < wrap.scrollWidth - 1);
 }
 
 function compareValues(first, second, sign) {
@@ -170,6 +178,10 @@ function bodyRow(columns, row, onRowClick) {
     } else {
       cell.append(cellLink(content));
     }
+    const mark = column.mark ? column.mark(row) : null;
+    if (mark !== null) {
+      cell.append(" ", chip(mark));
+    }
     if (column.isNumber) {
       cell.classList.add("is-number");
     }
@@ -180,6 +192,15 @@ function bodyRow(columns, row, onRowClick) {
     tableRow.addEventListener("click", () => onRowClick(row));
   }
   return tableRow;
+}
+
+// A chip after a cell's text, its explanation in its tooltip.
+function chip(mark) {
+  const element = document.createElement("span");
+  element.className = "table-chip";
+  element.textContent = mark.text;
+  element.title = mark.title;
+  return element;
 }
 
 function cellLink(content) {

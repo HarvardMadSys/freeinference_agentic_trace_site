@@ -126,7 +126,7 @@ test("the harness drop-down offers every harness after All harnesses, the benchm
   assert.deepEqual(harnessChoices(HARNESSES), [
     { value: "", text: "All harnesses" },
     { value: "hermes", text: "hermes" },
-    { value: "eval:swe-bench", text: "eval:swe-bench (benchmark replay)" },
+    { value: "eval:swe-bench", text: "swe-bench (benchmark)" },
     { value: "codex", text: "codex" },
   ]);
 });

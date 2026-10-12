@@ -120,7 +120,7 @@ test("an empty array has one empty page", () => {
 });
 
 test("a page holds fifty rows", () => {
-  assert.equal(ROWS_PER_PAGE, 50);
+  assert.equal(ROWS_PER_PAGE, 20);
 });
 
 test("a cell shows its formatted value, with no link unless the column gives one", () => {
