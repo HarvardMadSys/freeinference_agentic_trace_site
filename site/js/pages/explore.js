@@ -1,13 +1,15 @@
 /**
  * The Explore page: weekly trends, headline numbers, distribution cards, the paper's figures in four sections, and
- * the sessions table of the selected weeks and harnesses.
+ * the sessions table.
  *
- * The page draws its header, pickers, figure cards and every section's loading state from `weeks.json` and
- * `harnesses.json`, writing the URL's selection back in its shortest form, then gives the database the selection and
- * runs every section: from the precomputed answers for the default selection, in DuckDB for any other. A change of the
- * selection, from the pickers or a trend bar, rewrites the URL, gives the database the new selection and runs every
- * section again. Once the first run has drawn, the database streams the weeks' rows in, and the picker's note counts
- * the weeks streamed.
+ * The page draws its header, figure cards and every section's loading state from `weeks.json` and `harnesses.json`,
+ * then gives the database the selection and runs every section.
+ *
+ * Behind the switch, with `FIGURES_ARE_FROZEN` false, the page also mounts the pickers and writes the URL's selection
+ * back in its shortest form; it runs every section from the precomputed answers for the default selection and in
+ * DuckDB for any other. A change of the selection, from the pickers or a trend bar, rewrites the URL, gives the
+ * database the new selection and runs every section again. Once the first run has drawn, the database streams the
+ * weeks' rows in, and the picker's note counts the weeks streamed.
  *
  * While `FIGURES_ARE_FROZEN`, the page shows the default selection whatever the URL says: it mounts no picker, hides
  * the selection's card, states the population every figure draws once under the page's title (`populationText`),
@@ -17,13 +19,13 @@
  *
  * `page` is what the page owns: `{ weeks, harnesses, selection, database, orders, figures, latestRun, streamedWeeks }`:
  * - `weeks` and `harnesses`, the entries of `weeks.json` and `harnesses.json`;
- * - `selection`, the current selection, and `database`, the database;
+ * - `selection`, the current selection (the default one while frozen), and `database`, the database;
  * - `orders`, the colour orders (below);
- * - `figures`, what the figure sections keep (`explore/figure_sections.js`): null until the pickers are drawn, then a
+ * - `figures`, what the figure sections keep (`explore/figure_sections.js`): null until the header is drawn, then a
  *   promise of it that settles once every figure card is placed; it stays a promise, and each run awaits it;
  * - `latestRun`, the number of the latest run of the sections, so a run that a newer one replaced stops before it
  *   draws;
- * - `streamedWeeks`, the Sundays streamed in so far (null when the page does not stream).
+ * - `streamedWeeks`, the Sundays streamed in so far behind the switch (null when the page does not stream).
  * `orders` is `{ harnesses, models, categories, providers }`, the promised rows of `setup/harness_order`,
  * `setup/model_order`, `setup/category_order` and `setup/provider_order`, asked for once. A section runs as
  * `run(container, context)` with `context = { database, orders, selection, weeks, harnesses, onWeekClick,
