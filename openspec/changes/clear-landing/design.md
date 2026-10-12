@@ -115,8 +115,7 @@ simulation as well as the contrast and the hue floor.
 The title row holds the breadcrumb, the id and, on the right, one facts
 card: a three-column list of labelled fields (harness, models with their
 request counts, started, duration, turns, requests, input tokens, cached
-share, output tokens, subagents, tool calls; two columns on a narrow
-screen, one on a phone). Below it the view tabs
+share, output tokens, subagents, tool calls; one column on a phone). Below it the view tabs
 and the view. The token parts everywhere on the page are cached input,
 uncached input and output; a request whose provider reports no cache
 reads counts its whole input as uncached, and the "no cache report"

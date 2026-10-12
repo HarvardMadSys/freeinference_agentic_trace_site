@@ -50,7 +50,7 @@ test("the legend lists the rows' groups in the pipeline's order, each in its own
   assert.equal(colours.get("Read"), TOOL_GROUP_COLOURS.Read);
 });
 
-test("a narrow chart labels two ticks per panel, a wide one three", () => {
+test("a narrow chart labels one tick per panel, a wide one three", () => {
   assert.deepEqual(turnTicks(300), [50]);
   assert.deepEqual(turnTicks(900), [0, 50, 100]);
 });

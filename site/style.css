@@ -2162,7 +2162,7 @@ button.is-primary {
   align-items: start;
 }
 
-/* The facts card: labelled fields in three columns, two on a narrow screen and one on a phone. */
+/* The facts card: labelled fields in three columns, one on a phone. */
 .facts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

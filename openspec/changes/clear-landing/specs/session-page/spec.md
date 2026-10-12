@@ -10,7 +10,7 @@ views.
 
 ### Requirement: Session facts
 Beside the title, one card SHALL list the session's facts as labelled
-fields in three columns (two on a narrow screen, one on a phone): harness;
+fields in three columns (one on a phone): harness;
 models, each with its requests; started (UTC); duration; turns; requests;
 input tokens; cached share with the cached tokens; output tokens;
 subagents; tool calls. A link SHALL lead back
