@@ -1,19 +1,19 @@
 /**
- * The distribution card: a histogram of the bins a query computed, with dashed lines at its exact percentiles, whose
- * legend gives their values and the maximum.
+ * A histogram figure: the bins a query computed, with dashed lines at the exact percentiles a second query computed,
+ * whose legend gives their values and the maximum.
  *
- * The card runs no query. It is given the bins on the card's fixed scale, the percentiles, the row count and the
- * maximum, and draws them. A card is `{ title, caption, definition, countLabel, format, logScale, tickFormat, ticks,
- * bins, percentiles, count, max }`: `format` writes a value in the legend and the tooltip, `tickFormat` (else
- * `format`) on the axis, and `ticks(domain, maxTicks)`, when given, picks at most `maxTicks` of a log axis's ticks over
- * its `[low, high]`.
+ * The module runs no query. A histogram figure's entry names its bins query in `query` and its stats query in
+ * `statsQuery`; `histogramCard` joins their answers into a card, `{ ...entry, bins, percentiles, count, max }`, which
+ * `drawHistogram` draws. Of the entry's fields, `countLabel` names what a bin counts, `format` writes a value in the
+ * legend and the tooltip, `tickFormat` (else `format`) on the axis, `logScale` says whether the axis is a log one, and
+ * `ticks(domain, maxTicks)`, when given, picks at most `maxTicks` of a log axis's ticks over its `[low, high]`.
  */
 
-import { AXIS_STYLE, chartFrame, DASH, GRID_STYLE, legendPlace, renderFigure, TIP_STYLE, X_INSET } from "./charts.js";
+import { AXIS_STYLE, chartFrame, DASH, GRID_STYLE, legendPlace, TIP_STYLE, X_INSET } from "./charts.js";
 import { axisWithTicks, extent, logAxisTicks, MAX_TICKS, maxTicksFor, TICK_COUNT } from "../axes/ticks.js";
 import { formatCompactCount, formatCount } from "./format.js";
 
-// The columns of a distribution query's rows: where a bin starts, where it ends, and how many rows (requests or
+// The columns of a bins query's rows: where a bin starts, where it ends, and how many rows (requests or
 // sessions, as the card counts) fall in it.
 const BIN_START_COLUMN = "bin_start";
 const BIN_END_COLUMN = "bin_end";
@@ -72,7 +72,18 @@ export function cardTicks(card, maxTicks = MAX_TICKS) {
   return card.ticks === undefined ? logAxisTicks(domain, maxTicks) : card.ticks(domain, maxTicks);
 }
 
-/** The bins `{ x0, x1, count }` of a distribution query's rows, in the rows' order. */
+/** The histogram card of `entry` from its bins query's rows and its stats query's one row, as `drawHistogram` takes it. */
+export function histogramCard(entry, binRows, statsRow) {
+  return {
+    ...entry,
+    bins: binsFromRows(binRows),
+    percentiles: { p50: statsRow.p50, p75: statsRow.p75, p90: statsRow.p90, p95: statsRow.p95 },
+    count: statsRow.count,
+    max: statsRow.max,
+  };
+}
+
+/** The bins `{ x0, x1, count }` of a histogram's bins query's rows, in the rows' order. */
 export function binsFromRows(rows) {
   // DuckDB returns 64-bit integers as BigInt, which Plot's scales do not accept.
   return rows.map((row) => ({
@@ -90,19 +101,19 @@ export function drawableBins(card) {
   return card.logScale ? card.bins.filter((bin) => bin.x0 > 0) : card.bins;
 }
 
-/** Draw the distribution card into `container`, replacing what it held: legend above the chart. */
-export async function mountHistogram(container, card) {
-  const body = renderFigure(container, {
-    title: card.title, caption: card.caption, definition: card.definition, rows: rowsText(card),
-  });
+/**
+ * Draw the histogram `card` into a figure's `body`, replacing what it held, its percentiles' legend in the figure's
+ * legend place above it.
+ */
+export async function drawHistogram(body, card) {
   if (card.count === 0) {
-    body.append(emptyNote());
+    body.replaceChildren(emptyNote());
     return;
   }
   legendPlace(body).replaceChildren(...percentileLegendItems(card));
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("./libraries.js");
-  body.append(histogramChart(Plot, card, body));
+  body.replaceChildren(histogramChart(Plot, card, body));
 }
 
 function histogramChart(Plot, card, body) {

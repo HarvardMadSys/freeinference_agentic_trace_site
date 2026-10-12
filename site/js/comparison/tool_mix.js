@@ -1,6 +1,6 @@
 /**
  * The tool mix along a turn: per tenth of a turn, the share of calls in each of the pipeline's eight tool groups, one
- * panel for the human-driven sessions and one for the benchmark's.
+ * panel for the human-driven sessions and one for the benchmark's; listed in the Tools section (`figures/tools.js`).
  *
  * Every row of its query is one scope, tenth and group with calls: `scope` (`Agentic` or `SWE-Bench`), `tenth`
  * (0 to 9), `tool_group`, its `calls`, their `share` of the tenth's calls, and `rows`, the scope's calls, so a scope

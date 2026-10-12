@@ -1,7 +1,8 @@
 /**
  * The Human-driven-against-benchmark CDFs of turn duration, session duration, input per request and user prompt tokens:
  * each a CDF per scope, human-driven and benchmark, each median marked with its value and a dotted line between the two
- * medians, as the paper draws them; the legend gives both medians and their ratio, the larger over the smaller.
+ * medians, as the paper draws them; the legend gives both medians and their ratio, the larger over the smaller. The
+ * first three are listed in `comparison.js`, the user prompt size in the Sessions section (`figures/sessions.js`).
  *
  * Every row of their queries is one CDF point of one scope: `series` (the scope, by the pipeline's name of it), `x` and
  * `share`; the same on every row of a scope, `rows` (what the scope's CDF is over) and `median`; and the same on every
@@ -108,6 +109,7 @@ export const INPUT_PER_REQUEST_BY_SCOPE = Object.freeze({
   definition: "CDF of the input tokens of a request of the top-level sessions of the paper's harnesses and of the benchmark's, over the requests whose input is reported, each median marked and their ratio written, the larger over the smaller.",
   caption: "Input tokens of each request, human-driven and benchmark.",
   drawsLines: true,
+  isWide: true,
   query: "figures/input_per_request_by_scope",
   binColumn: "series",
   seriesColumn: "series",

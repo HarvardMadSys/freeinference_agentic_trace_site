@@ -1,6 +1,7 @@
 /**
  * The Tools section of the Explore page's figures: how long a tool call waits and how much it returns, per category,
- * and how requests batch their calls. The batching figures are drawn in `tools_batching.js`.
+ * how requests batch their calls, drawn in `tools_batching.js`, and the tool mix along a turn, human-driven against
+ * benchmark, drawn in `comparison/tool_mix.js`.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Every row of a quantile-range query is one
  * category, its count in `rows`, so a thin one is hidden whole.
@@ -10,6 +11,7 @@ import { AXIS_STYLE, categoryRowsFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP
 import { axisWithTicks, decadeTicks } from "../axes/ticks.js";
 import { formatCount, formatSeconds, formatTokens, MILLISECONDS_PER_SECOND } from "../shared/format.js";
 import { CALLS_PER_REQUEST_BY_CATEGORY, LATENCY_BY_BATCH_WIDTH } from "./tools_batching.js";
+import { TOOL_MIX_BY_TURN_POSITION } from "../comparison/tool_mix.js";
 
 // The percentile columns of a quantile-range query, low to high, with the name the tooltip gives each.
 const PERCENTILES = Object.freeze([
@@ -64,6 +66,7 @@ export const FIGURES = Object.freeze([
   }),
   CALLS_PER_REQUEST_BY_CATEGORY,
   LATENCY_BY_BATCH_WIDTH,
+  TOOL_MIX_BY_TURN_POSITION,
 ]);
 
 /** Draw each category's latency percentiles, in seconds on a log axis. */

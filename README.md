@@ -14,13 +14,13 @@ charts. There is no server and no bundler.
 
 | Page | File | What it shows |
 |---|---|---|
-| Explore | `index.html` | The landing page: a hero with the stats strip (weeks, sessions, requests, input tokens, tool calls, harnesses), the model and harness mixes and the weekly trends (`#overview`), eight distribution cards, 29 of the paper's figures in four sections (`#figures-sessions`, `#figures-tools`, `#figures-caching`, `#figures-comparison`: Sessions, Tools, Prefix caching, Human-driven against benchmark) (`#figures`), the session list (`#sessions`), a table of every top-level session with its own filter, the paper's citation (`#cite`) and the team (`#team`) |
+| Explore | `index.html` | The landing page: a hero with the stats strip (weeks, sessions, requests, input tokens, tool calls, harnesses), the model and harness mixes and the weekly trends (`#overview`), 29 of the paper's figures and two histograms in six sections (`#figures-sessions`, `#figures-tokens`, `#figures-latency`, `#figures-tools`, `#figures-caching`, `#figures-comparison`: Sessions, Tokens and cost, Latency, Tools, Prefix caching, Human-driven against benchmark) (`#figures`), the session list (`#sessions`), a table of every top-level session with its own filter, the paper's citation (`#cite`) and the team (`#team`) |
 | Session | `session.html` | One session and its subagents: a bar per request with each tool call's programs and the skeleton of its arguments, context over time, and a timeline per agent |
 
 ## Frozen figures
 
-Every number on the Explore page, every trend, stat,
-distribution card and figure, is drawn over every week and the paper's
+Every number on the Explore page, every trend, stat
+and figure, is drawn over every week and the paper's
 harnesses (every harness but the benchmark replay `eval:swe-bench`, which
 appears only where a figure's legend names it), from answers precomputed
 when the data are built. `make data` runs every query under
@@ -61,7 +61,7 @@ each, and runs its queries over them in memory.
 Measured on the shipped data (16 weeks), served by `serve.py` (which does
 not compress) on the same machine, in headless Chromium, three runs each:
 
-- The Explore page draws every trend, headline number, distribution card,
+- The Explore page draws every trend, headline number,
   figure and the session list in 1.0–1.2 s (median 1.0 s). It makes 149
   requests: 97 to the site (the page and its style sheet, 38 modules, 57 data
   files: `weeks.json`, `harnesses.json` and 55 answers) and 52 to the CDN
@@ -146,7 +146,7 @@ site/              exactly the files that are deployed
   *.html           one file per page: index (Explore, the landing page), session
   style.css        tokens, layout and components
   js/shared/       database (answer files, queries by name, a week's files loaded whole), selection (the selection
-                   and its notes), libraries, format, charts, histogram (the distribution card), table, layout (the
+                   and its notes), libraries, format, charts, histogram (the histogram figures), table, layout (the
                    header and footer)
   js/landing/      the Explore page's opening: hero (the title, lede and buttons), stats (the stats strip beside it),
                    donuts (the model and harness mixes), arcs (a donut's shares and ring segments), cite (the
@@ -156,16 +156,18 @@ site/              exactly the files that are deployed
   js/theme/        colours, the site's colours as the style tokens give them
   js/axes/         ticks, the ticks of every chart's axes: how many, and where a log, duration or week axis ticks
   js/pages/        one module per page: explore (with FIGURES_ARE_FROZEN), session
-  js/explore/      the Explore page's sections: trends, distributions, figure_sections (the figure runner),
+  js/explore/      the Explore page's sections: trends, figure_sections (the figure runner),
                    legend (the legend of buttons that hides and shows a series), sessions_table, sessions_table_state
                    (its columns and its state in the URL), sessions_filter (its month and harness filter), and
                    selection_pickers (the week and harness pickers, mounted only with the switch off)
-  js/figures/      one module per figure section (sessions, tools, caching), the modules they take figures from
-                   (sessions_latency, sessions_ranked, tools_batching, caching_gaps), and figure_rows, the row rules
-                   every figure shares
+  js/figures/      one module per figure section (sessions, tokens, latency, tools, caching), the modules they take
+                   figures from (sessions_ranked, tools_batching, caching_gaps), and figure_rows, the row rules every
+                   figure shares
   js/simulation/   the Prefix-caching section's figures of the cache simulation: prefill and costs
-  js/comparison/   the Human-driven-against-benchmark figure section: its module, comparison, the modules of its
-                   figures (scope_cdfs, tool_mix), and scopes, the two scopes they compare
+  js/comparison/   the figures that compare human-driven sessions with the benchmark's: the Human-driven-against-
+                   benchmark section's module, comparison, the modules that draw them (scope_cdfs, tool_mix; the
+                   user prompt size and the tool mix are listed in the Sessions and Tools sections), and scopes, the
+                   two scopes they compare
   js/session/      the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
   js/session_requests/  the Requests view: a row per request, its details (each call's programs and argument
                         skeleton), brackets and legend

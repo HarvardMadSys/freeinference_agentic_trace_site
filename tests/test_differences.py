@@ -13,10 +13,10 @@ DIFFERENCES = ROOT / "docs" / "differences.md"
 SITE_FOLDER = ROOT / "site"
 CHARTS_MODULE = SITE_FOLDER / "js" / "shared" / "charts.js"  # declares `MIN_ROWS_PER_BIN`
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # declares `SERIES_SLOTS`, the eight series colours
-# The folders of every figure entry: the first three sections', the cache simulation's and the comparison section's.
+# The folders of every figure entry: the section modules and theirs, the cache simulation's and the scope comparisons'.
 FIGURE_FOLDERS = [SITE_FOLDER / "js" / folder for folder in ("figures", "simulation", "comparison")]
 FIGURE_TITLE_AND_DEFINITION = re.compile(r'title: "([^"]+)",\s*definition: "([^"]+)"')
-FIGURE_ENTRY_QUERY = re.compile(r'query: "figures/\w+"')  # one per figure entry
+FIGURE_ENTRY_QUERY = re.compile(r'query: "(?:figures|explore)/\w+"')  # one per figure entry, a chart's or a histogram's
 # Phrases of a figure's definition that name the paper without stating a difference from it.
 SAME_AS_THE_PAPER = ("as in the paper", "the paper's harnesses")
 FIGURE_QUERIES = SITE_FOLDER / "queries" / "figures"

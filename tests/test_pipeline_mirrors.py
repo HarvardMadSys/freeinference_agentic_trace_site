@@ -26,7 +26,7 @@ SPEEDUP_QUERY = FIGURE_QUERIES / "speedup_if_twice_as_fast.sql"
 SESSION_TIME_VIEW = SITE_FOLDER / "queries" / "setup" / "create_view_session_time.sql"
 TIME_QUERIES = [SESSION_TIME_QUERY, SPEEDUP_QUERY]  # each reads the breakdown from the view, restating none of it
 TIME_CONSTANTS = ["tool_waits", "user_waits", "tool_gap_cap_s"]  # the view's copies of the pipeline's constants
-SESSIONS_LATENCY_MODULE = SITE_FOLDER / "js" / "figures" / "sessions_latency.js"  # the speed-up axis's headroom
+LATENCY_MODULE = SITE_FOLDER / "js" / "figures" / "latency.js"  # the speed-up axis's headroom
 TOOL_MIX_QUERY = FIGURE_QUERIES / "tool_mix_by_turn_position.sql"  # the tenths, the tool groups and the program sets
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the tool groups, each with its colour
 TOOL_MIX_MODULE = SITE_FOLDER / "js" / "comparison" / "tool_mix.js"  # the tenths
@@ -182,7 +182,7 @@ def test_a_time_figure_reads_the_one_breakdown_and_restates_none_of_it(path: pat
 
 
 def test_the_speedup_s_axis_headroom_is_the_pipeline_s() -> None:
-    assert javascript_number(SESSIONS_LATENCY_MODULE, "SPEEDUP_AXIS_HEADROOM") == \
+    assert javascript_number(LATENCY_MODULE, "SPEEDUP_AXIS_HEADROOM") == \
         paper.sessions.latency.SPEEDUP_AXIS_HEADROOM
 
 

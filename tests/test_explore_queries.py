@@ -160,8 +160,9 @@ def test_the_model_order_counts_every_week_and_harness(connection: duckdb.DuckDB
     ]
 
 
-# Each distribution card: the folder of the rows it reads, requests or sessions, and the column it takes.
-DISTRIBUTION_CARDS = {
+# Each pair of histogram queries, by their prefix: the folder of the rows they read, requests or sessions, and the column
+# they take.
+HISTOGRAM_QUERIES = {
     "input_tokens": ("requests", "prompt_tokens"),
     "uncached_tokens": ("requests", "uncached_tokens"),
     "output_tokens": ("requests", "completion_tokens"),
@@ -173,10 +174,10 @@ DISTRIBUTION_CARDS = {
 }
 
 
-def top_level_values(data_directory: pathlib.Path, card: str, weeks: list[str], harnesses: list[str]) -> list[float]:
-    """The card's values over the top-level rows of `weeks` and `harnesses`, read with pandas from each week's file;
+def top_level_values(data_directory: pathlib.Path, histogram: str, weeks: list[str], harnesses: list[str]) -> list[float]:
+    """The histogram's values over the top-level rows of `weeks` and `harnesses`, read with pandas from each week's file;
     missing values left out."""
-    kind_folder, column = DISTRIBUTION_CARDS[card]
+    kind_folder, column = HISTOGRAM_QUERIES[histogram]
     values = []
     for week in weeks:
         rows = pandas.read_parquet(data_directory / kind_folder / f"week={week}" / "rows.parquet")
@@ -189,14 +190,14 @@ def top_level_values(data_directory: pathlib.Path, card: str, weeks: list[str], 
 
 
 @pytest.mark.parametrize("harnesses", [fixture_release.EVERY_HARNESS, fixture_release.PAPER_HARNESSES])
-@pytest.mark.parametrize("card", sorted(DISTRIBUTION_CARDS))
-def test_a_card_s_median_count_and_maximum_are_those_of_its_values(connection: duckdb.DuckDBPyConnection,
+@pytest.mark.parametrize("histogram", sorted(HISTOGRAM_QUERIES))
+def test_a_histogram_s_median_count_and_maximum_are_those_of_its_values(connection: duckdb.DuckDBPyConnection,
                                                                     data_directory: pathlib.Path,
-                                                                    fixture_weeks: list[str], card: str,
+                                                                    fixture_weeks: list[str], histogram: str,
                                                                     harnesses: list[str]) -> None:
     select(connection, fixture_weeks, harnesses)
-    stats = records(connection, f"explore/{card}_stats")[0]
-    values = top_level_values(data_directory, card, fixture_weeks, harnesses)
+    stats = records(connection, f"explore/{histogram}_stats")[0]
+    values = top_level_values(data_directory, histogram, fixture_weeks, harnesses)
     assert stats["p50"] == pytest.approx(statistics.median(values))
     assert stats["count"] == len(values)
     assert stats["max"] == pytest.approx(max(values))
@@ -210,12 +211,12 @@ def test_one_week_s_input_tokens_median_is_counted_by_hand(connection: duckdb.Du
     assert records(connection, "explore/input_tokens_stats")[0]["p50"] == 1_300
 
 
-@pytest.mark.parametrize("card", sorted(DISTRIBUTION_CARDS))
-def test_a_card_s_bins_hold_every_value_once_smallest_first(connection: duckdb.DuckDBPyConnection,
-                                                           fixture_weeks: list[str], card: str) -> None:
+@pytest.mark.parametrize("histogram", sorted(HISTOGRAM_QUERIES))
+def test_a_histogram_s_bins_hold_every_value_once_smallest_first(connection: duckdb.DuckDBPyConnection,
+                                                           fixture_weeks: list[str], histogram: str) -> None:
     select(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
-    bins = records(connection, f"explore/{card}_bins")
-    stats = records(connection, f"explore/{card}_stats")[0]
+    bins = records(connection, f"explore/{histogram}_bins")
+    stats = records(connection, f"explore/{histogram}_stats")[0]
     assert sum(row["rows"] for row in bins) == stats["count"]
     starts = [row["bin_start"] for row in bins]
     assert starts == sorted(starts)

@@ -1,13 +1,17 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { histogramCard, subagentTicks } from "../site/js/explore/distributions.js";
+import { subagentTicks } from "../site/js/figures/sessions.js";
 import { formatTokens } from "../site/js/shared/format.js";
+import { histogramCard } from "../site/js/shared/histogram.js";
 
+// A histogram figure's entry, as a section module lists it.
 const INPUT_CARD = {
   name: "input_tokens",
   title: "Input tokens per request",
   definition: "Prompt tokens of each top-level request.",
+  query: "explore/input_tokens_bins",
+  statsQuery: "explore/input_tokens_stats",
   countLabel: "Requests",
   format: formatTokens,
   logScale: true,

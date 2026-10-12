@@ -112,8 +112,9 @@ js/figures/           the Explore page's figures: one module per section, listin
                       section takes entries from, and the row rules every figure shares (figure_rows.js)
 js/simulation/        the Prefix-caching section's figures of the cache simulation: prefill against storage, and the
                       two costs by TTL
-js/comparison/        the Explore page's Human-driven-against-benchmark figures: the section's module, listing its
-                      figure entries, the modules that draw them, and the two scopes the figures compare (scopes.js)
+js/comparison/        the Explore page's figures that compare human-driven sessions with the benchmark's: the
+                      Human-driven-against-benchmark section's module, listing its figure entries, the modules that
+                      draw them, and the two scopes the figures compare (scopes.js)
 js/session/           the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
 js/session_requests/  the Session page's Requests view
 js/session_charts/    the Session page's Context and Timeline views
@@ -156,10 +157,14 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   older `weeks`, `month`, `scope` and `harness`), filters the list's answer,
   which holds every harness's sessions, and writes them back; they reach
   nothing else.
-- A figure is a figure entry (below), listed in its section's module:
-  `js/figures/sessions.js`, `tools.js` or `caching.js`, or
-  `js/comparison/comparison.js`, each taking entries from the modules beside
-  it or from `js/simulation/`.
+- A figure is a figure entry (below), listed in its section's module, in the
+  page's order: `js/figures/sessions.js` (Sessions), `tokens.js` (Tokens and
+  cost), `latency.js` (Latency), `tools.js` (Tools), `caching.js` (Prefix
+  caching) and `js/comparison/comparison.js` (Human-driven against
+  benchmark), each taking entries from the modules beside it, from
+  `js/simulation/` or from `js/comparison/`. `explore/figure_sections.js`
+  lists the six in `FIGURE_SECTIONS`, and `index.html` holds a section with
+  a heading and a card grid for each.
 
 ## Patterns to copy
 
@@ -250,6 +255,16 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
   and, for a figure with a `legend`, its legend's colours as `series`, which
   the chart colours its series by; `hidden`, the Set of hidden series' names,
   is given only to a figure with a `legend` and no `seriesColumn`.
+
+A **histogram figure** has no `binColumn` and no `draw`: its `query` is a
+bins query, `explore/<prefix>_bins` (each row a bin's `bin_start`, `bin_end`
+and `rows`), and its `statsQuery` the matching `explore/<prefix>_stats` (one
+row of `count`, `max` and the 50th, 75th, 90th and 95th percentiles). The page
+draws it with `shared/histogram.js`, every bin shown, dashed lines at the
+percentiles and its count as its line of rows, from the fields
+`countLabel` (what a bin counts), `format` (a value in the legend and the
+tooltip), `tickFormat` (optional, a value on the axis), `logScale` and
+`ticks(domain, maxTicks)` (optional, a log axis's ticks).
 
 ```js
 Object.freeze({

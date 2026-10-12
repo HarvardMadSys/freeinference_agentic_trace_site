@@ -1,13 +1,13 @@
 /**
- * The Sessions figures of latency: per model, the CDFs of a request's time to first token and of its decode time, each
- * for the five models with most requests in the selection that are among the eight with most requests over every
- * week, over requests whose TTFT is trusted; and the speed-up of the sessions' machine time if one of its parts alone
- * ran twice as fast.
+ * The Latency section of the Explore page's figures: per model, the CDFs of a request's time to first token and of its
+ * decode time, each for the five models with most requests in the selection that are among the eight with most
+ * requests over every week, over requests whose TTFT is trusted; how a session's time splits between its parts, drawn
+ * in `sessions_ranked.js`; and the speed-up of the sessions' machine time if one of its parts alone ran twice as fast.
  *
- * Their figure entries, whose fields CONTRIBUTING.md defines, are listed in `sessions.js` in the section's order.
- * Each CDF query's rows name their model in `series`; every model has the colour every chart gives it, and a model
- * past the eighth, whose colour is the Other grey, is not drawn. Each row of the speed-up query is one part of the
- * machine time, every row holding the same `rows`, the sessions it rests on.
+ * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Each CDF query's rows name their model in
+ * `series`; every model has the colour every chart gives it, and a model past the eighth, whose colour is the Other
+ * grey, is not drawn. Each row of the speed-up query is one part of the machine time, every row holding the same
+ * `rows`, the sessions it rests on.
  */
 
 import { AXIS_STYLE, cdfPoints, chartFrame, colourScale, drawCdf, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
@@ -15,6 +15,7 @@ import { durationTicks, extent, fewerOnNarrow, tickCountFor } from "../axes/tick
 import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
 import { slottedColours, TIME_PART_COLOURS } from "../theme/colours.js";
 import { cdfSeries, seriesLegend } from "./figure_rows.js";
+import { SESSION_TIME_BY_PART } from "./sessions_ranked.js";
 
 // The parts of the machine time, by their name in the speed-up query, top down, with the name each bar is drawn under.
 const SPEEDUP_PARTS = Object.freeze({ prefill: "Prefill", decode: "Decode", tool: "Tools" });
@@ -77,6 +78,14 @@ export const SPEEDUP_IF_TWICE_AS_FAST = Object.freeze({
   seriesOverSameRows: true,
   draw: drawSpeedups,
 });
+
+/** The figures of the Latency section, in the order the page shows them. */
+export const FIGURES = Object.freeze([
+  TTFT_CDF_BY_MODEL,
+  DECODE_CDF_BY_MODEL,
+  SESSION_TIME_BY_PART,
+  SPEEDUP_IF_TWICE_AS_FAST,
+]);
 
 /**
  * The bars of the speed-up figure: one `{ part, label, speedup, text }` per part of the rows, top down, `label` naming

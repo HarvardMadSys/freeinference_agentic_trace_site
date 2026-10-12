@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { FIGURES } from "../site/js/comparison/comparison.js";
-import { medianRatioText, medianSummary, scopeMedians } from "../site/js/comparison/scope_cdfs.js";
+import {
+  INPUT_PER_REQUEST_BY_SCOPE, medianRatioText, medianSummary, scopeMedians, SESSION_DURATION_BY_SCOPE,
+  TURN_DURATION_BY_SCOPE, USER_PROMPT_TOKENS_BY_SCOPE,
+} from "../site/js/comparison/scope_cdfs.js";
 import { scopeLegend, SCOPES } from "../site/js/comparison/scopes.js";
 import { SCOPE_COLOURS } from "../site/js/theme/colours.js";
 
@@ -43,10 +45,11 @@ test("a scope CDF's legend lists the scopes of the rows, human-driven first, in 
 });
 
 test("every scope CDF counts each scope's rows under its own noun", () => {
-  for (const figure of FIGURES.filter((one) => one.legend === scopeLegend)) {
+  const scopeCdfs = [TURN_DURATION_BY_SCOPE, SESSION_DURATION_BY_SCOPE, INPUT_PER_REQUEST_BY_SCOPE, USER_PROMPT_TOKENS_BY_SCOPE];
+  for (const figure of scopeCdfs) {
+    assert.equal(figure.legend, scopeLegend, figure.name);
     assert.deepEqual(Object.keys(figure.seriesNouns), [...SCOPES], figure.name);
   }
-  assert.equal(FIGURES.filter((one) => one.legend === scopeLegend).length, 4);
 });
 
 test("the legend sums the medians up, human-driven against benchmark, with their ratio, or says nothing without both", () => {

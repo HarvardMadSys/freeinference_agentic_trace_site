@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import {
   drawnModelRows, modelCdfLegend, SPEEDUP_AXIS_HEADROOM, speedupAxisEnd, speedupBars,
-} from "../site/js/figures/sessions_latency.js";
+} from "../site/js/figures/latency.js";
 import { assignColours, OTHER_SERIES } from "../site/js/theme/colours.js";
 
 // Ten models in the order of most requests over every week: the ninth and tenth take the Other grey.

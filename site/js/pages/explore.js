@@ -1,6 +1,6 @@
 /**
- * The Explore page: the hero with its stats strip, the model and harness mixes, weekly trends, distribution cards,
- * the paper's figures in four sections, the sessions table, and the citation and the team.
+ * The Explore page: the hero with its stats strip, the model and harness mixes, weekly trends, the paper's figures in
+ * six sections, the sessions table, and the citation and the team.
  *
  * The page draws its header, hero, figure cards and every section's loading state from `weeks.json` and
  * `harnesses.json`, then gives the database the selection and runs every section.
@@ -39,7 +39,6 @@ import { renderFooter, renderHeader } from "../shared/layout.js";
 import {
   defaultSelection, readSelection, selectionQuery, writeSelection,
 } from "../shared/selection.js";
-import { layoutDistributions, runDistributions } from "../explore/distributions.js";
 import {
   layoutFigures, mountFigureSections, runFigures, showErrorInFigureSections, showErrorInFigures, showNoteInFigures,
 } from "../explore/figure_sections.js";
@@ -70,7 +69,6 @@ const SECTIONS = Object.freeze([
   Object.freeze({ id: "stats", layout: layoutStats, run: runStats }),
   Object.freeze({ id: "mixes", layout: layoutMixes, run: runMixes }),
   Object.freeze({ id: "trends", layout: layoutTrends, run: runTrends }),
-  Object.freeze({ id: "distributions", layout: layoutDistributions, run: runDistributions }),
   Object.freeze({ id: "sessions-table", layout: layoutSessionsTable, run: runSessionsTable }),
 ]);
 

@@ -1,6 +1,7 @@
 /**
- * The Sessions figures that rank sessions by a share and stack each rank bin's mean shares: how a session's cost
- * splits between its token parts, and how its time splits between prefill, decode, tools and user idle.
+ * The figures that rank sessions by a share and stack each rank bin's mean shares: how a session's cost splits between
+ * its token parts, listed in `tokens.js`, and how its time splits between prefill, decode, tools and user idle, listed
+ * in `latency.js`.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Every row of their queries is one rank bin:
  * its `percentile` (the bin's middle, in percent of the sessions ranked), one column per part holding the bin's mean

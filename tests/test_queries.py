@@ -11,7 +11,7 @@ import site_data.answers
 import fixture_release
 import site_database
 
-# The columns of a distribution card's two queries: its bins, and its count, maximum and percentiles.
+# The columns of a histogram's two queries: its bins, and its count, maximum and percentiles.
 BIN_COLUMNS = ["bin_start", "bin_end", "rows"]
 STATS_COLUMNS = ["count", "max", "p50", "p75", "p90", "p95"]
 # The columns of a quantile-range figure's query: per category, its count and five percentiles.

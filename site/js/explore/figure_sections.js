@@ -1,7 +1,8 @@
 /**
- * The figure sections of the Explore page: the Sessions, Tools, Prefix-caching and Human-driven-against-benchmark
- * figures, each a card in its section's grid, drawn for the selected weeks and harnesses, its thin bins hidden and its
- * line of rows written behind its Definition control.
+ * The figure sections of the Explore page: the Sessions, Tokens-and-cost, Latency, Tools, Prefix-caching and
+ * Human-driven-against-benchmark figures, each a card in its section's grid, drawn for the selected weeks and harnesses,
+ * its thin bins hidden and its line of rows written behind its Definition control. A histogram figure, one with a
+ * `statsQuery`, is drawn by `shared/histogram.js` from its two queries' answers, every bin shown.
  *
  * With the default selection every figure is drawn at once, from its precomputed answer. With any other, a figure's
  * query starts when its card comes into view, and a figure started for the current run is not started again. A page
@@ -23,13 +24,18 @@
 import { MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote } from "../shared/charts.js";
 import { assignColours } from "../theme/colours.js";
 import { isDefaultSelection } from "../shared/selection.js";
+import { drawHistogram, histogramCard, rowsText } from "../shared/histogram.js";
 import { dropThinGroups, figureDrawnRows, figureRowsText, unsimulatedWeeks } from "../figures/figure_rows.js";
 import { drawWithLegend, shownRows } from "./legend.js";
 
-// Each figure section of the page: the element its figures go in, and the module listing them. Every section module
-// exports its figures as `FIGURES`, so each is imported by its path rather than under a second name.
-const SECTIONS = Object.freeze([
+/**
+ * Each figure section of the page, in the page's order: the element its figures go in, and the module listing them.
+ * Every section module exports its figures as `FIGURES`, so each is imported by its path rather than under a second name.
+ */
+export const FIGURE_SECTIONS = Object.freeze([
   Object.freeze({ selector: "#figures-sessions", module: "../figures/sessions.js" }),
+  Object.freeze({ selector: "#figures-tokens", module: "../figures/tokens.js" }),
+  Object.freeze({ selector: "#figures-latency", module: "../figures/latency.js" }),
   Object.freeze({ selector: "#figures-tools", module: "../figures/tools.js" }),
   Object.freeze({ selector: "#figures-caching", module: "../figures/caching.js" }),
   Object.freeze({ selector: "#figures-comparison", module: "../comparison/comparison.js" }),
@@ -62,7 +68,7 @@ export async function mountFigureSections(drawsEveryRunAtOnce = false) {
 
 /** Show `error` in place of each figure section's cards, when the page cannot load the indexes to place them. */
 export function showErrorInFigureSections(error) {
-  for (const section of SECTIONS) {
+  for (const section of FIGURE_SECTIONS) {
     showError(document.querySelector(`${section.selector} .card-grid`), error);
   }
 }
@@ -173,23 +179,41 @@ function startFigures(figures) {
   return drawings;
 }
 
-/** Run one figure's query and draw its rows into `place`, with its line of rows; its error stays in its own card. */
+/** Draw one figure into `place`, a histogram or a chart of one query's rows; its error stays in its own card. */
 async function drawFigure(figure, place, context) {
   try {
-    const colours = await figureColours(context.orders);
-    const rows = figureDrawnRows(figure, await context.database.runQuery(figure.query), colours);
-    const { rows: shown, hidden } = dropThinGroups(rows, figure.binColumn);
-    const notSimulated = unsimulatedWeeks(figure, context.selection, context.weeks);
-    place.rows.textContent = figureRowsText(figure, shown, hidden, notSimulated);
-    if (rows.length === 0) {
-      showNote(place.body, NO_ROWS_NOTE);
-    } else if (shown.length === 0) {
-      showNote(place.body, ALL_THIN_NOTE);
+    if (figure.statsQuery === undefined) {
+      await drawQueryFigure(figure, place, context);
     } else {
-      await drawFigureRows(figure, shown, place.body, colours);
+      await drawHistogramFigure(figure, place, context);
     }
   } catch (error) {
     showError(place.body, error);
+  }
+}
+
+/** Run a histogram figure's bins and stats queries and draw its histogram into `place`, its count as its line of rows. */
+async function drawHistogramFigure(figure, place, context) {
+  const binRows = await context.database.runQuery(figure.query);
+  const statsRows = await context.database.runQuery(figure.statsQuery);
+  const card = histogramCard(figure, binRows, statsRows[0]);
+  place.rows.textContent = rowsText(card);
+  await drawHistogram(place.body, card);
+}
+
+/** Run one figure's query and draw its rows into `place`, its thin bins hidden, with its line of rows. */
+async function drawQueryFigure(figure, place, context) {
+  const colours = await figureColours(context.orders);
+  const rows = figureDrawnRows(figure, await context.database.runQuery(figure.query), colours);
+  const { rows: shown, hidden } = dropThinGroups(rows, figure.binColumn);
+  const notSimulated = unsimulatedWeeks(figure, context.selection, context.weeks);
+  place.rows.textContent = figureRowsText(figure, shown, hidden, notSimulated);
+  if (rows.length === 0) {
+    showNote(place.body, NO_ROWS_NOTE);
+  } else if (shown.length === 0) {
+    showNote(place.body, ALL_THIN_NOTE);
+  } else {
+    await drawFigureRows(figure, shown, place.body, colours);
   }
 }
 
@@ -239,7 +263,7 @@ function layOutPlaces(figures) {
 /** Every figure of every section, each with a new card in its section's grid: `[{ figure, card }]`. */
 async function placeCards() {
   const cards = [];
-  for (const section of SECTIONS) {
+  for (const section of FIGURE_SECTIONS) {
     const { FIGURES } = await import(section.module);
     const grid = document.querySelector(`${section.selector} .card-grid`);
     for (const figure of FIGURES) {
