@@ -96,6 +96,15 @@ test("the page holds the six figure sections in order, each with its heading", (
   assert.deepEqual(found, PAGE_SECTIONS);
 });
 
+test("a figure section holds its heading and its cards, and no intro text", () => {
+  for (const { id } of PAGE_SECTIONS) {
+    const start = PAGE.indexOf(`<section id="${id}"`);
+    const section = PAGE.slice(start, PAGE.indexOf("</section>", start));
+    const tags = [...section.matchAll(/<(\w+)[\s>]/g)].map((match) => match[1]);
+    assert.deepEqual(tags, ["section", "h2", "div"], id);
+  }
+});
+
 test("the runner fills each section of the page from its section module, in the page's order", () => {
   assert.deepEqual(FIGURE_SECTIONS.map((section) => section.selector), PAGE_SECTIONS.map((section) => `#${section.id}`));
   const modules = Object.keys(SECTION_FIGURES).map((path) => path.replace("../site/js/", "../"));
@@ -152,16 +161,37 @@ test("every chart has a bin column and a draw function", async () => {
   }
 });
 
-const MAX_CAPTION_LENGTH = 90; // characters: a caption under this is about a line of a card at desktop width
+const MAX_CAPTION_WORDS = 12; // a caption is one line a reader takes in at a glance
+const MAX_DEFINITION_WORDS = 40; // a definition says what is drawn and its one difference from the paper, no more
 
-test("every figure has a caption of one short sentence, under the length of a line", async () => {
+// The words of `text`: its whitespace-separated tokens.
+function wordCount(text) {
+  return text.split(/\s+/).filter((word) => word.length > 0).length;
+}
+
+test("a word is a whitespace-separated token", () => {
+  assert.equal(wordCount("Tool call latency per category, box 25th–75th."), 7);
+  assert.equal(wordCount("  two\n words "), 2);
+});
+
+test("every figure has a caption of one short sentence, at most twelve words", async () => {
   for (const { figures } of await sections()) {
     for (const figure of figures) {
       assert.equal(typeof figure.caption, "string", `${figure.name} has a caption`);
       assert.ok(figure.caption.length > 0, `${figure.name}: a caption that says something`);
       assert.ok(figure.caption.endsWith("."), figure.name);
       assert.equal(figure.caption.split(". ").length, 1, `${figure.name}: one sentence`);
-      assert.ok(figure.caption.length <= MAX_CAPTION_LENGTH, `${figure.name}: ${figure.caption.length} characters`);
+      const words = wordCount(figure.caption);
+      assert.ok(words <= MAX_CAPTION_WORDS, `${figure.name}: a caption of ${words} words`);
+    }
+  }
+});
+
+test("every figure's definition is at most forty words", async () => {
+  for (const { figures } of await sections()) {
+    for (const figure of figures) {
+      const words = wordCount(figure.definition);
+      assert.ok(words <= MAX_DEFINITION_WORDS, `${figure.name}: a definition of ${words} words`);
     }
   }
 });

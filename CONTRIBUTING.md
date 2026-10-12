@@ -210,10 +210,11 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
 
 - `name`: the figure's id, also the id of its card on the page.
 - `title`: the card's heading.
-- `caption`: the card's one short line, a sentence under 90 characters, with
+- `caption`: the card's one short line, a sentence of at most twelve words, with
   nothing the axes and legend already say.
-- `definition`: one sentence saying what is drawn, and where the site draws
-  more simply than the paper, how; shown behind the Definition control.
+- `definition`: one sentence of at most forty words saying what is drawn,
+  and where the site draws more simply than the paper, how (the details go
+  to `docs/differences.md`); shown behind the Definition control.
 - `query`: the query whose answer it draws, as `runQuery` names it
   (`"figures/<name>"`).
 - `binColumn`: the column naming the bin or series each row belongs to, every
@@ -305,9 +306,10 @@ words, and their tests. Nothing about it runs in the browser.
    than the query's text.
 3. **The entry and the draw function**, in its section's module or a module
    it takes entries from (`js/figures/`, `js/simulation/`, `js/comparison/`):
-   a frozen figure entry with its `title`, a `caption` of one sentence under
-   90 characters and a one-sentence `definition`, and a draw function that
-   loads Plot where it needs it and colours its series from `colours`. Its
+   a frozen figure entry with its `title`, a `caption` of one sentence of at
+   most twelve words and a one-sentence `definition` of at most forty, and a
+   draw function that loads Plot where it needs it and colours its series
+   from `colours`. Its
    pure parts (rows to series, bars or stacks) are exported and tested with
    `node --test`. Add its name to its section's list in `SECTION_FIGURES` of
    `tests/figure_sections.test.js`, which checks the caption, the definition

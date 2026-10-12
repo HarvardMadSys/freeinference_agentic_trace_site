@@ -76,7 +76,7 @@ const PROMPT_AXIS = Object.freeze({
 export const TURN_DURATION_BY_SCOPE = Object.freeze({
   name: "turn_duration_by_scope",
   title: "Turn duration",
-  definition: "CDF of the duration of a turn (a user step and the tool steps after it, first start to last end) of the top-level sessions of the paper's harnesses and of the benchmark's, each median marked and their ratio written, the larger over the smaller.",
+  definition: "CDF of each turn's duration (a user step and the tool steps after it, first start to last end) in top-level sessions, human-driven and benchmark, each median marked with the ratio of the two.",
   caption: "How long a turn lasts, human-driven and benchmark.",
   drawsLines: true,
   query: "figures/turn_duration_by_scope",
@@ -122,7 +122,7 @@ export const INPUT_PER_REQUEST_BY_SCOPE = Object.freeze({
 export const USER_PROMPT_TOKENS_BY_SCOPE = Object.freeze({
   name: "user_prompt_tokens_by_scope",
   title: "User prompt size",
-  definition: "CDF of the tokens of a user's new prompt (a user step's rise in user tokens over the step before, all of them at a session's first step; a step whose user tokens did not rise has none) of the top-level sessions of the paper's harnesses and of the benchmark's, each median marked and their ratio written, the larger over the smaller.",
+  definition: "CDF of the tokens of each new user prompt (a user step's rise in user tokens over the step before) in top-level sessions, human-driven and benchmark, each median marked with the ratio of the two.",
   caption: "Tokens of each new user prompt, human-driven and benchmark.",
   drawsLines: true,
   query: "figures/user_prompt_tokens_by_scope",

@@ -45,8 +45,8 @@ export const CALLS_PER_REQUEST_BY_CATEGORY = Object.freeze({
 export const LATENCY_BY_BATCH_WIDTH = Object.freeze({
   name: "latency_by_batch_width",
   title: "Tool latency by batch width",
-  definition: "The 10th, 25th, 50th, 75th and 90th percentile of the tool wait (the gap before the session's next request, when that request waited for a tool, a person's answer to a question or a subagent) of top-level requests with no Ask User call, by their number of calls, eight or more drawn together; and the serial line, that number times the median tool wait plus the median latency of one-call requests, as if each call took a request of its own.",
-  caption: "Tool wait by the number of calls a request made at once, against one call per request.",
+  definition: "Percentiles (10th to 90th) of the tool wait of top-level requests with no Ask User call, by their number of calls (eight or more together), against the serial line: calls times the one-call median wait plus median latency.",
+  caption: "Tool wait by calls a request made at once, against serial calls.",
   drawsLines: true,
   query: "figures/latency_by_batch_width",
   binColumn: "width",

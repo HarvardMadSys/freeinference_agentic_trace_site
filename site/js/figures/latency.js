@@ -41,7 +41,7 @@ const BAR_LABEL_GAP = 4; // pixels between a bar's end and its label
 export const TTFT_CDF_BY_MODEL = Object.freeze({
   name: "ttft_cdf_by_model",
   title: "Time to first token by model",
-  definition: "CDF of the time to first token per model over requests whose TTFT is trusted (positive and under 95% of the latency), where the five models with most requests from the paper's harnesses that are among the eight with most requests over every week are drawn and the paper draws two fixed models, each with its decode and queueing time.",
+  definition: "CDF of the time to first token per model over requests whose TTFT is trusted (positive and under 95% of the latency), for the five busiest models, where the paper draws two fixed models.",
   caption: "Time to first token of each request, for the five busiest models.",
   drawsLines: true,
   query: "figures/ttft_cdf_by_model",
@@ -56,7 +56,7 @@ export const TTFT_CDF_BY_MODEL = Object.freeze({
 export const DECODE_CDF_BY_MODEL = Object.freeze({
   name: "decode_cdf_by_model",
   title: "Decode time by model",
-  definition: "CDF of the decode time (the latency minus the time to first token) per model over requests whose TTFT is trusted, where the five models with most requests from the paper's harnesses that are among the eight with most requests over every week are drawn, the paper draws two fixed models and the paper's queueing estimate is not drawn.",
+  definition: "CDF of the decode time (latency minus time to first token) per model over requests whose TTFT is trusted, for the same five models, where the paper draws two fixed models and a queueing estimate.",
   caption: "Latency minus time to first token, for the same five models.",
   drawsLines: true,
   query: "figures/decode_cdf_by_model",
@@ -71,8 +71,8 @@ export const DECODE_CDF_BY_MODEL = Object.freeze({
 export const SPEEDUP_IF_TWICE_AS_FAST = Object.freeze({
   name: "speedup_if_twice_as_fast",
   title: "Speed-up if twice as fast",
-  definition: "The machine time of the top-level sessions (prefill, decode and tool time, a person's waits left out) over the same with prefill, decode or tool time alone halved, where a request's prefill is its time to first token and its decode the rest of its latency when its TTFT is trusted, the latency of a request without a trusted TTFT is shared out by its session's prefill ratio (else its harness's, else the one over all sessions), and a tool wait counts for at most 15 minutes.",
-  caption: "How much faster sessions' machine time gets if one part alone ran twice as fast.",
+  definition: "The top-level sessions' machine time (prefill, decode and tool time) over the same with one part alone halved, prefill being the time to first token where trusted and a tool wait counting for at most 15 minutes.",
+  caption: "How much faster sessions get if one part ran twice as fast.",
   query: "figures/speedup_if_twice_as_fast",
   binColumn: null,
   seriesOverSameRows: true,

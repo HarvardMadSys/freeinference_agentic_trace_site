@@ -35,8 +35,8 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "hit_ratio_by_idle_gap",
     title: "Hit ratio after an idle gap",
-    definition: "Median hit ratio (cached over input tokens) of requests per bin of idle gap (the time since the same user's previous request at the provider finished; 26 geometric bins from 10 s to 1 h, each drawn at its middle), one line per provider, where the eight providers with most requests are drawn and the paper merges a bin of fewer than 20 requests into the next, draws it at its requests' median gap and shows the four providers with most idle gaps.",
-    caption: "Median hit ratio by time since the user's previous request, one line per provider.",
+    definition: "Median hit ratio of requests per idle-gap bin (time since the same user's previous request finished; 26 geometric bins, 10 s to 1 h), a line for each of the eight providers with most requests, where the paper shows four.",
+    caption: "Median hit ratio by time since the user's last request, per provider.",
     drawsLines: true,
     query: "figures/hit_ratio_by_idle_gap",
     binColumn: null,

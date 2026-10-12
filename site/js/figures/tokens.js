@@ -80,7 +80,7 @@ export const FIGURES = Object.freeze([
     name: "token_growth_by_messages",
     title: "Token growth with the context",
     definition: "Median cached, uncached and output tokens per request, by the number of messages in the request, in fixed power-of-two bins where the paper fits its bins to the data.",
-    caption: "Median cached, uncached and output tokens per request, by messages in the request.",
+    caption: "Median cached, uncached and output tokens per request, by message count.",
     drawsLines: true,
     query: "figures/token_growth_by_messages",
     binColumn: "bin_start",
@@ -90,7 +90,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "context_share_by_role",
     title: "Context share by role",
-    definition: "Share of the input held by system, user, assistant and tool messages and by tool definitions, pooled per power-of-two bin of input tokens (4k is 4,096), where the paper takes each request's share per bin of messages and its main figure leaves tool definitions out.",
+    definition: "Share of the input held by system, user, assistant and tool messages and tool definitions, pooled per power-of-two bin of input tokens (4k is 4,096), where the paper takes each request's share per bin of messages.",
     caption: "Share of the input held by each role, by input size.",
     query: "figures/context_share_by_role",
     binColumn: "bin_start",

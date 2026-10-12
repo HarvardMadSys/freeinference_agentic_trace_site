@@ -29,7 +29,7 @@ const SHARE_DOMAIN = Object.freeze([0, 1]); // the y axis spans a whole share, w
 export const COST_SHARE_BY_SESSION = Object.freeze({
   name: "cost_share_by_session",
   title: "Cost share by session",
-  definition: "Each top-level session's cost at the pipeline's prices (cached 1, uncached 10, output 50 per token), over its requests whose provider reports cache reads and that have an input, split between cached input, uncached input and output, with the sessions ranked by cached share and each rank bin's mean shares stacked.",
+  definition: "Each top-level session's cost at the pipeline's prices (cached 1, uncached 10, output 50 per token), over requests reporting cache reads, split by token kind, sessions ranked by cached share and each rank bin's mean shares stacked.",
   caption: "Each session's cost by token kind, sessions ranked by cached share.",
   query: "figures/cost_share_by_session",
   binColumn: "ranked_bin",
