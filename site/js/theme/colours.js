@@ -3,8 +3,9 @@
  *
  * Every colour is a CSS variable from `style.css`, so a chart follows the page into dark mode with no JavaScript.
  * Names get colours from one fixed order, so the same model or provider has the same colour in every chart; a tool
- * category takes its tool group's colour; and a token part, a part of a session's time, a wait cause, a transition, a gap bin and a simulated
- * population always take their own tokens. These are plain constants and functions, tested with `node --test`.
+ * category takes its tool group's colour; and a token part, a part of a session's time, a wait cause, a transition, a
+ * gap bin and a simulated population always take their own tokens. These are plain constants and functions, tested
+ * with `node --test`.
  */
 
 /** The eight series colours, in order. A chart assigns them in order and never cycles: a ninth series is "Other". */
@@ -72,19 +73,19 @@ export const CAUSE_COLOURS = Object.freeze({
 });
 
 /**
- * The colour of each wait on the Session page's Timeline, by the release's `waited_for` value, in the part of a
- * session's time it counts toward: a tool's in the tool part's, the user's and an ask-user tool's in user idle's; a
- * subagent's in the subagent cause's violet, which no part uses.
+ * The colour of each wait on the Session page's Timeline, by the release's `waited_for` value: a pale tint of the
+ * part of a session's time it counts toward, a tool's of the tool part's green, the user's and an ask-user tool's of
+ * user idle's red, a subagent's of the subagent cause's violet, which no part uses (`--wait-*` in `style.css`).
  */
 export const TIMELINE_WAIT_COLOURS = Object.freeze({
-  tool: TIME_PART_COLOURS.tool,
-  ask_user_tool: TIME_PART_COLOURS.user,
-  user: TIME_PART_COLOURS.user,
-  subagent: CAUSE_COLOURS.subagent,
+  tool: "var(--wait-tool)",
+  ask_user_tool: "var(--wait-user)",
+  user: "var(--wait-user)",
+  subagent: "var(--wait-subagent)",
 });
 
-/** The opacity of a wait's bar on the Timeline: a pale tint of its colour, set per scheme in `style.css`. */
-export const WAIT_OPACITY = "var(--wait-opacity)";
+/** The colour of a tool call on the Timeline: the tool part's, whatever its category, which its tooltip names. */
+export const TIMELINE_TOOL_CALL_COLOUR = TIME_PART_COLOURS.tool;
 
 /** The colour of each transition the figures draw: a request appended to its context, or rewrote it. */
 export const TRANSITION_COLOURS = Object.freeze({

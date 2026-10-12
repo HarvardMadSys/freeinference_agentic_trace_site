@@ -45,7 +45,7 @@ const MARK_PREFIXES = [
 // Fills and rules that sit behind or beside a mark and stand for nothing alone; no contrast is asked of them.
 const TINT_TOKENS = [
   "--color-background", "--color-surface", "--color-surface-raised", "--color-border", "--color-accent-wash",
-  "--color-highlight", "--chart-grid", "--chart-axis",
+  "--color-highlight", "--chart-grid", "--chart-axis", "--wait-tint-base",
 ];
 
 /** The custom properties declared in `block`, a Map from name to value as written, comments left out. */

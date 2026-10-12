@@ -200,7 +200,10 @@ function placeHandles({ range, totalSeconds, parts }) {
     element.setAttribute("aria-valuenow", String(Math.round(range[handle])));
     element.setAttribute("aria-valuetext", formatElapsed(range[handle]));
   }
-  parts.readout.textContent = `Time range ${rangeText(range, totalSeconds)}`;
+  // The words "Time range" are left out on a phone (`.range-readout-name`), so the readout keeps to one line.
+  const name = classedElement("span", "range-readout-name");
+  name.textContent = "Time range ";
+  parts.readout.replaceChildren(name, rangeText(range, totalSeconds));
 }
 
 function classedElement(tag, className) {

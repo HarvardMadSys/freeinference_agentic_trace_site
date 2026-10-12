@@ -89,8 +89,12 @@
   --cause-user: var(--part-user);
   --cause-subagent: var(--series-7);
 
-  /* A wait on the Session page's Timeline is a pale tint of its colour: nothing ran. */
-  --wait-opacity: 0.35;
+  /* A wait on the Session page's Timeline is a pale tint of its part's colour, since nothing ran: the colour mixed
+     towards the card in light and towards the text ink in dark, so it is lighter than the card in both schemes. */
+  --wait-tint-base: var(--color-surface);
+  --wait-tool: color-mix(in srgb, var(--part-tool) 45%, var(--wait-tint-base));
+  --wait-user: color-mix(in srgb, var(--part-user) 45%, var(--wait-tint-base));
+  --wait-subagent: color-mix(in srgb, var(--cause-subagent) 45%, var(--wait-tint-base));
 
   /* The roles of a request's input, in slots no token part uses: system violet, user teal, assistant magenta, tool
      results amber and tool definitions grey. */
@@ -176,8 +180,7 @@
     --gap-bin-5: #4798fa;
     --gap-bin-6: #1d84f5;
 
-    /* On the dark card a wait's tint is a little stronger, so it stays lighter than the card, not muddy. */
-    --wait-opacity: 0.45;
+    --wait-tint-base: var(--color-text);
   }
 }
 
@@ -2210,11 +2213,6 @@ button.is-primary {
   }
 }
 
-/* A wait's bar on the Timeline: a pale tint of its colour, since nothing ran. */
-.timeline-wait rect {
-  fill-opacity: var(--wait-opacity);
-}
-
 /* ---------- Range slider ---------- */
 
 /* Under the Context and Timeline charts: a thin bar for the session's time, the chosen range marked between two
@@ -2274,4 +2272,10 @@ button.is-primary {
   font-size: var(--font-size-smallest);
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 40rem) {
+  .range-readout-name {
+    display: none;
+  }
 }

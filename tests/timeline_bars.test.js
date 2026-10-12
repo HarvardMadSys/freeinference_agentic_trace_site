@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  barAt, barsWithin, ganttBars, ganttRows, placedInRow, pointerPlace, requestPartEntries, undrawnCounts, waitEntries,
+  barAt, barsWithin, ganttBars, ganttRows, placedInRow, pointerPlace, requestPartEntries, toolCallEntry, undrawnCounts,
+  waitEntries,
 } from "../site/js/session_charts/timeline_bars.js";
-import { assignColours, WAIT_OPACITY } from "../site/js/theme/colours.js";
+
 
 // The fixture's tree: `root` spawns `child` and `sibling` from step 1, whose requests overlap; `child` spawns
 // `grandchild`. Times are in seconds from 1,000.
@@ -36,10 +37,9 @@ const CALLS = [
   { session_id: "root", step: 1, call_index: 1, name: "Read", category: "Read", latency_ms: null },
 ];
 
-const COLOURS = assignColours(["Read", "Subagent"]);
 
 function barsOf(kind) {
-  const bars = ganttBars(TREE, REQUESTS, CALLS, COLOURS);
+  const bars = ganttBars(TREE, REQUESTS, CALLS);
   return bars.filter(kind);
 }
 
@@ -72,17 +72,17 @@ test("a request without a time to first token is one bar", () => {
   assert.deepEqual(unreported.map((bar) => [bar.x1, bar.x2, bar.colour]), [[100, 110, "var(--color-text-faint)"]]);
 });
 
-test("a tool call runs from its request's end for its latency, in the tool band, coloured by category", () => {
+test("a tool call runs from its request's end for its latency, in the tool band, in the tool part's green", () => {
   const tools = barsOf((bar) => bar.band === "tool");
-  assert.deepEqual(tools.map((bar) => [bar.step, bar.x1, bar.x2, bar.colour]), [[1, 30, 50, "var(--series-2)"]]);
+  assert.deepEqual(tools.map((bar) => [bar.step, bar.x1, bar.x2, bar.colour]), [[1, 30, 50, "var(--part-tool)"]]);
   assert.match(tools[0].tip, /^Task · Subagent\nlatency 20.0 s/);
 });
 
 test("a wait ends at its request's start, lasts its wait, is pale and in the colour of the part of the time it counts toward", () => {
   const waits = barsOf((bar) => bar.isWait);
   assert.deepEqual(waits.map((bar) => [bar.step, bar.x1, bar.x2, bar.colour]), [
-    [1, 10, 20, "var(--part-tool)"],
-    [2, 30, 100, "var(--cause-subagent)"],
+    [1, 10, 20, "var(--wait-tool)"],
+    [2, 30, 100, "var(--wait-subagent)"],
   ]);
   assert.equal(waits[1].tip, "waited 1.2 min for subagents\nbefore Main step 2");
 });
@@ -92,15 +92,15 @@ test("a long user wait is a user wait whose tooltip gives its duration", () => {
     request("root", 0, 1_000, 1_010),
     request("root", 1, 2_210, 2_220, { waited_for: "user", wait_s: 1_200 }),
   ];
-  const wait = ganttBars(TREE, waited, [], COLOURS).find((bar) => bar.isWait);
-  assert.deepEqual([wait.x1, wait.x2, wait.colour], [10, 1_210, "var(--part-user)"]);
+  const wait = ganttBars(TREE, waited, []).find((bar) => bar.isWait);
+  assert.deepEqual([wait.x1, wait.x2, wait.colour], [10, 1_210, "var(--wait-user)"]);
   assert.match(wait.tip, /^waited 20.0 min for the user/);
 });
 
 test("tool calls without a positive latency and waits under zero are counted as undrawn", () => {
   const overlapping = [...REQUESTS, request("root", 3, 1_105, 1_120, { waited_for: "tool", wait_s: -5 })];
   assert.deepEqual(undrawnCounts(overlapping, CALLS), { toolCalls: 1, waits: 1 });
-  const bars = ganttBars(TREE, overlapping, CALLS, COLOURS);
+  const bars = ganttBars(TREE, overlapping, CALLS);
   assert.equal(bars.filter((bar) => bar.step === 3 && bar.isWait).length, 0);
 });
 
@@ -120,7 +120,7 @@ test("the pointer finds a long wait by its span, not by the nearest middle", () 
     request("root", 0, 1_000, 1_010),
     request("root", 1, 2_210, 2_220, { waited_for: "user", wait_s: 1_200 }),
   ];
-  const bars = ganttBars(TREE, waited, [], COLOURS);
+  const bars = ganttBars(TREE, waited, []);
   // At 100 s the pointer is 90 s past step 0's end but 510 s short of the wait's middle; it is over the wait.
   const pointed = barAt(bars, { x: 100, row: 0, band: "request", toleranceSeconds: 1 });
   assert.equal(pointed.isWait, true);
@@ -156,11 +156,12 @@ test("the legend's request parts are prefill and decode in their parts' colours,
 
 test("the legend lists only the waits present, pale, in the colour of the part of the time they count toward", () => {
   assert.deepEqual(waitEntries(REQUESTS), [
-    { name: "Tool wait", colour: "var(--part-tool)", opacity: WAIT_OPACITY },
-    { name: "Subagent wait", colour: "var(--cause-subagent)", opacity: WAIT_OPACITY },
+    { name: "Tool wait", colour: "var(--wait-tool)" },
+    { name: "Subagent wait", colour: "var(--wait-subagent)" },
   ]);
   const asked = [request("root", 1, 1_020, 1_030, { waited_for: "ask_user_tool", wait_s: 5 })];
-  assert.deepEqual(waitEntries(asked), [{ name: "User idle", colour: "var(--part-user)", opacity: WAIT_OPACITY }]);
+  assert.deepEqual(waitEntries(asked), [{ name: "User idle", colour: "var(--wait-user)" }]);
+  assert.deepEqual(toolCallEntry(), { name: "Tool call", colour: "var(--part-tool)" });
 });
 
 test("over a time range, only the bars that overlap it are drawn, cut at its edges", () => {

@@ -112,8 +112,7 @@ function showView(view, session, address) {
     return mountContextView(page.view, session.tree, session.requests);
   }
   if (view === "timeline") {
-    const options = { categoryColours: session.categoryColours };
-    return mountTimelineView(page.view, session.tree, session.requests, session.toolCalls, options);
+    return mountTimelineView(page.view, session.tree, session.requests, session.toolCalls);
   }
   const options = { focusSessionId: address.id, focusStep: address.step, categoryColours: session.categoryColours };
   return mountRequestsView(page.view, session.tree, session.requests, session.toolCalls, options);

@@ -1,6 +1,7 @@
 /**
- * The Cite section's sentence, which names and links the paper, and its copy buttons. Each button ships hidden in the page, `data-copy` naming the element whose text it
- * copies, and is shown only where the browser offers a clipboard, so a button that cannot copy never appears.
+ * The Cite section's sentence, which names and links the paper, and its copy buttons. Each button ships hidden in the
+ * page, `data-copy` naming the element whose text it copies, and is shown only where the browser offers a clipboard,
+ * so a button that cannot copy never appears.
  */
 
 import { URLS } from "../shared/layout.js";
