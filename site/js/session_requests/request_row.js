@@ -2,8 +2,8 @@
  * One row of the Requests view: a request's label, its elapsed time, its token bar and a chip per tool call.
  *
  * The bar's parts are sized in percent of the largest request of the tree (input plus output), so bars compare
- * across every agent. `request` is a row of `session/session_requests`, `calls` its rows of
- * `session/session_tool_calls`.
+ * across every agent. `request` is a row of `buckets/week_requests`, `calls` its rows of
+ * `buckets/week_tool_calls`.
  */
 
 import { TOKEN_PART_NAMES, tokenParts } from "../session/token_parts.js";

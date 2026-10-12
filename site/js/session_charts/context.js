@@ -30,7 +30,7 @@ const TURN_START_COLOUR = AXIS_STYLE.stroke; // a turn's dotted rule is drawn in
 const DEFAULT_SPLIT = "tokens";
 
 /**
- * Draw the Context view of the session tree `tree` (rows of `session/session_tree`) and its `requests` into
+ * Draw the Context view of the session tree `tree` (rows of `buckets/week_tree`) and its `requests` into
  * `container`. Return a function that stops the view, to call before another replaces it.
  */
 export function mountContextView(container, tree, requests) {

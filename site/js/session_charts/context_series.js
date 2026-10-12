@@ -4,7 +4,7 @@
  * `tokenParts` counts them) or by role; the start of each turn; and the requests whose transition rewrote or switched
  * the context.
  *
- * `tree` holds rows of `session/session_tree`, `requests` rows of `session/session_requests`.
+ * `tree` holds rows of `buckets/week_tree`, `requests` rows of `buckets/week_requests`.
  */
 
 import { TOKEN_PART_NAMES, tokenParts } from "../session/token_parts.js";

@@ -34,9 +34,10 @@ The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
   harnesses, and loads no DuckDB and no Parquet file. The browser query path
   stays behind `FIGURES_ARE_FROZEN` in `site/js/pages/explore.js`.
 - `make data PIPELINE=<the pipeline's checkout>` follows every edit to a
-  query under `site/queries/explore/`, `site/queries/figures/`, a colour
-  order or a column, and `site/data` is committed with it: the Explore page
-  reads the answer, not the query.
+  query under `site/queries/explore/`, `site/queries/figures/` or
+  `site/queries/buckets/`, a colour order or a column, and `site/data` is
+  committed with it: the Explore page reads the answer and the Session page
+  its session's gzipped bucket, not the query.
 
 ## Verifying a change
 

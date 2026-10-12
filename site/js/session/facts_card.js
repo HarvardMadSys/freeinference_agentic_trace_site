@@ -4,8 +4,8 @@
  *
  * Turns, requests and tool calls are the top-level session's own, with its subagents' given apart; token totals
  * cover every agent of the tree, and the cached share is their cached tokens over their cache-reporting input.
- * `tree` holds rows of `session/session_tree` (the top-level session has depth 0) and `requests` rows of
- * `session/session_requests`.
+ * `tree` holds rows of `buckets/week_tree` (the top-level session has depth 0) and `requests` rows of
+ * `buckets/week_requests`.
  */
 
 import {

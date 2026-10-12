@@ -2,7 +2,7 @@
  * A session's tree as the Session page reads it: the agents (the top-level session and its subagents at every
  * depth), each agent's requests in start order, and each subagent under the request whose step spawned it.
  *
- * `sessions` are rows of `session/session_tree` and `requests` rows of `session/session_requests`.
+ * `sessions` are rows of `buckets/week_tree` and `requests` rows of `buckets/week_requests`.
  */
 
 import { shortSessionId } from "../shared/format.js";

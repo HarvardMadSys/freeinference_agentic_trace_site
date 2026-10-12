@@ -2,8 +2,8 @@
  * A request's details, opened under its row in the Requests view: its tokens by role, its timing, how it ended, how
  * its context changed and what it waited for, then each tool call it emitted.
  *
- * `request` is a row of `session/session_requests`, `calls` its rows of `session/session_tool_calls`. A call's
- * `programs` is a list of strings (an array, or an Arrow vector from DuckDB), null for a call that is not a shell call;
+ * `request` is a row of `buckets/week_requests`, `calls` its rows of `buckets/week_tool_calls`. A call's
+ * `programs` is a list of strings, null for a call that is not a shell call;
  * its `arguments_skeleton` is a JSON string of its arguments with every value replaced by its type.
  */
 

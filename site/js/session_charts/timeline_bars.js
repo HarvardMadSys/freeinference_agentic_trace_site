@@ -5,8 +5,8 @@
  * a wait for a tool or the user of the part of the session's time it counts toward, and a wait for subagents, which
  * counts as tool time, of violet, so that it is told apart from a wait for a tool.
  *
- * `tree` holds rows of `session/session_tree`, `requests` of `session/session_requests`, `toolCalls` of
- * `session/session_tool_calls`. A tool call's start is not in the data; it is taken as its request's end.
+ * `tree` holds rows of `buckets/week_tree`, `requests` of `buckets/week_requests`, `toolCalls` of
+ * `buckets/week_tool_calls`. A tool call's start is not in the data; it is taken as its request's end.
  */
 
 import { agentLabel, agentsInStartOrder, callsByRequest, requestKey } from "../session/tree.js";

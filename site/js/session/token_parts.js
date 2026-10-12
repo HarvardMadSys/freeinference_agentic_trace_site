@@ -1,6 +1,6 @@
 /**
  * The three parts of a request's tokens, as every chart of both pages names them and the Session page's views count
- * them: cached input, uncached input and output. `request` is a row of `session/session_requests`.
+ * them: cached input, uncached input and output. `request` is a row of `buckets/week_requests`.
  */
 
 import { TOKEN_PART_COLOURS } from "../theme/colours.js";

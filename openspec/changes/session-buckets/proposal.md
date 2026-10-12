@@ -16,8 +16,8 @@ every session (12,002), and the paper's Table 1 counts every session too.
   buckets keyed by the first two characters of the top-level session id,
   `site/data/session_buckets/<week>/<xx>.json.gz`, plus a small gzipped
   index per week from every session id (subagents included) to its
-  top-level id. About 4,100 files for 16 weeks, 84 MB gzipped in all,
-  median bucket around 20 KB.
+  top-level id. 3,250 files for 16 weeks, 79.6 MB gzipped in all,
+  median bucket 15 KB.
 - **The Session page reads one bucket.** It fetches the bucket its id
   names, decompresses it in the browser with `DecompressionStream`, and
   draws; a subagent's id falls back to the week's index. No DuckDB module,
@@ -41,5 +41,5 @@ every session (12,002), and the paper's Table 1 counts every session too.
   `js/pages/session.js` and a new `js/session/bucket.js` loader,
   `js/landing/stats.js`, `js/shared/database.js` (loadWeekRows and the
   Session page's DuckDB path removed), tests, README, CONTRIBUTING.
-- Data: `make data` rebuilds; `site/data` grows by about 85 MB of
-  buckets and is committed with the change.
+- Data: `make data` rebuilds; `site/data` grows by 80 MB of buckets and
+  is committed with the change.

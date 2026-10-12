@@ -25,11 +25,16 @@ from every row (it is the key). A prefix with no session in that week has
 no file. Beside the buckets, `session_buckets/<week>/index.json.gz` maps
 every session id of the week, subagents included, to its top-level id.
 
-Gzip at the default level with a fixed mtime of 0, so a rebuild with the
-same rows writes the same bytes and git sees no change. Measured on the
-shipped data: 12,002 top-level sessions, 488 MB of JSON, 84 MB gzipped;
-median file about 20 KB, worst 0.3 MB; about 4,100 files over 16 weeks,
-256 added per week (Cloudflare allows 20,000 files and 25 MiB each).
+Gzip at a fixed level (9) with a fixed mtime of 0, keys sorted and rows in
+the queries' order, so a rebuild with the same rows writes the same bytes
+and git sees no change. Estimated before the build: 12,002 top-level
+sessions, 488 MB of JSON, 84 MB gzipped; median file about 20 KB, worst
+0.3 MB; about 4,100 files over 16 weeks, 256 added per week (Cloudflare
+allows 20,000 files and 25 MiB each). Measured on the build: 3,234 buckets
+and 16 indexes, 79.6 MB gzipped; median bucket 15 KB, the largest 0.39 MB,
+the largest week's index 48 KB; about 202 buckets a week, since a week's
+750 or so top-level sessions leave some of the 256 prefixes empty. Two runs
+of `make data` wrote byte-identical buckets; the step takes about 70 s.
 
 The step prints the buckets' count and size. `queries.json` hashes the
 bucket queries as it hashes the answers' queries, so an edited bucket
@@ -53,6 +58,15 @@ back as the objects the views already take (`{ tree, requests, toolCalls
 the three views change nothing. The tool category colours come from the
 shipped `setup/category_order` answer, which the landing page already
 reads.
+
+Measured on the largest session (5,040 requests, week of 2026-08-30),
+served by `serve.py` in headless Chromium, three runs: before, 3.1 s to the
+Requests view (7.6 s with 40 ms of latency and 50 Mbit/s), 126 requests,
+13.6 MB of data and 7.5 MB of libraries; after, 1.0 s (0.9 s throttled),
+35 requests, two to `data/` (the 0.30 MB bucket and the category order),
+no library but the web fonts. A subagent's id whose prefix has no
+top-level session in its week gets a 404 for that bucket before the
+index; the browser logs the 404 in the console.
 
 The Session page imports nothing from `js/engine/` and `js/shared/
 database.js`; `loadWeekRows`, `setSession`, `runQueryWith` and the

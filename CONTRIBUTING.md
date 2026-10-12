@@ -30,25 +30,22 @@ binding, and `make test` checks the countable ones.
     it with every week, and the browser only with the switch off;
   - `selected_harnesses(harness)`: the selected harnesses; `make data` fills
     it with the paper's harnesses (every harness for the session list's
-    answer), and the browser only with the switch off;
-  - `selected_session(week, root_session_id)`: on the Session page, the
-    session shown and its week;
+    answer and the trace totals), and the browser only with the switch off;
   - `benchmark_harness(harness)`: not a choice but a fact, filled from
     `harnesses.json` when the database opens: the harness that is not the
     paper's population.
 
   A setup statement that fills a table takes its row as `?` parameters
-  (`setup/insert_*.sql`). One query takes a parameter: `session/session_root.sql`,
-  run through `runQueryWith` with the session id from the URL as its one `?`:
-  it finds the session's week and top-level session, which `selected_session`
-  is then filled with. Every other query takes none. The view statements of
+  (`setup/insert_*.sql`); no query takes one. The bucket queries
+  (`buckets/*.sql`) read `selected_weeks` too: `make data` selects one week
+  at a time and runs them. The view statements of
   the week files, `setup/create_view_*.sql` but `create_view_session_time`,
   hold the placeholder `{files}`, which the opener
   replaces with the names of that kind's week files, each single-quoted and
   separated by commas (`engine/duckdb_files.js` in the browser,
   `site_data/site_database.py` in Python): HTTP has no directory listing, and
-  a file registered under its name is what the Session page swaps for its
-  bytes once it has fetched the file whole. One view reads the selection:
+  a file registered under its name is what the stream, with the switch off,
+  swaps for its bytes once it has fetched the file whole. One view reads the selection:
   `setup/create_view_session_time.sql`, each selected top-level session's
   time in prefill, decode, tool and user idle, made after the selection
   tables; both figures of a session's time read it, so the breakdown has one
@@ -90,8 +87,9 @@ binding, and `make test` checks the countable ones.
 
 ```
 make data:     queries/explore/, queries/figures/, setup/*_order  →  run over site/data/*.parquet  →  data/all_weeks/<page>/<query>.json
+               queries/buckets/, one week at a time                →  run over site/data/*.parquet  →  data/session_buckets/<week>/<xx>.json.gz
 Explore:       index.html  →  js/pages/explore.js  →  section modules and js/shared/  →  data/all_weeks/<page>/<query>.json
-Session:       session.html  →  js/pages/session.js  →  js/session*/ and js/shared/  →  queries/session/<name>.sql  →  the week's .parquet
+Session:       session.html  →  js/pages/session.js  →  js/session/bucket.js  →  data/session_buckets/<week>/<xx>.json.gz
 ```
 
 ```
@@ -103,8 +101,8 @@ js/landing/           the Explore page's own parts: the hero, the stats strip be
 js/theme/             the site's colours as the style tokens give them
 js/axes/              the ticks of every chart's axes: how many, where a log, duration or elapsed-time axis ticks, which
                       week a week axis labels, and an axis mark that labels each tick it is given
-js/engine/            DuckDB in the page: starting it, its views and setup, a week's files fetched whole, and the stream
-                      of every week's files, kept behind the switch
+js/engine/            DuckDB in the page: starting it, its views and setup, and the stream of every week's files, kept
+                      behind the switch
 js/explore/           the Explore page's sections, the figure runner (figure_sections.js), the legend of buttons, the
                       session list with its state and its month and harness filter, and the week and harness pickers,
                       mounted only with the switch off
@@ -115,8 +113,8 @@ js/simulation/        the Prefix-caching section's figures of the cache simulati
 js/comparison/        the Explore page's figures that compare human-driven sessions with the benchmark's: the
                       Human-driven-against-benchmark section's module, listing its figure entries, the modules that
                       draw them, and the two scopes the figures compare (scopes.js)
-js/session/           the Session page's address, agent tree, facts, legends, overlap grouping, token parts and
-                      chart frame
+js/session/           the Session page's bucket (a session's rows from its week's bucket), address, agent tree,
+                      facts, legends, overlap grouping, token parts and chart frame
 js/session_requests/  the Session page's Requests view
 js/session_charts/    the Session page's Context and Timeline views, their series, bars, range slider and the
                       Timeline's pointer
@@ -127,22 +125,20 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
 - An HTML file is a shell: a header, titled sections with ids, a footer, and
   one `<script type="module">`. It holds no data and no inline script.
 - The page module mounts the header and footer, reads what it shows from the
-  URL, opens the database, and fills each section.
+  URL, opens the database (the Explore page) or fetches its session's bucket
+  (the Session page), and fills each section.
 - `shared/database.js` fetches `weeks.json` and `harnesses.json` and runs a
   query by name: `runQuery("explore/request_count")` names
   `queries/explore/request_count.sql`. An Explore or figure query is
   answered from its file under `data/all_weeks/`, as is a colour order
   (`setup/*_order`). The Explore page opens the database with `answersOnly`,
   so a query with an answer file reads it whatever the selection; the page
-  runs no other, so DuckDB never starts there.
-  The Session page's queries run in DuckDB, which loads the first time a
-  query needs it (`engine/duckdb_views.js`): it registers each week's
-  Parquet files as the views `requests`, `tool_calls`, `sessions` and
-  `simulation` and fills `benchmark_harness`. Before its queries the page
-  awaits `loadWeekRows(week)`, which fetches that week's four files whole,
-  one request each, and hands DuckDB their bytes in place of their URLs
-  (`engine/duckdb_files.js`); a file it cannot fetch is read over HTTP
-  ranges.
+  runs no other, so DuckDB never starts there. Only with the switch off does
+  DuckDB load, the first time a query needs it (`engine/duckdb_views.js`): it
+  registers each week's Parquet files as the views `requests`, `tool_calls`,
+  `sessions` and `simulation` and fills `benchmark_harness`.
+- The Session page imports nothing from `shared/database.js` or `js/engine/`,
+  and `tests/test_repository.py` checks it; how it reads a session is below.
 - The figures are frozen: `FIGURES_ARE_FROZEN` in `pages/explore.js` is
   `true`. The browser query path stays in the code and its tests behind it.
   Set to `false`, `shared/selection.js` reads the selection from the URL
@@ -170,6 +166,52 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   `explore/figure_sections.js` lists the six in `FIGURE_SECTIONS`, and
   `index.html` holds a section with a heading and a card grid for each.
 
+## How a session is served
+
+The Session page runs no query. `make data` writes every session of every
+week, ahead of time, into gzipped JSON buckets (`site_data/buckets.py`):
+
+- It selects one week at a time and runs the three bucket queries,
+  `queries/buckets/week_tree.sql` (the facts card's and the agent tree's
+  columns), `week_requests.sql` and `week_tool_calls.sql`. Each returns
+  `root_session_id` first and is ordered by it.
+- It groups the rows by `root_session_id` and writes the top-level sessions
+  whose ids share their first two characters into one bucket,
+  `data/session_buckets/<week>/<xx>.json.gz`: an object from top-level id to
+  `{ tree, requests, tool_calls }`, each part `{ columns, rows }`, a row its
+  values in column order without `root_session_id`, which is the key. A
+  prefix with no top-level session in the week has no file. Beside the
+  buckets, `index.json.gz` maps every session id of the week, subagents
+  included, to its top-level id.
+- It gzips each file at a fixed level with no time in its header, and writes
+  keys sorted and rows in the queries' order, so a rebuild of the same rows
+  writes the same bytes and git sees no change. It records each bucket
+  query's hash in `all_weeks/queries.json`, so a bucket query edited since
+  fails `make test` until `make data` runs.
+
+`js/session/bucket.js` reads them: `fetchSession(dataUrl, week, id)` fetches
+the bucket the id's first two characters name, gunzips it in the browser
+with `DecompressionStream` when it starts with gzip's two magic bytes (a
+host may have removed the gzip layer already, and then the body is read as
+it is), and returns the id's entry as `{ tree, requests, toolCalls }`, each
+a list of row objects from column name to value, which the facts card, the
+tree and the three views take. An id the bucket does not hold is looked up
+in the week's index, and its top-level session's bucket fetched; an id in
+neither gives null, which the page shows as "session not found in this
+week". The tool categories' colours come from the shipped
+`setup/category_order` answer.
+
+**Adding a column to the Session page.** Add it to the bucket query that
+holds its kind of row, under `site/queries/buckets/`, in the place the
+views should find it, and to that query's list in `EXPECTED_COLUMNS` of
+`tests/test_queries.py`; read it by name from the row objects in the view
+that shows it, with a test of the view's pure function. Then run `make data
+PIPELINE=<the pipeline's checkout>`, which rewrites every bucket, and commit
+`site/data` with the change: a new column touches every bucket, about 80 MB
+in the repository's history, so gather columns into one change.
+`tests/test_buckets.py` checks a bucket's rows against its queries' on the
+fixture.
+
 ## Patterns to copy
 
 **A query** (`site/queries/explore/request_count.sql`):
@@ -187,8 +229,8 @@ WHERE is_top_level
 The first line says what one row is. Columns are named in words. Every
 query is run by `tests/test_queries.py` against the fixture data.
 `make data` also runs every query under `explore/` and `figures/` once with
-every week and the paper's harnesses selected (the session list's with every
-harness), and the colour orders `setup/*_order`, and writes each answer to
+every week and the paper's harnesses selected (the session list's and the
+trace totals with every harness), and the colour orders `setup/*_order`, and writes each answer to
 `site/data/all_weeks/`. **Rerun `make data` after editing one of those
 queries**: the Explore page reads the answer, not the query.
 `tests/test_answers.py` checks each answer written for the fixture against its

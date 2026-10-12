@@ -107,6 +107,6 @@ def select_weeks(connection: duckdb.DuckDBPyConnection, week_list: list[str], ha
         connection.execute(statement_text("setup/insert_selected_harness"), [harness])
 
 
-def run_query(connection: duckdb.DuckDBPyConnection, name: str, parameters: list | None = None) -> pandas.DataFrame:
-    """The rows of the query `name`, run with its `?` parameters in order, as a frame with the query's columns."""
-    return connection.execute(statement_text(name), parameters or []).df()
+def run_query(connection: duckdb.DuckDBPyConnection, name: str) -> pandas.DataFrame:
+    """The rows of the query `name`, as a frame with the query's columns."""
+    return connection.execute(statement_text(name)).df()
