@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { drawnProviderRows, idleGapEdgeSeconds, idleGapLegend } from "../site/js/figures/caching.js";
 import {
-  causeLegend, gapBinColours, gapBinLegend, meanHitRatioBars, transitionLegend,
+  causeLegend, gapBinColours, gapBinLegend, meanHitRatioBars, mutationTableLines, transitionLegend,
 } from "../site/js/figures/caching_gaps.js";
 import {
   calloutPoint, costLegend, costStacks, prefillPoints, retainedDomain, scopeLegend, ttlLabel,
@@ -157,4 +157,17 @@ test("the callout sits on the marked TTL's stack and names its total, or is abse
   assert.equal(callout.text, "Knee 0.65× at 30m");
   const unmarked = API_ROWS.map((row) => ({ ...row, is_knee: false }));
   assert.equal(calloutPoint(unmarked, stacks, "is_knee", "Knee"), null);
+});
+
+test("the mutation table's lines come in the paper's order, causes after transitions, shares in percent", () => {
+  const rows = [
+    { table_row: "compaction", steps_share: 0.000416, sessions_share: 0.0368, prefill_share: 0.0056, rows: 900 },
+    { table_row: "append", steps_share: 0.96, sessions_share: 0.4359, prefill_share: 0.3752, rows: 900 },
+    { table_row: "mutation", steps_share: 0.04, sessions_share: 0.5641, prefill_share: null, rows: 900 },
+  ];
+  assert.deepEqual(mutationTableLines(rows), [
+    { name: "append", isCause: false, cells: ["Append", "96.00%", "43.6%", "37.5%"] },
+    { name: "mutation", isCause: false, cells: ["Mutation", "4.00%", "56.4%", "—"] },
+    { name: "compaction", isCause: true, cells: ["Compaction", "0.04%", "3.7%", "0.6%"] },
+  ]);
 });

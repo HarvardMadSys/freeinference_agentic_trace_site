@@ -1,8 +1,8 @@
 /**
  * The Prefix-caching section's figures of what came before a request: the hit ratio after a gap of each length, how
- * long a gap is by what it waited for, the mean hit ratio by the same, and the hit ratio after the context was appended
- * to or rewritten. A request's gap is the wait since the previous request of its session ended, of 0 s or more, with
- * what it waited for; the queries pick those requests.
+ * long a gap is by what it waited for, the mean hit ratio by the same, the hit ratio after the context was appended
+ * to or rewritten, and how often each kind of rewrite happens. A request's gap is the wait since the previous request
+ * of its session ended, of 0 s or more, with what it waited for; the queries pick those requests.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines; `caching.js` lists them with the section's other
  * figures. A cause, a transition and a gap bin have the same colour in every chart, from `theme/colours.js`.
@@ -10,7 +10,7 @@
 
 import { AXIS_STYLE, chartFrame, colourScale, drawCdf, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
 import { causeColours, GAP_BIN_SLOTS, TRANSITION_COLOURS } from "../theme/colours.js";
-import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
+import { formatCount, formatSeconds, formatShare, MISSING_TEXT } from "../shared/format.js";
 import { cdfSeries, PLAIN_NUMBER_FORMAT, seriesLegend } from "./figure_rows.js";
 
 // The gap bins' labels, shortest gap first, as the pipeline's `gaps.GAP_BINS` names them. tests/
@@ -28,6 +28,16 @@ const CAUSE_NAMES = Object.freeze({
 // The transitions the figure draws, in their order, with the names it draws them under. A switch to another model or
 // provider is routing, not a change of context, and is not drawn, as in the paper.
 const TRANSITION_NAMES = Object.freeze({ append: "Append", mutation: "Mutation" });
+
+// The rows of the mutation table, in its order, as the pipeline's `mutations.TABLE_ROWS` names them: the transitions,
+// then each cause of a mutation, which the table sets under them, indented.
+const MUTATION_TABLE_ROWS = Object.freeze({
+  append: "Append", mutation: "Mutation", injection: "Injection", system_prompt: "System prompt",
+  tool_definitions: "Tool definitions", dropped_turns: "Dropped turns", compaction: "Compaction",
+  tool_result: "Tool result drop", other: "Other",
+});
+const STEPS_DIGITS = 2; // the share of steps is written with two decimals, as in the paper: a cause can be 0.04%
+const SHARE_DIGITS = 1; // the shares of sessions and of prefill with one
 
 const MIN_GAP_DRAWN_S = 0.1; // a shorter gap is drawn at it, on the log axis, as in the paper
 const MAX_GAP_DRAWN_S = 86400; // the gap axis ends at a day, as the paper's does
@@ -69,6 +79,16 @@ export const GAP_FIGURES = Object.freeze({
     query: "figures/mean_hit_ratio_by_cause",
     binColumn: "waited_for",
     draw: drawMeanHitRatioByCause,
+  }),
+  mutationsByCause: Object.freeze({
+    name: "mutations_by_cause",
+    title: "Context mutations by cause",
+    definition: "A table over the top-level requests after the first of their session, but those that switch model or provider, as in the paper: per transition (append or mutation) and per cause of a mutation, its share of the steps, the share of the sessions with a step that have one (for appends, that have no mutation), and its share of the tokens the steps miss with no TTL in the prefix-cache simulation, in the weeks it covers.",
+    caption: "How often each kind of context change happens, and the prefill it causes.",
+    query: "figures/mutations_by_cause",
+    binColumn: null,
+    seriesOverSameRows: true,
+    draw: drawMutationsByCause,
   }),
   hitRatioByTransition: Object.freeze({
     name: "hit_ratio_cdf_by_transition",
@@ -120,6 +140,57 @@ export function meanHitRatioBars(rows) {
     }
   }
   return bars;
+}
+
+/**
+ * The lines of the mutation table, one per row of `rows` in the table's order: `{ name, isCause, cells }`, `cells` the
+ * row's name and its shares of steps, sessions and prefill as percentages, "—" for a share of nothing.
+ */
+export function mutationTableLines(rows) {
+  const lines = [];
+  for (const [name, label] of Object.entries(MUTATION_TABLE_ROWS)) {
+    const row = rows.find((candidate) => candidate.table_row === name);
+    if (row !== undefined) {
+      const shares = [percentText(row.steps_share, STEPS_DIGITS), percentText(row.sessions_share, SHARE_DIGITS),
+        percentText(row.prefill_share, SHARE_DIGITS)];
+      lines.push({ name, isCause: !Object.hasOwn(TRANSITION_NAMES, name), cells: [label, ...shares] });
+    }
+  }
+  return lines;
+}
+
+/** Draw the mutation table: a row per transition, then per cause of a mutation, indented, with its three shares. */
+function drawMutationsByCause(rows, body) {
+  const table = document.createElement("table");
+  table.className = "data-table mutation-table";
+  table.innerHTML = `
+    <thead><tr>
+      <th>Transition</th><th class="is-number">Steps</th>
+      <th class="is-number">Sessions</th><th class="is-number">Prefill</th>
+    </tr></thead>
+    <tbody></tbody>`;
+  for (const line of mutationTableLines(rows)) {
+    table.tBodies[0].append(mutationTableRow(line));
+  }
+  const wrap = document.createElement("div");
+  wrap.className = "table-wrap";
+  wrap.append(table);
+  body.replaceChildren(wrap);
+}
+
+/** One line of the mutation table as a table row: its name, then its shares, right-aligned. */
+function mutationTableRow(line) {
+  const tableRow = document.createElement("tr");
+  tableRow.className = line.isCause ? "is-cause" : "is-transition";
+  for (let index = 0; index < line.cells.length; index += 1) {
+    const cell = document.createElement("td");
+    if (index > 0) {
+      cell.className = "is-number";
+    }
+    cell.textContent = line.cells[index];
+    tableRow.append(cell);
+  }
+  return tableRow;
 }
 
 /** Draw one CDF line of the hit ratio per gap bin. */
@@ -184,4 +255,8 @@ function meanText(bar) {
 
 function meanTipText(bar) {
   return `${bar.name}\nmean hit ratio ${formatShare(bar.mean)}\n${formatCount(bar.rows)} requests`;
+}
+
+function percentText(share, digits) {
+  return share === null ? MISSING_TEXT : `${(share * 100).toFixed(digits)}%`;
 }

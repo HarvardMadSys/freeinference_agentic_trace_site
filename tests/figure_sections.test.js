@@ -33,6 +33,7 @@ const SECTION_FIGURES = {
     "gap_cdf_by_cause",
     "mean_hit_ratio_by_cause",
     "hit_ratio_cdf_by_transition",
+    "mutations_by_cause",
     "prefill_against_storage",
     "api_cost_by_ttl",
     "infrastructure_cost_by_ttl",

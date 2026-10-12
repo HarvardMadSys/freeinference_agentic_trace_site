@@ -44,6 +44,7 @@ export const FIGURES = Object.freeze([
   GAP_FIGURES.gapByCause,
   GAP_FIGURES.meanHitRatioByCause,
   GAP_FIGURES.hitRatioByTransition,
+  GAP_FIGURES.mutationsByCause,
   PREFILL_AGAINST_STORAGE,
   API_COST_BY_TTL,
   INFRASTRUCTURE_COST_BY_TTL,

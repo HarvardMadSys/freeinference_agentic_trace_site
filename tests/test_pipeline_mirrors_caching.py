@@ -1,6 +1,7 @@
 """The pipeline constants the Prefix-caching figures hold a copy of, to draw, still equal the pipeline's own: the gap
 bins in their query and in the browser, the wait causes' names, order and colours, the gap figures' axis limits, the
-simulated TTLs, the simulation's scope names and the TTLs the retention figures label."""
+simulated TTLs, the simulation's scope names and the TTLs the retention figures label, the costs' prices, and the
+mutation table's rows and names."""
 
 import math
 import pathlib
@@ -8,7 +9,7 @@ import re
 
 import pytest
 
-from paper.metrics import cache_costs, gaps, prices
+from paper.metrics import cache_costs, gaps, mutations, prices
 from paper.prefix_caching import cache_retention, reuse
 from release import population
 from simulation import cache
@@ -27,6 +28,7 @@ API_COST_QUERY = SITE_FOLDER / "queries" / "figures" / "api_cost_by_ttl.sql"  # 
 INFRASTRUCTURE_COST_QUERY = SITE_FOLDER / "queries" / "figures" / "infrastructure_cost_by_ttl.sql"  # the provider's
 COST_QUERIES = [API_COST_QUERY, INFRASTRUCTURE_COST_QUERY]  # each a multiple of its total at the normalising TTL
 TTL_QUERIES = [PREFILL_QUERY, *COST_QUERIES]  # each lists the simulated TTLs with their seconds
+MUTATION_QUERY = SITE_FOLDER / "queries" / "figures" / "mutations_by_cause.sql"  # orders the mutation table's rows
 OPEN_ENDED = "'infinity'::DOUBLE"  # how the query writes the last bin's upper bound
 
 # A gap bin of the query: `('<label>', <order>, <lower bound>, <upper bound>)`.
@@ -98,7 +100,8 @@ def test_the_prefill_query_names_each_request_s_scope_as_the_pipeline_does() -> 
 
 
 def test_the_retention_figures_name_the_scopes_and_the_ttl_none_as_the_pipeline_and_the_paper() -> None:
-    scope_names = test_pipeline_mirrors.declaration(RETENTION_MODULE, r"const SCOPE_NAMES = Object\.freeze\(\{(.*?)\}\);")
+    scope_names = test_pipeline_mirrors.declaration(RETENTION_MODULE,
+                                                    r"const SCOPE_NAMES = Object\.freeze\(\{(.*?)\}\);")
     assert re.findall(r'"?([\w-]+)"?: "', scope_names.group(1)) == [population.AGENTIC, population.SWE_BENCH]
     assert test_pipeline_mirrors.javascript_object_keys(COLOURS_MODULE, "SCOPE_COLOURS") == [
         population.AGENTIC, population.SWE_BENCH]
@@ -141,10 +144,19 @@ def test_the_infrastructure_cost_s_prices_are_the_pipeline_s() -> None:
 @pytest.mark.parametrize("path", COST_QUERIES, ids=lambda path: path.stem)
 def test_a_cost_is_counted_per_million_tokens_and_normalised_at_the_pipeline_s_ttl(path: pathlib.Path) -> None:
     assert test_pipeline_mirrors.sql_number(path, "tokens_per_million") == prices.TOKENS_PER_MILLION
-    assert test_pipeline_mirrors.declaration(path, r"'(\w+)' AS normalising_ttl").group(1) == cache_costs.NORMALISING_TTL
+    normalising_ttl = test_pipeline_mirrors.declaration(path, r"'(\w+)' AS normalising_ttl").group(1)
+    assert normalising_ttl == cache_costs.NORMALISING_TTL
     assert test_pipeline_mirrors.declaration(path, r"WHERE scope = '([\w-]+)'").group(1) == population.AGENTIC
 
 
 def test_a_cost_figure_s_callout_rises_as_the_paper_s() -> None:
     rise = test_pipeline_mirrors.javascript_number(RETENTION_MODULE, "CALLOUT_RISE_SHARE")
     assert rise == cache_retention.CALLOUT_RISE_SHARE
+
+
+def test_the_mutation_table_s_rows_are_the_pipeline_s_in_its_order() -> None:
+    query_rows = CAUSE_ROW.findall(MUTATION_QUERY.read_text())
+    assert [name for name, _order in query_rows] == [name for name, _label in mutations.TABLE_ROWS]
+    assert [int(order) for _name, order in query_rows] == list(range(1, len(mutations.TABLE_ROWS) + 1))
+    names = javascript_object(CACHING_GAPS_MODULE, "MUTATION_TABLE_ROWS")
+    assert list(names.items()) == list(mutations.TABLE_ROWS)

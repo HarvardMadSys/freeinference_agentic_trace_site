@@ -707,6 +707,30 @@ button.is-primary {
   background: var(--color-highlight);
 }
 
+/* The mutation table is not sorted: its headers take no click. A transition's row is bold, and a cause of a mutation
+   is set under the transitions, indented. Its cells are narrower and its names wrap, so its four columns fit a
+   phone's width. */
+.mutation-table th {
+  cursor: default;
+}
+
+.mutation-table th,
+.mutation-table td {
+  padding-inline: 0.25rem;
+}
+
+.mutation-table td:first-child {
+  white-space: normal;
+}
+
+.mutation-table .is-transition td {
+  font-weight: 600;
+}
+
+.mutation-table .is-cause td:first-child {
+  padding-left: 1.125rem;
+}
+
 /* ---------- Session views ---------- */
 
 /* The Session page's stat strip holds a dozen tiles, so its tiles are narrower and its values smaller. */

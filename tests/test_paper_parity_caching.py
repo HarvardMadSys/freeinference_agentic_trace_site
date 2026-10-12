@@ -11,7 +11,7 @@ import duckdb
 import pandas
 import pytest
 
-from paper.metrics import cache_costs, gaps
+from paper.metrics import cache_costs, gaps, mutations
 from paper.prefix_caching import cache_retention
 
 import site_database
@@ -19,7 +19,7 @@ import test_paper_parity
 
 SECTION = "prefix_caching"  # the section of `numbers.json` every compared item is in
 COMPARED_ITEMS = ["hit_ratio_by_gap_bin", "gap_by_cause", "mean_hit_ratio_by_cause", "hit_ratio_after_transition",
-                  "prefill_against_storage", "api_cost", "infrastructure_cost"]
+                  "prefill_against_storage", "api_cost", "infrastructure_cost", "mutations_by_cause"]
 BENCHMARK_SECTION = "benchmark_vs_production"  # the section comparing the benchmark replay with the paper's harnesses
 BENCHMARK_SCOPE = "Agentic and SWE-Bench"  # the scope `numbers.json` records with the benchmark section's items
 TRANSITIONS = ["append", "mutation"]  # the transitions whose median hit ratio the paper reports
@@ -154,3 +154,17 @@ def test_the_infrastructure_cost_s_lowest_ttl(agentic: duckdb.DuckDBPyConnection
     ttl, total = marked_ttl(agentic, "figures/infrastructure_cost_by_ttl", "is_lowest")
     assert ttl == paper_numbers[SECTION]["infrastructure_cost"]["lowest_ttl"]
     test_paper_parity.assert_match(paper_numbers, [comparison("infrastructure_cost", "lowest_cost", total)])
+
+
+def test_the_mutation_table(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+    # `figures/mutations_by_cause`'s `rows` against `prefix_caching.mutations_by_cause.transitions`, exactly, and each
+    # row's `steps_share`, `sessions_share` and `prefill_share` in percent against `<row>_steps_percent`,
+    # `<row>_sessions_percent` and `<row>_prefill_percent`.
+    rows = site_database.run_query(agentic, "figures/mutations_by_cause").set_index("table_row")
+    comparisons = [test_paper_parity.Comparison(SECTION, "mutations_by_cause", "transitions",
+                                                float(rows.rows.iloc[0]), test_paper_parity.EXACT)]
+    for name, _label in mutations.TABLE_ROWS:
+        for column, share in [("steps", "steps_share"), ("sessions", "sessions_share"), ("prefill", "prefill_share")]:
+            percent = 100 * float(rows[share][name])
+            comparisons.append(comparison("mutations_by_cause", f"{name}_{column}_percent", percent))
+    test_paper_parity.assert_match(paper_numbers, comparisons)

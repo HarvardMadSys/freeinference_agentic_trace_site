@@ -220,8 +220,9 @@ tests:
    naming each row's bin or series and that bin's count in `rows`. List its
    columns in `EXPECTED_COLUMNS` of `tests/test_queries.py`, and test its
    numbers on the fixture, counted by hand, in its section's query test
-   (`test_figure_queries.py`, `test_session_figure_queries.py` or
-   `test_caching_queries.py`).
+   (`test_figure_queries.py`, `test_session_figure_queries.py`,
+   `test_caching_queries.py` or, for a figure of the cache simulation,
+   `test_caching_simulation_queries.py`).
 2. **The answer.** Run `make data`, which writes
    `site/data/all_weeks/figures/<name>.json`. `tests/test_answers.py` already
    runs every figure query live on the fixture and compares it with the
