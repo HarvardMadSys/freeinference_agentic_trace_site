@@ -40,7 +40,7 @@ function shipped(path) {
 test("the strip counts the selection's weeks and harnesses and the headline row's totals, the largest compactly", () => {
   assert.deepEqual(statsRows(HEADLINE_ROW, defaultSelection(WEEKS, HARNESSES)), [
     { value: "4", label: "weeks" },
-    { value: "10,967", label: "sessions" },
+    { value: "10,967", label: "human-driven sessions" },
     { value: "1.1M", label: "requests" },
     { value: "207.4B", label: "input tokens" },
     { value: "1.2M", label: "tool calls" },
@@ -58,10 +58,8 @@ test("the strip over the shipped data counts every week, the paper's harnesses a
   assert.equal(rows[5].value, String(harnesses.filter((entry) => !entry.benchmark).length));
 });
 
-test("the dates line spans the first Sunday to the last Saturday and names the weeks the simulation leaves out", () => {
-  assert.equal(datesLine(WEEKS), "May 24 to June 20, 2026; the cache simulation covers all but 2026-06-14.");
-  assert.equal(datesLine(WEEKS.slice(0, 3)), "May 24 to June 13, 2026; the cache simulation covers all 3 weeks.");
-  assert.equal(datesLine(WEEKS.slice(0, 1)), "May 24 to May 30, 2026; the cache simulation covers its week.");
-  assert.equal(datesLine(WEEKS.slice(3)), "June 14 to June 20, 2026; the cache simulation covers no week.");
+test("the dates line spans the first Sunday to the last Saturday and says the benchmark replay is not counted", () => {
+  assert.equal(datesLine(WEEKS), "May 24 – June 20, 2026 · benchmark replay not counted");
+  assert.equal(datesLine(WEEKS.slice(0, 1)), "May 24 – May 30, 2026 · benchmark replay not counted");
   assert.equal(datesLine([]), "");
 });

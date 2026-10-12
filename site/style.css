@@ -549,22 +549,39 @@ code,
 }
 
 /*
- * On a narrow screen the header's rows sit closer and the affiliation is smaller, so the header keeps to about a sixth
- * of the screen; the footer's link lists sit side by side under the brand.
+ * On a narrow screen the header is one row: the brand and the four links to the page's sections, which scroll sideways
+ * under a fade at the right edge. The links off the site are left out, since the hero and the footer carry them. The
+ * footer's link lists sit side by side under the brand.
  */
 @media (max-width: 46rem) {
-  .header-inner {
-    row-gap: 0;
-    padding-top: 0.6rem;
+  :root {
+    --header-height: 3.25rem;
   }
 
-  .affiliation {
-    font-size: 0.875rem;
+  .header-inner {
+    flex-wrap: nowrap;
+    gap: 0.9rem;
+    min-height: var(--header-height);
+    padding-top: 0;
+  }
+
+  .affiliation,
+  .nav-divider,
+  .nav-link.is-external {
+    display: none;
   }
 
   .site-nav {
-    margin-top: 0.5rem;
-    padding-block: 0.5rem;
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+    width: auto;
+    margin-top: 0;
+    padding-block: 0.4rem;
+    border-top: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+    mask-image: linear-gradient(90deg, #000 80%, transparent);
   }
 
   .footer-inner {
@@ -581,13 +598,6 @@ code,
 
   .footer-legal nav {
     justify-content: flex-start;
-  }
-}
-
-/* On a phone the brand and the links have the header to themselves. */
-@media (max-width: 40rem) {
-  .affiliation {
-    display: none;
   }
 }
 
@@ -745,6 +755,12 @@ section[id] {
 
 @media (max-width: 30rem) {
   .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* The four buttons two by two, each as wide as its column, rather than in ragged rows. */
+  .hero-actions {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -930,11 +946,20 @@ section[id] {
   color: var(--color-text);
 }
 
-/* The Team section: its heading with the lab beside it, the authors in a row between two rules, then the About. */
+/* The Team section: its heading with the lab beside it on the heading's baseline, the authors in a row between two
+   rules, then the About. The section lies on a band of the accent's wash, the page's one tinted rest before the
+   footer; the band reaches the window's edges while the content keeps the page's width. */
+.team {
+  --team-band: color-mix(in srgb, var(--color-accent) 6%, var(--color-background));
+  background: var(--team-band);
+  box-shadow: 0 0 0 100vmax var(--team-band);
+  clip-path: inset(0 -100vmax);
+}
+
 .team-heading {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.7fr);
-  align-items: end;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: last baseline;
   gap: 1rem 3rem;
 }
 
@@ -943,32 +968,20 @@ section[id] {
   color: var(--color-text-muted);
 }
 
+/* The authors on a grid of five columns, each name over its affiliation, so they share one row and one left edge. */
 .team-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0 1.2rem;
   margin: 1.5rem 0 0;
-  padding: 0;
+  padding: 0.85rem 0;
   list-style: none;
   border-block: 1px solid var(--color-border);
 }
 
-/* Each author with a rule after them, but the last. */
 .team-list li {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 0.55rem;
-  margin-block: 0.65rem;
-  padding: 0.15rem 1.2rem;
-  border-right: 1px solid var(--color-border);
-}
-
-.team-list li:first-child {
-  padding-left: 0;
-}
-
-.team-list li:last-child {
-  border-right: 0;
+  flex-direction: column;
 }
 
 .team-list a {
@@ -991,38 +1004,6 @@ section[id] {
   color: var(--color-text-muted);
 }
 
-/* Links led by an arrow that steps right under the pointer. */
-.arrow-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem 1.25rem;
-  margin-top: 1rem;
-}
-
-.arrow-links a {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.32rem;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-smallest);
-  font-weight: 600;
-}
-
-.arrow-links a::before {
-  content: "→";
-  color: var(--color-text-faint);
-  transition: transform 180ms ease, color 180ms ease;
-}
-
-.arrow-links a:hover {
-  text-decoration: none;
-}
-
-.arrow-links a:hover::before {
-  color: var(--color-accent);
-  transform: translateX(2px);
-}
-
 /* On a narrow screen the heading goes above the copy, and each author takes a line of their own. */
 @media (max-width: 58rem) {
   .cite,
@@ -1031,15 +1012,21 @@ section[id] {
   }
 }
 
+@media (max-width: 64rem) {
+  .team-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 0.85rem;
+  }
+}
+
 @media (max-width: 46rem) {
   .team-list {
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0;
   }
 
   .team-list li {
-    margin: 0;
     padding: 0.7rem 0;
-    border-right: 0;
     border-bottom: 1px solid var(--color-border);
   }
 

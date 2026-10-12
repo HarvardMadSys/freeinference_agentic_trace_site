@@ -47,7 +47,7 @@ import { layoutSessionsTable, runSessionsTable } from "../explore/sessions_table
 import { withFirstPage } from "../explore/sessions_table_state.js";
 import { layoutTrends, runTrends } from "../explore/trends.js";
 import { layoutMixes, runMixes } from "../landing/donuts.js";
-import { mountCopyButtons } from "../landing/cite.js";
+import { mountCopyButtons, renderCiteLine } from "../landing/cite.js";
 import { renderHero } from "../landing/hero.js";
 import { layoutStats, runStats } from "../landing/stats.js";
 import { renderTeam } from "../landing/team.js";
@@ -78,6 +78,7 @@ start();
 async function start() {
   renderFooter(document.querySelector("#site-footer"), PAGE_FILE, new URLSearchParams());
   renderTeam(document.querySelector("#team"));
+  renderCiteLine(document.querySelector("#cite-line"));
   mountCopyButtons(document, navigator.clipboard);
   // Frozen, the selection's card is hidden; with the pickers, it shows the selection the figures draw instead.
   document.querySelector("#selection").hidden = FIGURES_ARE_FROZEN;

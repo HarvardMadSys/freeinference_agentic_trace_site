@@ -1,7 +1,12 @@
 /**
- * The Cite section's copy buttons. Each button ships hidden in the page, `data-copy` naming the element whose text it
+ * The Cite section's sentence, which names and links the paper, and its copy buttons. Each button ships hidden in the page, `data-copy` naming the element whose text it
  * copies, and is shown only where the browser offers a clipboard, so a button that cannot copy never appears.
  */
+
+import { URLS } from "../shared/layout.js";
+
+// The paper's title, as the sentence names it.
+const PAPER_TITLE = "From Requests to Sessions";
 
 // How long a button reads "Copied" (or the fallback hint) before it reads "Copy" again, in milliseconds.
 const CONFIRMATION_MS = 2000;
@@ -10,6 +15,12 @@ const COPY_LABEL = "Copy";
 const COPIED_LABEL = "Copied";
 // What a button says when the clipboard refuses the text: the reader can still select the block and copy it.
 const FAILED_LABEL = "Select and copy";
+
+/** Fill `container` with the sentence asking for a citation, the paper's title linking to the paper. */
+export function renderCiteLine(container) {
+  container.innerHTML = `If the trace supports your work, please cite
+    <a href="${URLS.paper}" target="_blank" rel="noopener"><em>${PAPER_TITLE}</em></a>, the paper that introduces it.`;
+}
 
 /**
  * Show every `button[data-copy]` under `root` whose source element exists, and copy the source's text to

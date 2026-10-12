@@ -1,37 +1,29 @@
 /**
  * The Team section: the lab and its collaborators, the paper's authors with their affiliations, and a paragraph on
- * what the site is, with links to the dataset, the code, Open Data and FreeInference.
+ * what the site is. The header, the hero and the footer carry the links to the dataset, the code and the rest.
  */
 
 import { URLS } from "../shared/layout.js";
 
-// The paper's authors in its order, each with their affiliation and, where they have one, their page.
+// The paper's authors in its order, each with their affiliation, short so the five fit one row, and, where they have
+// one, their page.
 const AUTHORS = Object.freeze([
   Object.freeze({
-    name: "William Nixon", affiliation: "University of Chicago & Harvard University",
+    name: "William Nixon", affiliation: "UChicago & Harvard",
     url: "https://williamnixon20.github.io/",
   }),
-  Object.freeze({ name: "Muxin Tian", affiliation: "University of Toronto", url: null }),
-  Object.freeze({ name: "Yunjia Zheng", affiliation: "Harvard University", url: null }),
-  Object.freeze({ name: "Haryadi S. Gunawi", affiliation: "University of Chicago", url: null }),
-  Object.freeze({ name: "Juncheng Yang", affiliation: "Harvard University", url: "https://juncheng.seas.harvard.edu/" }),
+  Object.freeze({ name: "Muxin Tian", affiliation: "Toronto", url: null }),
+  Object.freeze({ name: "Yunjia Zheng", affiliation: "Harvard", url: null }),
+  Object.freeze({ name: "Haryadi S. Gunawi", affiliation: "UChicago", url: null }),
+  Object.freeze({ name: "Juncheng Yang", affiliation: "Harvard", url: "https://juncheng.seas.harvard.edu/" }),
 ]);
 
-const ABOUT = "We study LLM and agent serving to improve efficiency and broaden access to AI. This site draws the "
-  + "paper's figures over the FreeInference agentic trace and opens any of its sessions.";
-
-// The links under the About paragraph.
-const ABOUT_LINKS = Object.freeze([
-  Object.freeze({ title: "The dataset on Hugging Face", url: URLS.dataset }),
-  Object.freeze({ title: "The code on GitHub", url: URLS.code }),
-  Object.freeze({ title: "Open Data", url: URLS.openData }),
-  Object.freeze({ title: "FreeInference", url: URLS.freeInference }),
-]);
+const ABOUT = "We study LLM and agent serving to improve efficiency and broaden access to AI. This site shows the "
+  + "paper's figures on the trace and opens any session in it.";
 
 /** Fill `container` with the Team section's content: its heading, the authors, and the About paragraph. */
 export function renderTeam(container) {
   const authors = AUTHORS.map((author) => `<li>${authorName(author)}<span>${author.affiliation}</span></li>`);
-  const links = ABOUT_LINKS.map((link) => `<a href="${link.url}" target="_blank" rel="noopener">${link.title}</a>`);
   container.innerHTML = `
     <div class="team-heading">
       <div>
@@ -44,7 +36,6 @@ export function renderTeam(container) {
     <div class="team-about">
       <p class="eyebrow"><span class="eyebrow-mark" aria-hidden="true"></span>About</p>
       <p>${ABOUT}</p>
-      <div class="arrow-links">${links.join("")}</div>
     </div>`;
 }
 

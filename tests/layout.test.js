@@ -44,16 +44,16 @@ test("on the Explore page the header links its four sections by anchor alone, no
   assert.deepEqual(sectionLinks("index.html", "months=2026-07&harnesses=codex&sort=requests&page=2"), [
     ["Overview", "#overview", false],
     ["Figures", "#figures", false],
-    ["Sessions", "#sessions", false],
+    ["Session list", "#sessions", false],
     ["Cite", "#cite", false],
   ]);
 });
 
-test("on the Session page the header's section links carry the URL keys, and Sessions is marked", () => {
+test("on the Session page the header's section links carry the URL keys, and Session list is marked", () => {
   assert.deepEqual(sectionLinks("session.html", "months=2026-07&harnesses=codex&sort=requests&page=2"), [
     ["Overview", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#overview", false],
     ["Figures", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#figures", false],
-    ["Sessions", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#sessions", true],
+    ["Session list", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#sessions", true],
     ["Cite", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#cite", false],
   ]);
 });
@@ -79,18 +79,20 @@ test("the header links no About page", () => {
 });
 
 test("the footer lists the sections on this site and the places elsewhere", () => {
-  assert.deepEqual(footerList("On this site"), ["Overview", "Figures", "Sessions", "Cite"]);
-  assert.deepEqual(footerList("Elsewhere"), ["Dataset", "Paper", "Code", "Open Data", "FreeInference", "GitHub"]);
+  assert.deepEqual(footerList("On this site"), ["Overview", "Figures", "Session list", "Cite"]);
+  assert.deepEqual(footerList("Elsewhere"), [
+    "Dataset", "Paper", "Code (this trace)", "Open Data", "FreeInference", "MadSys on GitHub",
+  ]);
 });
 
 test("the footer's section links carry the URL keys from the Session page", () => {
   const markup = rendered(renderFooter, "session.html", "months=2026-07");
-  assert.match(markup, /<a class="footer-link" href="index\.html\?months=2026-07#sessions">Sessions<\/a>/);
+  assert.match(markup, /<a class="footer-link" href="index\.html\?months=2026-07#sessions">Session list<\/a>/);
 });
 
 test("the footer holds the brand line, Harvard's copyright and its four policies", () => {
   const markup = rendered(renderFooter, "index.html", "");
-  assert.match(markup, /The FreeInference agentic trace, from Harvard MadSys and collaborators\./);
+  assert.match(markup, /A trace of agent sessions served by FreeInference\./);
   assert.match(markup, /Copyright © 2026 The President and Fellows of Harvard College/);
   const policies = externalLinks(markup.split('aria-label="Harvard policies"')[1]);
   assert.deepEqual(policies, [

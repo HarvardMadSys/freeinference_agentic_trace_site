@@ -30,7 +30,7 @@ const EXPLORE_FILE = "index.html";
 export const SECTIONS = Object.freeze([
   Object.freeze({ anchor: "#overview", title: "Overview" }),
   Object.freeze({ anchor: "#figures", title: "Figures" }),
-  Object.freeze({ anchor: "#sessions", title: "Sessions" }),
+  Object.freeze({ anchor: "#sessions", title: "Session list" }),
   Object.freeze({ anchor: "#cite", title: "Cite" }),
 ]);
 
@@ -46,11 +46,15 @@ const EXTERNAL_LINKS = Object.freeze([
   Object.freeze({ title: "Open Data", url: URLS.openData }),
 ]);
 
-// The footer's "Elsewhere": the header's places off the site, then the projects around it.
+// The footer's "Elsewhere": the header's places off the site, the code told apart from the lab's GitHub, then the
+// projects around it.
 const ELSEWHERE_LINKS = Object.freeze([
-  ...EXTERNAL_LINKS,
+  Object.freeze({ title: "Dataset", url: URLS.dataset }),
+  Object.freeze({ title: "Paper", url: URLS.paper }),
+  Object.freeze({ title: "Code (this trace)", url: URLS.code }),
+  Object.freeze({ title: "Open Data", url: URLS.openData }),
   Object.freeze({ title: "FreeInference", url: URLS.freeInference }),
-  Object.freeze({ title: "GitHub", url: URLS.github }),
+  Object.freeze({ title: "MadSys on GitHub", url: URLS.github }),
 ]);
 
 // Harvard's policies, which every page of a Harvard site links.
@@ -62,7 +66,7 @@ const POLICY_LINKS = Object.freeze([
 ]);
 
 const AFFILIATION = "Harvard SEAS · MadSys Lab";
-const FOOTER_LINE = "The FreeInference agentic trace, from Harvard MadSys and collaborators.";
+const FOOTER_LINE = "A trace of agent sessions served by FreeInference.";
 const COPYRIGHT = "Copyright © 2026 The President and Fellows of Harvard College";
 
 /**
@@ -73,7 +77,8 @@ const COPYRIGHT = "Copyright © 2026 The President and Fellows of Harvard Colleg
 export function renderHeader(container, activeFile, carried) {
   const query = selectionQuery(carried);
   const sectionLinks = SECTIONS.map((section) => headerSectionLink(section, activeFile, query));
-  const externalLinks = EXTERNAL_LINKS.map((link) => externalLink(link, "nav-link"));
+  // The links off the site are left out at phone width, where the hero and the footer carry them.
+  const externalLinks = EXTERNAL_LINKS.map((link) => externalLink(link, "nav-link is-external"));
   container.innerHTML = `
     <div class="header-inner">
       ${brand(query)}

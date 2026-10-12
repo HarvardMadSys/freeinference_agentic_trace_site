@@ -28,7 +28,7 @@ test("the hero holds the eyebrow, the title with its accent phrase and the four 
   const buttons = [...container.innerHTML.matchAll(/<a class="button[^"]*" href="([^"]*)"[^>]*>([^<]*)<\/a>/g)];
   assert.deepEqual(buttons.map((match) => [match[2], match[1]]), [
     ["See the figures", "#figures"],
-    ["Hugging Face dataset", "https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace"],
+    ["Dataset", "https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace"],
     ["Paper", "https://data.freeinference.org/pdf/paper/from-requests-to-sessions.pdf"],
     ["Code", "https://github.com/HarvardMadSys/freeinference_agentic_trace"],
   ]);

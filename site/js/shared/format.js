@@ -204,12 +204,12 @@ export function monthName(month) {
 }
 
 /**
- * The days from `firstDay` to `lastDay` ("YYYY-MM-DD"), the year written once when both share it: "May 17 to September
- * 5, 2026", "December 28, 2025 to January 3, 2026".
+ * The days from `firstDay` to `lastDay` ("YYYY-MM-DD"), the year written once when both share it: "May 17 – September
+ * 5, 2026", "December 28, 2025 – January 3, 2026".
  */
 export function dateSpanText(firstDay, lastDay) {
   const sameYear = firstDay.slice(0, YEAR_LENGTH) === lastDay.slice(0, YEAR_LENGTH);
-  return `${longDate(firstDay, !sameYear)} to ${longDate(lastDay, true)}`;
+  return `${longDate(firstDay, !sameYear)} – ${longDate(lastDay, true)}`;
 }
 
 // A day as "September 5, 2026", or "September 5" without its year.

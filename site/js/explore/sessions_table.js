@@ -17,7 +17,6 @@
  */
 
 import { showError, showLoading } from "../shared/charts.js";
-import { formatCount } from "../shared/format.js";
 import { selectionQuery, writeSelection } from "../shared/selection.js";
 import { mountTable } from "../shared/table.js";
 import { note } from "./selection_pickers.js";
@@ -25,8 +24,8 @@ import {
   EVERY_HARNESS_TEXT, harnessChoices, monthChoices, readTableFilter, rowsInFilter, unknownFilterNote, writeTableFilter,
 } from "./sessions_filter.js";
 import {
-  choices, COLUMNS, nextSort, readTableState, rowsOfHarnesses, shownSessions, wholeNumberOrNull, withCachedShare,
-  withFirstPage, writeTableState,
+  choices, COLUMNS, isStateFiltered, nextSort, readTableState, rowsOfHarnesses, sessionCountLine, shownSessions,
+  wholeNumberOrNull, withCachedShare, withFirstPage, writeTableState,
 } from "./sessions_table_state.js";
 
 // The text of the model drop-down's first choice, which filters nothing.
@@ -163,11 +162,17 @@ function drawTable(view) {
     rows: shown,
     sort: state.sort,
     pageNumber: state.pageNumber,
-    summary: `${formatCount(shown.length)} of ${formatCount(view.rows.length)} sessions`,
+    summary: sessionCountLine(shown, view.rows, isFiltered(view, state)),
     onSort: (key) => sortBy(view, key),
     onPage: (pageNumber) => changeTable(view, { ...currentState(), pageNumber }),
     onRowClick: (row) => window.location.assign(sessionLink(row, exploreParams, view.context)),
   });
+}
+
+/** Whether the table shows fewer than its rows: a search, a filter of its own, or a month or harness chosen. */
+function isFiltered(view, state) {
+  const isMonthOrHarnessChosen = view.filter !== null && (view.filter.month !== "" || view.filter.harness !== "");
+  return isMonthOrHarnessChosen || isStateFiltered(state);
 }
 
 // ---------- Controls ----------

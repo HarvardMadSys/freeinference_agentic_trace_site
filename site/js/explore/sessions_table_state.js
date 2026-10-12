@@ -5,7 +5,8 @@
  */
 
 import {
-  cachedShare, formatCount, formatOptionalShare, formatSeconds, formatTokens, MISSING_TEXT, shortMinute, shortSessionId,
+  cachedShare, formatCount, formatOptionalShare, formatQuantity, formatSeconds, formatTokens, MISSING_TEXT, shortMinute,
+  shortSessionId,
 } from "../shared/format.js";
 import { filterRows, searchRows, sortRows } from "../shared/table.js";
 
@@ -112,6 +113,24 @@ export function choices(rows, key, current) {
     values.add(current);
   }
   return [...values].sort();
+}
+
+/**
+ * The line over the table: with no filter, "12,002 sessions, 1,035 of them benchmark replay" (the second part only
+ * when `listed` holds the benchmark's), else "120 of 12,002 sessions", the rows `shown` against the rows `listed`.
+ */
+export function sessionCountLine(shown, listed, isFiltered) {
+  if (isFiltered) {
+    return `${formatCount(shown.length)} of ${formatCount(listed.length)} sessions`;
+  }
+  const benchmark = listed.filter((row) => row.benchmark).length;
+  const benchmarkPart = benchmark === 0 ? "" : `, ${formatCount(benchmark)} of them benchmark replay`;
+  return `${formatQuantity(listed.length, "session", "sessions")}${benchmarkPart}`;
+}
+
+/** Whether `state` searches or filters by harness, model or a minimum of requests. */
+export function isStateFiltered(state) {
+  return state.search !== "" || state.harness !== "" || state.model !== "" || state.minRequests !== null;
 }
 
 /** A session's harness, with "(benchmark replay)" after the benchmark's. */

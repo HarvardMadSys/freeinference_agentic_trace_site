@@ -21,7 +21,7 @@ const LEDE = "An anonymised trace of the agent sessions FreeInference served: ev
 // The buttons under the lede: the first leads to the page's figures, the others leave the site.
 const FIGURES_BUTTON = Object.freeze({ title: "See the figures", href: "#figures" });
 const EXTERNAL_BUTTONS = Object.freeze([
-  Object.freeze({ title: "Hugging Face dataset", url: URLS.dataset }),
+  Object.freeze({ title: "Dataset", url: URLS.dataset }),
   Object.freeze({ title: "Paper", url: URLS.paper }),
   Object.freeze({ title: "Code", url: URLS.code }),
 ]);
