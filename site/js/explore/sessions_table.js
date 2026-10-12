@@ -1,12 +1,14 @@
 /**
  * The sessions table: every top-level session of the answer, searched by id, filtered by harness, main model and a
  * minimum of requests, sorted and paged in the browser. Its state lives in the URL (`explore/sessions_table_state.js`),
- * read back on every change; the selection's keys are never touched. A row click opens the Session page.
+ * read back on every change. A row click opens the Session page.
  *
- * While `context.filterInTable`, the answer holds every week's sessions of every harness and the table filters them
- * itself by month and harness (`explore/sessions_filter.js`): it reads that filter from the URL once, rewrites it there
- * in its own keys, keeps it while the visitor changes it, and draws its controls in a folded disclosure, whose pills
- * stand in for the one-harness choice.
+ * While the page's pickers choose the selection, the table never touches the selection's keys. While
+ * `context.filterInTable`, there is no selection to choose: the answer holds every week's sessions of every harness
+ * and the table filters them itself by month and harness (`explore/sessions_filter.js`). It then owns the keys
+ * `months` and `harnesses`: it reads them, and the older `weeks`, `month`, `scope` and `harness`, from the URL once,
+ * rewrites them in its own keys, keeps the filter while the visitor changes it, and draws its controls in a folded
+ * disclosure, whose pills stand in for the one-harness choice.
  *
  * A section's `context` is what the page gives every section; see `pages/explore.js`. This one writes its state
  * with `context.replaceQuery(params)`.
@@ -64,14 +66,13 @@ async function drawSessions(place, context, filter) {
   const queryRows = await context.database.runQuery("explore/sessions_of_selection");
   const rows = queryRows.map(withCachedShare);
   const tablePlace = document.createElement("div");
-  const view = { rows, tablePlace, context, filter, disclosure: null };
+  const view = { rows, tablePlace, context, filter, disclosure: null, notePlace: document.createElement("div") };
   if (filter === null) {
     place.replaceChildren(sectionTitle(), controlsRow(view), tablePlace);
   } else {
     view.disclosure = filterDisclosure(namesFilter(currentParams()), controlsRow(view));
-    const unknown = unknownFilterNote(filter);
-    const notes = unknown === "" ? [] : [note(unknown)];
-    place.replaceChildren(sectionTitle(), view.disclosure.element, ...notes, tablePlace);
+    view.notePlace.className = "table-filter-note";
+    place.replaceChildren(sectionTitle(), view.disclosure.element, view.notePlace, tablePlace);
     drawFilterPickers(view);
   }
   drawTable(view);
@@ -97,9 +98,9 @@ export function sessionLink(row, exploreParams, context) {
 }
 
 // ---------- Drawing ----------
-// `view` is `{ rows, tablePlace, context, filter, disclosure }`: the loaded sessions, where the table goes, the
-// section's context, the month and harness filter (null unless the table filters itself), and the folded filter
-// (`filterDisclosure` of `explore/sessions_filter.js`, null with no filter).
+// `view` is `{ rows, tablePlace, context, filter, disclosure, notePlace }`: the loaded sessions, where the table goes,
+// the section's context, the month and harness filter (null unless the table filters itself), the folded filter
+// (`filterDisclosure` of `explore/sessions_filter.js`, null with no filter), and where the unknown names' note goes.
 
 function currentParams() {
   return new URLSearchParams(window.location.search);
@@ -132,9 +133,13 @@ function changeTableFilter(view, filter) {
   drawTable(view);
 }
 
+/** Draw the pills for the table's filter, and the note naming what the URL named that the data do not hold. */
 function drawFilterPickers(view) {
   const onChange = (filter) => changeTableFilter(view, filter);
   mountFilterPickers(view.disclosure.pickers, view.filter, view.context.weeks, view.context.harnesses, onChange);
+  // A changed filter names nothing unknown, so the note goes once the visitor changes it.
+  const unknown = unknownFilterNote(view.filter);
+  view.notePlace.replaceChildren(...(unknown === "" ? [] : [note(unknown)]));
 }
 
 /** Apply `change`, part of a state such as `{ harness }`, and go back to the first page. */

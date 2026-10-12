@@ -589,8 +589,13 @@ code,
   padding: 0.75rem;
 }
 
-.table-filter + .note {
+.table-filter-note .note {
   margin: 0 0 0.75rem;
+}
+
+/* The last month or harness ticked cannot be unticked. */
+.pill:has(input:disabled) {
+  cursor: default;
 }
 
 select,

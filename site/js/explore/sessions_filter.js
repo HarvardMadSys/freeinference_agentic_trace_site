@@ -29,6 +29,10 @@ const OLDER_KEYS = Object.freeze(["month", "weeks", "scope", "harness"]);
 // A choice of more months or harnesses than this is written in words as a count, such as "5 harnesses".
 const MOST_NAMES_IN_WORDS = 3;
 
+// The last month or harness ticked cannot be unticked: an empty choice would write no key, so a link to it would open
+// on the default instead of the table the visitor saw.
+const KEEPS_ONE = true;
+
 // What joins the parts of the filter's line of words.
 const WORDS_SEPARATOR = " · ";
 
@@ -163,7 +167,7 @@ export function filterDisclosure(isOpen, controls) {
 
 /**
  * Draw in `pickers` the month pills (each month, every month) and the harness pills (each harness, every harness, the
- * paper's) for `filter`, keeping the focus. A change calls `onChange(filter)` with the filter then chosen and nothing
+ * paper's) for `filter`, keeping the focus; the last month or harness ticked cannot be unticked. A change calls `onChange(filter)` with the filter then chosen and nothing
  * unknown, since the URL no longer names it.
  */
 export function mountFilterPickers(pickers, filter, weeks, harnesses, onChange) {
@@ -176,7 +180,8 @@ export function mountFilterPickers(pickers, filter, weeks, harnesses, onChange) 
   monthControls.append(monthPills(everyMonth, filter.months, chooseMonths));
   const harnessControls = controlsRow();
   harnessControls.append(
-    harnessPills(harnesses, filter.harnesses, chooseHarnesses), harnessButtons(harnesses, chooseHarnesses),
+    harnessPills(harnesses, filter.harnesses, chooseHarnesses, KEEPS_ONE),
+    harnessButtons(harnesses, chooseHarnesses),
   );
   pickers.replaceChildren(monthControls, harnessControls);
   restoreFocus(pickers, focusedChoice);
@@ -186,9 +191,9 @@ export function mountFilterPickers(pickers, filter, weeks, harnesses, onChange) 
 function monthPills(everyMonth, chosenMonths, onChoose) {
   const element = controlGroup("Months");
   for (const month of everyMonth) {
-    element.append(togglePill(chosenMonths, [month], monthName(month), `month ${month}`, onChoose));
+    element.append(togglePill(chosenMonths, [month], monthName(month), `month ${month}`, onChoose, KEEPS_ONE));
   }
-  element.append(togglePill(chosenMonths, everyMonth, "All months", "all months", onChoose));
+  element.append(togglePill(chosenMonths, everyMonth, "All months", "all months", onChoose, KEEPS_ONE));
   return element;
 }
 

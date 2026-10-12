@@ -91,12 +91,14 @@ function everyWeekGroup(picker) {
 
 /**
  * One checkbox pill per harness of `harnesses`, labelled with its sessions over every week, the benchmark's marked;
- * ticking or unticking one calls `onChoose(harnesses)` with the harnesses then chosen.
+ * ticking or unticking one calls `onChoose(harnesses)` with the harnesses then chosen. With `keepsOne`, the last
+ * harness chosen cannot be unticked.
  */
-export function harnessPills(harnesses, chosenHarnesses, onChoose) {
+export function harnessPills(harnesses, chosenHarnesses, onChoose, keepsOne = false) {
   const element = controlGroup("Harnesses");
   for (const entry of harnesses) {
     const input = choiceBox(`harness ${entry.harness}`, chosenHarnesses.includes(entry.harness));
+    input.disabled = keepsOne && leavesNoneChosen(chosenHarnesses, [entry.harness]);
     const chosen = toggled(chosenHarnesses, [entry.harness]);
     input.addEventListener("change", () => onChoose(chosen));
     const label = pill(input, `${entry.harness} (${formatCount(entry.sessions)})`);
@@ -122,12 +124,14 @@ export function harnessButtons(harnesses, onChoose) {
 
 /**
  * A checkbox pill that toggles `pillValues` among `chosenValues`: ticked when all are chosen, half-ticked when some
- * are; a change calls `onChoose(values)` with the values then chosen. `choice` names the pill to keep its focus.
+ * are; a change calls `onChoose(values)` with the values then chosen. `choice` names the pill to keep its focus. With
+ * `keepsOne`, a pill whose unticking would leave nothing chosen cannot be unticked.
  */
-export function togglePill(chosenValues, pillValues, text, choice, onChoose) {
+export function togglePill(chosenValues, pillValues, text, choice, onChoose, keepsOne = false) {
   const chosenCount = pillValues.filter((value) => chosenValues.includes(value)).length;
   const input = choiceBox(choice, chosenCount === pillValues.length);
   input.indeterminate = chosenCount > 0 && chosenCount < pillValues.length;
+  input.disabled = keepsOne && leavesNoneChosen(chosenValues, pillValues);
   const chosen = toggled(chosenValues, pillValues);
   input.addEventListener("change", () => onChoose(chosen));
   return pill(input, text);
@@ -181,6 +185,15 @@ function actionButton(text, onClick) {
   button.textContent = text;
   button.addEventListener("click", onClick);
   return button;
+}
+
+/**
+ * Whether a click on the pill of `pillValues` would leave none of `chosenValues` chosen: the pill is ticked, so the
+ * click unticks it, and it holds every chosen value.
+ */
+export function leavesNoneChosen(chosenValues, pillValues) {
+  const isTicked = pillValues.every((value) => chosenValues.includes(value));
+  return isTicked && chosenValues.every((value) => pillValues.includes(value));
 }
 
 /** A row of controls that wraps. */
