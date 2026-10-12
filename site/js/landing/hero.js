@@ -16,8 +16,7 @@ const TENS = Object.freeze(["", "", "twenty", "thirty", "forty", "fifty", "sixty
 // The title's second phrase, drawn in the accent.
 const TITLE_ACCENT = "request by request.";
 
-const LEDE = "An anonymised trace of the agent sessions FreeInference served: every request, tool call and subagent, "
-  + "with the paper's figures drawn over it.";
+const LEDE = "An anonymised trace of the agent sessions FreeInference served: every request, tool call and subagent.";
 
 // The buttons under the lede: the first leads to the page's figures, the others leave the site.
 const FIGURES_BUTTON = Object.freeze({ title: "See the figures", href: "#figures" });

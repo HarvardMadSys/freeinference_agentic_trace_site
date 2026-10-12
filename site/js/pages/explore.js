@@ -1,6 +1,6 @@
 /**
- * The Explore page: the hero with its stats strip, weekly trends, distribution cards, the paper's figures in four
- * sections, and the sessions table.
+ * The Explore page: the hero with its stats strip, the model and harness mixes, weekly trends, distribution cards,
+ * the paper's figures in four sections, and the sessions table.
  *
  * The page draws its header, hero, figure cards and every section's loading state from `weeks.json` and
  * `harnesses.json`, then gives the database the selection and runs every section.
@@ -47,6 +47,7 @@ import { mountSelection, showStreamedWeeks } from "../explore/selection_pickers.
 import { layoutSessionsTable, runSessionsTable } from "../explore/sessions_table.js";
 import { withFirstPage } from "../explore/sessions_table_state.js";
 import { layoutTrends, runTrends } from "../explore/trends.js";
+import { layoutMixes, runMixes } from "../landing/donuts.js";
 import { renderHero } from "../landing/hero.js";
 import { layoutStats, runStats } from "../landing/stats.js";
 
@@ -65,6 +66,7 @@ const NO_HARNESS_NOTE = "Pick at least one harness to see its numbers.";
 // Each section: the id of its place in index.html, the function that draws its loading state, and the one that runs it.
 const SECTIONS = Object.freeze([
   Object.freeze({ id: "stats", layout: layoutStats, run: runStats }),
+  Object.freeze({ id: "mixes", layout: layoutMixes, run: runMixes }),
   Object.freeze({ id: "trends", layout: layoutTrends, run: runTrends }),
   Object.freeze({ id: "distributions", layout: layoutDistributions, run: runDistributions }),
   Object.freeze({ id: "sessions-table", layout: layoutSessionsTable, run: runSessionsTable }),

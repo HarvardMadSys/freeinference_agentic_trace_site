@@ -749,6 +749,112 @@ section[id] {
   }
 }
 
+/* ---------- Overview donuts ---------- */
+
+/* The Overview: the two donuts side by side, then the three trends. */
+.overview {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.donut-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+/* A donut card: the title and caption across the top, the donut with its legend beside it, the Definition below. */
+.donut-card .figure {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "title title"
+    "caption caption"
+    "body legend"
+    "definition definition";
+  align-items: center;
+  gap: 0.375rem 1.5rem;
+}
+
+.donut-card .figure-title {
+  grid-area: title;
+}
+
+.donut-card .figure-caption {
+  grid-area: caption;
+}
+
+.donut-card .figure-body {
+  grid-area: body;
+  min-height: 0;
+  margin: 0.75rem 0;
+}
+
+/* The legend beside the donut lists its slices one under another, two columns where nine would be too tall. */
+.donut-card .figure-legend {
+  grid-area: legend;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 0.25rem 1rem;
+}
+
+.donut-card .figure-definition {
+  grid-area: definition;
+}
+
+/* A fixed size, so the centre's text keeps its size on every screen. */
+.donut {
+  display: block;
+  width: 13rem;
+  height: 13rem;
+}
+
+.donut-slice {
+  stroke: var(--color-surface);
+  stroke-width: 1.5;
+}
+
+.donut-total,
+.donut-unit {
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.donut-total {
+  font-family: var(--font-serif);
+  font-size: 28px; /* in the donut's own units, 200 across: about 32 px on the page */
+  font-weight: 700;
+  fill: var(--color-text);
+}
+
+.donut-unit {
+  font-size: 13px; /* about 15 px on the page */
+  fill: var(--color-text-faint);
+}
+
+/* Where two cards share a row too narrow for a donut and its legend side by side, the legend goes under the donut;
+   one card a row (below 50rem) keeps it so too, for one layout on every narrow screen. */
+@media (max-width: 68rem) {
+  .donut-card .figure {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "title"
+      "caption"
+      "body"
+      "legend"
+      "definition";
+  }
+
+  .donut-card .figure-body {
+    justify-self: center;
+  }
+
+  .donut-card .figure-legend {
+    margin-bottom: 0.75rem;
+  }
+}
+
 /* ---------- Page layout ---------- */
 
 .page {
@@ -1701,7 +1807,8 @@ button.is-primary {
 
 @media (max-width: 50rem) {
   .trend-grid,
-  .card-grid {
+  .card-grid,
+  .donut-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 }

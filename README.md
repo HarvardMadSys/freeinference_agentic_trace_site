@@ -145,14 +145,16 @@ site/              exactly the files that are deployed
   *.html           one file per page: index (Explore), session, about
   style.css        tokens, layout and components
   js/shared/       database (answer files, queries by name, a week's files loaded whole), selection (the selection
-                   and the population line under Explore's title), libraries, format, charts, histogram (the
-                   distribution card), table, tiles (the stat strip), layout (the header and footer)
+                   and its notes), libraries, format, charts, histogram (the distribution card), table, layout (the
+                   header and footer)
+  js/landing/      the Explore page's opening: hero (the title, lede and buttons), stats (the stats strip beside it),
+                   donuts (the model and harness mixes) and arcs (a donut's shares and ring segments)
   js/engine/       DuckDB in the page: duckdb_start (starting it), duckdb_views (its views and setup),
                    duckdb_files (a week's files fetched whole, and the stream of every week's, kept behind the switch)
   js/theme/        colours, the site's colours as the style tokens give them
   js/axes/         ticks, the ticks of every chart's axes: how many, and where a log, duration or week axis ticks
   js/pages/        one module per page: explore (with FIGURES_ARE_FROZEN), session, about
-  js/explore/      the Explore page's sections: trends, headline, distributions, figure_sections (the figure runner),
+  js/explore/      the Explore page's sections: trends, distributions, figure_sections (the figure runner),
                    legend (the legend of buttons that hides and shows a series), sessions_table, sessions_table_state
                    (its columns and its state in the URL), sessions_filter (its month and harness filter), and
                    selection_pickers (the week and harness pickers, mounted only with the switch off; the filter
