@@ -1,6 +1,7 @@
 """The Explore page's figure queries on the fixture data: the CDFs' shape, the colour orders, and each figure's rows."""
 
 import duckdb
+import pyarrow
 import pytest
 
 import fixture_release
@@ -174,3 +175,66 @@ def test_latency_counts_only_calls_that_were_their_request_s_only_call(connectio
     assert "Subagent" not in rows.index
     assert rows.rows["Read"] == 4
     assert rows.p50["Read"] == MEDIAN_READ_LATENCY_MS
+
+
+# The first calls of the paper's harnesses' top-level requests: Read starts four one-call requests (`tree-root` step
+# 0, `idle-week-1` steps 0 and 1, `mutation` step 1), bash (*Build/Test) three (`tree-root` step 3, `idle-week-1` step
+# 2, `mutation` step 0), Edit one, and Subagent one of two calls (`tree-root` step 1). Most calls first, then by name.
+CALLS_PER_REQUEST = [["Subagent", 1, 2.0], ["*Build/Test", 3, 1.0], ["Edit", 1, 1.0], ["Read", 4, 1.0]]
+
+
+def test_calls_per_request_counts_each_request_once_by_its_first_call(connection: duckdb.DuckDBPyConnection,
+                                                                      fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
+    rows = site_database.run_query(connection, "figures/calls_per_request_by_category")
+    assert rows.values.tolist() == CALLS_PER_REQUEST
+
+
+# The tool waits of the paper's harnesses' top-level requests with a call, each the wait of the next request when it
+# waited for a tool or a subagent, every request taking 10 s: one call, 10 s, 10 s and 170 s (`tree-root` steps 0, 2
+# and 3), 20 s and 5 s (`idle-week-1` steps 0 and 1; its step 2 has no next request), 10 s and 170 s (`mutation`);
+# two calls, 70 s (`tree-root` step 1, before the subagents' return). The one-call median wait and latency are 10 s
+# each, so the serial line runs 20 s per call; the percentiles interpolate between the sorted waits.
+BATCH_WIDTHS = [
+    {"width": 1, "rows": 7, "p10": 8.0, "p25": 10.0, "p50": 10.0, "p75": 95.0, "p90": 170.0, "serial_s": 20.0},
+    {"width": 2, "rows": 1, "p10": 70.0, "p25": 70.0, "p50": 70.0, "p75": 70.0, "p90": 70.0, "serial_s": 40.0},
+]
+
+
+def test_latency_by_batch_width_takes_each_request_s_tool_wait(connection: duckdb.DuckDBPyConnection,
+                                                               fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
+    rows = site_database.run_query(connection, "figures/latency_by_batch_width")
+    assert rows.to_dict("records") == pytest.approx(BATCH_WIDTHS)
+
+
+ASKING_WEEK = "2026-06-07"  # the week of the asking database's sessions
+ASKING_HARNESS = "pi"  # a harness of the paper's
+
+
+def asking_database() -> duckdb.DuckDBPyConnection:
+    """Two one-turn sessions of a paper harness, their requests 10 s long: `asks` first makes an Ask User and a Read
+    call and the user answers 30 s later; `reads` makes one Read call, which takes 4 s. Their week and harness are
+    selected."""
+    requests = pyarrow.table({
+        "week": [ASKING_WEEK] * 4, "session_id": ["asks", "asks", "reads", "reads"], "step": [0, 1, 0, 1],
+        "turn": [1, 1, 1, 1], "n_tool_calls": [2, 0, 1, 0], "is_top_level": [True] * 4, "harness": [ASKING_HARNESS] * 4,
+        "start_ms": [0, 40_000, 0, 14_000], "end_ms": [10_000, 50_000, 10_000, 24_000],
+        "wait_s": [None, 30.0, None, 4.0], "waited_for": [None, "ask_user_tool", None, "tool"],
+    })
+    tool_calls = pyarrow.table({
+        "week": [ASKING_WEEK] * 3, "session_id": ["asks", "asks", "reads"], "step": [0, 0, 0], "call_index": [0, 1, 0],
+        "category": ["Ask User", "Read", "Read"], "is_top_level": [True] * 3,
+    })
+    connection = site_database.database_of_rows(requests, tool_calls)
+    site_database.select_weeks(connection, [ASKING_WEEK], [ASKING_HARNESS])
+    return connection
+
+
+def test_a_request_with_an_ask_user_call_is_left_out_of_both_batching_figures() -> None:
+    connection = asking_database()
+    calls = site_database.run_query(connection, "figures/calls_per_request_by_category")
+    widths = site_database.run_query(connection, "figures/latency_by_batch_width")
+    connection.close()
+    assert calls.values.tolist() == [["Read", 1, 1.0]]
+    assert widths[["width", "rows", "p50", "serial_s"]].values.tolist() == [[1, 1, 4.0, 14.0]]

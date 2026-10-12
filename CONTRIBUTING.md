@@ -45,16 +45,19 @@ binding, and `make test` checks the countable ones.
   `site_data/site_database.py` in Python): HTTP has no directory listing, and
   a file registered under its name is what the stream can swap for its bytes.
 - **Every definition comes from the pipeline.** Where a query restates one
-  in SQL (the cost share's prices, the rank bins, the wait classes, the tool
-  groups), a mirror test ties each copied constant to the pipeline's and a
-  parity test ties the number to the paper's. Three queries do:
+  in SQL (the cost share's prices, the rank bins, the wait classes, what a
+  tool wait is, the tool groups), a mirror test ties each copied constant to
+  the pipeline's and a parity test ties the number to the paper's. Five
+  queries do, each checked by `tests/test_pipeline_mirrors.py`:
   `figures/cost_share_by_session.sql` (the prices and the rank bins) and
   `figures/session_time_by_part.sql` (the rank bins and which waits are tool
-  time and which a person's), checked by `tests/test_pipeline_mirrors.py` and
-  `tests/test_paper_parity_sessions.py`; and
-  `figures/tool_mix_by_turn_position.sql` (the tenths, each category's tool
-  group and the programs that decide a `*File Ops` call's), checked by
-  `tests/test_pipeline_mirrors.py` and `tests/test_paper_parity_comparison.py`.
+  time and which a person's), with `tests/test_paper_parity_sessions.py`;
+  `figures/calls_per_request_by_category.sql` (the Ask User category) and
+  `figures/latency_by_batch_width.sql` (what a tool wait is, the Ask User
+  category, the widest width and the quantiles), with
+  `tests/test_paper_parity.py`; and `figures/tool_mix_by_turn_position.sql`
+  (the tenths, each category's tool group and the programs that decide a
+  `*File Ops` call's), with `tests/test_paper_parity_comparison.py`.
   Otherwise the browser filters, groups, counts, sums and takes quantiles. It
   never decides what a turn, a wait or a cache hit is; `site_data` computes
   those by calling the pipeline's functions.

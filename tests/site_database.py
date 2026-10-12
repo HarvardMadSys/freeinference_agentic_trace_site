@@ -2,8 +2,12 @@
 under the names the tests use, and the list of every query a page runs.
 
 A test opens the database over the fixture's data folder, fills the selection
-tables and runs a query by name, exactly as a page runs it.
+tables and runs a query by name, exactly as a page runs it; or, for a case the
+fixture does not hold, over a few rows of its own.
 """
+
+import duckdb
+import pyarrow
 
 import site_data.site_database
 
@@ -28,3 +32,14 @@ def query_names() -> list[str]:
         if SETUP_FOLDER not in path.parents:
             names.append(path.relative_to(QUERIES_FOLDER).with_suffix("").as_posix())
     return names
+
+
+def database_of_rows(requests: pyarrow.Table, tool_calls: pyarrow.Table) -> duckdb.DuckDBPyConnection:
+    """A database whose `requests` and `tool_calls` hold the given rows, with the empty selection tables and the empty
+    benchmark harness table: for a case of a query that the fixture release does not hold."""
+    connection = duckdb.connect()
+    connection.register("requests", requests)
+    connection.register("tool_calls", tool_calls)
+    for name in [*SELECTION_TABLE_STATEMENTS, BENCHMARK_TABLE_STATEMENT]:
+        connection.execute(statement_text(name))
+    return connection

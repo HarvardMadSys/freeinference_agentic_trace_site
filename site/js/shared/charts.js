@@ -15,6 +15,9 @@ const KEY_SEPARATOR = "\u0000";
 
 const CHART_HEIGHT = 240; // every chart has the same height, so a grid of figures lines up
 const FALLBACK_WIDTH = 480; // the width drawn when the body has not been laid out yet
+const CATEGORY_ROW_HEIGHT = 22; // pixels per category, so sixteen categories keep readable labels
+const CATEGORY_MARGIN_LEFT = 96; // pixels; room for the longest category name, "*Interpreter"
+const CATEGORY_MARGINS_Y = 60; // pixels above and below the rows: the frame's top margin and the x axis
 /** The width of every chart's lines, in pixels: thin lines. */
 export const LINE_WIDTH = 2;
 const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars and segments
@@ -35,6 +38,15 @@ export const TIP_STYLE = Object.freeze({ fill: "var(--color-surface)" });
 /** The Plot options every chart starts from: its margins, its height, the width of `body`, and its ink. */
 export function chartFrame(body) {
   return { ...PLOT_MARGINS, width: chartWidth(body), height: CHART_HEIGHT, style: PLOT_STYLE };
+}
+
+/**
+ * The frame of a chart with one row per tool category: `chartFrame`'s, as tall as `categoryCount` rows need and with
+ * room on the left for the categories' names.
+ */
+export function categoryRowsFrame(body, categoryCount) {
+  const height = categoryCount * CATEGORY_ROW_HEIGHT + CATEGORY_MARGINS_Y;
+  return { ...chartFrame(body), height, marginLeft: CATEGORY_MARGIN_LEFT };
 }
 
 /** A copy of `rows` with `row[key]` replaced by "Other" where it is not among the first eight distinct `names`. */

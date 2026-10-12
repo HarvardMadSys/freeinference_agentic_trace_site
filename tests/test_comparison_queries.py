@@ -67,7 +67,6 @@ def test_the_benchmark_s_tool_mix_is_drawn_whatever_harnesses_are_selected(conne
 def one_call_database(category: str, programs: list[str] | None) -> duckdb.DuckDBPyConnection:
     """A database holding one top-level request of a paper harness, the only one of its turn, which made one call of
     `category` that ran `programs`; its week and harness are selected."""
-    connection = duckdb.connect()
     requests = pyarrow.table({
         "week": [ONE_CALL_WEEK], "session_id": ["one-call"], "step": [0], "turn": [1], "n_tool_calls": [1],
         "is_top_level": [True], "harness": [ONE_CALL_HARNESS],
@@ -76,10 +75,7 @@ def one_call_database(category: str, programs: list[str] | None) -> duckdb.DuckD
         "week": [ONE_CALL_WEEK], "session_id": ["one-call"], "step": [0], "call_index": [0], "category": [category],
         "programs": pyarrow.array([programs], type=pyarrow.list_(pyarrow.string())), "is_top_level": [True],
     })
-    connection.register("requests", requests)
-    connection.register("tool_calls", tool_calls)
-    for name in [*site_database.SELECTION_TABLE_STATEMENTS, site_database.BENCHMARK_TABLE_STATEMENT]:
-        connection.execute(site_database.statement_text(name))
+    connection = site_database.database_of_rows(requests, tool_calls)
     site_database.select_weeks(connection, [ONE_CALL_WEEK], [ONE_CALL_HARNESS])
     return connection
 

@@ -1,12 +1,14 @@
 /**
- * The Tools section of the Explore page's figures: how long a tool call waits and how much it returns, per category.
+ * The Tools section of the Explore page's figures: how long a tool call waits and how much it returns, per category,
+ * and how requests batch their calls. The batching figures are drawn in `tools_batching.js`.
  *
- * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Every row of a tool query is one category, its
- * count in `rows`, so a thin one is hidden whole.
+ * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Every row of a quantile-range query is one
+ * category, its count in `rows`, so a thin one is hidden whole.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
+import { AXIS_STYLE, categoryRowsFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
 import { formatCount, formatSeconds, formatTokens, MILLISECONDS_PER_SECOND } from "../shared/format.js";
+import { CALLS_PER_REQUEST_BY_CATEGORY, LATENCY_BY_BATCH_WIDTH } from "./tools_batching.js";
 
 // The percentile columns of a quantile-range query, low to high, with the name the tooltip gives each.
 const PERCENTILES = Object.freeze([
@@ -38,9 +40,6 @@ const RESULT_TOKENS_RANGE = Object.freeze({
 const WHISKER_WIDTH = 1; // pixels; the thin rule from the 5th to the 95th percentile
 const BOX_WIDTH = 8; // pixels; the thick bar from the 25th to the 75th percentile
 const MEDIAN_TICK_INSET = 4; // pixels taken off the top and bottom of a category's row by the median's tick
-const CATEGORY_ROW_HEIGHT = 22; // pixels per category, so sixteen categories keep readable labels
-const CATEGORY_MARGIN_LEFT = 96; // pixels; room for the longest category name, "*Interpreter"
-const RANGE_MARGINS_Y = 60; // pixels above and below the rows: the frame's top margin and the x axis
 
 /** The figures of the Tools section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
@@ -60,6 +59,8 @@ export const FIGURES = Object.freeze([
     binColumn: "category",
     draw: drawResultTokens,
   }),
+  CALLS_PER_REQUEST_BY_CATEGORY,
+  LATENCY_BY_BATCH_WIDTH,
 ]);
 
 /** Draw each category's latency percentiles, in seconds on a log axis. */
@@ -83,9 +84,7 @@ async function drawQuantileRanges(rows, body, categoryColours, range) {
   const categories = [...categoryColours.keys()].filter((category) => present.has(category));
   const ranges = rows.map((row) => drawnRange(row, range));
   const chart = Plot.plot({
-    ...chartFrame(body),
-    height: categories.length * CATEGORY_ROW_HEIGHT + RANGE_MARGINS_Y,
-    marginLeft: CATEGORY_MARGIN_LEFT,
+    ...categoryRowsFrame(body, categories.length),
     x: { type: "log" },
     y: { type: "band", domain: categories },
     color: colourScale(categoryColours, categories),

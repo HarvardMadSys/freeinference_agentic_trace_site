@@ -24,6 +24,8 @@ const SECTION_FIGURES = {
   "../site/js/figures/tools.js": [
     "latency_by_category",
     "result_tokens_by_category",
+    "calls_per_request_by_category",
+    "latency_by_batch_width",
   ],
   "../site/js/figures/caching.js": [
     "hit_ratio_cdf_by_gap_bin",

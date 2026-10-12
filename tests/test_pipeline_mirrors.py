@@ -9,7 +9,7 @@ import re
 
 import pytest
 
-from paper.metrics import binning, gaps, latency, prices, trajectories
+from paper.metrics import binning, gaps, latency, prices, tools, trajectories
 from release import population, schema
 
 SITE_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site"
@@ -22,6 +22,9 @@ RANK_BIN_QUERIES = [COST_SHARE_QUERY, SESSION_TIME_QUERY]  # each cuts sessions 
 TOOL_MIX_QUERY = FIGURE_QUERIES / "tool_mix_by_turn_position.sql"  # the tenths, the tool groups and the program sets
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the tool groups, each with its colour
 TOOL_MIX_MODULE = SITE_FOLDER / "js" / "comparison" / "tool_mix.js"  # the tenths
+CALLS_PER_REQUEST_QUERY = FIGURE_QUERIES / "calls_per_request_by_category.sql"  # the category left out
+BATCH_WIDTH_QUERY = FIGURE_QUERIES / "latency_by_batch_width.sql"  # what a tool wait is, the widths and quantiles
+BATCHING_MODULE = SITE_FOLDER / "js" / "figures" / "tools_batching.js"  # the widest width drawn on its own
 EDGE_TOLERANCE = 1e-9  # relative; the browser computes the geometric edges itself, so they agree only to rounding
 
 
@@ -68,6 +71,13 @@ def javascript_quoted_keys(path: pathlib.Path, constant: str) -> list[str]:
     """The quoted keys, in order, of `const <constant> = Object.freeze({ "key": …, … });`."""
     body = declaration(path, rf"const {constant} = Object\.freeze\(\{{(.*?)\}}\);").group(1)
     return re.findall(r'^\s*"([^"]+)"\s*:', body, re.MULTILINE)
+
+
+def sql_percentile_columns(path: pathlib.Path, column: str) -> list[float]:
+    """The quantiles, in order, of the columns `quantile_cont(<…>.<column>, <number>) AS p<percent>` in the query at
+    `path`."""
+    pattern = rf"quantile_cont\([\w.]*\b{column}, ([\d.]+)\) AS p\d+\b"
+    return [float(number) for number in re.findall(pattern, path.read_text())]
 
 
 def browser_idle_gap_edges() -> list[float]:
@@ -135,3 +145,15 @@ def test_the_tool_mix_s_group_rule_is_the_pipeline_s() -> None:
 
 def test_the_tool_groups_coloured_are_the_pipeline_s_in_its_order() -> None:
     assert javascript_quoted_keys(COLOURS_MODULE, "TOOL_GROUP_COLOURS") == list(trajectories.GROUPS)
+
+
+@pytest.mark.parametrize("path", [CALLS_PER_REQUEST_QUERY, BATCH_WIDTH_QUERY], ids=lambda path: path.stem)
+def test_the_batching_figures_leave_out_the_pipeline_s_ask_user_category(path: pathlib.Path) -> None:
+    assert sql_string(path, "ask_user_category") == schema.ASK_USER_CATEGORY
+
+
+def test_the_batch_width_s_tool_wait_widths_and_quantiles_are_the_pipeline_s() -> None:
+    assert sql_strings(BATCH_WIDTH_QUERY, "tool_waited_for") == list(tools.TOOL_WAITED_FOR)
+    assert sql_number(BATCH_WIDTH_QUERY, "widest_drawn") == tools.WIDEST_DRAWN
+    assert javascript_number(BATCHING_MODULE, "WIDEST_DRAWN") == tools.WIDEST_DRAWN
+    assert sql_percentile_columns(BATCH_WIDTH_QUERY, "tool_wait_s") == list(tools.BAND_QUANTILES)

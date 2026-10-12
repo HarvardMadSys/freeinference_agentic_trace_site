@@ -126,6 +126,8 @@ PAPER_SCOPES = {
     ("sessions", "ttft_decomposition_kimi-k2.7-code"): "Agentic",
     ("tools", "latency_by_category"): "Agentic",
     ("tools", "result_tokens_by_category"): "Agentic",
+    ("tools", "latency_by_batch_width"): "Agentic",
+    ("tools", "calls_per_request_by_category"): "Agentic",
     ("benchmark_vs_production", "turn_duration"): "Agentic and SWE-Bench",
     ("benchmark_vs_production", "session_duration"): "Agentic and SWE-Bench",
     ("benchmark_vs_production", "input_per_request"): "Agentic and SWE-Bench",
@@ -223,6 +225,29 @@ def test_the_tool_latency_and_result_size_ranges(agentic: duckdb.DuckDBPyConnect
                        result_tokens.p50[category], RELATIVE_TOLERANCE),
         ]
     assert_match(paper_numbers, comparisons)
+
+
+def test_the_tool_wait_by_batch_width(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+    # `figures/latency_by_batch_width`'s `rows` per width against `tools.latency_by_batch_width.requests_per_width`,
+    # and the lowest and highest `p90` of the widths over one against `.batched_p90_s_lowest` and
+    # `.batched_p90_s_highest`.
+    widths = site_database.run_query(agentic, "figures/latency_by_batch_width")
+    paper = paper_numbers["tools"]["latency_by_batch_width"]
+    assert dict(zip(widths.width.astype(str), widths.rows)) == paper["requests_per_width"]
+    batched = widths[widths.width > 1]
+    assert_match(paper_numbers, [
+        Comparison("tools", "latency_by_batch_width", "batched_p90_s_lowest", batched.p90.min(), RELATIVE_TOLERANCE),
+        Comparison("tools", "latency_by_batch_width", "batched_p90_s_highest", batched.p90.max(), RELATIVE_TOLERANCE),
+    ])
+
+
+def test_the_calls_per_request_by_category(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+    # `figures/calls_per_request_by_category`'s `mean_calls` per category, in its order, against
+    # `tools.calls_per_request_by_category.mean_calls_per_request`, which lists the categories most calls first.
+    rows = site_database.run_query(agentic, "figures/calls_per_request_by_category")
+    paper = paper_numbers["tools"]["calls_per_request_by_category"]["mean_calls_per_request"]
+    assert rows.category.tolist() == list(paper)
+    assert rows.mean_calls.tolist() == pytest.approx(list(paper.values()), rel=RELATIVE_TOLERANCE)
 
 
 def test_the_benchmark_s_medians(benchmark: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:

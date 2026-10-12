@@ -62,6 +62,8 @@ EXPECTED_COLUMNS = {
                                      "mean_tool_share", "mean_human_share"],
     "figures/latency_by_category": PERCENTILE_RANGE_COLUMNS,
     "figures/result_tokens_by_category": PERCENTILE_RANGE_COLUMNS,
+    "figures/calls_per_request_by_category": ["category", "rows", "mean_calls"],
+    "figures/latency_by_batch_width": ["width", "rows", "p10", "p25", "p50", "p75", "p90", "serial_s"],
     "figures/hit_ratio_cdf_by_gap_bin": ["series", "x", "share", "rows"],
     "figures/hit_ratio_by_idle_gap": ["provider", "idle_gap_bin", "rows", "median_hit_ratio"],
     "figures/gap_cdf_by_cause": ["series", "x", "share", "rows"],

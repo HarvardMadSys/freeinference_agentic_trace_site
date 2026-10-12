@@ -130,8 +130,8 @@ site/              exactly the files that are deployed
                    distributions, figure_sections (the figure runner), sessions_table; and legend, the legend
                    of buttons that hides and shows a series
   js/figures/      one module per figure section (sessions, tools, caching), the modules they take figures from
-                   (sessions_latency, sessions_ranked, caching_gaps), and figure_rows, the row rules every figure
-                   shares
+                   (sessions_latency, sessions_ranked, tools_batching, caching_gaps), and figure_rows, the row rules
+                   every figure shares
   js/comparison/   the Benchmark-against-production figure section: its module, comparison, and the modules of its
                    figures (tool_mix)
   js/session/      the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
@@ -175,10 +175,12 @@ openspec/          the specifications and the changes that built the site
 Every definition comes from the pipeline. The ones the site shows (session,
 turn, wait, cached share, idle gap) are computed by the pipeline's own
 functions when `make data` runs. Where a query restates one in SQL (the cost
-share's prices, the rank bins, the wait classes, the tool groups), a mirror
-test ties each copied constant to the pipeline's and a parity test ties the
-number to the paper's; three queries do, `figures/cost_share_by_session.sql`,
-`figures/session_time_by_part.sql` and `figures/tool_mix_by_turn_position.sql`.
+share's prices, the rank bins, the wait classes, what a tool wait is, the tool
+groups), a mirror test ties each copied constant to the pipeline's and a parity
+test ties the number to the paper's; five queries do,
+`figures/cost_share_by_session.sql`, `figures/session_time_by_part.sql`,
+`figures/calls_per_request_by_category.sql`, `figures/latency_by_batch_width.sql`
+and `figures/tool_mix_by_turn_position.sql`.
 Otherwise the browser, and the answers
 `make data` precomputes with the browser's own queries, only filter, count,
 sum and take quantiles. With the default selection, every number a figure

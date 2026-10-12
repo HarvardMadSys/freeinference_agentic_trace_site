@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  captionText, chartFrame, colourScale, dropThinBins, foldToOther, MIN_ROWS_PER_BIN, sumFolded, weeksText,
+  captionText, categoryRowsFrame, chartFrame, colourScale, dropThinBins, foldToOther, MIN_ROWS_PER_BIN, sumFolded, weeksText,
 } from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
@@ -88,4 +88,11 @@ test("a colour scale keeps each shown name's colour from the map, in the order s
     domain: ["m3", "m1"],
     range: ["var(--series-3)", "var(--series-1)"],
   });
+});
+
+test("a chart of category rows is as tall as its rows need, with room for their names", () => {
+  const frame = categoryRowsFrame({ clientWidth: 600 }, 15);
+  assert.equal(frame.width, 600);
+  assert.equal(frame.height, 15 * 22 + 60);
+  assert.equal(frame.marginLeft, 96);
 });

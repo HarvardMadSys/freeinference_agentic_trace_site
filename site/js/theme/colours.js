@@ -58,6 +58,15 @@ export const TRANSITION_COLOURS = Object.freeze({
 });
 
 /**
+ * The colour of each line of the tool latency by batch width: the tool wait of a batch in the colour of a wait for a
+ * tool, and the calls made one per request in the ink of a request, as on the Session page's Timeline.
+ */
+export const BATCH_COLOURS = Object.freeze({
+  batched: "var(--cause-tool)",
+  serial: "var(--color-text-muted)",
+});
+
+/**
  * The colour of each tool group of the tool mix along a turn, by the group's name in the pipeline's order, the same in
  * every chart; Other is the grey of a folded series.
  */
