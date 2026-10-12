@@ -12,7 +12,7 @@ with task 1.2.
 - [x] 2.1 `js/session/bucket.js` (`fetchSession`: the bucket, the gzip check, the index fallback, null when absent) with node tests on fixture bytes (gzipped and plain); `pages/session.js` opens a session from it, loading line until parsed, category colours from the shipped answer; no import of `shared/database.js` or `js/engine/` on the Session page; `loadWeekRows`, `setSession`, `runQueryWith` and `selected_session` removed with their tests; browser check at 1280 and 360 px: the largest session (week 2026-08-30) and a session with subagents opened by the top-level id, by a subagent's id and by a wrong id, with the network tab showing one bucket fetch (two for a subagent's id) and no `.wasm` or `.parquet`.
 
 ## 3. The stats strip
-- [ ] 3.1 `landing/stats.js` reads `trace_totals`: weeks, sessions, requests, input tokens, tool calls over every harness, harnesses "13 (+1)"; the line names the span of dates only; the Session Explorer's count line reads "12,002 sessions" and "N of 12,002 sessions" under a filter; tests and the specs' scenario strings follow.
+- [x] 3.1 `landing/stats.js` reads `trace_totals`: weeks, sessions, requests, input tokens, tool calls over every harness, harnesses "13 (+1)"; the line names the span of dates only; the Session Explorer's count line reads "12,002 sessions" and "N of 12,002 sessions" under a filter; tests and the specs' scenario strings follow.
 
 ## 4. Close
 - [ ] 4.1 README (what a visitor downloads, the data folder's contents and size, the layout lines, the measurements for the Session page redone), CONTRIBUTING (how a session is served; the bucket queries), the site-data and session-page notes; `openspec validate session-buckets --strict`.

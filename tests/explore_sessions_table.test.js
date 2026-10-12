@@ -206,13 +206,13 @@ test("a table of the page's selection keeps only the selected harnesses' rows, t
   assert.deepEqual(kept.map((row) => row.session_id), ["aaaa", "cccc"]);
 });
 
-test("the count line names the benchmark's sessions, and the shown against the listed under a filter", () => {
+test("the count line counts every listed session, the benchmark's too, and the shown against them under a filter", () => {
   const listed = [
     { session_id: "aaaa", benchmark: false },
     { session_id: "bbbb", benchmark: true },
     { session_id: "cccc", benchmark: false },
   ];
-  assert.equal(sessionCountLine(listed, listed, false), "3 sessions, 1 of them benchmark replay");
+  assert.equal(sessionCountLine(listed, listed, false), "3 sessions");
   assert.equal(sessionCountLine([], listed.slice(0, 1), false), "1 session");
   assert.equal(sessionCountLine(listed.slice(0, 2), listed, true), "2 of 3 sessions");
 });

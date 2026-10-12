@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { datesLine, statsRows } from "../site/js/landing/stats.js";
+import { datesLine, harnessesText, statsRows } from "../site/js/landing/stats.js";
 import { defaultSelection } from "../site/js/shared/selection.js";
 
 // Four weeks, the last not simulated, as weeks.json holds them.
@@ -20,46 +20,51 @@ const HARNESSES = [
   { harness: "codex", sessions: 763, benchmark: false },
 ];
 
-const HEADLINE_ROW = {
-  sessions: 10967,
-  accounts: 261,
-  requests: 1125604,
-  input_tokens: 207377727534,
-  output_tokens: 540625452,
-  tool_calls: 1152306,
-  subagents: 2034,
-  reported_input_tokens: 200187812585,
-  cached_tokens: 195535670543,
+// The trace totals as the data step answers them over every week and every harness.
+const TOTALS_ROW = {
+  sessions: 12002,
+  requests: 1186582,
+  input_tokens: 209199292539,
+  tool_calls: 1213347,
+  harnesses: 14,
+  benchmark_harnesses: 1,
 };
 
-// The shipped data: the indexes and the headline answer the page reads.
+// The shipped data: the indexes and the answers the page reads.
 function shipped(path) {
   return JSON.parse(readFileSync(new URL(`../site/data/${path}`, import.meta.url), "utf8"));
 }
 
-test("the strip counts the selection's weeks and harnesses and the headline row's totals, the largest compactly", () => {
-  assert.deepEqual(statsRows(HEADLINE_ROW, defaultSelection(WEEKS, HARNESSES)), [
+test("the strip counts the selection's weeks and the trace totals, the largest compactly", () => {
+  assert.deepEqual(statsRows(TOTALS_ROW, defaultSelection(WEEKS, HARNESSES)), [
     { value: "4", label: "weeks" },
-    { value: "10,967", label: "human-driven sessions" },
-    { value: "1.1M", label: "requests" },
-    { value: "207.4B", label: "input tokens" },
+    { value: "12,002", label: "sessions" },
+    { value: "1.2M", label: "requests" },
+    { value: "209.2B", label: "input tokens" },
     { value: "1.2M", label: "tool calls" },
-    { value: "2", label: "harnesses" },
+    { value: "13 (+1)", label: "harnesses" },
   ]);
 });
 
-test("the strip over the shipped data counts every week, the paper's harnesses and the headline answer", () => {
-  const weeks = shipped("weeks.json");
-  const harnesses = shipped("harnesses.json");
-  const [headline] = shipped("all_weeks/explore/headline_numbers.json");
-  const rows = statsRows(headline, defaultSelection(weeks, harnesses));
-  assert.equal(rows[0].value, String(weeks.length));
-  assert.equal(rows[1].value, headline.sessions.toLocaleString("en-US"));
-  assert.equal(rows[5].value, String(harnesses.filter((entry) => !entry.benchmark).length));
+test("the harnesses are written with the benchmark's apart, and alone when there is none", () => {
+  assert.equal(harnessesText({ harnesses: 14, benchmark_harnesses: 1 }), "13 (+1)");
+  assert.equal(harnessesText({ harnesses: 3, benchmark_harnesses: 0 }), "3");
 });
 
-test("the dates line spans the first Sunday to the last Saturday and says the benchmark replay is not counted", () => {
-  assert.equal(datesLine(WEEKS), "May 24 – June 20, 2026 · benchmark replay not counted");
-  assert.equal(datesLine(WEEKS.slice(0, 1)), "May 24 – May 30, 2026 · benchmark replay not counted");
+test("the strip over the shipped data counts every week and the whole trace, as the Session Explorer lists it", () => {
+  const weeks = shipped("weeks.json");
+  const harnesses = shipped("harnesses.json");
+  const [totals] = shipped("all_weeks/explore/trace_totals.json");
+  const listed = shipped("all_weeks/explore/sessions_of_selection.json");
+  const rows = statsRows(totals, defaultSelection(weeks, harnesses));
+  assert.equal(rows[0].value, String(weeks.length));
+  assert.equal(rows[1].value, listed.length.toLocaleString("en-US"));
+  const benchmarks = harnesses.filter((entry) => entry.benchmark).length;
+  assert.equal(rows[5].value, `${harnesses.length - benchmarks} (+${benchmarks})`);
+});
+
+test("the dates line spans the first Sunday to the last Saturday and names nothing else", () => {
+  assert.equal(datesLine(WEEKS), "May 24 – June 20, 2026");
+  assert.equal(datesLine(WEEKS.slice(0, 1)), "May 24 – May 30, 2026");
   assert.equal(datesLine([]), "");
 });

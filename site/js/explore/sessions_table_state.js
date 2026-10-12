@@ -123,16 +123,14 @@ export function choices(rows, key, current) {
 }
 
 /**
- * The line over the table: with no filter, "12,002 sessions, 1,035 of them benchmark replay" (the second part only
- * when `listed` holds the benchmark's), else "120 of 12,002 sessions", the rows `shown` against the rows `listed`.
+ * The line over the table: with no filter, the rows `listed`, "12,002 sessions", as the stats strip counts them; else
+ * the rows `shown` against them, "120 of 12,002 sessions".
  */
 export function sessionCountLine(shown, listed, isFiltered) {
   if (isFiltered) {
     return `${formatCount(shown.length)} of ${formatCount(listed.length)} sessions`;
   }
-  const benchmark = listed.filter((row) => row.benchmark).length;
-  const benchmarkPart = benchmark === 0 ? "" : `, ${formatCount(benchmark)} of them benchmark replay`;
-  return `${formatQuantity(listed.length, "session", "sessions")}${benchmarkPart}`;
+  return formatQuantity(listed.length, "session", "sessions");
 }
 
 /** Whether `state` searches or filters by harness, model or a minimum of requests. */

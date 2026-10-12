@@ -1,8 +1,9 @@
 /**
- * The stats strip beside the hero: the weeks, human-driven sessions, requests, input tokens, tool calls and harnesses
- * of the selection (while the figures are frozen, every week and the paper's harnesses), and a line naming the span of
- * its days. The counts come from the `explore/headline_numbers` answer and the
- * selection; none is typed.
+ * The stats strip beside the hero: the whole trace as the paper's summary table counts it, the weeks, top-level
+ * sessions, their requests, input tokens and tool calls, and the harnesses, the benchmark's written apart ("13 (+1)"),
+ * and a line naming the span of its days. The counts come from the `explore/trace_totals` answer, which the data step
+ * answers over every week and every harness, and from the selection's weeks (while the figures are frozen, every week);
+ * none is typed.
  *
  * A section's `context` is what the page gives every section; see `pages/explore.js`.
  */
@@ -15,28 +16,37 @@ export function layoutStats(container) {
   showLoading(container);
 }
 
-/** Draw the stats strip into `container` from the headline answer and the selection, or the error if the query fails. */
+/** Draw the stats strip into `container` from the trace totals and the selection, or the error if the query fails. */
 export async function runStats(container, context) {
   await drawStats(container, context).catch((error) => showError(container, error));
 }
 
 /**
- * The strip's numbers `[{ value, label }]`: the selection's weeks, then the headline row's top-level sessions,
- * requests, input tokens and tool calls, then the selection's harnesses. The three largest are written compactly.
+ * The strip's numbers `[{ value, label }]`: the selection's weeks, then the totals row's top-level sessions, requests,
+ * input tokens and tool calls, and its harnesses. The three largest are written compactly.
  */
-export function statsRows(headlineRow, selection) {
+export function statsRows(totalsRow, selection) {
   return [
     { value: formatCount(selection.weeks.length), label: "weeks" },
-    { value: formatCount(headlineRow.sessions), label: "human-driven sessions" },
-    { value: formatCompactCount(headlineRow.requests), label: "requests" },
-    { value: formatCompactCount(headlineRow.input_tokens), label: "input tokens" },
-    { value: formatCompactCount(headlineRow.tool_calls), label: "tool calls" },
-    { value: formatCount(selection.harnesses.length), label: "harnesses" },
+    { value: formatCount(totalsRow.sessions), label: "sessions" },
+    { value: formatCompactCount(totalsRow.requests), label: "requests" },
+    { value: formatCompactCount(totalsRow.input_tokens), label: "input tokens" },
+    { value: formatCompactCount(totalsRow.tool_calls), label: "tool calls" },
+    { value: harnessesText(totalsRow), label: "harnesses" },
   ];
 }
 
+/**
+ * The harnesses as the paper's summary table writes them, the benchmark's apart: 14 harnesses of which 1 is the
+ * benchmark's → "13 (+1)"; with no benchmark harness, the count alone.
+ */
+export function harnessesText({ harnesses, benchmark_harnesses: benchmarkHarnesses }) {
+  const others = formatCount(harnesses - benchmarkHarnesses);
+  return benchmarkHarnesses === 0 ? others : `${others} (+${formatCount(benchmarkHarnesses)})`;
+}
+
 async function drawStats(container, context) {
-  const rows = await context.database.runQuery("explore/headline_numbers");
+  const rows = await context.database.runQuery("explore/trace_totals");
   const selectedWeeks = context.weeks.filter((entry) => context.selection.weeks.includes(entry.week));
   const items = statsRows(rows[0], context.selection).map(
     (stat) => `<li><strong>${stat.value}</strong><span>${stat.label}</span></li>`,
@@ -47,12 +57,12 @@ async function drawStats(container, context) {
 }
 
 /**
- * The line under the numbers, from the first week's Sunday to the last week's Saturday, and that the benchmark replay
- * is not in the counts: "May 17 – September 5, 2026 · benchmark replay not counted"; "" when there is no week.
+ * The line under the numbers, the span of the weeks from the first week's Sunday to the last week's Saturday: "May 17 –
+ * September 5, 2026"; "" when there is no week.
  */
 export function datesLine(weeks) {
   if (weeks.length === 0) {
     return "";
   }
-  return `${dateSpanText(weeks[0].week, weeks.at(-1).last_day)} · benchmark replay not counted`;
+  return dateSpanText(weeks[0].week, weeks.at(-1).last_day);
 }
