@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  cachedShare, elapsedSeconds, formatCount, formatDurationTick, formatElapsed, formatMultiple, formatOptionalShare,
-  formatQuantity, formatSeconds, formatShare, formatTokens, monthName, shortSessionId, utcMinute,
+  cachedShare, elapsedSeconds, formatCount, formatDurationTick, formatElapsed, formatHours, formatMultiple,
+  formatOptionalShare, formatQuantity, formatSeconds, formatShare, formatTokens, monthName, shortSessionId, utcMinute,
   elapsedTickFormat, formatBinaryThousands, formatCompactCount, formatPercent, formatTtlName, monthAndDay,
   dateSpanText, formatCountTick, longMinute, shortMinute, shortMonth, formatWholeCount,
 } from "../site/js/shared/format.js";
@@ -159,4 +159,10 @@ test("a span of days names the year once when both share it", () => {
 
 test("a UTC minute with its year reads as the facts card writes it", () => {
   assert.equal(longMinute(1785600660000), "Aug 1, 2026, 16:11 UTC");
+});
+
+test("a duration in hours keeps one decimal, however long", () => {
+  assert.equal(formatHours(106_920), "29.7 h");
+  assert.equal(formatHours(1_800), "0.5 h");
+  assert.equal(formatHours(356_040), "98.9 h");
 });

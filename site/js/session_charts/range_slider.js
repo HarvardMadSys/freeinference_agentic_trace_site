@@ -5,9 +5,8 @@
  * `rangeSlider` draws the strip and calls back with each range chosen.
  */
 
-import { elapsedTickFormat, formatElapsed } from "../shared/format.js";
+import { elapsedTickFormat, formatElapsed, formatHours } from "../shared/format.js";
 
-const SECONDS_PER_HOUR = 3600;
 const SECONDS_PER_DAY = 86400; // a session this long or longer reads its range in hours
 
 /** The narrowest range, as a share of the session: narrower, the two handles would sit on one another. */
@@ -93,15 +92,10 @@ export function isSameRange(first, second) {
  */
 export function rangeText(range, totalSeconds) {
   if (totalSeconds >= SECONDS_PER_DAY) {
-    return `${hoursText(range.start)}–${hoursText(range.end)} of ${hoursText(totalSeconds)}`;
+    return `${formatHours(range.start)}–${formatHours(range.end)} of ${formatHours(totalSeconds)}`;
   }
   const { format, unit } = elapsedTickFormat(totalSeconds);
   return `${format(range.start)}–${format(range.end)} of ${format(totalSeconds)} (${unit})`;
-}
-
-// Seconds as hours with one decimal: 106920 → "29.7 h".
-function hoursText(seconds) {
-  return `${(seconds / SECONDS_PER_HOUR).toFixed(1)} h`;
 }
 
 /**

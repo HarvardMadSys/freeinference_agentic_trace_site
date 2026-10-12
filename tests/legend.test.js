@@ -15,3 +15,12 @@ test("the category entries list the called categories in their group's colour, t
     { name: "Other", colour: "var(--series-other)" },
   ]);
 });
+
+test("categories that share a colour are one entry, named after their tool group, so no two entries share a swatch", () => {
+  const calls = [{ category: "Write" }, { category: "Edit" }, { category: "Read" }, { category: "MCP" }];
+  assert.deepEqual(categoryEntries(calls, toolCategoryColours(SITE_ORDER)), [
+    { name: "Read", colour: "var(--tool-group-read)" },
+    { name: "Write/Edit", colour: "var(--tool-group-write-edit)" },
+    { name: "Other", colour: "var(--series-other)" },
+  ]);
+});

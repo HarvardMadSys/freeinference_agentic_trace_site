@@ -132,6 +132,11 @@ export function formatTtlName(ttl) {
   return `${ttl.slice(0, -1)} ${TTL_UNITS[ttl.slice(-1)]}`;
 }
 
+/** A duration in hours with one decimal, whatever its length, as a range of a days-long session reads: 106920 → "29.7 h". */
+export function formatHours(seconds) {
+  return `${(seconds / SECONDS_PER_HOUR).toFixed(1)} h`;
+}
+
 /** Time since a session's start, as "M:SS", or "H:MM:SS" from an hour on: 83.9 → "1:23", 3661 → "1:01:01". */
 export function formatElapsed(seconds) {
   const wholeSeconds = Math.floor(seconds);

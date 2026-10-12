@@ -1,30 +1,35 @@
 /** The legends of the Session page's views: a titled line of colour swatches, and the tool categories' entries. */
 
-import { OTHER_NAME, OTHER_SERIES } from "../theme/colours.js";
+import { OTHER_NAME, OTHER_SERIES, TOOL_GROUP_OF_CATEGORY } from "../theme/colours.js";
 
 /**
- * The legend entries `[{ name, colour }]` of the categories of `toolCalls`, in the site-wide order of
- * `categoryColours` (a map from each category to its tool group's colour), the ones in the Other grey, the category
- * Other among them, as one entry "Other", last.
+ * The legend entries `[{ name, colour }]` of the categories of `toolCalls`, one per colour, in the site-wide order of
+ * `categoryColours` (a map from each category to its tool group's colour): named after the category when it is the
+ * only one called in its colour, after its tool group when several are (a chip's tooltip names its category); the
+ * ones in the Other grey, the category Other among them, as one entry "Other", last.
  */
 export function categoryEntries(toolCalls, categoryColours) {
   const called = new Set(toolCalls.map((call) => call.category));
-  const categories = [];
-  let hasFolded = false;
+  const categoriesByColour = new Map(); // each colour of a called category, in site-wide order, and its categories
   for (const [category, colour] of categoryColours) {
     if (!called.has(category)) {
       continue;
     }
-    if (colour === OTHER_SERIES) {
-      hasFolded = true;
-    } else {
-      categories.push({ name: category, colour });
+    if (!categoriesByColour.has(colour)) {
+      categoriesByColour.set(colour, []);
+    }
+    categoriesByColour.get(colour).push(category);
+  }
+  const entries = [];
+  for (const [colour, categories] of categoriesByColour) {
+    if (colour !== OTHER_SERIES) {
+      entries.push({ name: entryName(categories), colour });
     }
   }
-  if (hasFolded) {
-    categories.push({ name: OTHER_NAME, colour: OTHER_SERIES });
+  if (categoriesByColour.has(OTHER_SERIES)) {
+    entries.push({ name: OTHER_NAME, colour: OTHER_SERIES });
   }
-  return categories;
+  return entries;
 }
 
 /**
@@ -57,4 +62,9 @@ export function legendLine(title, entries) {
     line.append(item);
   }
   return line;
+}
+
+// A colour's entry is named after its one category, or after the tool group its several categories share.
+function entryName(categories) {
+  return categories.length === 1 ? categories[0] : TOOL_GROUP_OF_CATEGORY[categories[0]];
 }

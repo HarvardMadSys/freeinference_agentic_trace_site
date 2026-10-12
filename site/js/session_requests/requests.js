@@ -13,6 +13,7 @@ import { overlapGroups } from "../session/overlaps.js";
 import { requestRow } from "./request_row.js";
 import { requestLegend } from "./request_legend.js";
 import { agentTree, callsByRequest, largestRequestTokens, requestKey } from "../session/tree.js";
+import { figureDefinition } from "../shared/charts.js";
 import { formatCount, formatSeconds, formatTokens, shortSessionId } from "../shared/format.js";
 
 // How long a row the URL points at stays highlighted, in milliseconds.
@@ -21,7 +22,7 @@ const HIGHLIGHT_MS = 2500;
 // The line over the list saying how its times are written, since the list has no column headings.
 const TIME_UNIT_NOTE = "Times since the session's first request, in m:ss, or h:mm:ss from an hour on.";
 
-// What the view draws, behind its Definition control under the list.
+// What the view draws, behind its Definition control above the list.
 const DEFINITION =
   "One row per request in start order, each subagent's rows in a group under the step that spawned it. A bar is " +
   "the request's cached input, uncached input and output tokens against the largest request's; output is often a " +
@@ -44,13 +45,14 @@ export function mountRequestsView(container, tree, requests, toolCalls, options)
   list.className = "request-list";
   const rowsByKey = new Map(); // each request's row element, by `requestKey`
   appendAgent(list, agentTree(tree, requests), { layout, calls, rowsByKey });
-  const definition = definitionControl();
+  const definition = figureDefinition(DEFINITION);
   const bracketNote = definition.querySelector(".figure-rows");
+  bracketNote.hidden = true; // shown when some overlap brackets find no lane
   const legend = requestLegend(toolCalls, categoryColours);
   const timeUnit = document.createElement("p");
   timeUnit.className = "figure-caption";
   timeUnit.textContent = TIME_UNIT_NOTE;
-  container.replaceChildren(requestToolbar(list, tree.length > 1), legend, timeUnit, list, definition);
+  container.replaceChildren(requestToolbar(list, tree.length > 1), legend, timeUnit, definition, list);
   const stopBrackets = watchBrackets(list, overlapGroups(requests), requests, rowsByKey, bracketNote);
   focusAddress(container, list, rowsByKey, options);
   return stopBrackets;
@@ -168,21 +170,6 @@ function watchBrackets(list, groups, requests, rowsByKey, note) {
 function showUndrawn(note, undrawn) {
   note.hidden = undrawn === 0;
   note.textContent = `${formatCount(undrawn)} overlap brackets are not drawn here.`;
-}
-
-/** The Definition control under the list: what the view draws, and a line for the brackets not drawn. */
-function definitionControl() {
-  const details = document.createElement("details");
-  details.className = "figure-definition";
-  const summary = document.createElement("summary");
-  summary.textContent = "Definition";
-  const text = document.createElement("p");
-  text.textContent = DEFINITION;
-  const rows = document.createElement("p");
-  rows.className = "figure-rows";
-  rows.hidden = true;
-  details.append(summary, text, rows);
-  return details;
 }
 
 /** The element that stands for `row` on screen: the row, or the header of the outermost collapsed group around it. */

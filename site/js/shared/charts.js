@@ -128,18 +128,28 @@ export function renderFigure(container, { title, caption, definition, rows = "" 
     <h3 class="figure-title"></h3>
     <p class="figure-caption"></p>
     <div class="figure-legend legend"></div>
-    <div class="figure-body"></div>
-    <details class="figure-definition">
-      <summary>Definition</summary>
-      <p class="figure-definition-text"></p>
-      <p class="figure-rows"></p>
-    </details>`;
+    <div class="figure-body"></div>`;
   figure.querySelector(".figure-title").textContent = title;
   figure.querySelector(".figure-caption").textContent = caption;
-  figure.querySelector(".figure-definition-text").textContent = definition;
-  figure.querySelector(".figure-rows").textContent = rows;
+  figure.append(figureDefinition(definition, rows));
   container.replaceChildren(figure);
   return figure.querySelector(".figure-body");
+}
+
+/**
+ * A figure's Definition control: a closed `<details>` that opens on `definition` and, under it, `rows`, the line of
+ * the rows it rests on (its element has the class `figure-rows`).
+ */
+export function figureDefinition(definition, rows = "") {
+  const details = document.createElement("details");
+  details.className = "figure-definition";
+  details.innerHTML = `
+    <summary>Definition</summary>
+    <p class="figure-definition-text"></p>
+    <p class="figure-rows"></p>`;
+  details.querySelector(".figure-definition-text").textContent = definition;
+  details.querySelector(".figure-rows").textContent = rows;
+  return details;
 }
 
 /** The place above a figure's body, as `renderFigure` lays it out, where its legend goes. */
