@@ -22,6 +22,7 @@ import { formatCountTick, formatQuantity } from "../shared/format.js";
 const SUBAGENT_LINE_OPACITY = 0.8;
 
 const TRANSITION_DOT_RADIUS = 3.5; // pixels: small markers
+const DOT_RING = { stroke: "var(--color-surface)", strokeWidth: 1.5 }; // a ring in the card colour keeps a dot visible on a band of its own colour
 const TURN_DASH = "2 3"; // dash and gap of a turn's dotted rule, in pixels
 const TURN_START_COLOUR = AXIS_STYLE.stroke; // a turn's dotted rule is drawn in the axis ink
 
@@ -157,7 +158,7 @@ function transitionDots(Plot, marks) {
   const dots = [];
   for (const [transition, colour] of Object.entries(MARK_COLOURS)) {
     const marked = marks.filter((point) => point.transition === transition);
-    dots.push(Plot.dot(marked, { x: "elapsed", y: "inputTokens", r: TRANSITION_DOT_RADIUS, fill: colour }));
+    dots.push(Plot.dot(marked, { x: "elapsed", y: "inputTokens", r: TRANSITION_DOT_RADIUS, fill: colour, ...DOT_RING }));
   }
   return dots;
 }

@@ -92,16 +92,22 @@ export function renderHeader(container, activeFile, carried) {
     </div>`;
 }
 
+// The header containers whose links row is already wired, so a redraw of the header adds no second listener.
+const WIRED_HEADERS = new WeakSet();
+
 /**
  * Draw the site header into `container` as `renderHeader` does, and wire its links: on a phone they scroll sideways in
- * one row, whose right edge fades while more links lie beyond it.
+ * one row, whose right edge fades while more links lie beyond it. A redraw into the same container keeps the wiring.
  */
 export function mountHeader(container, activeFile, carried) {
+  if (!WIRED_HEADERS.has(container)) {
+    WIRED_HEADERS.add(container);
+    // A scroll does not bubble, so the container hears the row's in the capture phase.
+    container.addEventListener("scroll", (event) => markMoreBeyondEdge(event.target), true);
+    new ResizeObserver(() => markMoreBeyondEdge(container.querySelector(".site-nav"))).observe(container);
+  }
   renderHeader(container, activeFile, carried);
-  const nav = container.querySelector(".site-nav");
-  nav.addEventListener("scroll", () => markMoreBeyondEdge(nav));
-  // The observer also marks the row once when it starts, after its first layout.
-  new ResizeObserver(() => markMoreBeyondEdge(nav)).observe(nav);
+  markMoreBeyondEdge(container.querySelector(".site-nav"));
 }
 
 /**

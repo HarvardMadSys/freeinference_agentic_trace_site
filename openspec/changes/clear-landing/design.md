@@ -114,7 +114,7 @@ parts (the whole input on Tokens per request, storage on Infrastructure
 cost by TTL) it takes violet, the one slot neither a token part nor a time
 part uses. Eight slots cannot hold every family apart: the tool groups
 take all eight, and the ask-user wait cause shares amber with uncached
-input, on charts of other forms; their legends name them.
+input, in another section; their legends name them.
 
 The hues are not evenly spread. Four are the paper's (blue, orange, green
 and red), and the paper's red and orange stand only 26° apart in OKLCH;

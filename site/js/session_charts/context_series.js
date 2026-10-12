@@ -16,8 +16,8 @@ import { elapsedSeconds, formatElapsed, formatTokens } from "../shared/format.js
 export const AREA_SPLITS = Object.freeze({ tokens: "Cached and uncached", roles: "By role" });
 
 /**
- * The colour of each agent's line: the top-level session's, and every subagent's. The subagents' slot is one neither
- * split of the area uses, so a subagent's line never reads as a part of the top-level session's input.
+ * The colour of each agent's line: the top-level session's, and every subagent's. The subagents' slot is one the
+ * token split of the area does not use; in the role split it is also the system role's, a line against an area.
  */
 export const AGENT_LINE_COLOURS = Object.freeze({ main: SERIES_SLOTS[0], subagents: SERIES_SLOTS[6] });
 

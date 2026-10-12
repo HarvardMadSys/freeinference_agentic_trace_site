@@ -2,8 +2,8 @@
 
 Each figure's Definition on the Explore page says what the site draws; this
 is every place where that differs from the paper. `tests/test_differences.py`
-checks that every figure whose definition names the paper is listed here, and
-that the numbers below are the queries' and the pipeline's.
+checks that no figure's definition names the paper, and that the numbers
+below are the queries' and the pipeline's.
 
 - **Every figure**: a bin with fewer than 50 rows is hidden, and the figure
   says how many were; the paper also drops thin size bins, but merges an

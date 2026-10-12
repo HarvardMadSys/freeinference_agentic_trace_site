@@ -63,15 +63,15 @@ not compress) on the same machine, in headless Chromium, three runs each:
 
 - The Explore page draws every trend, headline number,
   figure and the session list in 0.9–1.2 s (median 1.1 s). It makes 143
-  requests: 91 to the site (the page and its style sheet, 43 modules, 46 data
-  files: `weeks.json`, `harnesses.json` and 44 answers) and 52 to the CDN
+  requests: 91 to the site (the page and its style sheet, 44 modules, 45 data
+  files: `weeks.json`, `harnesses.json` and 43 answers) and 52 to the CDN
   (Observable Plot with its modules, and the web fonts). The site's own files come to 5.2 MB,
   4.8 MB of them data and 4.0 MB the session list's answer; gzipped, as a
   static host serves them, 1.0 MB, plus 0.35 MB of libraries and fonts as the
   CDN sends them. No `.wasm` and no `.parquet` is fetched.
 - The Session page draws the Requests view of its largest session (5,040
   requests, week of 2026-08-30) in 2.8–3.1 s (median 3.0 s), or 7.5 s with 40 ms of latency
-  and 50 Mbit/s: 125 requests, 17 of them to `data/` (three JSON files, the
+  and 50 Mbit/s: 126 requests, 17 of them to `data/` (three JSON files, the
   week's four row files whole, 13.6 MB, and ten small range reads of their
   sizes and footers), and 7.5 MB of DuckDB-WASM and the other libraries
   from the CDN.
