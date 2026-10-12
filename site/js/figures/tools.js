@@ -50,6 +50,9 @@ const MEDIAN_TICK_INSET = 4; // pixels taken off the top and bottom of a categor
 // The note over a quantile-range chart: what the asterisk before a category's name means.
 const ASTERISK_NOTE = "* a shell command, by its purpose";
 
+/** The Tools topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
+export const TAKEAWAY = "Tool latency and result size differ by category; most calls go one at a time, though batching keeps latency flat.";
+
 /** The figures of the Tools section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
   Object.freeze({

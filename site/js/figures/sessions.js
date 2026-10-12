@@ -1,7 +1,7 @@
 /**
- * The Sessions section of the Explore page's figures: how many requests and steps a session holds, how long its turns
- * and the session last, how many subagents it spawns, and how long its user prompts are, human-driven against
- * benchmark, drawn in `comparison/scope_cdfs.js`.
+ * The Session-structure section of the Explore page's figures: how many requests and steps a session holds, how long
+ * its turns and the session last, how many subagents it spawns, and how long its user prompts are, human-driven
+ * against benchmark, drawn in `comparison/scope_cdfs.js`.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. A figure of more than one series colours each
  * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
@@ -27,7 +27,10 @@ const DURATION_TICKS_S = Object.freeze([1, 60, 3600, 86400]); // a second, a min
 // The subagents axis's ticks: a 1, 3, 10, 30 series is evenly spaced on a log axis, where 1, 2, 3, 10, 20, 30 is not.
 const SUBAGENT_TICKS = Object.freeze([1, 3, 10, 30]);
 
-/** The figures of the Sessions section, in the order the page shows them. */
+/** The Session-structure topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
+export const TAKEAWAY = "A session is a few prompts and tens of model and tool steps, with long idle gaps between turns.";
+
+/** The figures of the Session-structure section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
   Object.freeze({
     name: "requests_per_session_cdf",

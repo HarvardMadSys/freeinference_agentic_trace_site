@@ -82,6 +82,9 @@ export const SPEEDUP_IF_TWICE_AS_FAST = Object.freeze({
   draw: drawSpeedups,
 });
 
+/** The Latency topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
+export const TAKEAWAY = "Serving overheads shape time to first token, tools dominate active time, and user idle dominates the session.";
+
 /** The figures of the Latency section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
   TTFT_CDF_BY_MODEL,

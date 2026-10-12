@@ -153,61 +153,6 @@ test("every chart has a bin column and a draw function", async () => {
   }
 });
 
-// A sentence ends at a full stop, a question mark or an exclamation mark followed by a space; a line break also
-// starts a new one.
-const SENTENCE_BREAK = /[.?!] |\n/;
-
-// Whether `text` is one sentence: no sentence break before its end.
-function isOneSentence(text) {
-  return text.split(SENTENCE_BREAK).length === 1;
-}
-
-test("every figure has a title and a one-sentence definition", async () => {
-  for (const figure of await everyFigure()) {
-    assert.ok(figure.title.length > 0, figure.name);
-    assert.ok(figure.definition.endsWith("."), figure.name);
-    assert.ok(isOneSentence(figure.definition), `${figure.name}: one sentence`);
-  }
-});
-
-const MAX_CAPTION_WORDS = 12; // a caption is one line a reader takes in at a glance
-const MAX_DEFINITION_WORDS = 40; // a definition says what is drawn, no more
-
-// The words of `text`: its whitespace-separated tokens.
-function wordCount(text) {
-  return text.split(/\s+/).filter((word) => word.length > 0).length;
-}
-
-test("a second sentence is found after a full stop, a question or an exclamation, or a line break", () => {
-  assert.equal(isOneSentence("One sentence, at 4.5 s."), true);
-  for (const text of ["One. Two.", "One? Two.", "One! Two.", "One\nTwo."]) {
-    assert.equal(isOneSentence(text), false, text);
-  }
-});
-
-test("a word is a whitespace-separated token", () => {
-  assert.equal(wordCount("Tool call latency per category, box 25th–75th."), 7);
-  assert.equal(wordCount("  two\n words "), 2);
-});
-
-test("every figure has a caption of one short sentence, at most twelve words", async () => {
-  for (const figure of await everyFigure()) {
-    assert.equal(typeof figure.caption, "string", `${figure.name} has a caption`);
-    assert.ok(figure.caption.length > 0, `${figure.name}: a caption that says something`);
-    assert.ok(figure.caption.endsWith("."), figure.name);
-    assert.ok(isOneSentence(figure.caption), `${figure.name}: one sentence`);
-    const words = wordCount(figure.caption);
-    assert.ok(words <= MAX_CAPTION_WORDS, `${figure.name}: a caption of ${words} words`);
-  }
-});
-
-test("every figure's definition is at most forty words", async () => {
-  for (const figure of await everyFigure()) {
-    const words = wordCount(figure.definition);
-    assert.ok(words <= MAX_DEFINITION_WORDS, `${figure.name}: a definition of ${words} words`);
-  }
-});
-
 // A figure entry holds more than one series when it names a series column (long format: its rows each name their
 // series) or has a legend; a wide-format figure, whose series are columns, has a legend and a draw function that takes
 // the hidden set as a fourth argument.

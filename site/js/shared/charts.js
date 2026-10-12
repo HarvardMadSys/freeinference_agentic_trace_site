@@ -117,23 +117,27 @@ export function showError(container, error) {
 }
 
 /**
- * Fill `container` with a figure card, in this order: its title, its caption (one short line), an empty place for its
- * legend, an empty body to draw into, and a Definition control that opens on its full definition and the line of rows
- * it rests on, `rows`, which may also be written later into the card's `.figure-rows`. Return the body.
+ * Fill `container` with a figure card and return its body, the empty place to draw into. A card with an `insight`, one
+ * sentence of what the chart means, shows its title, the insight, an empty place for its legend, the body and its
+ * caption (one short line of what is drawn); a card without one shows its title, its caption, the legend's place and
+ * the body. Both end in a Definition control that opens on the full definition and the line of rows it rests on,
+ * `rows`, which may also be written later into the card's `.figure-rows`.
  */
-export function renderFigure(container, { title, caption, definition, rows = "" }) {
+export function renderFigure(container, { title, insight = null, caption, definition, rows = "" }) {
   const figure = document.createElement("div");
   figure.className = "figure";
-  figure.innerHTML = `
-    <h3 class="figure-title"></h3>
-    <p class="figure-caption"></p>
-    <div class="figure-legend legend"></div>
-    <div class="figure-body"></div>`;
-  figure.querySelector(".figure-title").textContent = title;
-  figure.querySelector(".figure-caption").textContent = caption;
+  const titleLine = textElement("h3", "figure-title", title);
+  const captionLine = textElement("p", "figure-caption", caption);
+  const legend = textElement("div", "figure-legend legend", "");
+  const body = textElement("div", "figure-body", "");
+  if (insight === null) {
+    figure.append(titleLine, captionLine, legend, body);
+  } else {
+    figure.append(titleLine, textElement("p", "figure-insight", insight), legend, body, captionLine);
+  }
   figure.append(figureDefinition(definition, rows));
   container.replaceChildren(figure);
-  return figure.querySelector(".figure-body");
+  return body;
 }
 
 /**
@@ -244,4 +248,12 @@ function barHeight(y, stacked) {
 
 function barTipText(row, { x, y, fill, yLabel, format }) {
   return `${row[fill]}\n${row[x]}\n${yLabel}: ${format(row[y])}`;
+}
+
+// An element of `tagName` with the class `className` holding `text`.
+function textElement(tagName, className, text) {
+  const element = document.createElement(tagName);
+  element.className = className;
+  element.textContent = text;
+  return element;
 }

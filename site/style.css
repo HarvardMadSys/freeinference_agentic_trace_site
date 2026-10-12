@@ -1076,8 +1076,9 @@ section[id] {
 }
 
 /*
- * A figure card in a grid lays its five parts (title, caption, legend, chart, Definition) on its row's tracks, so the
- * charts of a row start at one height whatever the length of their captions and legends.
+ * A figure card in a grid lays its parts on its row's tracks, so the charts of a row start at one height whatever the
+ * length of their insights, captions and legends: a trend's five (title, caption, legend, chart, Definition), an
+ * insight's six (title, insight, legend, chart, caption, Definition).
  */
 .card-grid > .card,
 .trend-grid > .card {
@@ -1088,6 +1089,10 @@ section[id] {
   row-gap: 0;
   min-width: 0;
   margin-bottom: 1.5rem;
+}
+
+.card-grid > .card {
+  grid-row: span 6;
 }
 
 .card-grid > .card > .figure,
@@ -1107,6 +1112,7 @@ section[id] {
 /* The parts are spaced by their own margins, not the rows' gap, so a legend place that is empty in every card of a
    row takes no room at all. */
 .card-grid > .card .figure-title,
+.card-grid > .card .figure-insight,
 .card-grid > .card .figure-caption,
 .card-grid > .card .figure-legend:not(:empty),
 .card-grid > .card .figure-body,
@@ -1135,7 +1141,7 @@ section[id] {
   gap: 1.5rem;
 }
 
-/* A topic's number before its heading, in the eyebrow's monospace and the accent: "01 Sessions". */
+/* A topic's number before its heading, in the eyebrow's monospace and the accent: "01 Session structure". */
 .topic-number {
   margin-right: 0.6rem;
   font-family: var(--font-mono);
@@ -1144,6 +1150,22 @@ section[id] {
   letter-spacing: 0.13em;
   vertical-align: 0.3em;
   color: var(--color-accent);
+}
+
+/* A topic's takeaway under its heading: one sentence in the muted ink at the lede's size, close to the heading it
+   belongs to. */
+.topic-takeaway {
+  margin: -0.75rem 0 0;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+/* On a phone the takeaway steps down to the body's size, so a twenty-word sentence takes three lines, not four. */
+@media (max-width: 40rem) {
+  .topic-takeaway {
+    font-size: 1rem;
+  }
 }
 
 /* A figure's card may shrink below its content, so a wide chart scrolls inside the card, not the page. */
@@ -1170,7 +1192,19 @@ section[id] {
   margin: 0;
 }
 
-/* The one short line under a figure's title. */
+/* A figure's point, under its title: one sentence in the body's size and ink, a rule in the accent on its left. It
+   keeps to its own lines when a neighbour's insight takes more. */
+.figure-insight {
+  align-self: start;
+  margin: 0;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--color-accent);
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--color-text);
+}
+
+/* The one short line of what a figure draws: under its chart where the card has an insight, else under its title. */
 .figure-caption {
   font-size: 0.875rem;
   color: var(--color-text-muted);

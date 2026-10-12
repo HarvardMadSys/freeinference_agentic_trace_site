@@ -187,8 +187,8 @@ site/              exactly the files that are deployed
   js/simulation/   the Prefix-caching section's figures of the cache simulation: prefill and costs
   js/comparison/   the figures that compare human-driven sessions with the benchmark's: the Human-driven-against-
                    benchmark section's module, comparison, the modules that draw them (scope_cdfs, tool_mix; the
-                   user prompt size and the tool mix are listed in the Sessions and Tools sections), and scopes, the
-                   two scopes they compare
+                   user prompt size and the tool mix are listed in the Session-structure and Tools sections), and
+                   scopes, the two scopes they compare
   js/session/      the Session page's address, agent tree, facts, legends, overlap grouping, token parts and
                    chart frame
   js/session_requests/  the Requests view: a row per request, its details (each call's programs and argument

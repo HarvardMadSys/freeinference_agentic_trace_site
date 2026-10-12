@@ -51,6 +51,9 @@ const MIN_TOKENS_DRAWN = 1; // a token count below one (a request with nothing u
 const MARKER_RADIUS = 3; // pixels; the small markers on the token growth lines
 const MAX_BAR_LABELS = 5; // a bar chart's axis labels at most this many bars, so the labels fit a phone's width
 
+/** The Tokens-and-cost topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
+export const TAKEAWAY = "Requests reuse large, growing contexts while adding little, so cache reads dominate tokens and cost.";
+
 /** The figures of the Tokens-and-cost section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
   Object.freeze({

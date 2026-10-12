@@ -9,7 +9,7 @@ and no data change is expected.
 - [x] 1.2 The name and the footer: the hero's title is "FreeInference Agentic Dataset" (the second phrase in the accent), no eyebrow above it, the week count folded into the lede's first clause; the header and footer brand reads "FreeInference Agentic Dataset"; the footer keeps the brand line and the on-site and elsewhere links and loses the copyright line and the policy links; the `URLS` entries only they used go.
 
 ## 2. The insight line and the topic takeaway
-- [ ] 2.1 `renderFigure` takes `insight`, a sentence rendered under the title before the legend as `.figure-insight`; each topic heading takes a `takeaway` sentence rendered under it as `.topic-takeaway`; CSS for both in the Open Data look at 1280 and 360 px, both schemes; the node test that counts caption words also counts an insight (≤ 12 words) and a takeaway (≤ 20 words), and fails on a card without an insight.
+- [x] 2.1 `renderFigure` takes `insight`, a sentence rendered under the title before the legend as `.figure-insight`; each topic heading takes a `takeaway` sentence rendered under it as `.topic-takeaway`; CSS for both in the Open Data look at 1280 and 360 px, both schemes; the node test that counts caption words also counts an insight (≤ 12 words) and a takeaway (≤ 20 words), and fails on a card without an insight.
 
 ## 3. The insights, by topic (the sentences are in design.md §4)
 - [ ] 3.1 Session structure and Tokens and cost: ten cards and two takeaways.

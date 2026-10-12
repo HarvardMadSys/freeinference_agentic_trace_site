@@ -2,7 +2,8 @@
  * The Human-driven-against-benchmark CDFs of turn duration, session duration, input per request and user prompt tokens:
  * each a CDF per scope, human-driven and benchmark, each median marked with its value and a dotted line between the two
  * medians, as the paper draws them; the legend says which scope's median is the larger and by how much. The
- * first three are listed in `comparison.js`, the user prompt size in the Sessions section (`figures/sessions.js`).
+ * first three are listed in `comparison.js`, the user prompt size in the Session-structure section
+ * (`figures/sessions.js`).
  *
  * Every row of their queries is one CDF point of one scope: `series` (the scope, by the pipeline's name of it), `x` and
  * `share`; the same on every row of a scope, `rows` (what the scope's CDF is over) and `median`; and the same on every

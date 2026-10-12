@@ -29,6 +29,9 @@ const IDLE_GAP_TICK_SECONDS = Object.freeze([10, 60, 600, 3600]);
 
 const MARKER_RADIUS = 3; // pixels; the small markers on the idle-gap lines
 
+/** The Prefix-caching topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
+export const TAKEAWAY = "Reuse is high inside model and tool loops and breaks on user waits and context mutations.";
+
 /** The figures of the Prefix-caching section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
   GAP_FIGURES.hitRatioByGapBin,

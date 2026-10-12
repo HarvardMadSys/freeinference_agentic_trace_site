@@ -30,7 +30,8 @@ import { drawWithLegend, shownRows } from "./legend.js";
 
 /**
  * Each figure section of the page, in the page's order: the element its figures go in, and the module listing them.
- * Every section module exports its figures as `FIGURES`, so each is imported by its path rather than under a second name.
+ * Every section module exports its figures as `FIGURES` and its topic's takeaway as `TAKEAWAY`, so each is imported by
+ * its path rather than under a second name.
  */
 export const FIGURE_SECTIONS = Object.freeze([
   Object.freeze({ selector: "#insights-sessions", module: "../figures/sessions.js" }),
@@ -260,11 +261,15 @@ function layOutPlaces(figures) {
   return places;
 }
 
-/** Every figure of every section, each with a new card in its section's grid: `[{ figure, card }]`. */
+/**
+ * Every figure of every section, each with a new card in its section's grid, `[{ figure, card }]`; each section's
+ * takeaway is written under its heading.
+ */
 async function placeCards() {
   const cards = [];
   for (const section of FIGURE_SECTIONS) {
-    const { FIGURES } = await import(section.module);
+    const { FIGURES, TAKEAWAY } = await import(section.module);
+    placeTakeaway(document.querySelector(section.selector), TAKEAWAY);
     const grid = document.querySelector(`${section.selector} .card-grid`);
     for (const figure of FIGURES) {
       const card = document.createElement("article");
@@ -275,4 +280,12 @@ async function placeCards() {
     }
   }
   return cards;
+}
+
+/** Write `takeaway`, the topic's one sentence, under the heading of `section`. */
+function placeTakeaway(section, takeaway) {
+  const line = document.createElement("p");
+  line.className = "topic-takeaway";
+  line.textContent = takeaway;
+  section.querySelector("h2").after(line);
 }

@@ -164,9 +164,11 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   cost), `latency.js` (Latency), `tools.js` (Tools), `caching.js` (Prefix
   caching) and `js/comparison/comparison.js` (Human-driven against
   benchmark), each taking entries from the modules beside it, from
-  `js/simulation/` or from `js/comparison/`. `explore/figure_sections.js`
-  lists the six in `FIGURE_SECTIONS`, and `index.html` holds a section with
-  a heading and a card grid for each.
+  `js/simulation/` or from `js/comparison/`. Each section module also
+  exports `TAKEAWAY`, its topic's finding in one sentence of at most twenty
+  words, which the page writes under the topic's heading.
+  `explore/figure_sections.js` lists the six in `FIGURE_SECTIONS`, and
+  `index.html` holds a section with a heading and a card grid for each.
 
 ## Patterns to copy
 
@@ -206,14 +208,20 @@ that crosses a boundary, and functions that each do one job.
 
 **A figure entry** (listed in its section module's `FIGURES`). Every
 figure of the Explore page is one frozen object with these fields; the
-page draws its card (title, caption, legend, chart, and a Definition control
-that opens on the definition and the line of rows), reads its query's
+page draws its card (title, insight, legend, chart, caption, and a Definition
+control that opens on the definition and the line of rows), reads its query's
 answer, hides its thin bins, writes its line of rows and calls `draw`:
 
 - `name`: the figure's id, also the id of its card on the page.
-- `title`: the card's heading.
-- `caption`: the card's one short line, a sentence of at most twelve words, with
-  nothing the axes and legend already say.
+- `title`: the card's heading, at most five words.
+- `insight`: the card's point, under its title: one sentence of at most
+  twelve words saying what the chart means, not what it draws ("Sessions are
+  mostly idle time between turns."); a number appears only where the number
+  is the point. The sentences are the paper's claims, and no test checks one
+  against the data.
+- `caption`: the card's one short line under the chart, a sentence of at most
+  twelve words saying what is drawn, with nothing the axes and legend already
+  say.
 - `definition`: one sentence of at most forty words saying what is drawn, in
   plain words ("share of requests at or below each …", not "CDF");
   where the site draws more simply than the paper, `docs/differences.md`
@@ -276,6 +284,7 @@ summary and the tooltip), `tickFormat` (optional, a value on the axis),
 Object.freeze({
   name: "tokens_per_request_cdf",
   title: "Tokens per request",
+  insight: "Each request adds little to a large context.",
   definition: "Share of requests with at most each number of input tokens, uncached input tokens (where the provider reports cache reads) and output tokens (where there are more than one).",
   caption: "Input, uncached input and output tokens of each request.",
   drawsLines: true,
@@ -288,7 +297,7 @@ Object.freeze({
 }),
 ```
 
-**Adding a figure.** A figure ends at its answer and its caption: one query,
+**Adding a figure.** A figure ends at its answer and its words: one query,
 answered by `make data`, one draw function over the answer's rows, its card's
 words, and their tests. Nothing about it runs in the browser.
 
@@ -311,14 +320,16 @@ words, and their tests. Nothing about it runs in the browser.
    than the query's text.
 3. **The entry and the draw function**, in its section's module or a module
    it takes entries from (`js/figures/`, `js/simulation/`, `js/comparison/`):
-   a frozen figure entry with its `title`, a `caption` of one sentence of at
-   most twelve words and a one-sentence `definition` of at most forty, and a
+   a frozen figure entry with its `title`, an `insight` and a `caption`, each
+   one sentence of at most twelve words, and a one-sentence `definition` of at
+   most forty, and a
    draw function that loads Plot where it needs it and colours its series
    from `colours`. Its
    pure parts (rows to series, bars or stacks) are exported and tested with
    `node --test`. Add its name to its section's list in `SECTION_FIGURES` of
-   `tests/figure_sections.test.js`, which checks the caption, the definition
-   and the legend's shape.
+   `tests/figure_sections.test.js`, which checks the legend's shape;
+   `tests/figure_words.test.js` counts the words of its insight, caption and
+   definition, and of each section's takeaway.
 4. **The legend**, for a figure of more than one series: `legend(rows,
    colours, seriesColumn)` (`seriesLegend` in `figures/figure_rows.js` builds
    one from rows that name their series), and either a `seriesColumn` or a
@@ -402,9 +413,10 @@ which is plain HTML.
   segments, grid and axes in `--chart-grid` and `--chart-axis`, labels in
   `--chart-label`. Text is never coloured by series.
 - **One axis.** Two measures of different scale are two charts.
-- **The card.** A figure shows its title and a one-line caption, its legend
-  above the chart (none, and no room kept for one, where it has a single
-  series), and a Definition control that opens on its full definition and
+- **The card.** A figure of the Insights shows its title, its insight, its
+  legend above the chart (none, and no room kept for one, where it has a
+  single series), its one-line caption under the chart, and a Definition
+  control that opens on its full definition and
   the rows it rests on. A legend names only what is drawn, and everything
   drawn has an entry or a label on the chart.
 - **Axis text.** At most six ticks per axis (`axes/ticks.js`), no minor
