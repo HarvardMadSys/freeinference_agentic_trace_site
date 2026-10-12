@@ -64,14 +64,20 @@ The landing page's dormant recompute path keeps DuckDB behind
 
 A new answer `explore/trace_totals.sql`, run like the sessions table over
 every week and every harness: one row of sessions, requests, input tokens,
-tool calls, harnesses (the benchmark's included) and `benchmark_sessions`,
-`benchmark_requests`, `benchmark_harnesses`. The stats strip shows the
-totals and its line reads "May 17 – September 5, 2026 · 1,035 sessions are
-a benchmark replay, left out of the mixes and the Insights" (the numbers
-from the answer). The label reads "sessions"; the harnesses stat reads
-"13 + 1" with the tooltip "13 human-driven harnesses and the benchmark
-replay". `headline_numbers` stays for the human-driven population the
-mixes use.
+tool calls, harnesses and benchmark harnesses. The stats strip shows the
+paper's Table 1 numbers: weeks, sessions (12,002), requests, input tokens,
+tool calls and harnesses written "13 (+1)" as the paper writes it, and its
+line names the span of dates only. Nothing on the strip mentions the
+benchmark. The Session Explorer's count line reads "12,002 sessions", and
+"N of 12,002 sessions" under a filter; the BENCHMARK chip on the replay's
+rows stays. `headline_numbers` stays for the human-driven population the
+mixes and the insights use.
+
+Bucket size: two characters of the id give about 256 buckets per week,
+three to four sessions each, 120 KB raw and 20 KB gzipped on average,
+the largest 2 MB raw; one character would give 16 buckets of 2 MB raw and
+330 KB gzipped each, too much to fetch for one session; three would give
+thousands of near-empty files a week. Two is the middle.
 
 ## 4. Why not
 - One file per session: the plainest, but 12,000 files now and 750 more

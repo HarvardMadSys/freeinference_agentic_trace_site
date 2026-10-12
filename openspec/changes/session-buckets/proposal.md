@@ -26,10 +26,10 @@ every session (12,002), and the paper's Table 1 counts every session too.
 - **Parquet stays tracked** for the data step and the dormant recompute
   path; no visitor fetches it.
 - **One count everywhere.** The stats strip shows the whole trace as the
-  paper's Table 1 does (12,002 sessions, 1.19M requests, 209.2B input
-  tokens, 1.21M tool calls, 13 harnesses and the benchmark), and its line
-  says that 1,035 sessions are a benchmark replay left out of the mixes
-  and the Insights. The Session Explorer's count line then matches.
+  paper's Table 1 does: 12,002 sessions, 1.19M requests, 209.2B input
+  tokens, 1.21M tool calls, 13 (+1) harnesses, with the span of dates and
+  nothing about the benchmark. The Session Explorer's count line reads
+  "12,002 sessions" (its benchmark chip still marks the replay's rows).
 
 ## Impact
 - Specs: `site-data` (buckets and index, size limits, the trace-totals

@@ -29,12 +29,11 @@ step SHALL print the buckets' count and size.
 `make data` SHALL write `all_weeks/explore/trace_totals.json`, run like the
 sessions table's answer over every week and every harness: one row with
 the top-level sessions, requests, input tokens, tool calls and harnesses
-of the whole trace, and the benchmark replay's sessions, requests and
-harnesses among them.
+of the whole trace, and how many of the harnesses are the benchmark's.
 
 #### Scenario: The whole trace
 - **WHEN** the answer is written
-- **THEN** its sessions SHALL equal the Session Explorer's row count and its benchmark sessions the rows marked benchmark
+- **THEN** its sessions SHALL equal the Session Explorer's row count
 
 ## MODIFIED Requirements
 
