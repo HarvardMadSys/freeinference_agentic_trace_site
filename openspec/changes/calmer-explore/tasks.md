@@ -9,7 +9,7 @@ measurement goes into `design.md`.
 ## 0. Before
 
 - [x] 0.1 Archive `one-page-all-weeks` and `ship-the-data`, carrying their two unticked deploy checks into task 8.1 here.
-- [ ] 0.2 Aesthetic review: a reviewer goes through every page at desktop and 360 px, light and dark, and writes `design-review.md` beside this file: per page and per card, what to change so that a figure card is a title and one short caption with the definition and row count behind a control, a chart carries no text its axes and legend give, and spacing, sizes and type are consistent.
+- [x] 0.2 Aesthetic review: a reviewer goes through every page at desktop and 360 px, light and dark, and writes `design-review.md` beside this file: per page and per card, what to change so that a figure card is a title and one short caption with the definition and row count behind a control, a chart carries no text its axes and legend give, and spacing, sizes and type are consistent.
 
 ## 1. Site data
 
@@ -25,13 +25,13 @@ measurement goes into `design.md`.
 
 ## 3. Figures
 
-- [ ] 3.1 `prefill_against_storage` (both scopes, labelled points, log axes, tooltip) replaces `simulated_hit_ratio_by_ttl`, `retained_over_active` and `dead_over_active_by_policy`, whose queries, answers, tests, legend and About entries go; parity test against the paper's prefill and retained tokens.
-- [ ] 3.2 `api_cost_by_ttl` and `infrastructure_cost_by_ttl`: stacked multiples of the one-minute total with the knee and the minimum marked; the prices mirrored and tested; parity test against the paper's knee and minimum.
+- [x] 3.1 `prefill_against_storage` (both scopes, labelled points, log axes, tooltip) replaces `simulated_hit_ratio_by_ttl`, `retained_over_active` and `dead_over_active_by_policy`, whose queries, answers, tests, legend and About entries go; parity test against the paper's prefill and retained tokens.
+- [x] 3.2 `api_cost_by_ttl` and `infrastructure_cost_by_ttl`: stacked multiples of the one-minute total with the knee and the minimum marked; the prices mirrored and tested; parity test against the paper's knee and minimum.
 - [x] 3.3 `tool_mix_by_turn_position` (both scopes): the group rule and program sets mirrored and tested; stacked shares per tenth of a turn; parity against the paper's shares where it quotes them.
 - [x] 3.4 `calls_per_request_by_category` and `latency_by_batch_width` with the serial line; parity against the paper's numbers.
 - [ ] 3.5 `speedup_if_twice_as_fast`: three bars from the session-time parts; parity test.
 - [ ] 3.6 The four human-driven against benchmark CDFs (turn duration, session duration, input per request, user prompt tokens), each with both medians and their ratio; parity tests.
-- [ ] 3.7 `mutations_by_cause`: a table card of shares of steps, sessions and infinite-retention prefill per transition and cause; parity test.
+- [x] 3.7 `mutations_by_cause`: a table card of shares of steps, sessions and infinite-retention prefill per transition and cause; parity test.
 
 ## 4. Session page
 
