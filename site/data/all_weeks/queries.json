@@ -43,8 +43,8 @@
  "figures/requests_per_session_cdf": "0d784d7cb973ac1d4cb7c072e7f0c9e5794022ed7d4eae356153d68c00db337c",
  "figures/result_tokens_by_category": "3da901290ae0794c894d45c54bcd3933befbb6423d20f15ffff0ddf19e80f53e",
  "figures/session_duration_by_scope": "3d6a95bad252f0907b635638cc61b2e901c7ab531ade762224fc88fca1feab39",
- "figures/session_time_by_part": "f71cb8673ef699bbb6de0411c756f13e429102790a9198ea9bbf1093ff7badc8",
- "figures/speedup_if_twice_as_fast": "6a37a7a61ced056dc34e05fccf568a8c518d49b993b47f7a0fa21edef6a2741a",
+ "figures/session_time_by_part": "ce69b0a24d74508a2f439fc4da5858fd8365aa43c54f79b56a681d90ec501b3d",
+ "figures/speedup_if_twice_as_fast": "9595c59d6d4f1453fb8e10a478bbf5493d2842a672221764562c43ee8309e90d",
  "figures/token_growth_by_messages": "c29754576a48fde412db6e843488a3739d58d18f3adfba482e6ff82443b5bfd6",
  "figures/token_split_by_week": "de1373f7c2e53b07e71370737a865a7a6528f8ed10a2a10a240866030b11e8ed",
  "figures/tokens_per_request_cdf": "6edfabab82991b7bd2fef7301a3a028ea427a72ced0ba50a4c71d77e94347d00",
@@ -54,6 +54,7 @@
  "figures/turn_duration_by_scope": "fa214d114bc8855a295be7225e997806988dc6bb658756165a9d2f1887da66ac",
  "figures/user_prompt_tokens_by_scope": "52adbcb03f70da817e30a5068f0dbba331c362fe19bbd0bcf9ec6f4f680a18d4",
  "setup/category_order": "97c633d50ba8e64e8061e1e427fc1fdd8b2cdc96e5328d9eea6129c0847f66c4",
+ "setup/create_view_session_time": "582e9a366c1037a8d9be3fa78ec02da963065a498c6542b52ac5a58dd0528000",
  "setup/harness_order": "2e291bb08beb3f0d1005bb037d3bf71f5edefe1f3c48b3dca9dd8ded44044a25",
  "setup/model_order": "0a41ccab8d1dbedd55d5608e51fe2c0ce085870e0a34789819391bcf9e661619",
  "setup/provider_order": "c4b0c23a17265c41cf9b779eb8b5b3caa210c726cb20f2ae98805c6f01868b45"

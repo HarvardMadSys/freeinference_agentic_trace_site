@@ -19,7 +19,7 @@ change is expected; if one is needed, `make data` and commit `site/data`.
 
 - [ ] 3.1 Six sections as the design lists, the figure modules composed accordingly (one composing module per section; folders under nine modules); the distribution cards go except "Subagents per session" and "Cached fraction per request", which join Sessions and Tokens and cost as cards; header links and `index.html` follow.
 - [ ] 3.2 Every caption at most twelve words and every definition at most forty, counted by `tests/figure_sections.test.js`; no section intro.
-- [ ] 3.3 Session time in the paper's four parts: one query computes the per-session breakdown (prefill, decode, tool, user idle) that `session_time_by_part` and `speedup_if_twice_as_fast` both read (the speed-up's current breakdown CTE becomes that query, or a view both read); the session-time figure draws the four parts in the paper's colours with a parity test against `sessions.session_time_breakdown`'s mean shares; the mirror tests cover the one home; `make data` and commit `site/data`.
+- [x] 3.3 Session time in the paper's four parts: one query computes the per-session breakdown (prefill, decode, tool, user idle) that `session_time_by_part` and `speedup_if_twice_as_fast` both read (the speed-up's current breakdown CTE becomes that query, or a view both read); the session-time figure draws the four parts in the paper's colours with a parity test against `sessions.session_time_breakdown`'s mean shares; the mirror tests cover the one home; `make data` and commit `site/data`.
 
 ## 4. The session list
 
