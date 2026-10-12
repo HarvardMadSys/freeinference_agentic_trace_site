@@ -45,7 +45,7 @@ RESTATING_QUERIES = {
     "infrastructure_cost_by_ttl": "Infrastructure cost by TTL",
 }
 MIRROR_TESTS = sorted(pathlib.Path(__file__).resolve().parent.glob("test_pipeline_mirrors*.py"))  # read the copies
-RESTATING_SENTENCE = "Where a query restates one in SQL"  # opens each passage naming the restating queries
+RESTATING_SENTENCE = "Where a query restates one in SQL"  # opens the one passage naming the restating queries
 
 
 def about_page() -> str:
@@ -209,6 +209,9 @@ def test_the_about_page_s_release_lists_are_the_release_s() -> None:
 
 def test_the_about_page_s_tool_groups_are_the_pipeline_s() -> None:
     assert f"draws: {listed(list(trajectories.GROUPS))}." in definition("tool-group")
+    for category, group in trajectories.GROUP_OF_CATEGORY.items():
+        named = f"{category} calls are in {group}" in definition("tool-group")
+        assert named or f"{category} calls in {group}" in definition("tool-group"), category
 
 
 def test_the_about_page_s_simulation_values_are_the_simulation_s() -> None:
@@ -249,11 +252,10 @@ def test_the_about_page_names_every_query_restating_a_definition_and_a_mirror_te
     mirror_text = "".join(path.read_text() for path in MIRROR_TESTS)
     passages = [paragraph for paragraph in re.findall(r"<p>(.*?)</p>", about_page(), re.DOTALL)
                 if RESTATING_SENTENCE in paragraph]
-    assert len(passages) == 2
-    for passage in passages:
-        assert f"{NUMBER_WORDS[len(RESTATING_QUERIES)]} queries do" in passage
-        for title in RESTATING_QUERIES.values():
-            assert f"<strong>{title}</strong>" in passage, title
+    assert len(passages) == 1, "the restating queries are named once, in How the data were built"
+    assert f"{NUMBER_WORDS[len(RESTATING_QUERIES)]} queries do" in passages[0]
+    for title in RESTATING_QUERIES.values():
+        assert f"<strong>{title}</strong>" in passages[0], title
     for query, title in RESTATING_QUERIES.items():
         assert f"{query}.sql" in mirror_text, query
         assert figure_definition(title)

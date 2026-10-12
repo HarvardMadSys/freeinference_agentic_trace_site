@@ -86,7 +86,7 @@ class Database {
   #dataUrl;
   #weeks;
   #harnesses;
-  #answersOnly; // true when every answered query reads its file whatever the selection, and DuckDB never starts
+  #answersOnly; // true when a query with an answer file always reads it; DuckDB starts only for a query without one
   #selection = null; // the selection last set, `{ weeks, harnesses }`; null before the first
   #filledSelection = null; // the selection the selection tables hold; null while they hold none
   #opening = null; // the promised DuckDB, `{ engine, connection, httpProtocol }`, from the first query that needed it
