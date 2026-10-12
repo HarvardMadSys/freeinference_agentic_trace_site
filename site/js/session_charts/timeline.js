@@ -15,8 +15,8 @@ import { AXIS_STYLE, chartFrame, GRID_STYLE, renderFigure } from "../shared/char
 import { formatElapsed, formatQuantity } from "../shared/format.js";
 
 const ROW_HEIGHT = 24; // pixels per agent row
-const MAX_HEIGHT = 800; // the tallest chart, in pixels: the tallest tree in the data (41 agents) keeps 18-px rows
-const MARGINS = Object.freeze({ marginTop: 16, marginRight: 24, marginBottom: 40, marginLeft: 92 });
+const MAX_HEIGHT = 808; // the tallest chart, in pixels: the tallest tree in the data (41 agents) keeps 18-px rows
+const MARGINS = Object.freeze({ marginTop: 16, marginRight: 24, marginBottom: 48, marginLeft: 116 });
 
 // The sentence the caption must hold: the data has no tool call start times.
 const TOOL_START_NOTE = "A tool call's start is taken as its request's end.";

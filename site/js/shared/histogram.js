@@ -25,12 +25,12 @@ const PERCENTILE_LINES = [
 
 // A card's chart differs from the shared frame in these: a lower chart, room above it for two rows of percentile
 // labels, room left of it for a count of seven digits with its separators, and less below it.
-const CARD_FRAME = Object.freeze({ height: 220, marginTop: 32, marginLeft: 60, marginBottom: 28 });
+const CARD_FRAME = Object.freeze({ height: 220, marginTop: 44, marginLeft: 76, marginBottom: 28 });
 const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars
 const PERCENTILE_HALO_WIDTH = 4; // a surface-coloured line under each dashed line, so it shows over a bar of its own colour
 const PERCENTILE_LINE_WIDTH = 2; // pixels; thin lines, as every chart draws them
 const LABEL_GAP = 4; // pixels between the top of the chart and the lower row of percentile labels
-const LABEL_ROW_HEIGHT = 11; // pixels between the two rows of percentile labels above the chart
+const LABEL_ROW_HEIGHT = 16; // pixels between the two rows of percentile labels above the chart
 const DEFAULT_COUNT_LABEL = "Rows"; // the y axis label when the card does not name what it counts
 
 /** The line under a card's title: "n = 1,186,582 · p50 129.1k · p90 512.3k · max 2M"; just "n = 0" for no rows. */

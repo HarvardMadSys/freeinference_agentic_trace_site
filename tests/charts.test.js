@@ -93,6 +93,13 @@ test("a colour scale keeps each shown name's colour from the map, in the order s
 test("a chart of category rows is as tall as its rows need, with room for their names", () => {
   const frame = categoryRowsFrame({ clientWidth: 600 }, 15);
   assert.equal(frame.width, 600);
-  assert.equal(frame.height, 15 * 22 + 60);
-  assert.equal(frame.marginLeft, 96);
+  assert.equal(frame.height, 15 * 22 + 80);
+  assert.equal(frame.marginLeft, 116);
+});
+
+test("a chart's margins hold its 14.6 px tick labels and axis titles", () => {
+  const frame = chartFrame({ clientWidth: 600 });
+  assert.equal(frame.marginLeft, 72); // a count of six digits with its separator, as "150,000"
+  assert.equal(frame.marginBottom, 48); // the x tick labels, and the axis title on a line below them
+  assert.equal(frame.marginTop, 32); // the y axis title above the chart
 });

@@ -44,7 +44,7 @@ const MAX_GAP_DRAWN_S = 86400; // the gap axis ends at a day, as the paper's doe
 const MEAN_HIT_RATIO_AXIS_LOW = 0.7; // the bars start here, as in the paper, so their differences show
 
 const HIT_RATIO_DOMAIN = Object.freeze([0, 1]); // a hit ratio runs from none of the input cached to all of it
-const CAUSE_MARGIN_LEFT = 96; // pixels; room for the longest cause name, "Ask-User Tool"
+const CAUSE_MARGIN_LEFT = 116; // pixels; room for the longest cause name, "Ask-User Tool"
 const VALUE_MARGIN_RIGHT = 40; // pixels; room for a value written after a bar that reaches 1
 const VALUE_OFFSET = 4; // pixels between a bar's end and its value
 const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars

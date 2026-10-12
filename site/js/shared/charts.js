@@ -16,8 +16,8 @@ const KEY_SEPARATOR = "\u0000";
 const CHART_HEIGHT = 240; // every chart has the same height, so a grid of figures lines up
 const FALLBACK_WIDTH = 480; // the width drawn when the body has not been laid out yet
 const CATEGORY_ROW_HEIGHT = 22; // pixels per category, so sixteen categories keep readable labels
-const CATEGORY_MARGIN_LEFT = 96; // pixels; room for the longest category name, "*Interpreter"
-const CATEGORY_MARGINS_Y = 60; // pixels above and below the rows: the frame's top margin and the x axis
+const CATEGORY_MARGIN_LEFT = 116; // pixels; room for the longest category name, "*Interpreter"
+const CATEGORY_MARGINS_Y = 80; // pixels above and below the rows: the frame's top margin and the x axis
 /** The width of every chart's lines, in pixels: thin lines. */
 export const LINE_WIDTH = 2;
 const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars and segments
@@ -27,7 +27,7 @@ const MEDIAN_SHARE = 0.5; // the share of rows at which a CDF crosses its median
 
 // The Plot options every chart shares, so every chart has the same ink.
 const PLOT_STYLE = Object.freeze({ color: "var(--chart-label)", background: "transparent" });
-const PLOT_MARGINS = Object.freeze({ marginTop: 24, marginRight: 24, marginBottom: 36, marginLeft: 52 });
+const PLOT_MARGINS = Object.freeze({ marginTop: 32, marginRight: 32, marginBottom: 48, marginLeft: 72 });
 /** The options of every chart's grid lines. */
 export const GRID_STYLE = Object.freeze({ stroke: "var(--chart-grid)", strokeOpacity: 1 });
 /** The options of every chart's axes. */
