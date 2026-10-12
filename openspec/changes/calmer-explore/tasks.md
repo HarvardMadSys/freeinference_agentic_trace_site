@@ -40,7 +40,7 @@ measurement goes into `design.md`.
 
 ## 5. Type
 
-- [ ] 5.1 `style.css`: base 18 px; no text under 14 px; chart tick labels and legends follow. Verify every page at 360 px and desktop, light and dark.
+- [x] 5.1 `style.css`: base 18 px; no text under 14 px; chart tick labels and legends follow. Verify every page at 360 px and desktop, light and dark.
 
 ## 6. The look
 
