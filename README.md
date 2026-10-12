@@ -62,18 +62,18 @@ Measured on the shipped data (16 weeks), served by `serve.py` (which does
 not compress) on the same machine, in headless Chromium, three runs each:
 
 - The Explore page draws every trend, headline number,
-  figure and the session list in 1.0–1.2 s (median 1.0 s). It makes 149
-  requests: 97 to the site (the page and its style sheet, 38 modules, 57 data
-  files: `weeks.json`, `harnesses.json` and 55 answers) and 52 to the CDN
-  (Observable Plot with its modules, and the web fonts). The site's own files come to 5.1 MB,
+  figure and the session list in 0.9–1.2 s (median 1.1 s). It makes 143
+  requests: 91 to the site (the page and its style sheet, 43 modules, 46 data
+  files: `weeks.json`, `harnesses.json` and 44 answers) and 52 to the CDN
+  (Observable Plot with its modules, and the web fonts). The site's own files come to 5.2 MB,
   4.8 MB of them data and 4.0 MB the session list's answer; gzipped, as a
-  static host serves them, 1.0 MB, plus 0.34 MB of libraries and fonts as the
+  static host serves them, 1.0 MB, plus 0.35 MB of libraries and fonts as the
   CDN sends them. No `.wasm` and no `.parquet` is fetched.
 - The Session page draws the Requests view of its largest session (5,040
-  requests, week of 2026-08-30) in 3.5–3.6 s, or 8.0 s with 40 ms of latency
-  and 50 Mbit/s: 123 requests, 17 of them to `data/` (three JSON files, the
-  week's four row files whole, 13.5 MB, and ten small range reads of their
-  sizes and footers), and 6.8 MB of DuckDB-WASM and the other libraries
+  requests, week of 2026-08-30) in 2.8–3.1 s (median 3.0 s), or 7.5 s with 40 ms of latency
+  and 50 Mbit/s: 125 requests, 17 of them to `data/` (three JSON files, the
+  week's four row files whole, 13.6 MB, and ten small range reads of their
+  sizes and footers), and 7.5 MB of DuckDB-WASM and the other libraries
   from the CDN.
 
 ## Running it
@@ -87,10 +87,10 @@ make setup-browser   # a headless Chromium and Playwright, for checking pages by
 make deploy          # publish site/ as the only commit of gh-pages on origin, force-pushed (git 2.42 or later)
 ```
 
-`site/data/` is 125 files and 88.8 MB: one Parquet file per kind of row and
+`site/data/` is 113 files and 88.8 MB: one Parquet file per kind of row and
 week (requests 61.2 MB, tool calls 21.4 MB with each call's programs and
 argument skeleton, sessions 1.3 MB, the cache simulation 0.1 MB), the two
-indexes, and 59 JSON files of answers and query hashes, 4.8 MB.
+indexes, and 47 JSON files of answers and query hashes, 4.8 MB.
 
 Rebuilding the data is the maintainer's step, when the release gains a
 week, a column changes, or a query under `explore/` or `figures/` or a
@@ -173,7 +173,7 @@ site/              exactly the files that are deployed
                         skeleton), brackets and legend
   js/session_charts/    the Context and Timeline views and the series and bars they draw
   queries/         one .sql file per chart or table, in one folder per purpose: explore (11), figures (31: the 29
-                   figures, and two per-model medians only the paper-parity test reads), session (4), setup (19)
+                   figures, and two per-model medians only the paper-parity test reads), session (4), setup (20)
   data/            built by make data and tracked, so a clone serves the site without building
     requests/, tool_calls/, sessions/, simulation/
                    one folder per kind of row, with one file per week, week=<sunday>/rows.parquet; the simulation,
