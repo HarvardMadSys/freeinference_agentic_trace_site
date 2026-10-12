@@ -50,7 +50,9 @@ test("an arrow key moves a handle one step of the session, and stops at the sess
 });
 
 test("the readout gives the range and the session's length as elapsed times", () => {
-  assert.equal(rangeText({ start: 3_600, end: 7_200 }, 23_772), "1:00:00–2:00:00 of 6:36:12");
+  assert.equal(rangeText({ start: 3_162, end: 6_325 }, 10_543), "0:52–1:45 of 2:55 (h:mm)");
+  assert.equal(rangeText({ start: 150, end: 300 }, 720), "2:30–5:00 of 12:00 (m:ss)");
+  assert.equal(rangeText({ start: 106_920, end: 213_840 }, 356_040), "29.7 h–59.4 h of 98.9 h");
 });
 
 test("Home and End move a handle as far as it may go; an arrow key one step; any other key nothing", () => {

@@ -56,19 +56,19 @@ test("a session with no cache-reporting input has no cached share", () => {
   assert.equal(values["Cached share (reported)"][0], "—");
 });
 
-test("the start is the UTC minute and the models are lines, each with its requests", () => {
+test("the start is the UTC minute with its year, and the models are lines, the first naming its unit", () => {
   const requests = [{ model: "model-y" }, { model: "model-x" }, { model: "model-y" }];
   const values = factValues([TOP_LEVEL], requests);
-  assert.deepEqual(values["Started"], ["2026-08-09 14:03 UTC", ""]);
+  assert.deepEqual(values["Started"], ["Aug 9, 2026, 14:03 UTC", ""]);
   assert.deepEqual(values["Harness"], ["claude-code", ""]);
-  assert.deepEqual(values["Models"], [[{ text: "model-y", note: "2" }, { text: "model-x", note: "1" }], ""]);
+  assert.deepEqual(values["Models"], [[{ text: "model-y", note: "2 requests" }, { text: "model-x", note: "1" }], ""]);
 });
 
-test("the card lists the eleven fields in order, and no detail restates its label", () => {
+test("the card lists the eleven fields three to a row, the subagents beside the tool calls, and no detail restates its label", () => {
   const facts = sessionFacts([TOP_LEVEL], [{ model: "model-x" }]);
   assert.deepEqual(facts.map((fact) => fact.label), [
-    "Harness", "Models", "Started", "Duration", "Turns", "Requests", "Subagents", "Tool calls", "Input tokens",
-    "Cached share (reported)", "Output tokens",
+    "Harness", "Models", "Started", "Duration", "Turns", "Requests", "Input tokens", "Cached share (reported)",
+    "Output tokens", "Subagents", "Tool calls",
   ]);
   for (const label of ["Harness", "Duration", "Subagents", "Input tokens", "Output tokens"]) {
     assert.equal(facts.find((fact) => fact.label === label).detail, "", label);

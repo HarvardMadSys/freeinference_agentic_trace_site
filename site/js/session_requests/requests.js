@@ -18,6 +18,16 @@ import { formatCount, formatSeconds, formatTokens, shortSessionId } from "../sha
 // How long a row the URL points at stays highlighted, in milliseconds.
 const HIGHLIGHT_MS = 2500;
 
+// The line over the list saying how its times are written, since the list has no column headings.
+const TIME_UNIT_NOTE = "Times since the session's first request, in m:ss, or h:mm:ss from an hour on.";
+
+// What the view draws, behind its Definition control under the list.
+const DEFINITION =
+  "One row per request in start order, each subagent's rows in a group under the step that spawned it. A bar is " +
+  "the request's cached input, uncached input and output tokens against the largest request's; output is often a " +
+  "sliver. Times run from the session's first request, in m:ss, or h:mm:ss from an hour on. Brackets on the left " +
+  `join requests that ran at overlapping times; past ${MAX_LANES} crossing one row, the rest are not drawn.`;
+
 /**
  * Draw the Requests view into `container` and return a function that stops it watching the list's size, to call
  * before the view is replaced. `tree`, `requests` and `toolCalls` are the rows of the session queries. `options` is
@@ -34,14 +44,13 @@ export function mountRequestsView(container, tree, requests, toolCalls, options)
   list.className = "request-list";
   const rowsByKey = new Map(); // each request's row element, by `requestKey`
   appendAgent(list, agentTree(tree, requests), { layout, calls, rowsByKey });
-  const bracketNote = document.createElement("p");
-  bracketNote.className = "figure-caption";
-  container.replaceChildren(
-    requestToolbar(list, tree.length > 1),
-    requestLegend(toolCalls, categoryColours),
-    bracketNote,
-    list,
-  );
+  const definition = definitionControl();
+  const bracketNote = definition.querySelector(".figure-rows");
+  const legend = requestLegend(toolCalls, categoryColours);
+  const timeUnit = document.createElement("p");
+  timeUnit.className = "figure-caption";
+  timeUnit.textContent = TIME_UNIT_NOTE;
+  container.replaceChildren(requestToolbar(list, tree.length > 1), legend, timeUnit, list, definition);
   const stopBrackets = watchBrackets(list, overlapGroups(requests), requests, rowsByKey, bracketNote);
   focusAddress(container, list, rowsByKey, options);
   return stopBrackets;
@@ -158,7 +167,22 @@ function watchBrackets(list, groups, requests, rowsByKey, note) {
 
 function showUndrawn(note, undrawn) {
   note.hidden = undrawn === 0;
-  note.textContent = `${formatCount(undrawn)} overlap brackets are not drawn: more than ${MAX_LANES} cross here.`;
+  note.textContent = `${formatCount(undrawn)} overlap brackets are not drawn here.`;
+}
+
+/** The Definition control under the list: what the view draws, and a line for the brackets not drawn. */
+function definitionControl() {
+  const details = document.createElement("details");
+  details.className = "figure-definition";
+  const summary = document.createElement("summary");
+  summary.textContent = "Definition";
+  const text = document.createElement("p");
+  text.textContent = DEFINITION;
+  const rows = document.createElement("p");
+  rows.className = "figure-rows";
+  rows.hidden = true;
+  details.append(summary, text, rows);
+  return details;
 }
 
 /** The element that stands for `row` on screen: the row, or the header of the outermost collapsed group around it. */

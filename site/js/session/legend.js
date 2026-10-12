@@ -28,7 +28,8 @@ export function categoryEntries(toolCalls, categoryColours) {
 }
 
 /**
- * A legend line: `title`, then a swatch and a name per entry of `entries`, `[{ name, colour, opacity, shape }]`;
+ * A legend line: `title` (none when null), then a swatch and a name per entry of `entries`,
+ * `[{ name, colour, opacity, shape }]`;
  * `opacity` is the swatch's opacity, for a series drawn lighter, and is left out for a solid one; `shape` is the
  * swatch's shape, as the chart draws the entry: a bar for an area or a bar (the default), "line", "dot" or "dotted"
  * for a dotted rule.
@@ -36,10 +37,12 @@ export function categoryEntries(toolCalls, categoryColours) {
 export function legendLine(title, entries) {
   const line = document.createElement("p");
   line.className = "legend";
-  const heading = document.createElement("span");
-  heading.className = "legend-title";
-  heading.textContent = title;
-  line.append(heading);
+  if (title !== null) {
+    const heading = document.createElement("span");
+    heading.className = "legend-title";
+    heading.textContent = title;
+    line.append(heading);
+  }
   for (const entry of entries) {
     const item = document.createElement("span");
     item.className = "legend-item";

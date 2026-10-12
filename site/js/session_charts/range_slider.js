@@ -5,7 +5,10 @@
  * `rangeSlider` draws the strip and calls back with each range chosen.
  */
 
-import { formatElapsed } from "../shared/format.js";
+import { elapsedTickFormat, formatElapsed } from "../shared/format.js";
+
+const SECONDS_PER_HOUR = 3600;
+const SECONDS_PER_DAY = 86400; // a session this long or longer reads its range in hours
 
 /** The narrowest range, as a share of the session: narrower, the two handles would sit on one another. */
 export const MIN_RANGE_SHARE = 0.01;
@@ -84,9 +87,21 @@ export function isSameRange(first, second) {
   return first.start === second.start && first.end === second.end;
 }
 
-/** "1:00:00–2:00:00 of 6:36:12": the range and the session's length, as the elapsed times are written. */
+/**
+ * The range and the session's length in the unit the time axis uses, named: "1:00–2:00 of 6:36 (h:mm)", "2:30–5:00 of
+ * 12:00 (m:ss)"; a session of a day or more in hours with one decimal, "29.7 h–59.4 h of 98.9 h".
+ */
 export function rangeText(range, totalSeconds) {
-  return `${formatElapsed(range.start)}–${formatElapsed(range.end)} of ${formatElapsed(totalSeconds)}`;
+  if (totalSeconds >= SECONDS_PER_DAY) {
+    return `${hoursText(range.start)}–${hoursText(range.end)} of ${hoursText(totalSeconds)}`;
+  }
+  const { format, unit } = elapsedTickFormat(totalSeconds);
+  return `${format(range.start)}–${format(range.end)} of ${format(totalSeconds)} (${unit})`;
+}
+
+// Seconds as hours with one decimal: 106920 → "29.7 h".
+function hoursText(seconds) {
+  return `${(seconds / SECONDS_PER_HOUR).toFixed(1)} h`;
 }
 
 /**

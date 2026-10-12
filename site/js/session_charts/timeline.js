@@ -1,8 +1,8 @@
 /**
  * The Timeline view: a Gantt chart with one row per agent, the top-level session first, then each subagent in order
- * of its first request. Against time since the session's first request, a row shows its requests split at time to
- * first token, its tool calls in a thinner band below, and its waits as lighter bars coloured by what they waited
- * for. A click on a bar opens its request in the Requests view, and a range slider under the chart narrows the time
+ * of its first request. Against time since the session's first request, a row shows its requests split into prefill
+ * and decode, its tool calls in a thinner band below, and its waits as pale bars in the colour of the part of the
+ * session's time they count toward. A click on a bar opens its request in the Requests view, and a range slider under the chart narrows the time
  * it shows.
  */
 
@@ -13,13 +13,14 @@ import {
 import { alignToChart, rangeSlider } from "./range_slider.js";
 import { pointerFrame } from "./timeline_pointer.js";
 import { startChartView, viewChartWidth } from "../session/view_chart.js";
-import { elapsedAxis } from "../axes/ticks.js";
+import { elapsedAxis, isNarrowChart } from "../axes/ticks.js";
 import { AXIS_STYLE, chartFrame, GRID_STYLE, legendPlace, renderFigure } from "../shared/charts.js";
 import { formatQuantity } from "../shared/format.js";
 
 const ROW_HEIGHT = 32; // pixels per agent row
 const MAX_HEIGHT = 808; // the tallest chart, in pixels: the tallest tree in the data (41 agents) keeps 18-px rows
 const MARGINS = Object.freeze({ marginTop: 8, marginRight: 24, marginBottom: 48, marginLeft: 116 });
+const NARROW_MARGIN_LEFT = 56; // pixels; room for "Sub 12", the row names of a narrow chart
 
 /**
  * Draw the Timeline view of the session tree `tree`, its `requests` and `toolCalls` (rows of the session queries)
@@ -34,12 +35,13 @@ function drawTimelineView(Plot, container, tree, requests, toolCalls, { category
   const figure = document.createElement("div");
   const body = renderFigure(figure, {
     title: "Where the time went",
-    caption: "Where each agent's time went: model, tool calls and waits.",
+    caption: "Each agent's requests, tool calls and waits, along the session.",
     definition:
-      "One row per agent. Each request is split into time to first token and the rest; each tool call runs from " +
-      "its request's end for its latency, in the thin band below, since the data hold no tool call's start; a " +
-      "lighter bar is a wait before a request, coloured by what it waited for. Requests are drawn in ink tones, so " +
-      "a colour is a tool category or a wait. Click a bar to open its request.",
+      "One row per agent; on a phone the subagents are numbered in start order, and a bar's tooltip names its " +
+      "agent. Each request is split into prefill (time to first token) and decode (the rest); each tool call runs " +
+      "from its request's end for its latency, in the thin band below, in its tool group's colour, since the data " +
+      "hold no tool call's start; a pale bar is a wait before a request, in the colour of the part of the " +
+      "session's time it counts toward. Click a bar to open its request.",
     rows: timelineRows(tree, requests, toolCalls),
   });
   container.replaceChildren(figure);
@@ -71,22 +73,28 @@ function ganttChart(Plot, body, rows, bars, range) {
   const width = viewChartWidth(body);
   const height = Math.min(MAX_HEIGHT, MARGINS.marginTop + MARGINS.marginBottom + ROW_HEIGHT * rows.length);
   const axis = elapsedAxis([range.start, range.end], width);
+  const isNarrow = isNarrowChart(width);
+  const labels = rows.map((row) => (isNarrow ? row.shortLabel : row.label));
   return Plot.plot({
     ...chartFrame(body),
     ...MARGINS,
+    marginLeft: isNarrow ? NARROW_MARGIN_LEFT : MARGINS.marginLeft,
     width,
     height,
     x: { domain: [range.start, range.end] },
     y: { domain: [0, rows.length], reverse: true },
     color: { type: "identity" },
-    opacity: { type: "identity" },
     marks: [
       Plot.gridX(GRID_STYLE),
       // The tooltip and the click come from `pointerFrame`, which finds a bar by its span rather than its middle.
-      Plot.rect(bars, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: "colour", fillOpacity: "opacity" }),
+      Plot.rect(bars.filter((bar) => !bar.isWait), { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: "colour" }),
+      // A wait is a pale tint of its colour, its opacity set per scheme by the class (`--wait-opacity`).
+      Plot.rect(bars.filter((bar) => bar.isWait), {
+        x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: "colour", className: "timeline-wait",
+      }),
       Plot.axisX({ ...AXIS_STYLE, ...axis }),
       Plot.axisY({
-        ...AXIS_STYLE, ticks: rows.map((row, index) => index + 0.5), tickFormat: (tick) => rows[Math.floor(tick)].label,
+        ...AXIS_STYLE, ticks: rows.map((row, index) => index + 0.5), tickFormat: (tick) => labels[Math.floor(tick)],
         tickSize: 0, label: null,
       }),
     ],
@@ -118,7 +126,7 @@ function timelineLegend(requests, toolCalls, categoryColours) {
   const waits = waitEntries(requests);
   const lines = [legendLine("Requests", parts)];
   if (waits.length > 0) {
-    lines.push(legendLine("Waits for", waits));
+    lines.push(legendLine("Waits", waits));
   }
   const categories = categoryEntries(toolCalls, categoryColours);
   if (categories.length > 0) {

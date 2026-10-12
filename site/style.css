@@ -89,9 +89,8 @@
   --cause-user: var(--part-user);
   --cause-subagent: var(--series-7);
 
-  /* A request's time on the Session page's Timeline and in the speed-up: time to first token dark, the rest light. */
-  --request-ttft: #49423e;
-  --request-rest: #c4bcb7;
+  /* A wait on the Session page's Timeline is a pale tint of its colour: nothing ran. */
+  --wait-opacity: 0.35;
 
   /* The roles of a request's input, in slots no token part uses: system violet, user teal, assistant magenta, tool
      results amber and tool definitions grey. */
@@ -177,8 +176,8 @@
     --gap-bin-5: #4798fa;
     --gap-bin-6: #1d84f5;
 
-    --request-ttft: #cfc7c2;
-    --request-rest: #5b534f;
+    /* On the dark card a wait's tint is a little stronger, so it stays lighter than the card, not muddy. */
+    --wait-opacity: 0.45;
   }
 }
 
@@ -1895,7 +1894,7 @@ button.is-primary {
  * length in every row however deep its subagent group is indented.
  */
 .request-list {
-  --bar-track: 20rem;
+  --bar-track: 14rem; /* most bars are short beside the largest, so a narrower track leaves less blank before the chips */
   position: relative;
   margin-top: 0.75rem;
 }
@@ -2163,15 +2162,15 @@ button.is-primary {
 /* The Session page's title beside its facts card on a wide screen; the card under the title on a narrow one. */
 .session-heading {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 30rem);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 42rem);
   gap: 1.5rem;
   align-items: start;
 }
 
-/* The facts card: labelled fields in two columns. */
+/* The facts card: labelled fields in three columns, two on a narrow screen and one on a phone. */
 .facts {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem 1.25rem;
   margin: 0;
 }
@@ -2192,6 +2191,11 @@ button.is-primary {
   display: block;
 }
 
+/* A model's name never breaks, at its hyphens or anywhere else. */
+.fact-name {
+  white-space: nowrap;
+}
+
 .fact-detail {
   font-size: var(--font-size-smallest);
   font-weight: 400;
@@ -2202,10 +2206,21 @@ button.is-primary {
   display: block;
 }
 
-@media (max-width: 50rem) {
+@media (max-width: 62rem) {
   .session-heading {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+@media (max-width: 40rem) {
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* A wait's bar on the Timeline: a pale tint of its colour, since nothing ran. */
+.timeline-wait rect {
+  fill-opacity: var(--wait-opacity);
 }
 
 /* ---------- Range slider ---------- */
@@ -2217,12 +2232,13 @@ button.is-primary {
   margin-top: 0.5rem;
 }
 
+/* The track is the paper; the chosen range on it is the accent's wash, edged in the accent, as a brush strip. */
 .range-track {
   position: relative;
-  height: 0.375rem;
+  height: 0.75rem;
   margin: 0.75rem 0;
   border-radius: var(--radius-small);
-  background: var(--color-surface-raised);
+  background: var(--color-background);
   box-shadow: inset 0 0 0 1px var(--color-border);
 }
 
@@ -2230,7 +2246,9 @@ button.is-primary {
   position: absolute;
   top: 0;
   bottom: 0;
-  background: var(--color-text-faint);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-small);
+  background: var(--color-accent-wash);
 }
 
 /* A handle sits outside the range at its end, so the two never cover one another however narrow the range; a pointer

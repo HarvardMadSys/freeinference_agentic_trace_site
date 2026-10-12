@@ -27,6 +27,10 @@ export const AGENT_LINE_COLOURS = Object.freeze({ main: SERIES_SLOTS[0], subagen
  * no figure draws a switch.
  */
 export const MARK_COLOURS = Object.freeze({ mutation: TRANSITION_COLOURS.mutation, switch: "var(--color-text)" });
+const MIN_TURN_GAP_PIXELS = 3; // a turn's rule is drawn only this far from the last one drawn, or further
+
+// Each transition a dot marks, as the legend names it.
+const MARK_NAMES = Object.freeze({ mutation: "Mutation", switch: "Model or provider switch" });
 
 // Each role of the input, in stacking order: the release's name of it, its name in the legend, and the request column
 // that counts its tokens.
@@ -168,7 +172,7 @@ export function markEntries(marks) {
   const entries = [];
   for (const [transition, colour] of Object.entries(MARK_COLOURS)) {
     if (marks.some((point) => point.transition === transition)) {
-      entries.push({ name: transition, colour });
+      entries.push({ name: MARK_NAMES[transition], colour });
     }
   }
   return entries;
@@ -235,4 +239,20 @@ function topLevelOf(tree) {
 function requestsOf(session, requests) {
   const ownRequests = requests.filter((request) => request.session_id === session.session_id);
   return ownRequests.sort((first, second) => first.start_ms - second.start_ms || first.step - second.step);
+}
+
+/**
+ * The turn starts of `starts` (seconds) within `range` that a chart `width` pixels wide marks: each at least
+ * `MIN_TURN_GAP_PIXELS` from the last one marked, so dense starts do not draw a hatched block.
+ */
+export function spacedStarts(starts, range, width) {
+  const secondsPerPixel = (range.end - range.start) / width;
+  const marked = [];
+  for (const start of starts) {
+    const isInRange = start >= range.start && start <= range.end;
+    if (isInRange && (marked.length === 0 || start - marked.at(-1) >= MIN_TURN_GAP_PIXELS * secondsPerPixel)) {
+      marked.push(start);
+    }
+  }
+  return marked;
 }

@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  AGENT_LINE_COLOURS, areaParts, areaRows, markEntries, pointTip, requestPoints, stepsWithin, trajectoryPoints,
-  transitionMarks, turnStarts,
+  AGENT_LINE_COLOURS, areaParts, areaRows, markEntries, pointTip, requestPoints, spacedStarts, stepsWithin,
+  trajectoryPoints, transitionMarks, turnStarts,
 } from "../site/js/session_charts/context_series.js";
 
 // The fixture's `mutation` session: step 1 rewrites its context by compaction, step 3 starts a second turn.
@@ -33,8 +33,8 @@ test("each request is a point at its start, in seconds since the top-level sessi
   const points = requestPoints(TREE, REQUESTS);
   const outline = points.map((point) => [point.label, point.step, point.elapsed, point.inputTokens]);
   assert.deepEqual(outline, [
-    ["main", 0, 0, 2_000], ["main", 1, 20, 1_500], ["main", 2, 200, 1_800], ["main", 3, 300, 1_900],
-    ["sub helper", 0, 25, 700],
+    ["Main", 0, 0, 2_000], ["Main", 1, 20, 1_500], ["Main", 2, 200, 1_800], ["Main", 3, 300, 1_900],
+    ["Sub helper", 0, 25, 700],
   ]);
   assert.equal(points[0].isTopLevel, true);
   assert.equal(points[4].isTopLevel, false);
@@ -89,8 +89,8 @@ test("a switch is marked too, and its tooltip names the transition alone", () =>
 
 test("a tooltip gives the agent, step, turn, time and tokens", () => {
   const points = requestPoints(TREE, REQUESTS);
-  assert.equal(pointTip(points[2]), "main · step 2 · turn 1\n3:20\n1.8k input tokens: 1.5k cached, 300 uncached");
-  assert.equal(pointTip(points[3]), "main · step 3 · turn 2\n5:00\n1.9k input tokens: 0 cached, 1.9k uncached");
+  assert.equal(pointTip(points[2]), "Main · step 2 · turn 1\n3:20\n1.8k input tokens: 1.5k cached, 300 uncached");
+  assert.equal(pointTip(points[3]), "Main · step 3 · turn 2\n5:00\n1.9k input tokens: 0 cached, 1.9k uncached");
 });
 
 test("the top-level line is the first series and subagents' lines a slot neither area split uses", () => {
@@ -105,10 +105,11 @@ test("the top-level line is the first series and subagents' lines a slot neither
 test("a mutation's dot takes the mutation colour every chart gives it, and a switch's dot ink", () => {
   const switched = [...REQUESTS, request("mutation", 4, 1_400, 1_410, 900, { transition: "switch", turn: 2 })];
   assert.deepEqual(markEntries(transitionMarks(requestPoints(TREE, switched))), [
-    { name: "mutation", colour: "var(--transition-mutation)" },
-    { name: "switch", colour: "var(--color-text)" },
+    { name: "Mutation", colour: "var(--transition-mutation)" },
+    { name: "Model or provider switch", colour: "var(--color-text)" },
   ]);
-  assert.deepEqual(markEntries(transitionMarks(requestPoints(TREE, REQUESTS))).map((entry) => entry.name), ["mutation"]);
+  const names = markEntries(transitionMarks(requestPoints(TREE, REQUESTS))).map((entry) => entry.name);
+  assert.deepEqual(names, ["Mutation"]);
 });
 
 test("over a time range, each step series is cut at the range's edges, holding its value there", () => {
@@ -136,4 +137,11 @@ test("over the whole session, each part of the area keeps its rows", () => {
     const after = whole.filter((row) => row.part === part).map((row) => [row.elapsed, row.tokens]);
     assert.deepEqual(after, before, part);
   }
+});
+
+test("a turn's rule is drawn only at least three pixels from the last one drawn, and only within the range", () => {
+  // 100 seconds over 100 pixels: a second a pixel.
+  const range = { start: 0, end: 100 };
+  assert.deepEqual(spacedStarts([0, 1, 2, 3, 10, 11, 150], range, 100), [0, 3, 10]);
+  assert.deepEqual(spacedStarts([0, 1, 2, 3], range, 1000), [0, 1, 2, 3]);
 });

@@ -1,20 +1,21 @@
 /**
  * The Timeline view's Gantt rows and bars: one row per agent, and on it, against time since the top-level session's
- * first request, each request split into time to first token and the rest, each tool call from its request's end
- * for its latency, and each wait before a request, coloured by what it waited for.
+ * first request, each request split into time to first token and the rest in the prefill and decode colours, each tool
+ * call from its request's end for its latency in its tool group's colour, and each wait before a request as a pale
+ * tint of the part of the session's time it counts toward.
  *
  * `tree` holds rows of `session/session_tree`, `requests` of `session/session_requests`, `toolCalls` of
  * `session/session_tool_calls`. A tool call's start is not in the data; it is taken as its request's end.
  */
 
 import { agentLabel, agentsInStartOrder, callsByRequest, requestKey } from "../session/tree.js";
-import { causeColours, OTHER_SERIES, REQUEST_PART_COLOURS } from "../theme/colours.js";
+import { OTHER_SERIES, REQUEST_PART_COLOURS, TIMELINE_WAIT_COLOURS, WAIT_OPACITY } from "../theme/colours.js";
 import { elapsedSeconds, formatSeconds, MILLISECONDS_PER_SECOND } from "../shared/format.js";
 
 /**
- * What a wait can wait for, in the order the paper names the causes, with the name a legend and tooltip give it; the
- * keys are the release's `waited_for` values, checked by tests/test_pipeline_mirrors.py and, for their order,
- * tests/test_pipeline_mirrors_caching.py.
+ * What a wait can wait for, in the order the paper names the causes, with the words a tooltip gives it ("waited 2 s
+ * for tools"); the keys are the release's `waited_for` values, checked by tests/test_pipeline_mirrors.py and, for
+ * their order, tests/test_pipeline_mirrors_caching.py.
  */
 export const WAIT_CAUSES = Object.freeze({
   tool: "tools",
@@ -23,8 +24,12 @@ export const WAIT_CAUSES = Object.freeze({
   subagent: "subagents",
 });
 
-/** The opacity of a wait's bar: lighter than a request's, since nothing ran. */
-export const WAIT_OPACITY = 0.35;
+// The legend's entries of the waits, each the causes it draws in one colour, as Session time by part names its parts.
+const WAIT_LEGEND = Object.freeze([
+  Object.freeze({ name: "Tool wait", causes: Object.freeze(["tool"]) }),
+  Object.freeze({ name: "User idle", causes: Object.freeze(["user", "ask_user_tool"]) }),
+  Object.freeze({ name: "Subagent wait", causes: Object.freeze(["subagent"]) }),
+]);
 
 /** Where each band sits in its row, as shares of the row from its top: requests and waits, then tool calls below. */
 export const BAND_SPANS = Object.freeze({ request: [0.12, 0.6], tool: [0.66, 0.88] });
@@ -32,13 +37,21 @@ export const BAND_SPANS = Object.freeze({ request: [0.12, 0.6], tool: [0.66, 0.8
 // The share of a row from its top where the pointer passes from the request band to the tool band: between the two.
 const BAND_BOUNDARY = 0.63;
 
-/** The Gantt's rows, `[{ sessionId, label }]`: the top-level session, then every subagent in order of first start. */
+/**
+ * The Gantt's rows, `[{ sessionId, label, shortLabel }]`: the top-level session, then every subagent in order of first
+ * start; `shortLabel`, for a narrow chart, numbers the subagents in that order, "Sub 1", "Sub 2".
+ */
 export function ganttRows(tree) {
-  return agentsInStartOrder(tree).map((session) => ({ sessionId: session.session_id, label: agentLabel(session) }));
+  const rows = [];
+  for (const session of agentsInStartOrder(tree)) {
+    const shortLabel = rows.length === 0 ? agentLabel(session) : `Sub ${rows.length}`;
+    rows.push({ sessionId: session.session_id, label: agentLabel(session), shortLabel });
+  }
+  return rows;
 }
 
 /**
- * Every bar of the Gantt: `{ sessionId, step, row, band, x1, x2, colour, opacity, tip }`, `row` the index of its
+ * Every bar of the Gantt: `{ sessionId, step, row, band, x1, x2, colour, isWait, tip }`, `row` the index of its
  * agent's row, `band` "request" (requests and waits) or "tool" (tool calls, drawn thinner below), `x1` and `x2` in
  * seconds since the top-level session's first request, and `step` the request a click opens: for a wait, the request
  * it came before. `categoryColours` maps each tool category to its colour. Waits under zero and tool calls without a
@@ -49,7 +62,6 @@ export function ganttBars(tree, requests, toolCalls, categoryColours) {
   const rowBySession = new Map(agents.map((session, index) => [session.session_id, index]));
   const labelBySession = new Map(agents.map((session) => [session.session_id, agentLabel(session)]));
   const calls = callsByRequest(toolCalls);
-  const waitColours = causeColours();
   const originMs = agents[0].first_start_ms;
   const bars = [];
   for (const request of requests) {
@@ -60,7 +72,7 @@ export function ganttBars(tree, requests, toolCalls, categoryColours) {
       label: labelBySession.get(request.session_id),
       originMs,
     };
-    bars.push(...waitBars(request, place, waitColours));
+    bars.push(...waitBars(request, place));
     bars.push(...requestBars(request, place));
     for (const call of calls.get(requestKey(request.session_id, request.step)) ?? []) {
       bars.push(...toolBars(call, request, place, categoryColours));
@@ -96,15 +108,15 @@ function requestBars(request, place) {
 }
 
 /** The wait before a request, ending at its start and lasting `wait_s`; none for a first request or a wait under 0. */
-function waitBars(request, place, waitColours) {
+function waitBars(request, place) {
   if (request.waited_for === null || request.wait_s === null || request.wait_s <= 0) {
     return [];
   }
   const start = elapsedSeconds(request.start_ms, place.originMs);
   const cause = WAIT_CAUSES[request.waited_for] ?? request.waited_for;
   const tip = `waited ${formatSeconds(request.wait_s)} for ${cause}\nbefore ${place.label} step ${place.step}`;
-  const colour = waitColours.get(request.waited_for) ?? OTHER_SERIES;
-  return [{ ...bar(place, "request", start - request.wait_s, start, colour, tip), opacity: WAIT_OPACITY }];
+  const colour = TIMELINE_WAIT_COLOURS[request.waited_for] ?? OTHER_SERIES;
+  return [{ ...bar(place, "request", start - request.wait_s, start, colour, tip), isWait: true }];
 }
 
 /** A tool call's bar, from its request's end for its latency; none without a positive latency. */
@@ -169,25 +181,26 @@ export function barAt(bars, { x, row, band, toleranceSeconds }) {
 }
 
 /**
- * The legend entries of a request's parts, `[{ name, colour }]`: time to first token and the rest, the rest naming
- * the whole request with no TTFT when `requests` has one, since both are drawn in the same tone.
+ * The legend entries of a request's parts, `[{ name, colour }]`: prefill (time to first token) and decode (the rest),
+ * and, when `requests` has a request with no TTFT, that whole request in the faint ink.
  */
 export function requestPartEntries(requests) {
-  const hasUnreported = requests.some((request) => request.ttft_ms === null);
-  const rest = hasUnreported ? "rest of the request, or all of one with no time to first token" : "rest of the request";
-  return [
-    { name: "time to first token", colour: REQUEST_PART_COLOURS.ttft },
-    { name: rest, colour: REQUEST_PART_COLOURS.decode },
+  const entries = [
+    { name: "Prefill (time to first token)", colour: REQUEST_PART_COLOURS.ttft },
+    { name: "Decode (the rest)", colour: REQUEST_PART_COLOURS.decode },
   ];
+  if (requests.some((request) => request.ttft_ms === null)) {
+    entries.push({ name: "No time to first token", colour: REQUEST_PART_COLOURS.whole });
+  }
+  return entries;
 }
 
-/** The legend entries of the waits `requests` has, `[{ name, colour, opacity }]`, in the order of `WAIT_CAUSES`. */
+/** The legend entries of the waits `requests` has, `[{ name, colour, opacity }]`, in the order of `WAIT_LEGEND`. */
 export function waitEntries(requests) {
-  const colours = causeColours();
   const entries = [];
-  for (const [cause, name] of Object.entries(WAIT_CAUSES)) {
-    if (requests.some((request) => request.waited_for === cause)) {
-      entries.push({ name, colour: colours.get(cause), opacity: WAIT_OPACITY });
+  for (const { name, causes } of WAIT_LEGEND) {
+    if (requests.some((request) => causes.includes(request.waited_for))) {
+      entries.push({ name, colour: TIMELINE_WAIT_COLOURS[causes[0]], opacity: WAIT_OPACITY });
     }
   }
   return entries;
@@ -198,5 +211,5 @@ function hasLatency(call) {
 }
 
 function bar(place, band, x1, x2, colour, tip) {
-  return { sessionId: place.sessionId, step: place.step, row: place.row, band, x1, x2, colour, opacity: 1, tip };
+  return { sessionId: place.sessionId, step: place.step, row: place.row, band, x1, x2, colour, isWait: false, tip };
 }

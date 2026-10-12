@@ -7,7 +7,7 @@
 
 import {
   AGENT_LINE_COLOURS, AREA_SPLITS, areaParts, areaRows, MARK_COLOURS, markEntries, pointTip, requestPoints,
-  stepsWithin, trajectoryPoints, transitionMarks, turnStarts,
+  spacedStarts, stepsWithin, trajectoryPoints, transitionMarks, turnStarts,
 } from "./context_series.js";
 import { alignToChart, rangeSlider } from "./range_slider.js";
 import { legendLine } from "../session/legend.js";
@@ -123,9 +123,7 @@ function drawChart({ Plot, tree, requests, body, chartBox, legend, slider, view 
       Plot.areaY(stepsWithin(areaRows(tree, requests, split), "part", range), {
         x: "elapsed", y: "tokens", fill: "part", z: "part", order: parts.map((part) => part.name), curve: "step-after",
       }),
-      Plot.ruleX(turnStarts(tree, requests).filter((start) => isWithin(start, range)), {
-        ...AXIS_STYLE, strokeDasharray: TURN_DASH,
-      }),
+      Plot.ruleX(spacedStarts(turnStarts(tree, requests), range, width), { ...AXIS_STYLE, strokeDasharray: TURN_DASH }),
       agentLines(Plot, stepsWithin(trajectoryPoints(tree, requests), "sessionId", range)),
       transitionDots(Plot, marks),
       Plot.axisX({ ...AXIS_STYLE, ...elapsedAxis([range.start, range.end], width) }),
@@ -164,14 +162,14 @@ function transitionDots(Plot, marks) {
   return dots;
 }
 
-// The legend's lines: the parts of the top-level input, each agent's line, and the markers on them.
+// The legend, one line: the parts of the top-level input, each agent's line, and the markers on them.
 function contextLegend(parts, tree, marks) {
-  const agents = [{ name: "main", colour: AGENT_LINE_COLOURS.main, shape: "line" }];
+  const agents = [{ name: "Main agent", colour: AGENT_LINE_COLOURS.main, shape: "line" }];
   if (tree.length > 1) {
     const colour = AGENT_LINE_COLOURS.subagents;
-    agents.push({ name: "subagents", colour, opacity: SUBAGENT_LINE_OPACITY, shape: "line" });
+    agents.push({ name: "Subagents", colour, opacity: SUBAGENT_LINE_OPACITY, shape: "line" });
   }
   const dots = markEntries(marks).map((entry) => ({ ...entry, shape: "dot" }));
-  const markers = [...dots, { name: "turn start", colour: TURN_START_COLOUR, shape: "dotted" }];
-  return [legendLine("Top-level input", parts), legendLine("Agents", agents), legendLine("Markers", markers)];
+  const markers = [...dots, { name: "Turn start", colour: TURN_START_COLOUR, shape: "dotted" }];
+  return [legendLine(null, [...parts, ...agents, ...markers])];
 }

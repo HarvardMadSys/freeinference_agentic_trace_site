@@ -1,6 +1,6 @@
 /**
  * The Session page's facts card: what kind of session it is, when it ran, how much it did and how much it cached, as
- * labelled fields in two columns.
+ * labelled fields in three columns, those with a line on the subagents side by side.
  *
  * Turns, requests and tool calls are the top-level session's own, with its subagents' given apart; token totals
  * cover every agent of the tree, and the cached share is their cached tokens over their cache-reporting input.
@@ -9,7 +9,7 @@
  */
 
 import {
-  cachedShare, formatCount, formatOptionalShare, formatSeconds, formatTokens, utcMinute,
+  cachedShare, formatCount, formatOptionalShare, formatQuantity, formatSeconds, formatTokens, longMinute,
 } from "../shared/format.js";
 
 // The cached share's hover text: its definition, which differs from the drawn parts', where unreported input is
@@ -26,15 +26,15 @@ export function sessionFacts(tree, requests) {
   const totals = treeTotals(tree);
   const subagentTurns = totals.turns - topLevel.user_steps;
   const subagentToolCalls = totals.toolCalls - topLevel.tool_calls;
+  // Three to a row: what and when; how long and how much, turns beside requests; the tokens; the subagents beside
+  // the tool calls.
   return [
     { label: "Harness", value: topLevel.harness, detail: "" },
     { label: "Models", value: modelLines(requests), detail: "" },
-    { label: "Started", value: `${utcMinute(topLevel.first_start_ms)} UTC`, detail: "" },
+    { label: "Started", value: longMinute(topLevel.first_start_ms), detail: "" },
     { label: "Duration", value: formatSeconds(topLevel.duration_s), detail: "" },
     { label: "Turns", value: formatCount(topLevel.user_steps), detail: inSubagents(subagentTurns) },
     { label: "Requests", value: formatCount(topLevel.requests), detail: inSubagents(topLevel.subagent_requests) },
-    { label: "Subagents", value: formatCount(topLevel.subagents), detail: "" },
-    { label: "Tool calls", value: formatCount(topLevel.tool_calls), detail: inSubagents(subagentToolCalls) },
     { label: "Input tokens", value: formatTokens(totals.inputTokens), detail: "" },
     {
       label: "Cached share (reported)",
@@ -43,6 +43,8 @@ export function sessionFacts(tree, requests) {
       definition: CACHED_SHARE_DEFINITION,
     },
     { label: "Output tokens", value: formatTokens(totals.outputTokens), detail: "" },
+    { label: "Subagents", value: formatCount(topLevel.subagents), detail: "" },
+    { label: "Tool calls", value: formatCount(topLevel.tool_calls), detail: inSubagents(subagentToolCalls) },
   ];
 }
 
@@ -92,16 +94,25 @@ function factField({ label, value, detail, definition }) {
   return field;
 }
 
-// One line of a field of several lines: its text, then its note in a smaller, muted type.
+// One line of a field of several lines: its text, which never breaks, then its note in a smaller, muted type.
 function factLine({ text, note }) {
-  const line = textSpan("fact-line", `${text} `);
-  line.append(textSpan("fact-detail", note));
+  const line = document.createElement("span");
+  line.className = "fact-line";
+  line.append(textSpan("fact-name", text), " ", textSpan("fact-detail", note));
   return line;
 }
 
-// A model per line, its name and its requests: "glm-5.3-flash 4,073".
+// A model per line, its name and its requests, the first naming its unit: "glm-5.3-flash 4,073 requests", "glm-5.2 12".
 function modelLines(requests) {
-  return requestsPerModel(requests).map((entry) => ({ text: entry.model, note: formatCount(entry.requests) }));
+  const lines = [];
+  for (const entry of requestsPerModel(requests)) {
+    let note = formatCount(entry.requests);
+    if (lines.length === 0) {
+      note = formatQuantity(entry.requests, "request", "requests");
+    }
+    lines.push({ text: entry.model, note });
+  }
+  return lines;
 }
 
 function treeTotals(tree) {

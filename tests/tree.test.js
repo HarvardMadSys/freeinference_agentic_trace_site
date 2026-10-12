@@ -72,9 +72,9 @@ test("a full bar stands for the largest input plus output of one request", () =>
   assert.equal(largestRequestTokens([]), 1);
 });
 
-test("an agent is named main at the top level and sub with its short id below", () => {
-  assert.equal(agentLabel({ session_id: "740dd162030203354c9e55d40fb3a2d5", parent_session_id: null }), "main");
-  assert.equal(agentLabel({ session_id: "5478226ab25bd5e4c254bb945ba7068b", parent_session_id: "x" }), "sub 5478226a");
+test("an agent is named Main at the top level and Sub with its short id below", () => {
+  assert.equal(agentLabel({ session_id: "740dd162030203354c9e55d40fb3a2d5", parent_session_id: null }), "Main");
+  assert.equal(agentLabel({ session_id: "5478226ab25bd5e4c254bb945ba7068b", parent_session_id: "x" }), "Sub 5478226a");
 });
 
 test("the agents run top-level first, then every subagent by first start, whatever its depth", () => {

@@ -5,7 +5,7 @@ import {
   cachedShare, elapsedSeconds, formatCount, formatDurationTick, formatElapsed, formatMultiple, formatOptionalShare,
   formatQuantity, formatSeconds, formatShare, formatTokens, monthName, shortSessionId, utcMinute,
   elapsedTickFormat, formatBinaryThousands, formatCompactCount, formatPercent, formatTtlName, monthAndDay,
-  dateSpanText, formatCountTick, shortMinute, shortMonth, formatWholeCount,
+  dateSpanText, formatCountTick, longMinute, shortMinute, shortMonth, formatWholeCount,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -155,4 +155,8 @@ test("a date is written as its short month and day, or its month alone on a week
 test("a span of days names the year once when both share it", () => {
   assert.equal(dateSpanText("2026-05-17", "2026-09-05"), "May 17 – September 5, 2026");
   assert.equal(dateSpanText("2025-12-28", "2026-01-03"), "December 28, 2025 – January 3, 2026");
+});
+
+test("a UTC minute with its year reads as the facts card writes it", () => {
+  assert.equal(longMinute(1785600660000), "Aug 1, 2026, 16:11 UTC");
 });

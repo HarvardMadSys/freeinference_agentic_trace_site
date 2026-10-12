@@ -7,9 +7,9 @@
 
 import { shortSessionId } from "../shared/format.js";
 
-/** An agent's name in the Context and Timeline views: "main" at the top level, "sub <short id>" for a subagent. */
+/** An agent's name in the Context and Timeline views: "Main" at the top level, "Sub <short id>" for a subagent. */
 export function agentLabel(session) {
-  return session.parent_session_id === null ? "main" : `sub ${shortSessionId(session.session_id)}`;
+  return session.parent_session_id === null ? "Main" : `Sub ${shortSessionId(session.session_id)}`;
 }
 
 /** The agents of a tree in the order the views list them: the top-level session, then every subagent by first start. */

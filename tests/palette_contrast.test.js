@@ -41,14 +41,11 @@ const MARK_PREFIXES = [
   "--series-", "--part-", "--token-", "--cause-", "--role-", "--transition-", "--tool-group-", "--gap-bin-",
 ];
 
-// A mark colour outside those families: a request's time to first token on the Timeline.
-const OTHER_MARK_TOKENS = ["--request-ttft"];
 
 // Fills and rules that sit behind or beside a mark and stand for nothing alone; no contrast is asked of them.
-// A request's rest is the light half of a bar whose dark half, its time to first token, carries the contrast.
 const TINT_TOKENS = [
   "--color-background", "--color-surface", "--color-surface-raised", "--color-border", "--color-accent-wash",
-  "--color-highlight", "--chart-grid", "--chart-axis", "--request-rest",
+  "--color-highlight", "--chart-grid", "--chart-axis",
 ];
 
 /** The custom properties declared in `block`, a Map from name to value as written, comments left out. */
@@ -153,10 +150,10 @@ function colourTokens(tokens) {
   return [...tokens.keys()].filter((name) => /^(#|rgb\()/.test(resolve(tokens, name)));
 }
 
-/** The mark tokens of `tokens`: the families of `MARK_PREFIXES` and `OTHER_MARK_TOKENS`. */
+/** The mark tokens of `tokens`: the families of `MARK_PREFIXES`. */
 function markTokens(tokens) {
   const marks = colourTokens(tokens).filter((name) => MARK_PREFIXES.some((prefix) => name.startsWith(prefix)));
-  return [...marks, ...OTHER_MARK_TOKENS];
+  return marks;
 }
 
 const SCHEMES = schemeTokens(STYLESHEET);

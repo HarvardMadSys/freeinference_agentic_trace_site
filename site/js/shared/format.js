@@ -214,6 +214,13 @@ export function shortMinute(milliseconds) {
   return `${monthAndDay(minute.slice(0, DAY_LENGTH))}, ${minute.slice(DAY_LENGTH + 1)}`;
 }
 
+/** A UTC minute with its year, as the Session page's facts write it: 1785600660000 → "Aug 1, 2026, 16:11 UTC". */
+export function longMinute(milliseconds) {
+  const minute = utcMinute(milliseconds);
+  const day = monthAndDay(minute.slice(0, DAY_LENGTH));
+  return `${day}, ${minute.slice(0, YEAR_LENGTH)}, ${minute.slice(DAY_LENGTH + 1)} UTC`;
+}
+
 /** A month as its name and year: "2026-05" → "May 2026". */
 export function monthName(month) {
   const firstDay = new Date(`${month}-01T00:00:00Z`);

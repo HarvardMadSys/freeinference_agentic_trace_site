@@ -41,13 +41,13 @@ export const TIME_PART_COLOURS = Object.freeze({
 });
 
 /**
- * The colour of each part of a request's bar: time to first token, the rest, and a request with no TTFT as one bar.
- * They are ink tones, not series colours, so that on the Session page's Timeline a colour always means a
- * tool category or a wait.
+ * The colour of each part of a request's bar on the Session page's Timeline, as the parts of a session's time are
+ * coloured everywhere: time to first token in prefill's, the rest in decode's, and a request with no TTFT, which
+ * cannot be split, as one bar in the faint ink.
  */
 export const REQUEST_PART_COLOURS = Object.freeze({
-  ttft: "var(--request-ttft)",
-  decode: "var(--request-rest)",
+  ttft: TIME_PART_COLOURS.prefill,
+  decode: TIME_PART_COLOURS.decode,
   whole: "var(--color-text-faint)",
 });
 
@@ -70,6 +70,21 @@ export const CAUSE_COLOURS = Object.freeze({
   user: "var(--cause-user)",
   subagent: "var(--cause-subagent)",
 });
+
+/**
+ * The colour of each wait on the Session page's Timeline, by the release's `waited_for` value, in the part of a
+ * session's time it counts toward: a tool's in the tool part's, the user's and an ask-user tool's in user idle's; a
+ * subagent's in the subagent cause's violet, which no part uses.
+ */
+export const TIMELINE_WAIT_COLOURS = Object.freeze({
+  tool: TIME_PART_COLOURS.tool,
+  ask_user_tool: TIME_PART_COLOURS.user,
+  user: TIME_PART_COLOURS.user,
+  subagent: CAUSE_COLOURS.subagent,
+});
+
+/** The opacity of a wait's bar on the Timeline: a pale tint of its colour, set per scheme in `style.css`. */
+export const WAIT_OPACITY = "var(--wait-opacity)";
 
 /** The colour of each transition the figures draw: a request appended to its context, or rewrote it. */
 export const TRANSITION_COLOURS = Object.freeze({
