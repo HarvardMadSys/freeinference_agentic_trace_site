@@ -33,5 +33,5 @@ change is expected; if one is needed, `make data` and commit `site/data`.
 
 ## 6. Done
 
-- [ ] 6.1 Browser check of every page at 1280 and 360 px; README's measurements refreshed; `openspec validate --strict`.
+- [x] 6.1 Browser check of every page at 1280 and 360 px; README's measurements refreshed; `openspec validate --strict`.
 - [ ] 6.2 Deploy checks (carried): once the site has a GitHub repository, `make deploy`, a range request answered with 206 on the host, and the deployed pages checked end to end.
