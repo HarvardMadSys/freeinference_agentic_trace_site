@@ -18,10 +18,6 @@ export const URLS = Object.freeze({
   openData: "https://data.freeinference.org/",
   freeInference: "https://freeinference.org/",
   github: "https://github.com/HarvardMadSys",
-  accessibility: "https://accessibility.harvard.edu/",
-  digitalAccessibility: "https://accessibility.huit.harvard.edu/digital-accessibility-policy",
-  copyrightIssue: "https://www.harvard.edu/copyright-issue/",
-  infoPractices: "https://hwp.harvard.edu/harvardsites-platform-information-gathering-statement",
 });
 
 // The page that holds the sections the header and footer link.
@@ -58,17 +54,8 @@ const ELSEWHERE_LINKS = Object.freeze([
   Object.freeze({ title: "MadSys on GitHub", url: URLS.github }),
 ]);
 
-// Harvard's policies, which every page of a Harvard site links.
-const POLICY_LINKS = Object.freeze([
-  Object.freeze({ title: "Accessibility", url: URLS.accessibility }),
-  Object.freeze({ title: "Digital Accessibility", url: URLS.digitalAccessibility }),
-  Object.freeze({ title: "Report Copyright Infringement", url: URLS.copyrightIssue }),
-  Object.freeze({ title: "Info Practices", url: URLS.infoPractices }),
-]);
-
 const AFFILIATION = "Harvard SEAS · MadSys Lab";
 const FOOTER_LINE = "A trace of agent sessions served by FreeInference.";
-const COPYRIGHT = "Copyright © 2026 The President and Fellows of Harvard College";
 
 /**
  * Fill `container` with the site header: the brand, the affiliation, the links to the Explore page's sections and the
@@ -111,15 +98,14 @@ export function mountHeader(container, activeFile, carried) {
 }
 
 /**
- * Fill `container` with the site footer: the brand and one line, the Explore page's sections, the places off the
- * site, and Harvard's copyright and policies.
+ * Fill `container` with the site footer: the brand and one line, the Explore page's sections and the places off the
+ * site.
  * `activeFile` and `carried` are as `renderHeader` takes them.
  */
 export function renderFooter(container, activeFile, carried) {
   const query = selectionQuery(carried);
   const sectionLinks = SECTIONS.map((section) => footerSectionLink(section, activeFile, query));
   const elsewhereLinks = ELSEWHERE_LINKS.map((link) => externalLink(link, "footer-link"));
-  const policyLinks = POLICY_LINKS.map((link) => externalLink(link, "footer-link"));
   container.innerHTML = `
     <div class="footer-inner">
       <div class="footer-brand">
@@ -128,10 +114,6 @@ export function renderFooter(container, activeFile, carried) {
       </div>
       ${footerLinkList("On this site", sectionLinks)}
       ${footerLinkList("Elsewhere", elsewhereLinks)}
-    </div>
-    <div class="footer-legal">
-      <p>${COPYRIGHT}</p>
-      <nav aria-label="Harvard policies">${policyLinks.join("")}</nav>
     </div>`;
 }
 
@@ -140,7 +122,7 @@ function brand(query) {
   return `
     <a class="brand" href="${EXPLORE_FILE}${query}">
       <span class="brand-mark" aria-hidden="true"></span>
-      <span>FreeInference <em>agentic trace</em></span>
+      <span>FreeInference <em>Agentic Dataset</em></span>
     </a>`;
 }
 

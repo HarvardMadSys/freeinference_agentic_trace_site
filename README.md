@@ -1,4 +1,4 @@
-# FreeInference agentic trace, visualized
+# FreeInference Agentic Dataset, visualized
 
 A static website for exploring the FreeInference agentic trace, the dataset of
 the paper *From Requests to Sessions: A Large-Scale Characterization of

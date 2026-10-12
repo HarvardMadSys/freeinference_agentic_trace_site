@@ -1,7 +1,6 @@
 /**
- * The Explore page's hero: an eyebrow naming the dataset, a title of two phrases whose first counts the weeks of
- * `weeks.json`, one sentence on what the trace holds, and the buttons to the Insights, the dataset, the paper and the
- * code.
+ * The Explore page's hero: the dataset's name as its title, a lede whose first clause counts the weeks of `weeks.json`
+ * and whose rest says what the trace holds, and the buttons to the Insights, the dataset, the paper and the code.
  */
 
 import { URLS } from "../shared/layout.js";
@@ -13,10 +12,12 @@ const ONES = Object.freeze([
 ]);
 const TENS = Object.freeze(["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]);
 
-// The title's second phrase, drawn in the accent.
-const TITLE_ACCENT = "request by request.";
+// The title, the dataset's name: its first phrase, and its second, drawn in the accent.
+const TITLE = "FreeInference";
+const TITLE_ACCENT = "Agentic Dataset";
 
-const LEDE = "An anonymised trace of the agent sessions FreeInference served: every request, tool call and subagent.";
+// The lede after its first clause, which counts the weeks.
+const LEDE_REST = "anonymised: every request, tool call and subagent of the agent sessions FreeInference served.";
 
 // The buttons under the lede: the first leads to the page's Insights, the others leave the site.
 const INSIGHTS_BUTTON = Object.freeze({ title: "Insights", href: "#insights" });
@@ -40,10 +41,10 @@ export function countInWords(count) {
 }
 
 /**
- * The title's first phrase for `weekCount` weeks: "Sixteen weeks of coding agents,", "One week of coding agents,";
+ * The lede's first clause for `weekCount` weeks: "Sixteen weeks of coding agents,", "One week of coding agents,";
  * "Weeks of coding agents," when the count is not known (null), as when `weeks.json` could not be read.
  */
-export function titleLead(weekCount) {
+export function ledeLead(weekCount) {
   if (weekCount === null) {
     return "Weeks of coding agents,";
   }
@@ -58,9 +59,8 @@ export function renderHero(container, weekCount) {
     (button) => `<a class="button" href="${button.url}" target="_blank" rel="noopener">${button.title}</a>`,
   );
   container.innerHTML = `
-    <p class="eyebrow"><span class="eyebrow-mark" aria-hidden="true"></span>FreeInference agentic trace</p>
-    <h1 id="hero-title">${titleLead(weekCount)} <br><em>${TITLE_ACCENT}</em></h1>
-    <p class="hero-lede">${LEDE}</p>
+    <h1 id="hero-title">${TITLE} <em>${TITLE_ACCENT}</em></h1>
+    <p class="hero-lede">${ledeLead(weekCount)} ${LEDE_REST}</p>
     <div class="hero-actions">
       <a class="button button--primary" href="${INSIGHTS_BUTTON.href}">${INSIGHTS_BUTTON.title}</a>
       ${externalButtons.join("")}

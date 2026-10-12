@@ -61,7 +61,7 @@ test("on the Session page the header's section links carry the URL keys, and Ses
 test("the brand links the Explore page with the URL keys", () => {
   const markup = rendered(renderHeader, "session.html", "months=2026-07");
   assert.match(markup, /<a class="brand" href="index\.html\?months=2026-07">/);
-  assert.match(markup, /FreeInference <em>agentic trace<\/em>/);
+  assert.match(markup, /FreeInference <em>Agentic Dataset<\/em>/);
 });
 
 test("the header links the lab and the four places off the site, each in a new tab", () => {
@@ -90,17 +90,12 @@ test("the footer's section links carry the URL keys from the Session page", () =
   assert.match(markup, /<a class="footer-link" href="index\.html\?months=2026-07#sessions">Session Explorer<\/a>/);
 });
 
-test("the footer holds the brand line, Harvard's copyright and its four policies", () => {
+test("the footer holds the brand, its line and the two lists of links, and nothing else", () => {
   const markup = rendered(renderFooter, "index.html", "");
+  assert.match(markup, /FreeInference <em>Agentic Dataset<\/em>/);
   assert.match(markup, /A trace of agent sessions served by FreeInference\./);
-  assert.match(markup, /Copyright © 2026 The President and Fellows of Harvard College/);
-  const policies = externalLinks(markup.split('aria-label="Harvard policies"')[1]);
-  assert.deepEqual(policies, [
-    ["Accessibility", "https://accessibility.harvard.edu/"],
-    ["Digital Accessibility", "https://accessibility.huit.harvard.edu/digital-accessibility-policy"],
-    ["Report Copyright Infringement", "https://www.harvard.edu/copyright-issue/"],
-    ["Info Practices", "https://hwp.harvard.edu/harvardsites-platform-information-gathering-statement"],
-  ]);
+  assert.deepEqual([...markup.matchAll(/<h2>([^<]+)<\/h2>/g)].map((match) => match[1]), ["On this site", "Elsewhere"]);
+  assert.doesNotMatch(markup, /Copyright|Accessibility|footer-legal/);
 });
 
 test("every section the header and footer link is an element of the Explore page", () => {

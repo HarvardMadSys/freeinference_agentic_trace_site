@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { countInWords, renderHero, titleLead } from "../site/js/landing/hero.js";
+import { countInWords, ledeLead, renderHero } from "../site/js/landing/hero.js";
 
 test("a count under a hundred is written in words, a larger one in digits", () => {
   assert.equal(countInWords(1), "one");
@@ -13,18 +13,19 @@ test("a count under a hundred is written in words, a larger one in digits", () =
   assert.equal(countInWords(104), "104");
 });
 
-test("the title's first phrase counts the weeks, one week in the singular, and names none it does not know", () => {
-  assert.equal(titleLead(16), "Sixteen weeks of coding agents,");
-  assert.equal(titleLead(1), "One week of coding agents,");
-  assert.equal(titleLead(52), "Fifty-two weeks of coding agents,");
-  assert.equal(titleLead(null), "Weeks of coding agents,");
+test("the lede's first clause counts the weeks, one week in the singular, and names none it does not know", () => {
+  assert.equal(ledeLead(16), "Sixteen weeks of coding agents,");
+  assert.equal(ledeLead(1), "One week of coding agents,");
+  assert.equal(ledeLead(52), "Fifty-two weeks of coding agents,");
+  assert.equal(ledeLead(null), "Weeks of coding agents,");
 });
 
-test("the hero holds the eyebrow, the title with its accent phrase and the four buttons, the first to the Insights", () => {
+test("the hero holds the dataset's name as its title, the lede counting the weeks and the four buttons", () => {
   const container = { innerHTML: "" };
   renderHero(container, 16);
-  assert.match(container.innerHTML, /FreeInference agentic trace<\/p>/);
-  assert.match(container.innerHTML, /<h1 id="hero-title">Sixteen weeks of coding agents, <br><em>request by request\.<\/em><\/h1>/);
+  assert.doesNotMatch(container.innerHTML, /class="eyebrow"/);
+  assert.match(container.innerHTML, /^\s*<h1 id="hero-title">FreeInference <em>Agentic Dataset<\/em><\/h1>/);
+  assert.match(container.innerHTML, /<p class="hero-lede">Sixteen weeks of coding agents, anonymised: /);
   const buttons = [...container.innerHTML.matchAll(/<a class="button[^"]*" href="([^"]*)"[^>]*>([^<]*)<\/a>/g)];
   assert.deepEqual(buttons.map((match) => [match[2], match[1]]), [
     ["Insights", "#insights"],

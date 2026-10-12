@@ -510,35 +510,6 @@ code,
   color: var(--color-accent-strong);
 }
 
-/* Harvard's copyright on the left and its policies on the right, under a rule. */
-.footer-legal {
-  max-width: var(--page-width);
-  margin: 0 auto;
-  padding: 1.2rem var(--gutter);
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1.5rem 2rem;
-  border-top: 1px solid var(--color-border);
-  font-size: var(--font-size-smallest);
-  color: var(--color-text-faint);
-}
-
-.footer-legal p {
-  margin: 0;
-}
-
-.footer-legal nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.45rem 1rem;
-}
-
-.footer-legal .footer-link {
-  color: inherit;
-}
-
 /* Below this width the header's links take a second row of their own, under the brand and the affiliation: the one row
    needs about 1,120 px besides the gutters. */
 @media (max-width: 78rem) {
@@ -603,17 +574,9 @@ code,
   .footer-brand {
     grid-column: 1 / -1;
   }
-
-  .footer-legal {
-    flex-direction: column;
-  }
-
-  .footer-legal nav {
-    justify-content: flex-start;
-  }
 }
 
-/* On the narrowest screens the header's brand is the name alone, its "agentic trace" kept in the footer's, so that
+/* On the narrowest screens the header's brand is the name alone, its "Agentic Dataset" kept in the footer's, so that
    the first links show beside it and the fade at the row's edge reads as more to scroll to. */
 @media (max-width: 30rem) {
   .site-header .brand em {
@@ -674,25 +637,16 @@ section[id] {
 }
 
 .hero h1 {
-  margin-top: 1rem;
+  margin-top: 0;
   font-size: clamp(2rem, 1.25rem + 2.7vw, 3.1rem);
   letter-spacing: -0.035em;
 }
 
+/* The title's accent phrase never breaks inside: where the name does not fit one line, the phrase takes the second. */
 .hero h1 em {
   font-style: normal;
+  white-space: nowrap;
   color: var(--color-accent);
-}
-
-/* On a phone the title runs on as one sentence; wider, its accent phrase takes a line of its own. */
-.hero h1 br {
-  display: none;
-}
-
-@media (min-width: 34rem) {
-  .hero h1 br {
-    display: inline;
-  }
 }
 
 .hero-lede {
