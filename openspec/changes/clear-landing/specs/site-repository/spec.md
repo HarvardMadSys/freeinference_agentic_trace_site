@@ -88,8 +88,13 @@ white surfaces, ink `#1c1917`, the rule `#e4dfdb`, the crimson accent
 numbers and the affiliation, Inter for body text, and the monospace
 stack, uppercase and letter-spaced, for eyebrows, chips, the nav and the
 cite caption. Cards SHALL carry a 1px rule, a soft shadow and a 0.9rem
-radius. The series palette SHALL stay the site's own. The site SHALL be
-light only.
+radius. A dark scheme SHALL follow the visitor's system preference, with
+the paper, surfaces and inks retuned dark. The eight series slots SHALL
+be the same hues in both schemes, spread evenly, each at least 3:1 in
+contrast against its scheme's card, and a test SHALL check every colour
+token's contrast in both schemes. The parts of a session's time SHALL be
+coloured as the paper colours them: prefill blue, decode orange, tool
+green, user idle red.
 
 #### Scenario: A heading
 - **WHEN** any heading renders
@@ -97,4 +102,8 @@ light only.
 
 #### Scenario: Dark system scheme
 - **WHEN** the visitor's system prefers a dark scheme
-- **THEN** the page SHALL still render on the light paper
+- **THEN** the page SHALL render on the dark paper with every series at least 3:1 against its card
+
+#### Scenario: A series keeps its identity
+- **WHEN** the same harness is drawn in light and in dark
+- **THEN** it SHALL have the same hue in both

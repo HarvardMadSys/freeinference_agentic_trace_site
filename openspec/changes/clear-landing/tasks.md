@@ -6,7 +6,7 @@ change is expected; if one is needed, `make data` and commit `site/data`.
 
 ## 1. The look and the frame
 
-- [ ] 1.1 Tokens and typography: Open Data's palette and fonts in `style.css`, light only (`color-scheme: light`, the dark block removed), the monospace eyebrow style, card rule and radius; nothing under 14 px; `tests/colours.test.js` and the repository test follow.
+- [ ] 1.1 Tokens and typography: Open Data's palette and fonts in `style.css` for light; a retuned dark mode (dark paper, surfaces, inks); the eight series slots redrawn in both modes with more contrast and colour (each ≥ 3:1 on its card, hues spread, the same hue per slot in both modes), the part colours prefill blue, decode orange, tool green, user red as the paper's, the token-part colours from the slots; a contrast test over both modes; the monospace eyebrow style, card rule and radius; nothing under 14 px; `tests/colours.test.js` and the repository test follow.
 - [ ] 1.2 The sticky header with the brand, the affiliation, the in-page and external links; scroll margins on every anchored section; the Open Data footer. `tests/layout.test.js` follows.
 
 ## 2. The landing page
@@ -19,6 +19,7 @@ change is expected; if one is needed, `make data` and commit `site/data`.
 
 - [ ] 3.1 Six sections as the design lists, the figure modules composed accordingly (one composing module per section; folders under nine modules); the distribution cards go except "Subagents per session" and "Cached fraction per request", which join Sessions and Tokens and cost as cards; header links and `index.html` follow.
 - [ ] 3.2 Every caption at most twelve words and every definition at most forty, counted by `tests/figure_sections.test.js`; no section intro.
+- [ ] 3.3 Session time in the paper's four parts: one query computes the per-session breakdown (prefill, decode, tool, user idle) that `session_time_by_part` and `speedup_if_twice_as_fast` both read (the speed-up's current breakdown CTE becomes that query, or a view both read); the session-time figure draws the four parts in the paper's colours with a parity test against `sessions.session_time_breakdown`'s mean shares; the mirror tests cover the one home; `make data` and commit `site/data`.
 
 ## 4. The session list
 

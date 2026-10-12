@@ -42,7 +42,12 @@ Crimson Text and Inter on warm paper.
   Timeline views.
 - **The look** takes Open Data's tokens: the paper background, the
   crimson accent, Crimson Text headings, Inter body, monospace eyebrows.
-  Dark mode is dropped, as on Open Data.
+  Dark mode stays, retuned: a darker paper and a series palette with more
+  contrast and more colour on it.
+- **Session time in the paper's parts.** The session-time figure and the
+  speed-up share one definition: prefill, decode, tool time and user idle
+  time, in the paper's colours (blue, orange, green, red), instead of
+  model time, tool waits and human waits.
 
 ## Impact
 
@@ -55,5 +60,6 @@ Crimson Text and Inter on warm paper.
 - Files: index.html, session.html, style.css, js/pages, js/explore,
   js/shared/layout.js, js/session*, the figure modules' captions and
   definitions, the tests that pin the removed texts, README, CONTRIBUTING.
-- No query and no data change: the stats strip and the donut read the
-  existing answers.
+- One query changes (`figures/session_time_by_part.sql`, four parts) and
+  the data is rebuilt once; the stats strip and the donuts read existing
+  answers.

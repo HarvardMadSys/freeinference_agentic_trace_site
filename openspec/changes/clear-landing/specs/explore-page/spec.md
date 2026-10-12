@@ -83,7 +83,7 @@ control:
 |---|---|
 | Sessions | `requests_per_session_cdf`, `duration_cdf`, `subagents_per_session` (histogram), `user_prompt_tokens_by_scope` |
 | Tokens and cost | `tokens_per_request_cdf`, `token_split_by_week`, `token_growth_by_messages`, `context_share_by_role`, `cached_fraction_per_request` (histogram), `cost_share_by_session` |
-| Latency | `ttft_cdf_by_model`, `decode_cdf_by_model`, `session_time_by_part`, `speedup_if_twice_as_fast` |
+| Latency | `ttft_cdf_by_model`, `decode_cdf_by_model`, `session_time_by_part` (the paper's four parts: prefill, decode, tool, user idle, sessions ranked by user-idle share), `speedup_if_twice_as_fast` |
 | Tools | `latency_by_category`, `result_tokens_by_category`, `calls_per_request_by_category`, `latency_by_batch_width`, `tool_mix_by_turn_position` |
 | Prefix caching | `hit_ratio_cdf_by_gap_bin`, `hit_ratio_by_idle_gap`, `gap_cdf_by_cause`, `mean_hit_ratio_by_cause`, `hit_ratio_cdf_by_transition`, `mutations_by_cause`, `prefill_against_storage`, `api_cost_by_ttl`, `infrastructure_cost_by_ttl` |
 | Human-driven against benchmark | `turn_duration_by_scope`, `session_duration_by_scope`, `input_per_request_by_scope` |
@@ -154,9 +154,8 @@ page.
 
 ### Requirement: Readable in both colour schemes and on a phone
 Charts SHALL use one colour per series, consistent across figures, SHALL
-be legible on the light paper background, and SHALL fit a 360-pixel-wide
-screen without horizontal scrolling of the page. The site SHALL declare
-`color-scheme: light` and SHALL NOT switch to a dark scheme.
+be legible in both colour schemes, and SHALL fit a 360-pixel-wide screen
+without horizontal scrolling of the page.
 
 #### Scenario: A phone
 - **WHEN** the page is opened 360 pixels wide

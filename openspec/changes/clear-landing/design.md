@@ -35,7 +35,13 @@ One page, `index.html`, in this order:
      growth, context share by role, cached fraction per request (the
      other orphan histogram), cost share by session.
    - Latency: TTFT by model, decode by model, session time by part,
-     speed-up if twice as fast.
+     speed-up if twice as fast. The session-time figure draws the paper's
+     four parts, prefill, decode, tool and user idle, from the same
+     per-session time breakdown the speed-up query computes (trusted TTFTs
+     split prefill from decode, unsplit latency shared by the session's
+     ratio, tool waits capped), with a parity test against the paper's
+     mean shares; one query computes the breakdown and both figures read
+     it, so the definition has one home.
    - Tools: latency by category, result size by category, calls per
      request, latency by batch width, tool mix along a turn.
    - Prefix caching: hit ratio by gap bin, hit ratio after an idle gap,
@@ -77,9 +83,14 @@ Open Data's tokens, light only: paper `#f8f7f5`, surface white, ink
 Crimson Text for headings, stat numbers and the affiliation; Inter for
 body; the monospace stack, uppercase and letter-spaced, for eyebrows,
 chips, nav and the cite caption. Cards keep a 1px rule, a soft shadow and
-a 0.9rem radius; figure sections keep the 240 px charts. The series
-palette is unchanged. Dark mode goes: the `prefers-color-scheme` block is
-removed and `color-scheme: light` declared, as Open Data does.
+a 0.9rem radius; figure sections keep the 240 px charts. Dark mode stays under `prefers-color-scheme`, with a dark paper and
+surfaces retuned from Open Data's inks, and the eight series slots
+redrawn in both modes for more contrast and more colour: every slot at
+least 3:1 against its mode's card, hues spread evenly, the two modes'
+slots the same hue so a series keeps its identity; the part colours
+(prefill blue, decode orange, tool green, user red, as the paper's
+Figure 4c) and the token-part colours derive from the slots. A script
+under `tests/` checks the contrast of every token in both modes.
 
 ## The Session page
 
