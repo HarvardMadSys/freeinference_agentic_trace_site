@@ -1,49 +1,109 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { renderHeader } from "../site/js/shared/layout.js";
+import { renderFooter, renderHeader, SECTIONS } from "../site/js/shared/layout.js";
 
-// The header's links as `[title, href, active]`, read from the markup `renderHeader` writes into a stand-in container.
-function headerLinks(activeFile, params) {
+// The Explore page, whose sections the header and footer link by anchor.
+const EXPLORE_PAGE = new URL("../site/index.html", import.meta.url);
+
+// The markup `render` writes into a stand-in container for the page `activeFile` with the URL keys `query`.
+function rendered(render, activeFile, query) {
   const container = { innerHTML: "" };
-  renderHeader(container, activeFile, params);
+  render(container, activeFile, new URLSearchParams(query));
+  return container.innerHTML;
+}
+
+// The header's links to the Explore page's sections as `[title, href, active]`.
+function sectionLinks(activeFile, query) {
   const links = [];
-  for (const match of container.innerHTML.matchAll(/<a class="nav-link( is-active)?" href="([^"]*)">([^<]*)<\/a>/g)) {
+  const markup = rendered(renderHeader, activeFile, query);
+  for (const match of markup.matchAll(/<a class="nav-link( is-active)?" href="([^"]*)">([^<]*)<\/a>/g)) {
     links.push([match[3], match[2], match[1] !== undefined]);
   }
   return links;
 }
 
-test("the header links Explore, each figure section, its session list and About, each carrying the selection; the Session page marks Explore", () => {
-  assert.deepEqual(headerLinks("session.html", new URLSearchParams("month=2026-07")), [
-    ["Explore", "index.html?month=2026-07", true],
-    ["Sessions", "index.html?month=2026-07#figures-sessions", false],
-    ["Tools", "index.html?month=2026-07#figures-tools", false],
-    ["Prefix caching", "index.html?month=2026-07#figures-caching", false],
-    ["Benchmark", "index.html?month=2026-07#figures-comparison", false],
-    ["Session list", "index.html?month=2026-07#sessions", false],
-    ["About", "about.html?month=2026-07", false],
+// The links of `markup` that open in a new tab, as `[title, href]`.
+function externalLinks(markup) {
+  const links = [];
+  for (const match of markup.matchAll(/<a class="[^"]*" href="([^"]*)" target="_blank" rel="noopener">([^<]*)<\/a>/g)) {
+    links.push([match[2], match[1]]);
+  }
+  return links;
+}
+
+// The titles of the footer's links under the heading `heading`.
+function footerList(heading) {
+  const markup = rendered(renderFooter, "index.html", "");
+  const list = markup.split(`<h2>${heading}</h2>`)[1].split("</nav>")[0];
+  return [...list.matchAll(/>([^<]+)<\/a>/g)].map((match) => match[1]);
+}
+
+test("on the Explore page the header links its four sections by anchor alone, none marked", () => {
+  assert.deepEqual(sectionLinks("index.html", "month=2026-07&sort=requests&page=2"), [
+    ["Overview", "#overview", false],
+    ["Figures", "#figures", false],
+    ["Sessions", "#sessions", false],
+    ["Cite", "#cite", false],
   ]);
 });
 
-test("on the Explore page only the Explore link is marked active, not the links to its sections", () => {
-  const active = headerLinks("index.html", new URLSearchParams()).filter((link) => link[2]);
-  assert.deepEqual(active, [["Explore", "index.html", true]]);
-});
-
-test("on the Explore page its sections are linked by anchor alone, so following one does not load the page again", () => {
-  assert.deepEqual(headerLinks("index.html", new URLSearchParams("month=2026-07&sort=requests&page=2")), [
-    ["Explore", "index.html?month=2026-07&sort=requests&page=2", true],
-    ["Sessions", "#figures-sessions", false],
-    ["Tools", "#figures-tools", false],
-    ["Prefix caching", "#figures-caching", false],
-    ["Benchmark", "#figures-comparison", false],
-    ["Session list", "#sessions", false],
-    ["About", "about.html?month=2026-07&sort=requests&page=2", false],
+test("on the Session page the header's section links carry the URL keys, and Sessions is marked", () => {
+  assert.deepEqual(sectionLinks("session.html", "month=2026-07&sort=requests&page=2"), [
+    ["Overview", "index.html?month=2026-07&sort=requests&page=2#overview", false],
+    ["Figures", "index.html?month=2026-07&sort=requests&page=2#figures", false],
+    ["Sessions", "index.html?month=2026-07&sort=requests&page=2#sessions", true],
+    ["Cite", "index.html?month=2026-07&sort=requests&page=2#cite", false],
   ]);
 });
 
-test("on the About page only the About link is marked active", () => {
-  const active = headerLinks("about.html", new URLSearchParams()).filter((link) => link[2]);
-  assert.deepEqual(active, [["About", "about.html", true]]);
+test("the brand links the Explore page with the URL keys", () => {
+  const markup = rendered(renderHeader, "session.html", "month=2026-07");
+  assert.match(markup, /<a class="brand" href="index\.html\?month=2026-07">/);
+  assert.match(markup, /FreeInference <em>agentic trace<\/em>/);
+});
+
+test("the header links the lab and the four places off the site, each in a new tab", () => {
+  assert.deepEqual(externalLinks(rendered(renderHeader, "index.html", "")), [
+    ["Harvard SEAS · MadSys Lab", "https://madsys.seas.harvard.edu/"],
+    ["Dataset", "https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace"],
+    ["Paper", "https://data.freeinference.org/pdf/paper/from-requests-to-sessions.pdf"],
+    ["Code", "https://github.com/HarvardMadSys/freeinference_agentic_trace"],
+    ["Open Data", "https://data.freeinference.org/"],
+  ]);
+});
+
+test("the header links no About page", () => {
+  assert.doesNotMatch(rendered(renderHeader, "index.html", ""), /about\.html|>About</);
+});
+
+test("the footer lists the sections on this site and the places elsewhere", () => {
+  assert.deepEqual(footerList("On this site"), ["Overview", "Figures", "Sessions", "Cite"]);
+  assert.deepEqual(footerList("Elsewhere"), ["Dataset", "Paper", "Code", "Open Data", "FreeInference", "GitHub"]);
+});
+
+test("the footer's section links carry the URL keys from the Session page", () => {
+  const markup = rendered(renderFooter, "session.html", "month=2026-07");
+  assert.match(markup, /<a class="footer-link" href="index\.html\?month=2026-07#sessions">Sessions<\/a>/);
+});
+
+test("the footer holds the brand line, Harvard's copyright and its four policies", () => {
+  const markup = rendered(renderFooter, "index.html", "");
+  assert.match(markup, /The FreeInference agentic trace, from Harvard MadSys and collaborators\./);
+  assert.match(markup, /Copyright © 2026 The President and Fellows of Harvard College/);
+  const policies = externalLinks(markup.split('aria-label="Harvard policies"')[1]);
+  assert.deepEqual(policies, [
+    ["Accessibility", "https://accessibility.harvard.edu/"],
+    ["Digital Accessibility", "https://accessibility.huit.harvard.edu/digital-accessibility-policy"],
+    ["Report Copyright Infringement", "https://www.harvard.edu/copyright-issue/"],
+    ["Info Practices", "https://hwp.harvard.edu/harvardsites-platform-information-gathering-statement"],
+  ]);
+});
+
+test("every section the header and footer link is an element of the Explore page", () => {
+  const page = readFileSync(EXPLORE_PAGE, "utf8");
+  for (const section of SECTIONS) {
+    assert.match(page, new RegExp(`<section id="${section.anchor.slice(1)}"`), `index.html has no section ${section.anchor}`);
+  }
 });

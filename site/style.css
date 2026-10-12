@@ -41,6 +41,8 @@
   --radius-small: 0.375rem;
   --radius-button: 0.65rem;
   --page-width: 64rem;
+  --header-width: 76rem; /* the header's and footer's width, wider than the page's so the header's links fit one row */
+  --header-height: 4.5rem; /* the sticky header's height on one row, or a little more where its links wrap below */
   --loading-card-height: 26rem; /* about a drawn figure card's height, so a loading card holds the place of one */
   --gutter: clamp(1rem, 4vw, 3.5rem); /* Open Data's gutter, with the phone's 1rem kept so 360 px still fits */
 
@@ -302,70 +304,303 @@ code,
 
 /* ---------- Header and footer ---------- */
 
+/* The header stays at the top of the window, over the page as it scrolls: translucent paper, blurred behind. */
 .site-header {
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 84%, transparent);
+  background: color-mix(in srgb, var(--color-background) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+}
+
+/* A hairline of the accent riding the header's bottom edge, fading out to the right. */
+.site-header::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent) 0,
+    color-mix(in srgb, var(--color-accent) 45%, transparent) 22%,
+    transparent 55%
+  );
 }
 
 .header-inner {
-  max-width: var(--page-width);
+  max-width: var(--header-width);
+  min-height: var(--header-height);
   margin: 0 auto;
-  padding: 1rem var(--gutter);
+  padding-inline: var(--gutter);
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* were the links ever wider than the row, they wrap rather than widen the page */
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 1rem;
+  gap: 1.2rem;
 }
 
 .brand {
-  font-size: 1.125rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 1.0625rem;
   font-weight: 700;
+  letter-spacing: -0.025em;
   color: var(--color-text);
-  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
-.brand-muted {
+.brand:hover {
+  text-decoration: none;
+}
+
+.brand em {
+  font-style: normal;
+  color: var(--color-accent);
+}
+
+/* The brand's mark: a crimson square with a pale one offset behind it, which darkens under the pointer. */
+.brand-mark {
+  flex-shrink: 0;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 2px;
+  background: var(--color-accent);
+  box-shadow: 0.32rem 0.32rem 0 color-mix(in srgb, var(--color-accent) 22%, transparent);
+  transition: box-shadow 220ms ease;
+}
+
+.brand:hover .brand-mark {
+  box-shadow: 0.32rem 0.32rem 0 color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+
+/* The affiliation pushes the nav to the right edge. */
+.affiliation {
+  margin-right: auto;
   font-family: var(--font-serif);
-  font-weight: 600;
-  color: var(--color-text-muted);
+  font-size: 1rem;
+  color: var(--color-text-faint);
+  white-space: nowrap;
 }
 
-/* The links' padding reaches past the nav on both sides, so their text lines up with the page's text and edge. */
+.affiliation:hover {
+  text-decoration: none;
+  color: var(--color-accent);
+}
+
 .site-nav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-inline: -0.75rem;
+  align-items: center;
+  gap: 0.8rem;
 }
 
 .nav-link {
-  padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-small);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-text-muted);
+  position: relative;
+  padding-block: 0.15rem;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-smallest);
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-text-faint);
+  transition: color 160ms ease;
+}
+
+/* An underline in the accent grows from the left under the pointer, and stays under the current page's link. */
+.nav-link::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms ease;
 }
 
 .nav-link:hover {
   text-decoration: none;
-  color: var(--color-text);
-  background: var(--color-surface-raised);
+  color: var(--color-accent-strong);
 }
 
 .nav-link.is-active {
   color: var(--color-accent);
-  background: var(--color-accent-wash);
+}
+
+.nav-link:hover::after,
+.nav-link.is-active::after {
+  transform: scaleX(1);
+}
+
+/* Parts the links to the Explore page's sections from the links off the site. */
+.nav-divider {
+  flex-shrink: 0;
+  width: 1px;
+  height: 1.05rem;
+  background: var(--color-border);
 }
 
 .site-footer {
-  max-width: var(--page-width);
-  margin: 3rem auto 0;
-  padding: 2rem var(--gutter);
+  margin-top: 4rem;
   border-top: 1px solid var(--color-border);
-  text-align: center;
+  background: var(--color-surface);
+}
+
+/* The brand and its line, then two lists of links. */
+.footer-inner {
+  max-width: var(--header-width);
+  margin: 0 auto;
+  padding: clamp(2.25rem, 5vw, 3rem) var(--gutter);
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(9rem, 0.6fr));
+  align-items: start;
+  gap: 2rem clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.footer-brand p {
+  max-width: 24rem;
+  margin: 0.55rem 0 0;
+  font-size: 0.875rem;
+  color: var(--color-text-faint);
+}
+
+.footer-nav h2 {
+  margin: 0;
+  font-family: var(--font-mono);
   font-size: var(--font-size-smallest);
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  line-height: 1.4;
+  text-transform: uppercase;
   color: var(--color-text-muted);
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.9rem;
+}
+
+.footer-links .footer-link {
+  width: fit-content;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-smallest);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  transition: color 160ms ease;
+}
+
+.footer-links .footer-link:hover {
+  text-decoration: none;
+  color: var(--color-accent-strong);
+}
+
+/* Harvard's copyright on the left and its policies on the right, under a rule. */
+.footer-legal {
+  max-width: var(--header-width);
+  margin: 0 auto;
+  padding: 1.2rem var(--gutter);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem 2rem;
+  border-top: 1px solid var(--color-border);
+  font-size: var(--font-size-smallest);
+  color: var(--color-text-faint);
+}
+
+.footer-legal p {
+  margin: 0;
+}
+
+.footer-legal nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem 1rem;
+}
+
+.footer-legal .footer-link {
+  color: inherit;
+}
+
+/* Below this width the header's links take a second row of their own, under the brand and the affiliation: the one row
+   needs about 1,120 px besides the gutters. */
+@media (max-width: 78rem) {
+  :root {
+    --header-height: 7.5rem;
+  }
+
+  .header-inner {
+    min-height: 0;
+    padding-top: 0.85rem;
+  }
+
+  .site-nav {
+    width: 100%;
+    flex-wrap: wrap;
+    row-gap: 0.55rem;
+    margin-top: 0.85rem;
+    padding-block: 0.7rem;
+    border-top: 1px solid var(--color-border);
+  }
+}
+
+/*
+ * On a phone the affiliation goes under the brand, set close to it, so the header keeps to about a sixth of the
+ * screen; the footer's link lists sit side by side under the brand.
+ */
+@media (max-width: 46rem) {
+  :root {
+    --header-height: 9rem;
+  }
+
+  .header-inner {
+    row-gap: 0;
+    padding-top: 0.6rem;
+  }
+
+  .affiliation {
+    font-size: 0.875rem;
+  }
+
+  .site-nav {
+    margin-top: 0.5rem;
+    padding-block: 0.5rem;
+  }
+
+  .footer-inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+
+  .footer-legal {
+    flex-direction: column;
+  }
+
+  .footer-legal nav {
+    justify-content: flex-start;
+  }
+}
+
+/* Every anchored section lands below the sticky header, with a little room above it. */
+section[id] {
+  scroll-margin-top: calc(var(--header-height) + 1rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark,
+  .nav-link,
+  .nav-link::after,
+  .footer-link {
+    transition: none;
+  }
 }
 
 /* ---------- Page layout ---------- */
@@ -462,6 +697,13 @@ code,
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+/* The figure sections, one after the other, spaced as the page spaces its parts. */
+.figure-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 /* A figure's card may shrink below its content, so a wide chart scrolls inside the card, not the page. */

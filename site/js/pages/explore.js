@@ -74,7 +74,7 @@ start();
 
 /** Draw everything `weeks.json` and `harnesses.json` allow, then run the sections. */
 async function start() {
-  renderFooter(document.querySelector("#site-footer"));
+  renderFooter(document.querySelector("#site-footer"), PAGE_FILE, new URLSearchParams());
   // Frozen, the selection's card is hidden; with the pickers, it shows the selection the figures draw instead.
   document.querySelector("#selection").hidden = FIGURES_ARE_FROZEN;
   document.querySelector("#population").hidden = !FIGURES_ARE_FROZEN;
@@ -215,8 +215,8 @@ function selectWeek(page, week) {
 }
 
 function renderPageHeader() {
-  // The header's links carry every key of the URL, the sessions table's included, as the Session page's do: a visitor
-  // who follows Explore or About and comes back finds the table as it was.
+  // The brand's link carries every key of the URL, the sessions table's included, as the Session page's links do: a
+  // visitor who follows it finds the table as it was.
   renderHeader(document.querySelector("#site-header"), PAGE_FILE, new URLSearchParams(window.location.search));
 }
 
