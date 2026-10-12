@@ -5,8 +5,8 @@
 ## MODIFIED Requirements
 
 ### Requirement: Sessions table
-Directly after the Overview, a Sessions section (eyebrow "Browse",
-heading "Sessions", anchor `#sessions`) SHALL list every
+Directly after the Overview, a Session Explorer section (that heading,
+no eyebrow, anchor `#sessions`) SHALL list every
 top-level session of every harness, the benchmark replay marked in its
 harness cell, sorted by start date descending by default, 20 rows a page,
 with the columns Session (a shortened id, linked), Started (UTC), Harness,
@@ -40,15 +40,15 @@ the Session page.
 
 #### Scenario: Coming back from a session
 - **WHEN** the visitor follows the Session page's link back
-- **THEN** the page SHALL open at the Sessions section with the same filters, sort and page
+- **THEN** the page SHALL open at the Session Explorer with the same filters, sort and page
 
 #### Scenario: Where the list sits
 - **WHEN** the visitor scrolls past the Overview
-- **THEN** the next section SHALL be the Sessions section, and the Insights SHALL follow it
+- **THEN** the next section SHALL be the Session Explorer, and the Insights SHALL follow it
 
 ### Requirement: Insights
-After the Sessions section, an Insights section (eyebrow "Findings",
-heading "Insights", anchor `#insights`) SHALL draw the figures and the two
+After the Session Explorer, an Insights section (that heading, no
+eyebrow, anchor `#insights`) SHALL draw the figures and the two
 kept histograms from the shipped answers, in six numbered topics, each
 with a heading, a takeaway sentence of at most twenty words under it, and
 no other intro text; each card with a title, an insight of at most twelve
@@ -96,8 +96,9 @@ Nothing on the page SHALL run a query in the browser.
 - **THEN** the node test that counts them SHALL fail
 
 ### Requirement: Hero and stats strip
-The page SHALL open with a hero: an eyebrow naming the dataset, a title of
-two phrases with one in the accent colour, one lede sentence, and four
+The page SHALL open with a hero: the title "FreeInference Agentic
+Dataset" with "Agentic Dataset" in the accent colour and no eyebrow above
+it, a lede whose first clause counts the weeks, and four
 buttons: "Insights" to the Insights section, "Dataset" (the
 Hugging Face dataset), the paper and the code. Beside it a stats strip
 SHALL show, computed from the shipped answers and never typed: the weeks,
@@ -112,3 +113,20 @@ counted.
 #### Scenario: A stat is counted, not typed
 - **WHEN** the data gains a week and `make data` reruns
 - **THEN** the stats strip SHALL show the new counts without an edit to the page
+
+### Requirement: Cite, Team and footer
+The page SHALL end with a Cite section holding the paper's BibTeX in a
+block with a copy button; a Team section naming Harvard MadSys and
+collaborators, the paper's authors with their affiliations, and an About
+paragraph saying what the site is, whose links the header, the hero and
+the footer carry; and a footer with the brand line "FreeInference Agentic
+Dataset", its blurb, and the on-site and elsewhere links, and nothing
+else: no copyright line and no policy links.
+
+#### Scenario: Copying the citation
+- **WHEN** the visitor presses the copy button
+- **THEN** the BibTeX SHALL be on the clipboard unchanged
+
+#### Scenario: The footer
+- **WHEN** the visitor reaches the end of the page
+- **THEN** the footer SHALL show the brand, its blurb and the two groups of links, and no copyright or policy text

@@ -14,7 +14,13 @@ Topics keep their numbers: 01 Session structure, 02 Tokens and cost,
 03 Latency, 04 Tools, 05 Prefix caching, 06 Human-driven against benchmark.
 Anchors `#insights-sessions`, `-tokens`, `-latency`, `-tools`, `-caching`,
 `-comparison`. The hero's primary button: "Insights" → `#insights`. The
-Session page's back link: "← Sessions".
+Session page's back link: "← Session Explorer".
+
+The name: the site is the **FreeInference Agentic Dataset**. The hero's
+title is that name, "Agentic Dataset" in the accent, with no eyebrow above
+it; the week count becomes the lede's first clause ("Sixteen weeks of
+coding agents, …"). The brand in the header and the footer reads it, the
+footer blurb stays, and the footer's copyright line and policy links go.
 
 Why the list before the insights: it is the one thing the site offers that
 the paper cannot, and a visitor who opens a session reads the insights with
