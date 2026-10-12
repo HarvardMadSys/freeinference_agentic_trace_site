@@ -33,15 +33,15 @@ its definition beside it:
 | Sessions | `decode_cdf_by_model` | CDF of latency minus TTFT per model, for the same models and requests |
 | Sessions | `session_time_by_part` | Each session's time split between model time, tool waits and human waits, sessions ranked by human share, in rank bins |
 | Sessions | `speedup_if_twice_as_fast` | The session-time speed-up if prefill, decode or tool time alone ran twice as fast, with tool gaps capped as the pipeline caps them |
-| Sessions | `turn_duration_by_scope` | CDF of turn duration, human-driven against benchmark, both medians and their ratio |
-| Sessions | `session_duration_by_scope` | CDF of session duration, human-driven against benchmark |
-| Sessions | `input_per_request_by_scope` | CDF of input tokens per request, human-driven against benchmark |
-| Sessions | `user_prompt_tokens_by_scope` | CDF of a user's new prompt's tokens, human-driven against benchmark |
+| Benchmark against production | `turn_duration_by_scope` | CDF of turn duration, human-driven against benchmark, both medians and their ratio |
+| Benchmark against production | `session_duration_by_scope` | CDF of session duration, human-driven against benchmark |
+| Benchmark against production | `input_per_request_by_scope` | CDF of input tokens per request, human-driven against benchmark |
+| Benchmark against production | `user_prompt_tokens_by_scope` | CDF of a user's new prompt's tokens, human-driven against benchmark |
 | Tools | `latency_by_category` | 5th, 25th, 50th, 75th, 95th percentile of latency per category |
 | Tools | `result_tokens_by_category` | The same percentiles of result tokens per category |
 | Tools | `calls_per_request_by_category` | Mean calls per request, by the category of the request's first call |
 | Tools | `latency_by_batch_width` | Quantile band of the tool wait by the number of calls in the request, and the serial line |
-| Tools | `tool_mix_by_turn_position` | Share of calls in each of the pipeline's eight groups per tenth of a turn, human-driven and benchmark |
+| Benchmark against production | `tool_mix_by_turn_position` | Share of calls in each of the pipeline's eight groups per tenth of a turn, human-driven and benchmark |
 | Prefix caching | `hit_ratio_cdf_by_gap_bin` | CDF of the hit ratio of requests in each of the pipeline's gap bins of the wait before them |
 | Prefix caching | `hit_ratio_by_idle_gap` | Median hit ratio per idle-gap bin, per provider |
 | Prefix caching | `gap_cdf_by_cause` | CDF of the wait before a request by what it waited for |
