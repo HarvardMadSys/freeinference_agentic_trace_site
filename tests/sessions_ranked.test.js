@@ -34,7 +34,7 @@ test("a bin's tooltip points at the top of the shown parts and names each with i
   const [first] = rankTips(BIN_ROWS, ["cached", "output"], LABELS);
   assert.equal(first.percentile, 25);
   assert.equal(first.top, 0.75);
-  assert.equal(first.text, "Percentile 25.0\nCached input: 50.0%\nOutput: 25.0%\n55 sessions");
+  assert.equal(first.text, "Percentile 25.0\nCached input: 50%\nOutput: 25%\n55 sessions");
 });
 
 test("the session time's legend draws model time in a request's ink and waits in the Timeline's wait colours", () => {

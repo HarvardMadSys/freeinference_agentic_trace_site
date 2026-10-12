@@ -11,6 +11,16 @@ const COMPACT_UNITS = [
   [1e3, "k"],
 ];
 
+// A duration's text is in the first unit it is below the bound of: seconds under 100 s, minutes under 100 minutes,
+// hours under two days, else days, so a value keeps two or three figures.
+const SECONDS_PER_DAY = 86400;
+const DURATION_TEXT_UNITS = Object.freeze([
+  Object.freeze({ below: 100, size: 1, unit: "s" }),
+  Object.freeze({ below: 6000, size: 60, unit: "min" }),
+  Object.freeze({ below: 2 * SECONDS_PER_DAY, size: 3600, unit: "h" }),
+]);
+const TWO_DECIMALS_BELOW = 0.1; // a value under a tenth of its unit keeps two decimals, so 0.04 s is not written 0 s
+
 // A duration tick is written in the largest of these units it reaches, else in seconds.
 const DURATION_TICK_UNITS = [
   [86400, "d"],
@@ -47,6 +57,11 @@ export function formatCount(count) {
   return count.toLocaleString("en-US");
 }
 
+/** A count rounded to a whole one, as a percentile of counts is written: 368.4 → "368", 5040 → "5,040". */
+export function formatWholeCount(count) {
+  return formatCount(Math.round(count));
+}
+
 /** A count and its noun, singular for one: (1, "agent", "agents") → "1 agent"; (1186582, …) → "1,186,582 agents". */
 export function formatQuantity(count, singular, plural) {
   return `${formatCount(count)} ${count === 1 ? singular : plural}`;
@@ -72,17 +87,17 @@ export function formatTokens(tokens) {
   return formatCompactCount(tokens);
 }
 
-/** A duration: under a minute "4.2s", under an hour "12m 04s", otherwise "1h 03m". */
+/**
+ * A duration in the words an axis uses, with one decimal at most: "4.3 s" and "61 s" under 100 s, "3.1 min" under 100
+ * minutes, "1.8 h" under two days, then "3.8 d"; a duration under a tenth of a second keeps two decimals, "0.04 s".
+ */
 export function formatSeconds(seconds) {
-  if (seconds < 60) {
-    return `${withoutTrailingZero(seconds.toFixed(1))}s`;
+  for (const { below, size, unit } of DURATION_TEXT_UNITS) {
+    if (seconds < below) {
+      return `${oneDecimal(seconds / size)} ${unit}`;
+    }
   }
-  const wholeSeconds = Math.round(seconds);
-  const minutes = Math.floor(wholeSeconds / 60);
-  if (minutes < 60) {
-    return `${minutes}m ${padded(wholeSeconds % 60)}s`;
-  }
-  return `${Math.floor(minutes / 60)}h ${padded(minutes % 60)}m`;
+  return `${oneDecimal(seconds / SECONDS_PER_DAY)} d`;
 }
 
 /** A duration as an axis writes it: "30 s" under a minute, then "2 min", "1.3 min", "1 h" or "7 d", one decimal at most. */
@@ -128,9 +143,9 @@ export function formatPercent(share) {
   return `${Math.round(share * 100)}%`;
 }
 
-/** A share of one as a percentage with one decimal: 0.632 → "63.2%". */
+/** A share of one as a percentage with one decimal at most: 0.632 → "63.2%", 1 → "100%". */
 export function formatShare(share) {
-  return `${(share * 100).toFixed(1)}%`;
+  return `${withoutTrailingZero((share * 100).toFixed(1))}%`;
 }
 
 /** A multiple and a times sign, with `decimals` decimals when given, else as it is: (1.3757, 2) → "1.38×"; 2 → "2×". */
@@ -210,6 +225,11 @@ function hoursAndMinutes(seconds) {
 
 function padded(number) {
   return String(number).padStart(2, "0");
+}
+
+function oneDecimal(value) {
+  const decimals = value > 0 && value < TWO_DECIMALS_BELOW ? 2 : 1;
+  return withoutTrailingZero(value.toFixed(decimals));
 }
 
 function withoutTrailingZero(text) {

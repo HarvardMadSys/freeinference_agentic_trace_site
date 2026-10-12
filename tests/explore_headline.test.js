@@ -25,7 +25,7 @@ test("the tiles show every headline number in its format, the cached share last"
     ["Output tokens", "552.5M"],
     ["Tool calls", "1,213,347"],
     ["Subagents", "2,034"],
-    ["Cached share", "75.0%"],
+    ["Cached share", "75%"],
   ]);
   for (const tile of tiles) {
     assert.ok(tile.definition.length > 0, `${tile.label} has a definition`);

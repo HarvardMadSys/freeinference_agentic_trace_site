@@ -41,7 +41,7 @@ test("a tenth's tooltip points at the top of its stack and lists its groups top 
   assert.equal(tips.length, 2 * TENTHS);
   const benchmarkFirst = tips.find((tip) => tip.scope === "SWE-Bench" && tip.turnPercent === 10);
   assert.equal(benchmarkFirst.top, 0.875);
-  assert.equal(benchmarkFirst.text, "Benchmark, 0–10% of the turn\nSearch: 12.5%\nRead: 75.0%");
+  assert.equal(benchmarkFirst.text, "Benchmark, 0–10% of the turn\nSearch: 12.5%\nRead: 75%");
 });
 
 test("the legend lists the rows' groups in the pipeline's order, each in its own colour", () => {

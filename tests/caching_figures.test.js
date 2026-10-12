@@ -32,7 +32,7 @@ test("the gap bins take the six gap-bin colours, shortest gap first, whichever b
   assert.deepEqual([...colours.keys()], ["<1m", "1–5m", "5–15m", "15–30m", "30m–1h", ">1h"]);
   assert.deepEqual([...colours.values()], [1, 2, 3, 4, 5, 6].map((slot) => `var(--gap-bin-${slot})`));
   const legend = gapBinLegend([{ series: ">1h" }, { series: "<1m" }], FIGURE_COLOURS, "series");
-  assert.deepEqual(legend.series, [{ name: "<1m", label: "<1m" }, { name: ">1h", label: ">1h" }]);
+  assert.deepEqual(legend.series, [{ name: "<1m", label: "Under 1 min" }, { name: ">1h", label: "Over 1 h" }]);
   assert.equal(legend.colours.get(">1h"), "var(--gap-bin-6)");
 });
 

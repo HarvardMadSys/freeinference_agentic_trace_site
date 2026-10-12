@@ -28,11 +28,11 @@ test("the details give the input by role and how it was cached", () => {
 
 test("the details give the timing, the end, the transition and the wait", () => {
   const values = factValues(REQUEST);
-  assert.equal(values["Time to first token"], "9.9s");
-  assert.equal(values["Duration"], "10s");
+  assert.equal(values["Time to first token"], "9.9 s");
+  assert.equal(values["Duration"], "10 s");
   assert.equal(values["Finish reason"], "tool_calls");
   assert.equal(values["Transition"], "mutation (compaction)");
-  assert.equal(values["Waited for"], "subagent, 1m 10s");
+  assert.equal(values["Waited for"], "subagent, 70 s");
 });
 
 test("a session's first request has no transition and no wait, and a missing TTFT is a dash", () => {

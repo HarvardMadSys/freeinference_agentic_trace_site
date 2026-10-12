@@ -5,7 +5,7 @@ import {
   cachedShare, elapsedSeconds, formatCount, formatDurationTick, formatElapsed, formatMultiple, formatOptionalShare,
   formatQuantity, formatSeconds, formatShare, formatTokens, monthName, shortSessionId, utcMinute,
   elapsedTickFormat, formatBinaryThousands, formatCompactCount, formatPercent, formatTtlName, monthAndDay,
-  monthSpanText, shortMinute, shortMonth,
+  monthSpanText, shortMinute, shortMonth, formatWholeCount,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -19,11 +19,15 @@ test("a token total is shown in its largest unit", () => {
   assert.equal(formatTokens(209_000_000_000), "209B");
 });
 
-test("a duration is shown in seconds, minutes or hours", () => {
-  assert.equal(formatSeconds(4.25), "4.3s");
-  assert.equal(formatSeconds(724), "12m 04s");
-  assert.equal(formatSeconds(119.6), "2m 00s");
-  assert.equal(formatSeconds(3780), "1h 03m");
+test("a duration is written in the axes' words with one decimal at most", () => {
+  assert.equal(formatSeconds(4.25), "4.3 s");
+  assert.equal(formatSeconds(61), "61 s");
+  assert.equal(formatSeconds(724), "12.1 min");
+  assert.equal(formatSeconds(119.6), "2 min");
+  assert.equal(formatSeconds(6480), "1.8 h");
+  assert.equal(formatSeconds(328000), "3.8 d");
+  assert.equal(formatSeconds(0.04), "0.04 s");
+  assert.equal(formatSeconds(0), "0 s");
 });
 
 test("a duration tick is in the largest unit it reaches, to one decimal at most", () => {
@@ -53,13 +57,19 @@ test("elapsed time is minutes and seconds, with hours when needed", () => {
   assert.equal(formatElapsed(3661), "1:01:01");
 });
 
-test("a share is a percentage with one decimal", () => {
+test("a share is a percentage with one decimal at most, a whole one with none", () => {
   assert.equal(formatShare(0.632), "63.2%");
+  assert.equal(formatShare(1), "100%");
+});
+
+test("a percentile of counts is written as a whole count", () => {
+  assert.equal(formatWholeCount(368.4), "368");
+  assert.equal(formatWholeCount(5040), "5,040");
 });
 
 test("an optional share is a percentage, or a dash when it is missing", () => {
   assert.equal(formatOptionalShare(0.632), "63.2%");
-  assert.equal(formatOptionalShare(0), "0.0%");
+  assert.equal(formatOptionalShare(0), "0%");
   assert.equal(formatOptionalShare(null), "—");
 });
 

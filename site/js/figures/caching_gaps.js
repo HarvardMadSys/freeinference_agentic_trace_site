@@ -19,6 +19,11 @@ import { cdfSeries, seriesLegend } from "./figure_rows.js";
 // The gap bins' labels, shortest gap first, as the pipeline's `gaps.GAP_BINS` names them. tests/
 // test_pipeline_mirrors_caching.py checks them, the cause names and the three constants below against the pipeline.
 const GAP_BIN_LABELS = Object.freeze(["<1m", "1–5m", "5–15m", "15–30m", "30m–1h", ">1h"]);
+// How a legend and a tooltip write each gap bin, in the words every duration is written in.
+const GAP_BIN_TEXT = Object.freeze({
+  "<1m": "Under 1 min", "1–5m": "1–5 min", "5–15m": "5–15 min", "15–30m": "15–30 min", "30m–1h": "30 min–1 h",
+  ">1h": "Over 1 h",
+});
 
 // What a gap waited for, by the release's `waited_for` value, named and ordered as the pipeline's `gaps.CAUSE_NAMES`.
 const CAUSE_NAMES = Object.freeze({
@@ -123,7 +128,7 @@ export function gapBinColours() {
 
 /** The gap-bin figure's legend: the bins of the rows, shortest gap first. */
 export function gapBinLegend(rows, colours, seriesColumn) {
-  return seriesLegend(rows, seriesColumn, gapBinColours());
+  return seriesLegend(rows, seriesColumn, gapBinColours(), GAP_BIN_TEXT);
 }
 
 /** The gap-by-cause figure's legend: the causes of the rows, in the paper's order, by the paper's names. */
@@ -205,7 +210,7 @@ function mutationTableRow(line) {
 
 /** Draw one CDF line of the hit ratio per gap bin. */
 async function drawHitRatioByGapBin(rows, body, colours) {
-  const series = cdfSeries(rows, GAP_BIN_LABELS);
+  const series = cdfSeries(rows, GAP_BIN_LABELS, { labels: GAP_BIN_TEXT });
   await drawCdf(body, series, {
     xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, xTickFormat: formatPercent, format: formatShare,
     colours: colours.series,

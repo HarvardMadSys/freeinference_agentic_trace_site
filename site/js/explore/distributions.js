@@ -9,7 +9,7 @@
 import { showError, showLoading } from "../shared/charts.js";
 import { durationTicks } from "../axes/ticks.js";
 import {
-  formatCompactCount, formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare, formatTokens,
+  formatCompactCount, formatDurationTick, formatPercent, formatSeconds, formatShare, formatTokens, formatWholeCount,
 } from "../shared/format.js";
 import { binsFromRows, mountHistogram } from "../shared/histogram.js";
 
@@ -38,18 +38,18 @@ const CARDS = Object.freeze([
     definition: `Completion tokens of each top-level request, on a log scale. ${ZERO_NOTE}`,
   }),
   Object.freeze({
-    name: "requests_per_session", title: "Requests per session", countLabel: "Sessions", format: formatCount,
+    name: "requests_per_session", title: "Requests per session", countLabel: "Sessions", format: formatWholeCount,
     tickFormat: formatCompactCount, logScale: true,
     caption: "LLM requests of each top-level session, subagents excluded.",
     definition: "LLM requests of each top-level session, its subagents' not counted, on a log scale.",
   }),
   Object.freeze({
-    name: "turns_per_session", title: "Turns per session", countLabel: "Sessions", format: formatCount,
+    name: "turns_per_session", title: "Turns per session", countLabel: "Sessions", format: formatWholeCount,
     tickFormat: formatCompactCount, logScale: true, caption: "User turns of each top-level session.",
     definition: "User steps of each top-level session, the requests whose new input is a user message, on a log scale.",
   }),
   Object.freeze({
-    name: "subagents_per_session", title: "Subagents per session", countLabel: "Sessions", format: formatCount,
+    name: "subagents_per_session", title: "Subagents per session", countLabel: "Sessions", format: formatWholeCount,
     logScale: true, ticks: () => SUBAGENT_TICKS,
     caption: "Subagent sessions each top-level session spawned, at any depth.",
     definition: `Subagent sessions each top-level session spawned, at any depth, on a log scale. ${ZERO_NOTE}`,

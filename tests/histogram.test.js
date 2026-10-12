@@ -28,8 +28,8 @@ test("the legend gives each percentile and the maximum in the card's format", ()
 test("a duration card's legend writes its values as durations", () => {
   const durationCard = { ...TOKENS_CARD, percentiles: { p50: 724, p75: 1800, p90: 3780, p95: 5400 }, max: 42.5,
     format: formatSeconds };
-  assert.equal(percentileEntries(durationCard)[0].text, "p50 12m 04s");
-  assert.equal(maximumText(durationCard), "max 42.5s");
+  assert.equal(percentileEntries(durationCard)[0].text, "p50 12.1 min");
+  assert.equal(maximumText(durationCard), "max 42.5 s");
 });
 
 test("a card with no rows has an empty legend, and its line of rows says 0", () => {
