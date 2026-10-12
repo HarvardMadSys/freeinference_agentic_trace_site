@@ -92,6 +92,16 @@ slots the same hue so a series keeps its identity; the part colours
 Figure 4c) and the token-part colours derive from the slots. A script
 under `tests/` checks the contrast of every token in both modes.
 
+The hues are not evenly spread. Four are the paper's (blue, orange, green
+and red), and the paper's red and orange stand only 26° apart in OKLCH;
+the slots keep them at 18° and 50°, so 30° is the floor between any two,
+and amber (90°), teal, violet and magenta fill the wheel around them.
+Equal lightness would make orange, amber and green one colour to a
+red-green colour-blind reader, so lightness varies where it must: amber
+is deeper in light (5:1) and brighter in dark (8:1), blue and teal a step
+deeper in both. The test checks every pair of slots under a deuteranopia
+simulation as well as the contrast and the hue floor.
+
 ## The Session page
 
 The title row holds the breadcrumb, the id and, on the right, one facts

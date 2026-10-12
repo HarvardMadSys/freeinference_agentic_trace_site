@@ -51,17 +51,20 @@
 
   /*
    * Categorical series, in the fixed order charts assign them. A ninth series folds into "Other".
-   * Eight OKLCH hues round the wheel, no two closer than 30°: the paper's four (blue 255°, orange 50°, green 143°,
-   * red 18°), amber 84°, magenta 340°, teal 192° and violet 293°. A slot keeps its hue in both schemes. In light each
-   * is the lightest colour of its hue that keeps 3.3:1 on the white card, at the most chroma sRGB holds there, capped
-   * at 0.19 to stay short of neon.
+   * Eight OKLCH hues, the same in both schemes: blue 255°, orange 50°, green 143°, amber 90°, magenta 340°, teal 192°,
+   * violet 293° and red 18°. They are not evenly spread, because the paper's four (blue, orange, green and red) are
+   * fixed, and its red and orange stand only 26° apart; 30° is the floor between any two, and the other four fill
+   * the wheel around them. In light most slots are the lightest colour of their hue that keeps 3.3:1 on the white
+   * card, at the most chroma sRGB holds there (capped at 0.19, short of neon). Three are set apart in lightness so
+   * that a reader with red-green colour blindness can still tell every pair apart: blue and teal deeper (3.8:1), and
+   * amber deeper still (5:1), where it would otherwise merge with orange and green.
    */
-  --series-1: #308dfa;
+  --series-1: #1a82f2;
   --series-2: #df6d19;
   --series-3: #28a329;
-  --series-4: #b28619;
+  --series-4: #886c11;
   --series-5: #dd5db9;
-  --series-6: #1c9d9a;
+  --series-6: #19918e;
   --series-7: #9a76fa;
   --series-8: #f25767;
   --series-other: #938a86;
@@ -114,14 +117,15 @@
   --gap-bin-5: #074281;
   --gap-bin-6: #043264;
 
-  /* A highlighted row, step or bar. */
-  --color-highlight: rgb(237 161 0 / 0.25);
+  /* A highlighted row, step or bar: a wash of the amber slot's hue, its bright dark-scheme tone, in both schemes. */
+  --color-highlight: rgb(223 180 36 / 0.25);
 }
 
 /*
  * The dark scheme: Open Data's ink as the paper, each surface one step lighter, the inks turned over with the same
- * warmth, and the crimson lifted to keep its contrast. The series keep their light hues; each is the darkest colour of
- * its hue that keeps 5.5:1 on the dark card, so the lines stand out on it as they do on white.
+ * warmth, and the crimson lifted to keep its contrast. The series keep their light hues; most are the darkest colour of
+ * their hue that keeps 5.5:1 on the dark card, blue and teal a step darker (4.8:1) and amber much lighter (8:1), so
+ * every pair stays apart for a red-green colour-blind reader here too.
  */
 @media (prefers-color-scheme: dark) {
   :root {
@@ -146,12 +150,12 @@
     --chart-grid: #3d3633;
     --chart-axis: #5b534f;
 
-    --series-1: #4d9bfa;
+    --series-1: #338ffa;
     --series-2: #f1761c;
     --series-3: #38af38;
-    --series-4: #c1921c;
+    --series-4: #dfb424;
     --series-5: #eb6ac5;
-    --series-6: #20aaa6;
+    --series-6: #1d9e9a;
     --series-7: #a386fa;
     --series-8: #fb6874;
     --series-other: #8c8480;
@@ -166,8 +170,6 @@
 
     --request-ttft: #cfc7c2;
     --request-rest: #5b534f;
-
-    --color-highlight: rgb(193 146 28 / 0.3);
   }
 }
 
@@ -265,12 +267,18 @@ code,
   font-weight: 600;
   line-height: 1.2;
   color: var(--color-text);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .button:hover {
   text-decoration: none;
   border-color: var(--color-accent);
   color: var(--color-accent-strong);
+  transform: translateY(-1px);
+}
+
+.button:active {
+  transform: translateY(0);
 }
 
 /* The one button that leads: filled with the accent. */

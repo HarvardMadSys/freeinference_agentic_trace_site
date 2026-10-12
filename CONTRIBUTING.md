@@ -349,15 +349,18 @@ which is plain HTML.
   red as the paper draws them, read through `TIME_PART_COLOURS`. The palette
   is Open Data's tokens (paper, surfaces, inks, rule and crimson) in light and
   the same inks turned over in dark, with our eight series slots: eight OKLCH
-  hues no two closer than 30°, each the same hue in both schemes.
+  hues no two closer than 30°, each the same hue in both schemes, most at one
+  lightness and amber, blue and teal set apart in lightness so that a
+  red-green colour-blind reader can tell every pair apart.
   `tests/palette_contrast.test.js` is the validation: it reads both schemes
   from `style.css` and checks every series, part, cause, token, transition,
   tool-group and gap-bin colour at 3:1 on its scheme's card, every text colour
   at 4.5:1 on the paper and on a card, each slot's hue across the schemes,
-  the hues' spread, and the parts' hues against the paper's. A new colour
-  token is named there as text, a mark or a tint, or the test fails. The
-  slots have not been run through a colour-vision simulator, so no series is
-  told by its colour alone: every chart ships a legend and a hover tooltip,
+  the hues' spread, every pair of slots at an OKLab distance of 5 under a
+  deuteranopia simulation, and the parts' hues against the paper's. A new
+  colour token is named there as text, a mark or a tint, or the test fails.
+  Protanopia and tritanopia are not simulated, so no series is told by its
+  colour alone: every chart ships a legend and a hover tooltip,
   and tables stay available where values matter.
 - **Marks.** Thin lines (2px), small markers, a 2px gap between stacked
   segments, grid and axes in `--chart-grid` and `--chart-axis`, labels in
