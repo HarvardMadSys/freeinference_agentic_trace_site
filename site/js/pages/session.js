@@ -7,16 +7,19 @@ import { mountContextView } from "../session_charts/context.js";
 import { factsList, sessionFacts } from "../session/facts_card.js";
 import { mountRequestsView } from "../session_requests/requests.js";
 import { mountTimelineView } from "../session_charts/timeline.js";
+import { fetchCategoryOrder, fetchSession } from "../session/bucket.js";
 import { OPEN_REQUEST_EVENT } from "../session/view_chart.js";
 import { showError, showLoading, showNote } from "../shared/charts.js";
 import { toolCategoryColours } from "../theme/colours.js";
-import { fetchHarnesses, fetchWeeks, openDatabase } from "../shared/database.js";
 import { shortSessionId } from "../shared/format.js";
 import { mountHeader, renderFooter } from "../shared/layout.js";
 import { selectionQuery } from "../shared/selection.js";
 
 // The title of each view's tab.
 const VIEW_TITLES = Object.freeze({ requests: "Requests", context: "Context", timeline: "Timeline" });
+
+// The data folder beside the page, as an absolute URL: the session's bucket and the category order are read from it.
+const DATA_URL = new URL("data/", window.location.href).href;
 
 const parameters = new URLSearchParams(window.location.search);
 const selection = selectionParameters(parameters);
@@ -36,19 +39,16 @@ showLoading(page.facts);
 showLoading(page.view);
 openSession(readAddress(parameters)).catch(showFailure);
 
-/** Load the session the address names and fill the page; a note when it names no session of its week. */
+/**
+ * Load the session the address names from its week's bucket and fill the page; a note when it names no session of its
+ * week. The facts and the view show their loading line until the bucket is parsed.
+ */
 async function openSession(address) {
   if (address.week === null || address.id === null) {
     showNotFound("This link names no session. Open one from the sessions table of the Explore page.");
     return;
   }
-  const [weeks, harnesses] = await Promise.all([fetchWeeks(), fetchHarnesses()]);
-  // A session lies in one week, so the database reads that week's files alone; the others are never opened.
-  const sessionWeeks = weeks.filter((entry) => entry.week === address.week);
-  const database = openDatabase(new URL("data/", window.location.href).href, sessionWeeks, harnesses);
-  // The session's queries read the week's files many times over; whole, in memory, they read no HTTP ranges.
-  await database.loadWeekRows(address.week);
-  const session = sessionWeeks.length === 0 ? null : await loadSession(database, address);
+  const session = await loadSession(address);
   if (session === null) {
     showNotFound(`Session not found in this week: no session ${address.id} in the week of ${address.week}.`);
     return;
@@ -85,22 +85,18 @@ function openRequest(shownView, session, address, { sessionId, step }) {
 /**
  * `{ tree, requests, toolCalls, categoryColours }`: the rows of the tree holding the session `address.id`, whether
  * that is the top-level session or one of its subagents, and the site-wide colour of each tool category; null when
- * the id is not a session of the database's one week, the address's.
+ * the id is not a session of the address's week.
  */
-async function loadSession(database, address) {
-  const roots = await database.runQueryWith("session/session_root", [address.id]);
-  if (roots.length === 0) {
+async function loadSession(address) {
+  // Fetched together, as neither needs the other.
+  const [session, categories] = await Promise.all([
+    fetchSession(DATA_URL, address.week, address.id),
+    fetchCategoryOrder(DATA_URL),
+  ]);
+  if (session === null) {
     return null;
   }
-  await database.setSession({ week: address.week, rootSessionId: roots[0].root_session_id });
-  const [tree, requests, toolCalls, categoryRows] = await Promise.all([
-    database.runQuery("session/session_tree"),
-    database.runQuery("session/session_requests"),
-    database.runQuery("session/session_tool_calls"),
-    database.runQuery("setup/category_order"),
-  ]);
-  const categoryColours = toolCategoryColours(categoryRows.map((row) => row.category));
-  return { tree, requests, toolCalls, categoryColours };
+  return { ...session, categoryColours: toolCategoryColours(categories) };
 }
 
 /**

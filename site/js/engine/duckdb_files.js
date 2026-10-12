@@ -1,6 +1,6 @@
 /**
  * The weeks' row files as DuckDB sees them, and the fetches that move them into memory: the stream of every week's
- * files, and one week's files loaded whole.
+ * files.
  *
  * A data file is `<kind>/week=<sunday>/rows.parquet` under the data folder, registered with DuckDB under that name:
  * first as a URL it reads in HTTP ranges, and, once the whole file has been fetched, as the file's bytes in
@@ -100,22 +100,6 @@ export async function streamWeekFiles(dataUrl, order, swapIn, onProgress) {
     }
     streamedWeeks.push(week);
     onProgress({ streamedWeeks: [...streamedWeeks] });
-  }
-}
-
-/**
- * Fetch each of the files `names` whole from the data folder at `dataUrl`, one request each and one at a time, and
- * hand each to `swapIn(name, bytes)`. A file that cannot be fetched or swapped in is named in a console warning and
- * left as it was registered, read over HTTP ranges; the files after it are still fetched.
- */
-export async function loadFilesWhole(dataUrl, names, swapIn) {
-  for (const name of names) {
-    try {
-      await swapIn(name, await fetchWhileVisible(fileUrl(dataUrl, name)));
-    } catch (error) {
-      // The file in memory only spares the queries their range reads; without it they read the ranges.
-      console.warn(`Reading ${name} over HTTP ranges: ${error.message}`);
-    }
   }
 }
 

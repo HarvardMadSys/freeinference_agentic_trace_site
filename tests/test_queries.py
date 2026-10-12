@@ -91,7 +91,6 @@ EXPECTED_COLUMNS = {
 
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
-SELECTED_SESSION = "tree-root"  # the fixture's first-week session with a tree of subagents
 
 # The browser's module that sets up DuckDB, whose lists of setup statements the tests compare with the helper's.
 VIEWS_MODULE = site_database.QUERIES_FOLDER.parent / "js" / "engine" / "duckdb_views.js"
@@ -182,9 +181,3 @@ def test_a_new_selection_replaces_the_previous_one(connection: duckdb.DuckDBPyCo
     site_database.select_weeks(connection, [FIRST_SUNDAY], fixture_release.PAPER_HARNESSES)
     rows = site_database.run_query(connection, "explore/request_count")
     assert rows.requests.tolist() == [8]  # `tree-root` 5 and `idle-week-1` 3, the first week's paper sessions
-
-
-def test_a_new_session_replaces_the_previous_one(connection: duckdb.DuckDBPyConnection) -> None:
-    site_database.select_session(connection, SECOND_SUNDAY, "mutation")
-    site_database.select_session(connection, FIRST_SUNDAY, SELECTED_SESSION)
-    assert connection.table("selected_session").fetchall() == [(FIRST_SUNDAY, SELECTED_SESSION)]

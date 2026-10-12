@@ -22,7 +22,6 @@ BENCHMARK_TABLE_STATEMENT = site_data.site_database.BENCHMARK_TABLE_STATEMENT
 open_site_database = site_data.site_database.open_site_database
 statement_text = site_data.site_database.statement_text
 select_weeks = site_data.site_database.select_weeks
-select_session = site_data.site_database.select_session
 run_query = site_data.site_database.run_query
 
 

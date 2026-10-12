@@ -70,10 +70,10 @@ test("a colour order is answered from its file whatever the selection", () => {
   }
 });
 
-test("a session query and any other setup statement are never answered from a file", () => {
+test("a bucket query and any other setup statement are never answered from a file", () => {
   for (const isDefault of [true, false]) {
-    for (const name of ["session/session_root", "session/session_requests", "session/session_tree",
-      "session/session_tool_calls", "setup/create_view_requests", "setup/insert_selected_week"]) {
+    for (const name of ["buckets/week_requests", "buckets/week_tree", "buckets/week_tool_calls",
+      "setup/create_view_requests", "setup/insert_selected_week"]) {
       assert.equal(answerFileFor(name, isDefault), null, name);
     }
   }
@@ -161,30 +161,3 @@ test("a stream that cannot start DuckDB warns once and does not reject", STREAMI
   assert.match(warn.mock.calls[0].arguments[0], /^Streaming the weeks' rows stopped: /);
   assert.deepEqual(progress, []);
 });
-
-test("loading the rows of a week the database does not have fetches nothing and starts no DuckDB", async (context) => {
-  const asked = [];
-  context.mock.method(globalThis, "fetch", fakeFetch({}, asked));
-  const database = openDatabase("http://localhost:8000/data/", WEEKS, HARNESSES);
-  // node cannot load the CDN's DuckDB module, so starting DuckDB here would reject.
-  await database.loadWeekRows("2026-06-07");
-  assert.deepEqual(asked, []);
-});
-
-test("loading the rows of one of its weeks fetches its files while DuckDB starts, and DuckDB's failure is thrown",
-  async (context) => {
-    const asked = [];
-    context.mock.method(globalThis, "fetch", fakeFetch({}, asked));
-    // A visible page, as node has no document; and the files' 404s, each warned about.
-    globalThis.document = { visibilityState: "visible", addEventListener() {}, removeEventListener() {} };
-    context.after(() => delete globalThis.document);
-    const warn = context.mock.method(console, "warn", () => undefined);
-    const database = openDatabase("http://localhost:8000/data/", WEEKS, HARNESSES);
-    await assert.rejects(database.loadWeekRows("2026-05-31"), LOADING_LIBRARIES);
-    assert.deepEqual(asked.filter((file) => file.includes("week=")), [
-      "http://localhost:8000/data/requests/week=2026-05-31/rows.parquet",
-      "http://localhost:8000/data/tool_calls/week=2026-05-31/rows.parquet",
-      "http://localhost:8000/data/sessions/week=2026-05-31/rows.parquet",
-    ]);
-    assert.equal(warn.mock.callCount(), 3);
-  });

@@ -14,6 +14,9 @@ MAX_MODULES_PER_FOLDER = 9  # a folder holds one purpose and about eight modules
 JAVASCRIPT_FOLDER = ROOT / "site" / "js"
 LIBRARIES_MODULE = ROOT / "site" / "js" / "shared" / "libraries.js"  # the only file that names a library URL
 QUERIES_FOLDER = ROOT / "site" / "queries"  # the only place SQL is written
+SESSION_PAGE_MODULE = JAVASCRIPT_FOLDER / "pages" / "session.js"  # the Session page, which reads one bucket
+DATABASE_MODULE = JAVASCRIPT_FOLDER / "shared" / "database.js"  # the Explore page's answers and queries
+ENGINE_FOLDER = JAVASCRIPT_FOLDER / "engine"  # DuckDB in the page, which only the Explore page's switch can start
 DATA_FOLDER = "site/data"  # built by `make data` and tracked, so a clone serves the site without building
 ROW_KINDS = ("requests", "sessions", "tool_calls")  # the kinds of row every week has a file of; the simulation has fewer weeks
 BUCKETS_FOLDER = "session_buckets"  # every week's folder of session buckets, beside its index `index.json.gz`
@@ -22,6 +25,9 @@ CDN_HOSTS = ("cdn.jsdelivr.net", "unpkg.com", "cdnjs.cloudflare.com", "esm.sh")
 # A static import of the libraries module, by any relative path: the `from` clause, or an import for its side effects.
 # A dynamic `await import("./libraries.js")` is the allowed way and does not match.
 STATIC_LIBRARIES_IMPORT = re.compile(r"""(\bfrom\s+|^\s*import\s+)["'][^"']*libraries\.js["']""")
+
+# A static import's module, a relative path in the `from` clause: `import { thing } from "./module.js";`.
+RELATIVE_IMPORT = re.compile(r"""\bfrom\s+["'](\.{1,2}/[^"']+)["']""")
 
 # An absolute path on a maintainer's machine: a home, project or scratch folder.
 MACHINE_PATH = re.compile(r"/(home|madsys|scratch)/")
@@ -118,6 +124,31 @@ def test_only_a_dynamic_import_loads_the_libraries() -> None:
             continue
         for number, line in enumerate(path.read_text().splitlines(), start=1):
             assert not STATIC_LIBRARIES_IMPORT.search(line), f"{path.relative_to(ROOT)}:{number} imports {LIBRARIES_MODULE.name} statically"
+
+
+def statically_imported_modules(page_module: pathlib.Path) -> set[pathlib.Path]:
+    """The page module and every module it imports statically, directly or through another, as resolved paths."""
+    found = set()
+    to_read = [page_module.resolve()]
+    while to_read:
+        module = to_read.pop()
+        if module in found:
+            continue
+        found.add(module)
+        for name in RELATIVE_IMPORT.findall(module.read_text()):
+            to_read.append((module.parent / name).resolve())
+    return found
+
+
+def test_the_session_page_loads_neither_the_database_nor_duckdb() -> None:
+    for module in statically_imported_modules(SESSION_PAGE_MODULE):
+        assert module != DATABASE_MODULE.resolve(), f"the Session page imports {DATABASE_MODULE.relative_to(ROOT)}"
+        assert ENGINE_FOLDER.resolve() not in module.parents, f"the Session page imports {module.relative_to(ROOT)}"
+
+
+def test_the_explore_page_s_imports_are_found() -> None:
+    # The check above is only as good as the import pattern: the Explore page does import the database module.
+    assert DATABASE_MODULE.resolve() in statically_imported_modules(JAVASCRIPT_FOLDER / "pages" / "explore.js")
 
 
 def tracked_text_files() -> list[pathlib.Path]:

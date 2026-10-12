@@ -1349,6 +1349,8 @@ section[id] {
   padding: 0.75rem 1rem;
   border-radius: var(--radius-small);
   background: var(--color-surface-raised);
+  /* A note may name a session id, 32 characters without a space, which would otherwise run past a phone's width. */
+  overflow-wrap: anywhere;
 }
 
 .note.is-error {

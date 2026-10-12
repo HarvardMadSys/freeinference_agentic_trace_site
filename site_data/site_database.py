@@ -45,7 +45,6 @@ VIEW_STATEMENTS = {
 SELECTION_TABLE_STATEMENTS = [
     "setup/create_selected_weeks",
     "setup/create_selected_harnesses",
-    "setup/create_selected_session",
 ]
 
 # The statements that make the views over the selected rows, run after the selection tables they read, in the order
@@ -106,12 +105,6 @@ def select_weeks(connection: duckdb.DuckDBPyConnection, week_list: list[str], ha
     connection.execute(statement_text("setup/clear_selected_harnesses"))
     for harness in harness_list:
         connection.execute(statement_text("setup/insert_selected_harness"), [harness])
-
-
-def select_session(connection: duckdb.DuckDBPyConnection, week: str, root_session_id: str) -> None:
-    """Empty `selected_session`, then hold the one top-level session `root_session_id` of the week `week`."""
-    connection.execute(statement_text("setup/clear_selected_session"))
-    connection.execute(statement_text("setup/insert_selected_session"), [week, root_session_id])
 
 
 def run_query(connection: duckdb.DuckDBPyConnection, name: str, parameters: list | None = None) -> pandas.DataFrame:

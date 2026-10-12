@@ -20,9 +20,7 @@ const VIEW_STATEMENTS = Object.freeze({
 });
 
 // The statements that make the empty selection tables, run once after the views.
-const SELECTION_TABLE_STATEMENTS = Object.freeze([
-  "setup/create_selected_weeks", "setup/create_selected_harnesses", "setup/create_selected_session",
-]);
+const SELECTION_TABLE_STATEMENTS = Object.freeze(["setup/create_selected_weeks", "setup/create_selected_harnesses"]);
 
 // The statements that make the views over the selected rows, run after the selection tables they read.
 const SELECTION_VIEW_STATEMENTS = Object.freeze(["setup/create_view_session_time"]);

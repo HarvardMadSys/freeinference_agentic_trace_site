@@ -1,18 +1,15 @@
 /**
- * The page's data: the weeks `weeks.json` lists, the harnesses `harnesses.json` lists, and queries run by name. A
- * query's name is its path under `site/queries/` without `.sql`: `runQuery("explore/request_count")` runs
- * `queries/explore/request_count.sql`; `runQueryWith(name, parameters)` runs one that takes `?` parameters.
+ * The Explore page's data: the weeks `weeks.json` lists, the harnesses `harnesses.json` lists, and queries run by name.
+ * A query's name is its path under `site/queries/` without `.sql`: `runQuery("explore/request_count")` runs
+ * `queries/explore/request_count.sql`.
  *
  * A query `answerFileFor` names a file for is answered from it, which the data step wrote by running the query. Every
  * other query runs in DuckDB, loaded the first time a query needs it, as `engine/duckdb_views.js` sets it up. After a
  * page has drawn its first view it may stream the weeks' files into memory (`streamRows`), so that a later query reads
- * memory instead of HTTP ranges, as `engine/duckdb_files.js` does it; a page that reads one week loads that week's
- * files whole before its queries (`loadWeekRows`).
+ * memory instead of HTTP ranges, as `engine/duckdb_files.js` does it.
  */
 
-import {
-  filesOfWeek, loadFilesWhole, streamingOrder, streamWeekFiles, swapFileToMemory,
-} from "../engine/duckdb_files.js";
+import { streamingOrder, streamWeekFiles, swapFileToMemory } from "../engine/duckdb_files.js";
 import { openDuckDB, ROW_KINDS, runEach, runStatement } from "../engine/duckdb_views.js";
 import { isDefaultSelection } from "./selection.js";
 
@@ -114,13 +111,6 @@ class Database {
     return plainRows(await started.result);
   }
 
-  /** The rows of the query `name` run in DuckDB with `parameters` in place of its `?` placeholders, in order. */
-  async runQueryWith(name, parameters) {
-    const text = await this.#statementText(name);
-    const started = await this.#afterEarlierChanges(() => this.#startPreparedQuery(text, parameters));
-    return plainRows(await started.result);
-  }
-
   /**
    * Make `weeks` (Sundays) and `harnesses` (names) the selection: the default, or any when answering only from files,
    * leaves DuckDB alone; any other fills `selected_weeks` and `selected_harnesses` once every earlier change of the
@@ -129,11 +119,6 @@ class Database {
   setSelection({ weeks, harnesses }) {
     this.#selection = { weeks, harnesses };
     return this.#afterEarlierChanges(() => (this.#readsAnswers() ? undefined : this.#connectionWithSelection()));
-  }
-
-  /** Empty `selected_session`, then hold the one session `rootSessionId` of `week`; ordered as `setSelection`. */
-  setSession({ week, rootSessionId }) {
-    return this.#afterEarlierChanges(() => this.#fillSession(week, rootSessionId));
   }
 
   /**
@@ -152,30 +137,6 @@ class Database {
     } catch (error) {
       // The stream only speeds up later queries, which read HTTP ranges without it; so it stops and the page goes on.
       console.warn(`Streaming the weeks' rows stopped: ${error.message}`);
-    }
-  }
-
-  /**
-   * Fetch each row file of the week `week` (a Sunday of the database's weeks) whole, one request per file, into
-   * DuckDB's memory, so that the queries after it read memory; a file whose fetch fails stays on HTTP ranges, with a
-   * console warning. The first file downloads while DuckDB starts; each of the others follows once DuckDB is up and
-   * the file before it is swapped in. The fetches run at low priority and pause while the tab is hidden, so a session
-   * opened in a background tab finishes loading when the tab is shown. A page that reads one week awaits it before its
-   * queries; it rejects when DuckDB cannot start. A week the database does not have loads nothing, and DuckDB is not
-   * started for it.
-   */
-  async loadWeekRows(week) {
-    const entry = this.#weeks.find((candidate) => candidate.week === week);
-    if (entry === undefined) {
-      return;
-    }
-    // Started together, as starting DuckDB and downloading the files each take seconds and neither needs the other.
-    const opening = this.#duckdb();
-    const swapIn = (name, bytes) => this.#swapAfterOpening(opening, name, bytes);
-    const loading = loadFilesWhole(this.#dataUrl, filesOfWeek(entry, ROW_KINDS), swapIn);
-    const [started] = await Promise.allSettled([opening, loading]);
-    if (started.status === "rejected") {
-      throw started.reason;
     }
   }
 
@@ -202,13 +163,6 @@ class Database {
     return this.#running(connection.query(text));
   }
 
-  /** Start the query `text` with `parameters`, closing its statement after: `{ result }`, as `#running` gives. */
-  async #startPreparedQuery(text, parameters) {
-    const { connection } = await this.#duckdb();
-    const statement = await connection.prepare(text);
-    return this.#running(queryAndClose(statement, parameters));
-  }
-
   /**
    * `{ result }`, `result` being the promised result of a query just started, counted as running until it settles. It
    * is wrapped so that the turn that started the query settles without waiting for it.
@@ -218,12 +172,6 @@ class Database {
     const forget = () => this.#runningQueries.delete(result);
     result.then(forget, forget);
     return { result };
-  }
-
-  /** Register the file `name` as `bytes` once DuckDB, promised by `opening`, has started; ordered as every change. */
-  async #swapAfterOpening(opening, name, bytes) {
-    const opened = await opening;
-    return this.#afterEarlierChanges(() => this.#swapWhenIdle(opened, name, bytes));
   }
 
   /** Register the file `name` as `bytes` once the running queries have settled; no query starts meanwhile. */
@@ -244,12 +192,6 @@ class Database {
       this.#filledSelection = selection;
     }
     return connection;
-  }
-
-  async #fillSession(week, rootSessionId) {
-    const { connection } = await this.#duckdb();
-    await this.#runStatement(connection, "setup/clear_selected_session");
-    await this.#runEach(connection, "setup/insert_selected_session", [[week, rootSessionId]]);
   }
 
   /** DuckDB, `{ engine, connection, httpProtocol }`, opened over the weeks' files the first time it is asked for. */
@@ -273,15 +215,6 @@ class Database {
       this.#statementTexts.set(name, await response.text());
     }
     return this.#statementTexts.get(name);
-  }
-}
-
-/** The result of the prepared `statement` run with `parameters`; the statement is closed whatever the outcome. */
-async function queryAndClose(statement, parameters) {
-  try {
-    return await statement.query(...parameters);
-  } finally {
-    await statement.close();
   }
 }
 
