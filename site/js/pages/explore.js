@@ -10,9 +10,9 @@
  * the weeks streamed.
  *
  * While `FIGURES_ARE_FROZEN`, the page shows the default selection whatever the URL says: it mounts no picker, hides
- * the selection's card, leaves the URL as it is, answers every section from its precomputed file, draws every figure
- * at once, takes no click on a trend bar, and starts neither DuckDB nor the stream; its header's links carry no
- * selection.
+ * the selection's card, answers every section from its precomputed file, draws every figure at once, takes no click
+ * on a trend bar, and starts neither DuckDB nor the stream. The URL's `months` and `harnesses` then filter the sessions
+ * table alone, which reads them, and the older `weeks`, `month` and `scope`, and rewrites them in its own keys.
  *
  * `page` is what the page owns: `{ weeks, harnesses, selection, database, orders, figures, latestRun, streamedWeeks }`:
  * - `weeks` and `harnesses`, the entries of `weeks.json` and `harnesses.json`;
@@ -26,23 +26,23 @@
  * `orders` is `{ harnesses, models, categories, providers }`, the promised rows of `setup/harness_order`,
  * `setup/model_order`, `setup/category_order` and `setup/provider_order`, asked for once. A section runs as
  * `run(container, context)` with `context = { database, orders, selection, weeks, harnesses, onWeekClick,
- * replaceQuery }`, and lays out fresh places in its container each time, so a run that a newer one replaced draws into
- * places no longer on the page.
+ * replaceQuery, filterInTable }`, and lays out fresh places in its container each time, so a run that a newer one
+ * replaced draws into places no longer on the page. `filterInTable` is whether the sessions table filters its rows by
+ * month and harness itself, which it does while the figures are frozen.
  */
 
 import { showError, showNote } from "../shared/charts.js";
 import { fetchHarnesses, fetchWeeks, openDatabase, STREAM_ROWS_AFTER_DRAW } from "../shared/database.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
-import {
-  defaultSelection, readSelection, selectionQuery, withoutSelection, writeSelection,
-} from "../shared/selection.js";
+import { defaultSelection, readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
 import { layoutDistributions, runDistributions } from "../explore/distributions.js";
 import {
   layoutFigures, mountFigureSections, runFigures, showErrorInFigureSections, showErrorInFigures, showNoteInFigures,
 } from "../explore/figure_sections.js";
 import { layoutHeadline, runHeadline } from "../explore/headline.js";
 import { mountSelection, showStreamedWeeks } from "../explore/selection_pickers.js";
-import { layoutSessionsTable, runSessionsTable, withFirstPage } from "../explore/sessions_table.js";
+import { layoutSessionsTable, runSessionsTable } from "../explore/sessions_table.js";
+import { withFirstPage } from "../explore/sessions_table_state.js";
 import { layoutTrends, runTrends } from "../explore/trends.js";
 
 // Whether every section and figure is frozen on its precomputed answer for every week and the paper's harnesses:
@@ -113,7 +113,7 @@ async function start() {
 
 /**
  * Write the URL's selection back in its shortest form, which draws the header, and mount the pickers; while the
- * figures are frozen, draw the header alone and leave the URL as it is.
+ * figures are frozen, draw the header alone: the sessions table rewrites the URL's keys, which are its own.
  */
 function showSelectionAndHeader(page, params) {
   if (FIGURES_ARE_FROZEN) {
@@ -165,6 +165,7 @@ async function runEverySection(page) {
     // Frozen, the selection never changes, so a trend bar takes no click.
     onWeekClick: FIGURES_ARE_FROZEN ? null : (week) => selectWeek(page, week),
     replaceQuery,
+    filterInTable: FIGURES_ARE_FROZEN,
   };
   const sectionRuns = SECTIONS.map((section) => section.run(sectionElement(section), context));
   await Promise.all([...sectionRuns, runFigures(figures, context)]);
@@ -209,10 +210,8 @@ function selectWeek(page, week) {
 
 function renderPageHeader() {
   // The header's links carry every key of the URL, the sessions table's included, as the Session page's do: a visitor
-  // who follows Explore or About and comes back finds the table as it was. Frozen, the page has no selection to carry.
-  const params = new URLSearchParams(window.location.search);
-  const carried = FIGURES_ARE_FROZEN ? withoutSelection(params) : params;
-  renderHeader(document.querySelector("#site-header"), PAGE_FILE, carried);
+  // who follows Explore or About and comes back finds the table as it was.
+  renderHeader(document.querySelector("#site-header"), PAGE_FILE, new URLSearchParams(window.location.search));
 }
 
 function mountPicker(page) {

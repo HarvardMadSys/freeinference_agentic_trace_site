@@ -557,6 +557,42 @@ code,
   display: none;
 }
 
+/* The sessions table's folded filter: one line in words when closed; the pills and the controls when open. */
+.table-filter {
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+}
+
+.table-filter summary {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.table-filter[open] summary {
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* The pills, then the search and the other controls, under the line. */
+.table-filter-pickers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem 0;
+}
+
+.table-filter > .controls {
+  padding: 0.75rem;
+}
+
+.table-filter + .note {
+  margin: 0 0 0.75rem;
+}
+
 select,
 input[type="text"],
 input[type="search"],

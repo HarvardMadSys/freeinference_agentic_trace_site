@@ -1,17 +1,17 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { linkedColumns, sessionLink } from "../site/js/explore/sessions_table.js";
 import {
   choices,
-  linkedColumns,
+  harnessText,
   nextSort,
   readTableState,
-  sessionLink,
   shownSessions,
   withCachedShare,
   withFirstPage,
   writeTableState,
-} from "../site/js/explore/sessions_table.js";
+} from "../site/js/explore/sessions_table_state.js";
 
 const DEFAULT_STATE = {
   search: "",
@@ -146,4 +146,17 @@ test("the session column links each row to its Session page, as the row click do
   const sessionColumn = columns.find((column) => column.key === "session_id");
   assert.equal(sessionColumn.href(row), sessionLink(row, exploreParams, context));
   assert.equal(columns.filter((column) => column.href !== undefined).length, 1);
+});
+
+test("while the table filters itself, a row's link carries the Explore page's keys as they are", () => {
+  const row = { week: "2026-07-05", session_id: "aaaa1111-x" };
+  const context = { ...contextOf(["2026-08-09"], ["codex"]), filterInTable: true };
+  const exploreParams = new URLSearchParams("months=2026-07&harnesses=codex&sort=requests&page=2");
+  const link = sessionLink(row, exploreParams, context);
+  assert.equal(link, "session.html?week=2026-07-05&id=aaaa1111-x&months=2026-07&harnesses=codex&sort=requests&page=2");
+});
+
+test("the benchmark's harness is marked as a benchmark replay", () => {
+  assert.equal(harnessText("eval:swe-bench", { benchmark: true }), "eval:swe-bench (benchmark replay)");
+  assert.equal(harnessText("codex", { benchmark: false }), "codex");
 });

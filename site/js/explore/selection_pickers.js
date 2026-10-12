@@ -1,12 +1,13 @@
 /**
  * The selection section of the Explore page: the week picker (each week, each month, every week),
- * the harness picker (each harness, every harness, the paper's harnesses), and the notes under them.
+ * the harness picker (each harness, every harness, the paper's harnesses), and the notes under them; and the pills,
+ * groups and buttons they are built of, which the sessions table's filter is built of too.
  *
  * `weeks` and `harnesses` are the entries of `weeks.json` and `harnesses.json`; a selection is as `shared/selection.js`
  * defines it.
  */
 
-import { formatCount } from "../shared/format.js";
+import { formatCount, monthName } from "../shared/format.js";
 import {
   computationNote, defaultHarnesses, streamedWeeksNote, streamedWeeksText, unknownSelectionNote, weeksByMonth,
 } from "../shared/selection.js";
@@ -28,7 +29,10 @@ export function mountSelection(container, weeks, harnesses, selection, onChange,
   }
   weekControls.append(everyWeekGroup(picker));
   const harnessControls = controlsRow();
-  harnessControls.append(harnessGroup(picker), harnessActions(picker));
+  const chooseHarnesses = (chosen) => choose(picker, picker.selection.weeks, chosen);
+  harnessControls.append(
+    harnessPills(harnesses, selection.harnesses, chooseHarnesses), harnessButtons(harnesses, chooseHarnesses),
+  );
   container.replaceChildren(weekControls, harnessControls, ...notes(picker));
   restoreFocus(container, focusedChoice);
 }
@@ -85,13 +89,16 @@ function everyWeekGroup(picker) {
   return element;
 }
 
-/** One checkbox pill per harness, labelled with its sessions over every week; the benchmark's says so. */
-function harnessGroup(picker) {
+/**
+ * One checkbox pill per harness of `harnesses`, labelled with its sessions over every week, the benchmark's marked;
+ * ticking or unticking one calls `onChoose(harnesses)` with the harnesses then chosen.
+ */
+export function harnessPills(harnesses, chosenHarnesses, onChoose) {
   const element = controlGroup("Harnesses");
-  for (const entry of picker.harnesses) {
-    const input = choiceBox(`harness ${entry.harness}`, picker.selection.harnesses.includes(entry.harness));
-    const chosen = toggled(picker.selection.harnesses, [entry.harness]);
-    input.addEventListener("change", () => choose(picker, picker.selection.weeks, chosen));
+  for (const entry of harnesses) {
+    const input = choiceBox(`harness ${entry.harness}`, chosenHarnesses.includes(entry.harness));
+    const chosen = toggled(chosenHarnesses, [entry.harness]);
+    input.addEventListener("change", () => onChoose(chosen));
     const label = pill(input, `${entry.harness} (${formatCount(entry.sessions)})`);
     if (entry.benchmark) {
       label.append(markText("benchmark replay"));
@@ -101,26 +108,48 @@ function harnessGroup(picker) {
   return element;
 }
 
-/** The buttons that select every harness, or the default ones, at once. */
-function harnessActions(picker) {
+/** The buttons that choose every harness, or the paper's, at once, each calling `onChoose(harnesses)`. */
+export function harnessButtons(harnesses, onChoose) {
   const element = controlGroup("Harnesses at once");
-  const everyHarness = picker.harnesses.map((entry) => entry.harness);
-  const paperHarnesses = defaultHarnesses(picker.harnesses);
+  const everyHarness = harnesses.map((entry) => entry.harness);
+  const paperHarnesses = defaultHarnesses(harnesses);
   element.append(
-    actionButton("every harness", () => choose(picker, picker.selection.weeks, everyHarness)),
-    actionButton("the paper's harnesses", () => choose(picker, picker.selection.weeks, paperHarnesses)),
+    actionButton("every harness", () => onChoose(everyHarness)),
+    actionButton("the paper's harnesses", () => onChoose(paperHarnesses)),
   );
   return element;
 }
 
-/** A checkbox pill that toggles `pillWeeks`: ticked when all are selected, half-ticked when some are. */
-function weeksPill(picker, pillWeeks, text, choice) {
-  const selectedCount = pillWeeks.filter((week) => picker.selection.weeks.includes(week)).length;
-  const input = choiceBox(choice, selectedCount === pillWeeks.length);
-  input.indeterminate = selectedCount > 0 && selectedCount < pillWeeks.length;
-  const chosen = toggled(picker.selection.weeks, pillWeeks);
-  input.addEventListener("change", () => choose(picker, chosen, picker.selection.harnesses));
+/**
+ * A checkbox pill that toggles `pillValues` among `chosenValues`: ticked when all are chosen, half-ticked when some
+ * are; a change calls `onChoose(values)` with the values then chosen. `choice` names the pill to keep its focus.
+ */
+export function togglePill(chosenValues, pillValues, text, choice, onChoose) {
+  const chosenCount = pillValues.filter((value) => chosenValues.includes(value)).length;
+  const input = choiceBox(choice, chosenCount === pillValues.length);
+  input.indeterminate = chosenCount > 0 && chosenCount < pillValues.length;
+  const chosen = toggled(chosenValues, pillValues);
+  input.addEventListener("change", () => onChoose(chosen));
   return pill(input, text);
+}
+
+/** The `data-choice` of the control in focus in `container`, for a redrawing to give back; undefined for none. */
+export function choiceInFocus(container) {
+  const focused = document.activeElement;
+  return focused !== null && container.contains(focused) ? focused.dataset.choice : undefined;
+}
+
+/** Focus the control of `container` whose `data-choice` is `choice`, if there is one. */
+export function restoreFocus(container, choice) {
+  if (choice !== undefined) {
+    container.querySelector(`[data-choice="${CSS.escape(choice)}"]`)?.focus();
+  }
+}
+
+/** A pill that toggles `pillWeeks` in the selection, keeping its harnesses. */
+function weeksPill(picker, pillWeeks, text, choice) {
+  const chooseWeeks = (chosen) => choose(picker, chosen, picker.selection.harnesses);
+  return togglePill(picker.selection.weeks, pillWeeks, text, choice, chooseWeeks);
 }
 
 function choiceBox(choice, isChecked) {
@@ -154,13 +183,15 @@ function actionButton(text, onClick) {
   return button;
 }
 
-function controlsRow() {
+/** A row of controls that wraps. */
+export function controlsRow() {
   const element = document.createElement("div");
   element.className = "controls";
   return element;
 }
 
-function controlGroup(name) {
+/** A group of controls named `name` for a screen reader. */
+export function controlGroup(name) {
   const element = document.createElement("div");
   element.className = "control-group";
   element.setAttribute("role", "group");
@@ -168,7 +199,8 @@ function controlGroup(name) {
   return element;
 }
 
-function note(text) {
+/** A note, in the muted box notes are shown in. */
+export function note(text) {
   const element = document.createElement("p");
   element.className = "note";
   element.textContent = text;
@@ -194,23 +226,6 @@ function choose(picker, chosenWeeks, chosenHarnesses) {
   };
   mountSelection(picker.container, picker.weeks, picker.harnesses, next, picker.onChange, picker.streamedWeeks);
   picker.onChange(next);
-}
-
-function choiceInFocus(container) {
-  const focused = document.activeElement;
-  return focused !== null && container.contains(focused) ? focused.dataset.choice : undefined;
-}
-
-function restoreFocus(container, choice) {
-  if (choice !== undefined) {
-    container.querySelector(`[data-choice="${CSS.escape(choice)}"]`)?.focus();
-  }
-}
-
-/** "2026-05" → "May 2026". */
-function monthName(month) {
-  const firstDay = new Date(`${month}-01T00:00:00Z`);
-  return firstDay.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
 }
 
 /** "2026-05-31" → "May 31". */

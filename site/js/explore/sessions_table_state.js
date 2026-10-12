@@ -1,0 +1,142 @@
+/**
+ * The sessions table's columns, its state in the URL keys `search`, `harness`, `model`, `min_requests`, `sort`,
+ * `direction` and `page`, and the rows it lists for a state: those whose id contains the search and that pass every
+ * filter, sorted. A state is `{ search, harness, model, minRequests, sort: { key, direction }, pageNumber }`.
+ */
+
+import {
+  cachedShare, formatCount, formatOptionalShare, formatSeconds, formatTokens, MISSING_TEXT, shortSessionId, utcMinute,
+} from "../shared/format.js";
+import { filterRows, searchRows, sortRows } from "../shared/table.js";
+
+// The table's sort when the URL names none: most input first.
+const DEFAULT_SORT = Object.freeze({ key: "input_tokens", direction: "descending" });
+
+// The table's columns: the row key each shows, its title, how its value is written, and whether it is a number.
+// The session column gets its link when the table is drawn, since the link carries the selection.
+export const COLUMNS = Object.freeze([
+  Object.freeze({ key: "session_id", title: "Session", format: shortSessionId }),
+  Object.freeze({ key: "week", title: "Week" }),
+  Object.freeze({ key: "first_start_ms", title: "Started (UTC)", format: utcMinute }),
+  Object.freeze({ key: "harness", title: "Harness", format: harnessText }),
+  Object.freeze({ key: "main_model", title: "Main model", format: textOrMissing }),
+  Object.freeze({ key: "requests", title: "Requests", format: formatCount, isNumber: true }),
+  Object.freeze({ key: "turns", title: "Turns", format: formatCount, isNumber: true }),
+  Object.freeze({ key: "subagents", title: "Subagents", format: formatCount, isNumber: true }),
+  Object.freeze({ key: "tool_calls", title: "Tool calls", format: formatCount, isNumber: true }),
+  Object.freeze({ key: "duration_s", title: "Duration", format: formatSeconds, isNumber: true }),
+  Object.freeze({ key: "input_tokens", title: "Input tokens", format: formatTokens, isNumber: true }),
+  Object.freeze({ key: "cached_share", title: "Cached share", format: formatOptionalShare, isNumber: true }),
+  Object.freeze({ key: "peak_prompt_tokens", title: "Peak prompt", format: formatTokens, isNumber: true }),
+]);
+
+/** The table's state in `params`: `{ search, harness, model, minRequests, sort: { key, direction }, pageNumber }`. */
+export function readTableState(params) {
+  return {
+    search: params.get("search") ?? "",
+    harness: params.get("harness") ?? "",
+    model: params.get("model") ?? "",
+    minRequests: wholeNumberOrNull(params.get("min_requests")),
+    sort: readSort(params),
+    pageNumber: wholeNumberOrNull(params.get("page")) ?? 1,
+  };
+}
+
+/** A copy of `params` holding `state`, a key only where it differs from the default, every other key untouched. */
+export function writeTableState(params, state) {
+  const written = new URLSearchParams(params);
+  setOrDelete(written, "search", state.search, "");
+  setOrDelete(written, "harness", state.harness, "");
+  setOrDelete(written, "model", state.model, "");
+  setOrDelete(written, "min_requests", state.minRequests === null ? "" : String(state.minRequests), "");
+  setOrDelete(written, "sort", state.sort.key, DEFAULT_SORT.key);
+  setOrDelete(written, "direction", state.sort.direction, DEFAULT_SORT.direction);
+  setOrDelete(written, "page", String(state.pageNumber), "1");
+  return written;
+}
+
+/** A copy of `params` without the table's page, so a table with a new selection or filter opens on its first page. */
+export function withFirstPage(params) {
+  const written = new URLSearchParams(params);
+  written.delete("page");
+  return written;
+}
+
+/** The rows the table lists for `state`: those whose id contains the search and that pass every filter, sorted. */
+export function shownSessions(rows, state) {
+  const conditions = [];
+  if (state.harness !== "") {
+    conditions.push({ key: "harness", equals: state.harness });
+  }
+  if (state.model !== "") {
+    conditions.push({ key: "main_model", equals: state.model });
+  }
+  if (state.minRequests !== null) {
+    conditions.push({ key: "requests", atLeast: state.minRequests });
+  }
+  // Only the id is searched: a search over every column would match the text "null" of a missing value.
+  const found = searchRows(rows, "session_id", state.search);
+  return sortRows(filterRows(found, conditions), state.sort.key, state.sort.direction);
+}
+
+/** The sort after a click on the column `key`: the same column reversed, or a new one, numbers largest first. */
+export function nextSort(sort, key) {
+  if (sort.key === key) {
+    return { key, direction: sort.direction === "descending" ? "ascending" : "descending" };
+  }
+  const column = COLUMNS.find((candidate) => candidate.key === key);
+  return { key, direction: column.isNumber ? "descending" : "ascending" };
+}
+
+/** A copy of a session row with its cached share, null when none of its input was reported. */
+export function withCachedShare(row) {
+  return { ...row, cached_share: cachedShare(row.cached_tokens, row.reported_input_tokens) };
+}
+
+/** The distinct values of `row[key]` over `rows` and `current` (unless empty), sorted; nulls left out. */
+export function choices(rows, key, current) {
+  const values = new Set();
+  for (const row of rows) {
+    if (row[key] !== null) {
+      values.add(row[key]);
+    }
+  }
+  if (current !== "") {
+    values.add(current);
+  }
+  return [...values].sort();
+}
+
+/** A session's harness, with "(benchmark replay)" after the benchmark's. */
+export function harnessText(harness, row) {
+  return row.benchmark ? `${harness} (benchmark replay)` : harness;
+}
+
+// A missing value, such as the main model of a session whose requests name none, is shown as `MISSING_TEXT`.
+function textOrMissing(text) {
+  return text ?? MISSING_TEXT;
+}
+
+function readSort(params) {
+  const key = params.get("sort");
+  const direction = params.get("direction");
+  const known = COLUMNS.some((column) => column.key === key);
+  return {
+    key: known ? key : DEFAULT_SORT.key,
+    direction: direction === "ascending" || direction === "descending" ? direction : DEFAULT_SORT.direction,
+  };
+}
+
+/** The whole number `text` begins with, or null when it begins with none. */
+export function wholeNumberOrNull(text) {
+  const number = Number.parseInt(text ?? "", 10);
+  return Number.isNaN(number) ? null : number;
+}
+
+function setOrDelete(params, key, value, defaultValue) {
+  if (value === defaultValue) {
+    params.delete(key);
+  } else {
+    params.set(key, value);
+  }
+}

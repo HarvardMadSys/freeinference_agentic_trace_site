@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import {
   cachedShare, elapsedSeconds, formatCount, formatElapsed, formatOptionalShare, formatQuantity, formatSeconds,
-  formatShare, formatTokens, shortSessionId, utcMinute,
+  formatShare, formatTokens, monthName, shortSessionId, utcMinute,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -66,4 +66,8 @@ test("a session's short name is the first eight characters of its id", () => {
 
 test("a UTC minute is written as YYYY-MM-DD HH:MM", () => {
   assert.equal(utcMinute(Date.UTC(2026, 0, 2, 3, 4, 5)), "2026-01-02 03:04");
+});
+
+test("a month is written as its name and year", () => {
+  assert.equal(monthName("2026-07"), "July 2026");
 });

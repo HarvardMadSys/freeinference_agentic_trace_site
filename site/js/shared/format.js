@@ -106,6 +106,12 @@ export function monthAndDay(week) {
   return week.slice(YEAR_PREFIX_LENGTH);
 }
 
+/** A month as its name and year: "2026-05" → "May 2026". */
+export function monthName(month) {
+  const firstDay = new Date(`${month}-01T00:00:00Z`);
+  return firstDay.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+}
+
 function padded(number) {
   return String(number).padStart(2, "0");
 }

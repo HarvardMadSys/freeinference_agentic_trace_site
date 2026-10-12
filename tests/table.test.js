@@ -136,3 +136,8 @@ test("a column with an href links each cell to the address it gives for the row"
   const column = { key: "id", title: "Session", href: (row) => `session.html?id=${row.id}` };
   assert.deepEqual(cellContent(column, SESSIONS[1]), { text: "B2", href: "session.html?id=B2" });
 });
+
+test("a cell's format is given its row too, to write the value with another of the row's fields", () => {
+  const column = { key: "requests", title: "Requests", format: (value, row) => `${value} of ${row.id}` };
+  assert.deepEqual(cellContent(column, SESSIONS[1]), { text: `${SESSIONS[1].requests} of B2`, href: null });
+});

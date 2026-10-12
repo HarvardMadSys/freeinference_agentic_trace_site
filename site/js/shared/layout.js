@@ -1,8 +1,8 @@
 /**
  * The header and footer every page shares.
  *
- * The header's links carry the current selection, so moving between pages
- * keeps the chosen weeks and harnesses.
+ * The header's links carry the URL keys the page gives them, such as the sessions table's filter, sort and page, so
+ * moving between pages and back keeps them.
  */
 
 import { selectionQuery } from "./selection.js";
@@ -24,11 +24,11 @@ const EXTERNAL_LINKS = [
 
 /**
  * Fill `container` with the site header.
- * `activeFile` is the page's own file name; `selection` is the URLSearchParams every link carries. A link to a section
+ * `activeFile` is the page's own file name; `carried` is the URLSearchParams every link carries. A link to a section
  * of the page itself is its anchor alone, so following it scrolls the page rather than loading it again.
  */
-export function renderHeader(container, activeFile, selection) {
-  const query = selectionQuery(selection);
+export function renderHeader(container, activeFile, carried) {
+  const query = selectionQuery(carried);
   const links = PAGES.map((page) => navigationLink(page, activeFile, query)).join("");
   container.innerHTML = `
     <div class="header-inner">

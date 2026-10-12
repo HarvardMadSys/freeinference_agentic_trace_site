@@ -40,8 +40,8 @@ export function pageRows(rows, pageNumber, rowsPerPage) {
 
 /**
  * Fill `container` with an optional summary line, one page of `rows` as a table, and a pager.
- * `columns` is `[{ key, title, format, isNumber, href }]`; `href(row)`, when given, makes the cell a link to that
- * address. `sort` is `{ key, direction }`.
+ * `columns` is `[{ key, title, format, isNumber, href }]`; `format(value, row)` writes a cell's value, as text by
+ * default; `href(row)`, when given, makes the cell a link to that address. `sort` is `{ key, direction }`.
  * Clicking a header calls `onSort(key)`, a pager button `onPage(pageNumber)`, a row `onRowClick(row)`.
  */
 export function mountTable(container, { columns, rows, sort, pageNumber, summary, onSort, onPage, onRowClick }) {
@@ -59,10 +59,13 @@ export function mountTable(container, { columns, rows, sort, pageNumber, summary
   container.append(wrap, pager(page, onPage));
 }
 
-/** What a cell of `column` shows for `row`: `{ text, href }`, the formatted value and its link address, or null for none. */
+/**
+ * What a cell of `column` shows for `row`: `{ text, href }`, the value as `format(value, row)` writes it and its link
+ * address, or null for none.
+ */
 export function cellContent(column, row) {
   const format = column.format ?? String;
-  return { text: format(row[column.key]), href: column.href ? column.href(row) : null };
+  return { text: format(row[column.key], row), href: column.href ? column.href(row) : null };
 }
 
 function compareValues(first, second, sign) {

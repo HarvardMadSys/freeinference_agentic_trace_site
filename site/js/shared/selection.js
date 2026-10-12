@@ -7,11 +7,12 @@
  * do not hold, and the month the URL named that holds no week (or null). `weeks` below is the array `weeks.json`
  * holds, oldest first: `{ week, last_day, month, simulated }`; `harnesses` is the array `harnesses.json` holds, most
  * sessions first: `{ harness, sessions, benchmark }`. The default selection is every week and every harness but the
- * benchmark, which is the paper's population; it writes no key to the URL.
+ * benchmark, which is the paper's population; it writes no key to the URL. While the Explore page's figures are frozen,
+ * the URL's keys filter the sessions table instead, as `explore/sessions_filter.js` reads them.
  */
 
 // A value of the URL key `weeks` that selects every week, as no key does; it is read, never written.
-const EVERY_WEEK_VALUE = "all";
+export const EVERY_WEEK_VALUE = "all";
 
 // The URL keys writing a selection replaces: its own three, and `scope`, which is read as the default and so removed.
 const SELECTION_KEYS = Object.freeze(["weeks", "month", "harnesses", "scope"]);
@@ -168,6 +169,11 @@ export function weeksByMonth(weeks) {
   return groups;
 }
 
+/** The comma-separated names of a URL value, each trimmed, empty ones dropped. */
+export function namesIn(value) {
+  return value.split(",").map((name) => name.trim()).filter((name) => name !== "");
+}
+
 function requestedWeeks(params, weeks) {
   const named = params.get("weeks");
   if (named === EVERY_WEEK_VALUE) {
@@ -186,11 +192,6 @@ function requestedWeeks(params, weeks) {
 function namedHarnesses(params) {
   const named = params.get("harnesses");
   return named === null ? [] : namesIn(named);
-}
-
-/** The comma-separated names of a URL value, each trimmed, empty ones dropped. */
-function namesIn(value) {
-  return value.split(",").map((name) => name.trim()).filter((name) => name !== "");
 }
 
 function unknownMonth(params, weeks) {
