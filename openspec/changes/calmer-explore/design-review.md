@@ -393,3 +393,151 @@ Cards, in page order (footers go, as everywhere):
 - Also in dark mode: the User area of Session time by part is the brightest block on the page, the
   darkest line (>1h) of Hit ratio by gap before the request nearly vanishes, and Providers B/C and
   E/H are harder to tell apart than in light. The changes proposed above cover all three.
+
+## Second look
+
+Looked at again on the frozen site: Explore, About, and the Session page's three views for a 600-request
+session with 22 subagents, at 1280 and 360 px, light and dark, with several Definition controls and the
+session list's filter open. The largest session (5,027 requests) still opens; its page is now about
+167,000 px tall. Nothing renders under 14 px and no page scrolls sideways at 360.
+
+### The five changes that matter most
+
+1. Caption and Definition control: **applied well.** Every card, on both pages, reads title, caption,
+   legend, chart, "Definition"; opened, the definition and then the rows line. Charts in a row start
+   at the same height.
+2. Population stated once: **applied well.** The footers are gone. The one line under the lede reads
+   cleanly.
+3. Chart text: **applied, not well enough at 360 px.** At desktop the axes are calm: no arrows, no
+   minor gridlines, one format per quantity. At 360 several axes still put labels edge to edge with no
+   gap, which the overlap check misses: Speed-up ("1.0× 1.1× … 1.4×"), Calls per request ("1.0 …
+   1.5"), Time to first token and Decode time ("0.1 s 1 s"), User prompt size ("1k 10k 100k"), the
+   benchmark Session duration ("1 d 7 d") and the trends ("May Jun").
+4. Distribution cards: **applied well.** The overprinted labels are gone and the legend is the
+   summary. What remains is the number format: "p95 368.4" on a count, "max 100.0%", and durations
+   written "30m 13s" and "142h 53m" under an axis that says "1 min, 1 h, 1 d".
+5. Broken things: **applied well.** The session list fits at 1280, the Session charts fit at 360, and
+   the mutation table fits its card at 360, though its last column touches the card's edge.
+
+### Rules used throughout
+
+- **The control, caption, card anatomy, chart height:** applied well.
+- **Legend swatches match the mark:** applied on Explore. Not applied on the Session page: Context
+  over time still uses squares for the agent lines, the mutation and switch dots and the dotted
+  turn rules.
+- **Axis titles:** applied well.
+- **Number formats:** applied on axes. Text values keep a second duration style ("1m 01s", "90h 52m",
+  "<1m"): distribution legends, benchmark medians, the session list, the Duration tile, subagent rows
+  and the gap-bin legend.
+- **Category names:** applied. The "*" still renders centred ("∗") in the page's text, but raised in
+  Explore's chart labels.
+
+### Explore, card by card
+
+- Lede, nav, trends in three cards, headline tiles 4×2 and 2×4, model mix with "7 others": applied
+  well.
+- Trend legends: **not well enough.** Requests per week has nine entries in five rows. The subgrid
+  holds all three trend cards to that height, so Sessions per week and Input tokens per week have
+  about 110 px of empty card between legend and bars.
+- Sessions, Tools and Prefix caching cards: applied well, including the gap-bin ramp and the olive.
+  Time to first token by model and Decode time by model now sit in different rows, so their identical
+  legends no longer meet.
+- Session list: it fits its card, the heading sits outside it, and the pager is calm. Applied, except
+  at 360: scrolled to the sorted column, a sliver of the Duration column ("ꞌm") shows beside the sticky
+  Session column, which looks broken.
+- Footer, About (one restating passage, group headings, body colour, text-width cards): applied well.
+- Session page: applied well. That covers the title block, facts grid (11 tiles fill whole rows at
+  both widths), segmented Context control, "0:07–0:12" times, dot chips, legends above, and 32 px
+  Timeline rows with two distinct request greys. The Models tile does not mute the counts.
+
+### What the added figures, the larger type and the folded filter brought
+
+- **Lone cards.** Speed-up if twice as fast, Infrastructure cost by TTL and Tool mix along a turn sit
+  alone with half a row empty (the sections hold 11, 9 and 5 cards). One full-width card per section
+  keeps the order and pairs the rest: Token split by week (then TTFT pairs with Decode, Session time
+  with Speed-up), Prefill against storage (its labels need the room; the two cost cards then pair),
+  and Tool mix along a turn (two panels).
+- **Tool mix along a turn breaks "same name, same colour".** Search is orange here and amber on the
+  tool cards, and Git/VCS is violet here and red there. Other is grey here and orange on the tool
+  cards.
+- **API cost by TTL** orders its legend "Output, Cached input, Uncached input". Everywhere else it is
+  "Cached input, Uncached input, Output".
+- **Benchmark section:**
+  - The medians drawn on the curves are readable. The ratio ("3.1×", "5.1×", "34.4×") floats alone
+    in the bottom-right corner with no word saying what it divides.
+  - Two cards on the page are now titled "Session duration", one in Distributions and one here.
+  - The section says "production" while its legends say "Human-driven".
+- **Context mutations by cause** is a calm table. It writes Steps with two decimals ("96.00%") and the
+  other columns with one. Its headers are sentence case, while the session list's are upper-case and
+  tracked, so the page has two table styles.
+- **The new captions** are short and plain, all under 90 characters. Only Prefill against storage's
+  will be reread; "Missed tokens against tokens kept, per cache TTL" says it.
+- **Cards with no legend.** Where no card in a row has a legend, there is still an empty band of about
+  50 px between caption and chart: Speed-up, the two tool box plots, Calls per request by category.
+- **The folded filter.** The closed summary line is right. Opened, it is loud and long:
+  - Seventeen red-outlined checkbox pills, the style the review removed from the Context control.
+  - "All months" is a disabled checkbox pill, but "every harness" and "the paper's harnesses" are
+    grey buttons. That is two kinds of control for the same job.
+  - At 360 the pills stack one or two to a line, about 900 px. The "eval:swe-bench (1,035) benchmark
+    replay" pill breaks onto two lines.
+- **Population line** says "May to August 2026". The session list shows sessions started on Sep 3 and
+  Sep 4, because the last week runs to Saturday, September 5.
+- **Dark mode, the two new colours.** The olive (#9ab83a, 7.9:1 on the card) is clearly apart from the
+  teal; keep it. The grey-blue User (#8297bb, 6.0:1) fills the upper half of Session time by part: calmer
+  than the red, still the brightest block on the dark page. Both are fine in light mode.
+
+### The three things left
+
+- **TTL labels overlapping on Prefill against storage at 360: fix it.** Three pairs touch: "1× / 1
+  min", "5× / 10 s", "1 d / ∞". Every point is named in its tooltip, so a phone loses nothing by
+  drawing fewer names. Amend the spec row to "the TTLs the paper names labelled at desktop width". At
+  360, label the human-driven curve at 1 s, 1 min, 15 min and ∞, and the benchmark curve at 1 s and
+  1 min, to the right of their points.
+- **The very tall longest session: page it in 7.1, as recorded; not a blocker.** It opens and works.
+  At 167,000 px it is the one place the site looks unfinished. Cutting pages at turn boundaries is
+  group-aware by construction: 50 turns a page, with the session list's pager.
+- **Provider colours kept: agreed.** B, C and D are the providers whose lines leave 100%, and they are
+  distinct in both schemes. E and H sit on the others at 100%, where telling them apart does not
+  matter. "Same name, same colour" is worth more.
+
+### Remaining, in order of weight
+
+1. Tool mix along a turn: use the tool cards' colours where names match: Read blue, Search amber,
+   Execute teal (as *Interpreter), Git/VCS red. Make Write/Edit violet, Build/Test olive, Browser/Web
+   pink and Other grey.
+2. Session list filter: make month and harness choices neutral pills with no checkbox, filled when on,
+   as the Context segmented control. Make "All months", "Every harness" and "The paper's harnesses"
+   one kind of text button.
+3. Prefill against storage at 360: label only 1 s, 1 min, 15 min and ∞ (human-driven) and 1 s and 1
+   min (benchmark), to the right of their points. Amend the spec row to desktop width.
+4. At 360, at most three or four ticks with a 4 px minimum gap on these axes: Speed-up (1.0×, 1.2×,
+   1.4×), Calls per request (1.0, 1.25, 1.5), TTFT and Decode (0.1 s, 1 min), User prompt size (1, 100,
+   10k), benchmark Session duration (drop 7 d), trends (Jun, Jul, Aug). Make the check use a 4 px
+   minimum gap.
+5. Give Token split by week, Prefill against storage and Tool mix along a turn the full width, so no
+   card is left alone in a row.
+6. Session list at 360: scroll the table so a column starts at the sticky column's right edge, and give
+   the sticky column an opaque background and a 1 px border on its right.
+7. Write text durations with the axis words and one decimal: "61 s", "3.1 min", "1.8 h", "3.8 d". Apply
+   this in distribution legends, benchmark medians, the session list's Duration column, the Duration
+   tile, subagent rows and the gap-bin legend ("under 1 min", "1–5 min", …).
+8. Trend legends: show the top six entries plus Other, at most three rows, so the three trend cards
+   lose their empty band.
+9. Benchmark section: put "median 1.0 min vs 3.1 min · 3.1×" in the legend line instead of the corner.
+   Title the cards "Turn duration, human-driven and benchmark" etc., or rename the heading "Human-driven
+   against benchmark" to match the legends.
+10. Context mutations by cause: give the three columns one precision (two decimals). Keep the card's
+    inner padding on the right at 360. Use one table-header style on the page; sentence case, as here,
+    is calmer.
+11. Dark mode: darken the User area of Session time by part (and the User Idle bar and line) to about
+    #64779b, 3.9:1 on the card.
+12. API cost by TTL: order the legend "Cached input, Uncached input, Output".
+13. Collapse the empty legend place in a row where no card has a legend (Tools box plots, Speed-up,
+    Calls per request).
+14. Session page: line swatches for the agents, dots for mutation and switch, and a dotted rule for turn
+    start in the Context legend. Use one asterisk rendering on both pages. Mute the counts in the Models
+    tile.
+15. Population line: "May 17 to September 5, 2026" in place of "May to August 2026". In distribution
+    legends, counts without decimals ("p95 368") and "100%" rather than "100.0%".
+
+Overall: not yet. It is calm and even at desktop. Five cheap fixes make it tidy: items 1, 2, 4, 5 and 6.

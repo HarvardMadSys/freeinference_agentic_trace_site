@@ -48,7 +48,7 @@ its definition beside it:
 | Prefix caching | `mean_hit_ratio_by_cause` | Mean hit ratio by what the request waited for |
 | Prefix caching | `hit_ratio_cdf_by_transition` | CDF of the hit ratio of requests after an append and after a mutation |
 | Prefix caching | `mutations_by_cause` | A table: per transition and cause, the share of steps, of sessions and of prefill under infinite retention |
-| Prefix caching | `prefill_against_storage` | Simulated normalised prefill against mean retained tokens, one point per TTL under the TTL-only policy, the TTLs the paper names labelled and every point named in its tooltip, human-driven and benchmark, on log axes |
+| Prefix caching | `prefill_against_storage` | Simulated normalised prefill against mean retained tokens, one point per TTL under the TTL-only policy, the TTLs the paper names labelled at desktop width and fewer on a phone, every point named in its tooltip, human-driven and benchmark, on log axes |
 | Prefix caching | `api_cost_by_ttl` | Simulated API cost per TTL at the pipeline's prices, stacked by part, as a multiple of the one-minute total, the knee marked |
 | Prefix caching | `infrastructure_cost_by_ttl` | Simulated recompute and storage cost per TTL, stacked, as a multiple of the one-minute total, the minimum marked |
 
