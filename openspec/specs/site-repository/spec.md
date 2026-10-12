@@ -47,10 +47,10 @@ README.md         what the site shows, how to build the data, serve and deploy
 CONTRIBUTING.md   the rules, the patterns to copy, and how to verify a change
 CLAUDE.md         a pointer to the two files above and the git rules
 Makefile          make setup, setup-browser, data, serve, test, check-answers, deploy
-deploy.sh         what make deploy runs
+wrangler.jsonc    the Cloudflare Worker that serves site/ as static assets
 serve.py          what make serve runs: a local server that answers range requests
 pyproject.toml    Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
-package.json      sets ES modules for node --test; no dependencies
+package.json      sets ES modules for node --test; wrangler, to deploy
 site_data/        builds site/data/ from a release folder: a file per kind and week, the indexes, the answers
 site/             exactly the files that are deployed
   *.html          one file per page: index (Explore), session, about
@@ -136,13 +136,13 @@ run live with the default selection.
 
 ### Requirement: Deployment
 `make deploy` SHALL publish `site/`, including its generated data, to a
-static host that answers HTTP range requests. The deployment SHALL NOT keep
-the history of earlier data files, so the repository does not grow by the
-size of the data at every deploy.
+static host that answers HTTP range requests: the Cloudflare Worker that
+`wrangler.jsonc` names, which serves `site/` as static assets. A push to
+`main` SHALL deploy the same way through the host's Git integration.
 
 #### Scenario: Deploying a new week
 - **WHEN** a week is added to the release and `make data deploy` runs
-- **THEN** the published site SHALL show the new week and the hosting branch SHALL hold one commit
+- **THEN** the published site SHALL show the new week
 
 ### Requirement: The built data ships with the repository
 Git SHALL track `site/data` as `make data` built it: the week files of every

@@ -7,10 +7,6 @@ PIPELINE ?= ../freeinference-agentic-pipeline
 RELEASE ?= $(PIPELINE)/data/v1/release
 SIMULATION ?= $(PIPELINE)/data/v1/simulation
 
-# Where make deploy publishes the site: a remote of this repository and a branch on it.
-DEPLOY_REMOTE ?= origin
-DEPLOY_BRANCH ?= gh-pages
-
 .PHONY: setup setup-browser data serve test check-answers deploy
 
 # Create the virtual environment; install the pipeline's package from its
@@ -44,7 +40,8 @@ test:
 check-answers:
 	$(PYTHON) -m site_data.check_answers
 
-# Publish site/, with its data, as the only commit of $(DEPLOY_BRANCH) on $(DEPLOY_REMOTE), force-pushed, once the
-# answers are checked.
+# Publish site/, with its data, to Cloudflare as the static assets of the Worker wrangler.jsonc names, once the
+# answers are checked. Needs `npm install` once and a Cloudflare login or API token (see README); pushes to main
+# deploy the same way through the dashboard's Git integration.
 deploy: check-answers
-	./deploy.sh $(DEPLOY_REMOTE) $(DEPLOY_BRANCH)
+	npx wrangler deploy

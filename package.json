@@ -2,5 +2,17 @@
   "name": "freeinference-site",
   "private": true,
   "type": "module",
-  "description": "Sets ES modules for `node --test`. The site has no npm dependencies; its libraries come from a CDN."
+  "description": "Sets ES modules for `node --test` and holds wrangler, which deploys site/ to Cloudflare. The site itself has no npm dependencies; its libraries come from a CDN.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "check": "wrangler deploy --dry-run",
+    "deploy": "wrangler deploy",
+    "deploy:preview": "wrangler versions upload"
+  },
+  "devDependencies": {
+    "wrangler": "4.149.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
 }

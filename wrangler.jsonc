@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "freeinference-agentic-trace-site",
+  "compatibility_date": "2026-10-01",
+  // The site is a folder of static files, served by Cloudflare without any Worker code: site/ is deployed as is,
+  // the generated data included. Static-asset requests are served at no charge.
+  "assets": {
+    "directory": "./site"
+  },
+  // Until a custom domain is chosen, the site answers at <name>.<account subdomain>.workers.dev, which is where
+  // the first deploy's checks run (a range request answered with 206; every page end to end).
+  "workers_dev": true,
+  // Preview URLs per uploaded version, at <version>-<name>.<account subdomain>.workers.dev, for `npm run deploy:preview`.
+  "preview_urls": true
+  // Add every hostname the site should answer on here, not only in the dashboard: `wrangler deploy` detaches any
+  // custom domain bound to this Worker that this file does not list, taking its DNS record with it. For example:
+  //
+  // "routes": [{ "pattern": "trace.freeinference.org", "custom_domain": true }],
+  // "workers_dev": false
+}

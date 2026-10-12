@@ -84,7 +84,7 @@ The built data ships with the repository, so a clone serves the site as it is:
 make serve           # http://localhost:8000, with the range requests DuckDB needs
 make test            # the Python tests and the node tests (after make setup, below)
 make setup-browser   # a headless Chromium and Playwright, for checking pages by hand; make test does not need it
-make deploy          # publish site/ as the only commit of gh-pages on origin, force-pushed (git 2.42 or later)
+make deploy          # publish site/ to Cloudflare as the Worker's static assets (after npm install and a Cloudflare login)
 ```
 
 `site/data/` is 113 files and 88.8 MB: one Parquet file per kind of row and
@@ -119,6 +119,21 @@ rewrites every week's files adds up to the data's size, about 89 MB, to the
 repository's history, so the data is rebuilt when the release, a column or a
 query changes, not routinely.
 
+### Hosting
+
+The site is a Cloudflare Worker with static assets and no code of its own:
+`wrangler.jsonc` names the Worker and points it at `site/`. Pushes to `main`
+deploy it through the Cloudflare dashboard's Git integration (build command
+none, deploy command `npx wrangler deploy`, root `/`); `make deploy` does the
+same from a machine with `npm install` done and `npx wrangler login` or a
+`CLOUDFLARE_API_TOKEN`. Static assets allow 20,000 files of 25 MiB each; the
+site is a few hundred files, the largest under 10 MB. After a deploy, check
+that the host answers a range request with 206, as DuckDB needs:
+
+```bash
+curl -sI -r 0-99 https://<the site>/data/weeks.json | head -1    # HTTP/2 206
+```
+
 ## Layout
 
 ```
@@ -126,7 +141,8 @@ README.md          this file
 CONTRIBUTING.md    the rules, the patterns, and how to add a query, a figure or a page
 CLAUDE.md          a pointer to the two files above, the rules that matter most and the git rules
 Makefile           setup · setup-browser · data · serve · test · check-answers · deploy
-deploy.sh          what make deploy runs: copies site/ onto an orphan branch and force-pushes it
+wrangler.jsonc     the Cloudflare Worker that serves site/ as static assets: its name, its hostnames
+package.json       sets ES modules for node --test; wrangler, the one dev dependency, deploys the site
 serve.py           what make serve runs: a local server that answers byte-range requests, as the host does
 pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
 package.json       sets ES modules for node --test; no dependencies
@@ -203,8 +219,8 @@ tests/             what make test runs
                    the pipeline constants the browser holds a copy of, against the pipeline's own
   test_differences.py       docs/differences.md holds the queries' and pipeline's numbers, and no figure
                             definition names the paper
-  test_repository.py, test_deploy.py, test_serve.py
-                   the repository's countable rules; make deploy against a local repository; make serve's byte ranges
+  test_repository.py, test_serve.py
+                   the repository's countable rules; make serve's byte ranges
   *.test.js        node --test, one file per JavaScript module with pure functions
 openspec/          the specifications and the changes that built the site
 ```
