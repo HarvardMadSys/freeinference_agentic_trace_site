@@ -2,83 +2,100 @@
  * The site's one stylesheet: design tokens, page layout, and the components every page uses.
  *
  * Colours are tokens on :root, redefined for dark mode. Chart series colours
- * are the validated eight-slot palette; a chart assigns them in order and
- * never cycles. Components are named after what they are, not where they sit.
+ * are the eight series slots; a chart assigns them in order and never
+ * cycles. Components are named after what they are, not where they sit.
  */
 
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Crimson+Text:wght@600;700&display=swap");
 
 /* ---------- Tokens ---------- */
 
+/*
+ * The light scheme is Open Data's: a warm paper, white cards, a warm ink and the Harvard crimson. The dark scheme below
+ * turns the same inks over. tests/palette_contrast.test.js reads both blocks and checks every colour's contrast.
+ */
 :root {
   color-scheme: light;
 
   --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif: "Crimson Text", Georgia, Cambria, "Times New Roman", serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
   --font-size-smallest: 0.8125rem; /* 14.6 px at the 18 px base: no caption, label, cell or tick is set smaller */
 
-  --color-accent: rgb(165 28 48);
-  --color-accent-strong: rgb(139 23 41);
-  --color-accent-wash: rgb(165 28 48 / 0.08);
+  --color-accent: #a51c30;
+  --color-accent-strong: #7f1425; /* the accent under the pointer: darker in light, lighter in dark */
+  --color-accent-wash: #fbf0f2;
+  --color-on-accent: #ffffff; /* text on a field of the accent, such as the primary button */
 
-  --color-text: #111827;
-  --color-text-muted: #4b5563;
-  --color-text-faint: #6b7280;
-  --color-background: #f9fafb;
+  --color-text: #1c1917;
+  --color-text-muted: #49423e;
+  --color-text-faint: #716965;
+  --color-background: #f8f7f5;
   --color-surface: #ffffff;
-  --color-surface-raised: #f3f4f6;
-  --color-border: #e5e7eb;
-  --color-ring: rgb(229 231 235 / 0.6);
+  --color-surface-raised: #f1efec;
+  --color-border: #e4dfdb;
 
-  --shadow-subtle: 0 1px 2px rgb(0 0 0 / 0.06);
-  --radius: 0.75rem;
+  --shadow-subtle: 0 1px 2px rgb(28 25 23 / 0.06);
+  --shadow-card: 0 1px 2px rgb(28 25 23 / 0.04), 0 12px 32px -20px rgb(28 25 23 / 0.22);
+  --radius: 0.9rem;
   --radius-small: 0.375rem;
+  --radius-button: 0.65rem;
   --page-width: 64rem;
   --loading-card-height: 26rem; /* about a drawn figure card's height, so a loading card holds the place of one */
-  --gutter: 1rem;
+  --gutter: clamp(1rem, 4vw, 3.5rem); /* Open Data's gutter, with the phone's 1rem kept so 360 px still fits */
 
   /* Chart ink: recessive grid and axes, muted labels. */
-  --chart-grid: #e5e7eb;
-  --chart-axis: #c3c2b7;
-  --chart-label: #6b7280;
+  --chart-grid: #e4dfdb;
+  --chart-axis: #c4bcb7;
+  --chart-label: var(--color-text-faint);
 
-  /* Categorical series, in the fixed order charts assign them. A ninth series folds into "Other". */
-  --series-1: #2a78d6;
-  --series-2: #eb6834;
-  --series-3: #1baf7a;
-  --series-4: #eda100;
-  --series-5: #e87ba4;
-  --series-6: #6b8e23;
-  --series-7: #6250d6;
-  --series-8: #e34948;
-  --series-other: #9ca3af;
+  /*
+   * Categorical series, in the fixed order charts assign them. A ninth series folds into "Other".
+   * Eight OKLCH hues round the wheel, no two closer than 30°: the paper's four (blue 255°, orange 50°, green 143°,
+   * red 18°), amber 84°, magenta 340°, teal 192° and violet 293°. A slot keeps its hue in both schemes. In light each
+   * is the lightest colour of its hue that keeps 3.3:1 on the white card, at the most chroma sRGB holds there, capped
+   * at 0.19 to stay short of neon.
+   */
+  --series-1: #308dfa;
+  --series-2: #df6d19;
+  --series-3: #28a329;
+  --series-4: #b28619;
+  --series-5: #dd5db9;
+  --series-6: #1c9d9a;
+  --series-7: #9a76fa;
+  --series-8: #f25767;
+  --series-other: #938a86;
+
+  /* The four parts of a session's time as the paper colours them: prefill blue, decode orange, tool green, user red. */
+  --part-prefill: var(--series-1);
+  --part-decode: var(--series-2);
+  --part-tool: var(--series-3);
+  --part-user: var(--series-8);
 
   /* The three parts of a request's tokens, the same everywhere they are drawn. */
   --token-cached: var(--series-3);
   --token-uncached: var(--series-2);
   --token-output: var(--series-1);
 
-  /* What a wait before a request waited for, the same everywhere it is drawn. The paper draws an ask-user tool in
-     purple, but this palette's purple and blue (the subagent's) are too close for colour-blind readers, so it is amber.
-     A wait for the user is a calm lavender, not a series red: it fills half of a session's time and must not read
-     as an alarm; and not a grey-blue, which on the Timeline, drawn light, reads as the grey of a request. */
-  --cause-tool: var(--series-3);
+  /* What a wait before a request waited for, the same everywhere it is drawn: a tool and the user in their parts'
+     colours, a subagent blue. The paper draws an ask-user tool in purple; here it is amber, which stands further from
+     the subagent's blue. */
+  --cause-tool: var(--part-tool);
   --cause-ask-user: var(--series-4);
-  --cause-user: #8a78c0;
+  --cause-user: var(--part-user);
   --cause-subagent: var(--series-1);
 
   /* A request's time on the Session page's Timeline and in the speed-up: time to first token dark, the rest light. */
-  --request-ttft: #4b5563;
-  --request-rest: #b6bcc6;
+  --request-ttft: #49423e;
+  --request-rest: #c4bcb7;
 
   /* How a request's context changed from the one before it: appended to, or rewritten. */
   --transition-append: var(--series-3);
   --transition-mutation: var(--series-8);
 
   /* The eight tool groups of the tool mix along a turn, in the colours the tool cards give the categories of the same
-     name: Read blue, Search amber (*Search), Execute teal (*Interpreter), Git/VCS red (*Git/VCS); and for the groups
-     with no category of their name, Write/Edit violet, Build/Test olive, Browser/Web pink and Other grey. */
+     name: Read blue, Search amber (*Search), Execute green (*Interpreter), Git/VCS red (*Git/VCS); and for the groups
+     with no category of their name, Write/Edit violet, Build/Test teal, Browser/Web magenta and Other grey. */
   --tool-group-read: var(--series-1);
   --tool-group-search: var(--series-4);
   --tool-group-write-edit: var(--series-7);
@@ -88,65 +105,69 @@
   --tool-group-browser-web: var(--series-5);
   --tool-group-other: var(--series-other);
 
-  /* The six gap bins, shortest gap lightest: one blue (hue 213°) from 70% to 30% lightness in even steps, so the
-     lightest still shows on white and the darkest stays blue. */
-  --gap-bin-1: #7eade7;
-  --gap-bin-2: #5c98e0;
-  --gap-bin-3: #3a82d9;
-  --gap-bin-4: #266dc5;
-  --gap-bin-5: #1f5aa3;
-  --gap-bin-6: #184781;
+  /* The six gap bins, shortest gap lightest: the first series' blue (OKLCH hue 255°) from 64% to 32% lightness in even
+     steps, so the lightest keeps 3:1 on the card and the darkest stays blue. */
+  --gap-bin-1: #2a8bf9;
+  --gap-bin-2: #1477e0;
+  --gap-bin-3: #1065bf;
+  --gap-bin-4: #0b53a0;
+  --gap-bin-5: #074281;
+  --gap-bin-6: #043264;
 
   /* A highlighted row, step or bar. */
   --color-highlight: rgb(237 161 0 / 0.25);
 }
 
+/*
+ * The dark scheme: Open Data's ink as the paper, each surface one step lighter, the inks turned over with the same
+ * warmth, and the crimson lifted to keep its contrast. The series keep their light hues; each is the darkest colour of
+ * its hue that keeps 5.5:1 on the dark card, so the lines stand out on it as they do on white.
+ */
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
 
-    --color-accent: rgb(200 50 74);
-    --color-accent-strong: rgb(220 80 100);
-    --color-accent-wash: rgb(200 50 74 / 0.14);
+    --color-accent: #ee6a7c;
+    --color-accent-strong: #f59aa6;
+    --color-accent-wash: rgb(238 106 124 / 0.14);
+    --color-on-accent: #1c1917;
 
-    --color-text: #f3f4f6;
-    --color-text-muted: #9ca3af;
-    --color-text-faint: #6b7280;
-    --color-background: #0b1220;
-    --color-surface: #111827;
-    --color-surface-raised: #1f2937;
-    --color-border: #1f2937;
-    --color-ring: rgb(55 65 81 / 0.7);
+    --color-text: #f1efec;
+    --color-text-muted: #cfc7c2;
+    --color-text-faint: #a69d98;
+    --color-background: #1c1917;
+    --color-surface: #262220;
+    --color-surface-raised: #302b28;
+    --color-border: #3d3633;
 
     --shadow-subtle: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -20px rgb(0 0 0 / 0.6);
 
-    --chart-grid: #1f2937;
-    --chart-axis: #4b5563;
-    --chart-label: #9ca3af;
+    --chart-grid: #3d3633;
+    --chart-axis: #5b534f;
 
-    --series-1: #3987e5;
-    --series-2: #d95926;
-    --series-3: #199e70;
-    --series-4: #c98500;
-    --series-5: #d55181;
-    --series-6: #9ab83a;
-    --series-7: #9085e9;
-    --series-8: #e66767;
-    --series-other: #6b7280;
+    --series-1: #4d9bfa;
+    --series-2: #f1761c;
+    --series-3: #38af38;
+    --series-4: #c1921c;
+    --series-5: #eb6ac5;
+    --series-6: #20aaa6;
+    --series-7: #a386fa;
+    --series-8: #fb6874;
+    --series-other: #8c8480;
 
-    /* The gap bins on a dark surface: the same blue from 85% to 45% lightness, so the darkest still shows on navy. */
-    --gap-bin-1: #bcd6f5;
-    --gap-bin-2: #98c0f0;
-    --gap-bin-3: #75aaeb;
-    --gap-bin-4: #5194e6;
-    --gap-bin-5: #2d7ee1;
-    --gap-bin-6: #1d6ac9;
+    /* The gap bins on the dark card: the same blue from 90% to 62% lightness, so the darkest keeps 3:1 on it. */
+    --gap-bin-1: #cae0fd;
+    --gap-bin-2: #abcffd;
+    --gap-bin-3: #8cbdfc;
+    --gap-bin-4: #6cabfb;
+    --gap-bin-5: #4798fa;
+    --gap-bin-6: #1d84f5;
 
-    --cause-user: #7a6db0; /* 3.9:1 on the card: calm, and not the brightest block of the page */
-    --request-ttft: #9ca3af;
-    --request-rest: #4b5563;
+    --request-ttft: #cfc7c2;
+    --request-rest: #5b534f;
 
-    --color-highlight: rgb(201 133 0 / 0.3);
+    --color-highlight: rgb(193 146 28 / 0.3);
   }
 }
 
@@ -162,7 +183,7 @@
 html {
   font-family: var(--font-sans);
   font-size: 18px;
-  line-height: 1.5;
+  line-height: 1.65;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -172,13 +193,15 @@ body {
   background: var(--color-background);
 }
 
+/* Headings in the display serif, set close and balanced over their lines, as Open Data sets them. */
 h1,
 h2,
 h3 {
   font-family: var(--font-serif);
   font-weight: 700;
   letter-spacing: -0.01em;
-  line-height: 1.2;
+  line-height: 1.08;
+  text-wrap: balance;
   margin: 0 0 0.5rem;
 }
 
@@ -212,6 +235,61 @@ code,
 .mono {
   font-family: var(--font-mono);
   font-size: max(0.875em, var(--font-size-smallest));
+}
+
+/* A short label above a heading: monospace, upper case and spaced out, in the faint ink. */
+.eyebrow {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-smallest);
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+
+/* A link drawn as a button: a white card with the rule, lifting a little under the pointer. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.button:hover {
+  text-decoration: none;
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+}
+
+/* The one button that leads: filled with the accent. */
+.button--primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.button--primary:hover {
+  border-color: var(--color-accent-strong);
+  background: var(--color-accent-strong);
+  color: var(--color-on-accent);
+}
+
+/* A band of the page: a rule above it and generous room around it. */
+.section {
+  border-top: 1px solid var(--color-border);
+  padding: clamp(3rem, 8vw, 5.75rem) 0;
 }
 
 /* ---------- Header and footer ---------- */
@@ -313,8 +391,9 @@ code,
 
 .card {
   background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-subtle), 0 0 0 1px var(--color-ring);
+  box-shadow: var(--shadow-card);
   padding: 1.25rem;
 }
 
@@ -429,8 +508,9 @@ code,
 
 .stat {
   background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-subtle), 0 0 0 1px var(--color-ring);
+  box-shadow: var(--shadow-card);
   padding: 1rem 1.25rem;
 }
 
@@ -443,8 +523,9 @@ code,
 }
 
 .stat-value {
+  font-family: var(--font-serif);
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 
@@ -476,9 +557,7 @@ code,
 }
 
 .figure-title {
-  font-family: var(--font-sans);
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.25rem;
   margin: 0;
 }
 
@@ -834,7 +913,7 @@ button:disabled:hover {
 }
 
 button.is-primary {
-  color: #ffffff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
   border-color: var(--color-accent);
 }
