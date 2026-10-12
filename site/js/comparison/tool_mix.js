@@ -31,7 +31,7 @@ const PANEL_TITLE_PADDING = 18; // pixels between a panel's top and its title
 export const TOOL_MIX_BY_TURN_POSITION = Object.freeze({
   name: "tool_mix_by_turn_position",
   title: "Tool mix along a turn",
-  definition: "Per tenth of a turn (a user step and the tool steps after it, whose requests that made a call are numbered k = 0 to n − 1 and fall in the tenth ⌊10 (k + 0.5) / n⌋), the share of the calls of the top-level sessions in each of eight groups of their category, a *File Ops call being Write/Edit when a program it ran changes files, else Read when one only looks, else Other; one panel for the selected harnesses but the benchmark's, one for the benchmark's.",
+  definition: "Per tenth of a turn (a user step and the tool steps after it, whose requests that made a call are numbered k = 0 to n − 1 and fall in the tenth ⌊10 (k + 0.5) / n⌋), the share of the calls of the top-level sessions in each of eight groups of their category, a *File Ops call being Write/Edit when a program it ran changes files, else Read when one only looks, else Other; one panel for the paper's harnesses, one for the benchmark's.",
   caption: "The share of calls in each tool group at each tenth of a turn, human-driven and benchmark.",
   isWide: true,
   query: "figures/tool_mix_by_turn_position",

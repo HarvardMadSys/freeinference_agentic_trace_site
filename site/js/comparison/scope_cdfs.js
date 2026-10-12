@@ -75,7 +75,7 @@ const PROMPT_AXIS = Object.freeze({
 export const TURN_DURATION_BY_SCOPE = Object.freeze({
   name: "turn_duration_by_scope",
   title: "Turn duration",
-  definition: "CDF of the duration of a turn (a user step and the tool steps after it, first start to last end) of the top-level sessions of the selected harnesses but the benchmark's, and of the benchmark's, each median marked and their ratio written, the larger over the smaller.",
+  definition: "CDF of the duration of a turn (a user step and the tool steps after it, first start to last end) of the top-level sessions of the paper's harnesses and of the benchmark's, each median marked and their ratio written, the larger over the smaller.",
   caption: "How long a turn lasts, human-driven and benchmark.",
   drawsLines: true,
   query: "figures/turn_duration_by_scope",
@@ -90,7 +90,7 @@ export const TURN_DURATION_BY_SCOPE = Object.freeze({
 export const SESSION_DURATION_BY_SCOPE = Object.freeze({
   name: "session_duration_by_scope",
   title: "Session duration",
-  definition: "CDF of the duration of a top-level session (its first request's start to its last request's end) of the selected harnesses but the benchmark's, and of the benchmark's, each median marked and their ratio written, the larger over the smaller.",
+  definition: "CDF of the duration of a top-level session (its first request's start to its last request's end) of the paper's harnesses and of the benchmark's, each median marked and their ratio written, the larger over the smaller.",
   caption: "How long a session lasts, human-driven and benchmark.",
   drawsLines: true,
   query: "figures/session_duration_by_scope",
@@ -105,7 +105,7 @@ export const SESSION_DURATION_BY_SCOPE = Object.freeze({
 export const INPUT_PER_REQUEST_BY_SCOPE = Object.freeze({
   name: "input_per_request_by_scope",
   title: "Input per request",
-  definition: "CDF of the input tokens of a request of the top-level sessions of the selected harnesses but the benchmark's, and of the benchmark's, over the requests whose input is reported, each median marked and their ratio written, the larger over the smaller.",
+  definition: "CDF of the input tokens of a request of the top-level sessions of the paper's harnesses and of the benchmark's, over the requests whose input is reported, each median marked and their ratio written, the larger over the smaller.",
   caption: "Input tokens of each request, human-driven and benchmark.",
   drawsLines: true,
   query: "figures/input_per_request_by_scope",
@@ -120,7 +120,7 @@ export const INPUT_PER_REQUEST_BY_SCOPE = Object.freeze({
 export const USER_PROMPT_TOKENS_BY_SCOPE = Object.freeze({
   name: "user_prompt_tokens_by_scope",
   title: "User prompt size",
-  definition: "CDF of the tokens of a user's new prompt (a user step's rise in user tokens over the step before, all of them at a session's first step; a step whose user tokens did not rise has none) of the top-level sessions of the selected harnesses but the benchmark's, and of the benchmark's, each median marked and their ratio written, the larger over the smaller.",
+  definition: "CDF of the tokens of a user's new prompt (a user step's rise in user tokens over the step before, all of them at a session's first step; a step whose user tokens did not rise has none) of the top-level sessions of the paper's harnesses and of the benchmark's, each median marked and their ratio written, the larger over the smaller.",
   caption: "Tokens of each new user prompt, human-driven and benchmark.",
   drawsLines: true,
   query: "figures/user_prompt_tokens_by_scope",

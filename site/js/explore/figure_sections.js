@@ -39,8 +39,8 @@ const SECTIONS = Object.freeze([
 // the visible one is drawn before it is scrolled to.
 const IN_VIEW_MARGIN = "100% 0px";
 
-const NO_ROWS_NOTE = "No rows for this selection.";
-const ALL_THIN_NOTE = `Too few rows: every bin of this selection has fewer than ${MIN_ROWS_PER_BIN} rows.`;
+const NO_ROWS_NOTE = "No rows over every week and the paper's harnesses.";
+const ALL_THIN_NOTE = `Too few rows: every bin has fewer than ${MIN_ROWS_PER_BIN} rows.`;
 
 /**
  * Place a card for every figure of every section and, unless `drawsEveryRunAtOnce`, watch which cards are in view;

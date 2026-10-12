@@ -163,6 +163,6 @@ function percentileLegendItems(card) {
 function emptyNote() {
   const note = document.createElement("p");
   note.className = "note";
-  note.textContent = "No rows in the selected weeks and harnesses.";
+  note.textContent = "No rows in any week from the paper's harnesses.";
   return note;
 }

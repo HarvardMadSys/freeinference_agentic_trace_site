@@ -34,7 +34,7 @@ const CALLOUT_HALO = 3; // pixels of the card's colour around the callout's text
 export const API_COST_BY_TTL = Object.freeze({
   name: "api_cost_by_ttl",
   title: "API cost by TTL",
-  definition: "In the prefix-cache simulation of the paper's harnesses under the TTL-only policy, drawn whatever harnesses are selected, what each TTL from 1 s to a day costs an API customer at the pipeline's prices (cached 1, uncached 10, output 50 per token): the missed input at the uncached price, the cache reads at the cached price and the output, stacked, each as a multiple of the total at a one-minute TTL (dashed at 1×), the knee called out, the shortest TTL whose total is within 5% of the lowest, ∞ (no TTL) included.",
+  definition: "In the prefix-cache simulation of the paper's harnesses under the TTL-only policy, what each TTL from 1 s to a day costs an API customer at the pipeline's prices (cached 1, uncached 10, output 50 per token): the missed input at the uncached price, the cache reads at the cached price and the output, stacked, each as a multiple of the total at a one-minute TTL (dashed at 1×), the knee called out, the shortest TTL whose total is within 5% of the lowest, ∞ (no TTL) included.",
   caption: "What an API customer pays at each cache TTL, as a multiple of a one-minute TTL.",
   query: "figures/api_cost_by_ttl",
   binColumn: "part",
@@ -51,7 +51,7 @@ export const API_COST_BY_TTL = Object.freeze({
 export const INFRASTRUCTURE_COST_BY_TTL = Object.freeze({
   name: "infrastructure_cost_by_ttl",
   title: "Infrastructure cost by TTL",
-  definition: "In the prefix-cache simulation of the paper's harnesses under the TTL-only policy, drawn whatever harnesses are selected, what each TTL from 1 s to a day costs an inference provider at the pipeline's prices: prefilling the missed tokens again at $1 per million and keeping the reusable and dead tokens in memory at $30 per million a day, stacked, each as a multiple of the total at a one-minute TTL (dashed at 1×), the TTL of the lowest total called out, ∞ (no TTL) included.",
+  definition: "In the prefix-cache simulation of the paper's harnesses under the TTL-only policy, what each TTL from 1 s to a day costs an inference provider at the pipeline's prices: prefilling the missed tokens again at $1 per million and keeping the reusable and dead tokens in memory at $30 per million a day, stacked, each as a multiple of the total at a one-minute TTL (dashed at 1×), the TTL of the lowest total called out, ∞ (no TTL) included.",
   caption: "What serving costs at each cache TTL, recomputing misses against storing tokens.",
   query: "figures/infrastructure_cost_by_ttl",
   binColumn: "part",

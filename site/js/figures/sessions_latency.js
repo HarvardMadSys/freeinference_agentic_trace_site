@@ -41,7 +41,7 @@ const BAR_LABEL_GAP = 4; // pixels between a bar's end and its label
 export const TTFT_CDF_BY_MODEL = Object.freeze({
   name: "ttft_cdf_by_model",
   title: "Time to first token by model",
-  definition: "CDF of the time to first token per model over requests whose TTFT is trusted (positive and under 95% of the latency), where the five models with most requests in the selection that are among the eight with most requests over every week are drawn and the paper draws two fixed models, each with its decode and queueing time.",
+  definition: "CDF of the time to first token per model over requests whose TTFT is trusted (positive and under 95% of the latency), where the five models with most requests from the paper's harnesses that are among the eight with most requests over every week are drawn and the paper draws two fixed models, each with its decode and queueing time.",
   caption: "Time to first token of each request, for the five busiest models.",
   drawsLines: true,
   query: "figures/ttft_cdf_by_model",
@@ -56,7 +56,7 @@ export const TTFT_CDF_BY_MODEL = Object.freeze({
 export const DECODE_CDF_BY_MODEL = Object.freeze({
   name: "decode_cdf_by_model",
   title: "Decode time by model",
-  definition: "CDF of the decode time (the latency minus the time to first token) per model over requests whose TTFT is trusted, where the five models with most requests in the selection that are among the eight with most requests over every week are drawn, the paper draws two fixed models and the paper's queueing estimate is not drawn.",
+  definition: "CDF of the decode time (the latency minus the time to first token) per model over requests whose TTFT is trusted, where the five models with most requests from the paper's harnesses that are among the eight with most requests over every week are drawn, the paper draws two fixed models and the paper's queueing estimate is not drawn.",
   caption: "Latency minus time to first token, for the same five models.",
   drawsLines: true,
   query: "figures/decode_cdf_by_model",

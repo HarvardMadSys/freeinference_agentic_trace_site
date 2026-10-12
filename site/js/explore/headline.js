@@ -110,7 +110,7 @@ async function drawModelMix(place, context) {
   const orderRows = await context.orders.models;
   const rows = await context.database.runQuery("explore/model_mix");
   if (rows.length === 0) {
-    showNote(place, "No requests in the selected weeks and harnesses.");
+    showNote(place, "No requests in any week from the paper's harnesses.");
     return;
   }
   const colours = assignColours(orderRows.map((row) => row.model));
@@ -135,7 +135,7 @@ function modelChip(model, colour) {
   chip.className = "chip";
   chip.style.setProperty("--chip-color", colour);
   chip.textContent = `${model.model} · ${formatShare(model.share)}`;
-  chip.title = `${formatCount(model.requests)} top-level requests in the selected weeks and harnesses went to ${model.model}.`;
+  chip.title = `${formatCount(model.requests)} top-level requests over every week from the paper's harnesses went to ${model.model}.`;
   return chip;
 }
 

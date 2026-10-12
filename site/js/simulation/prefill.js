@@ -52,7 +52,7 @@ const MARKER_RADIUS = 3; // pixels; the small marker of each TTL's point
 export const PREFILL_AGAINST_STORAGE = Object.freeze({
   name: "prefill_against_storage",
   title: "Prefill against storage",
-  definition: "In the prefix-cache simulation of the TTL-only policy, the normalised prefill (missed tokens over those missed with no TTL) against the mean retained tokens (reusable and dead token-seconds over the span from the week's first request to its last), one point per TTL from 1 s to a day and ∞ (no TTL), some named as in the paper, for the paper's harnesses (human-driven) and for the benchmark replay, each simulated on its own and drawn whatever harnesses are selected, both axes logarithmic.",
+  definition: "In the prefix-cache simulation of the TTL-only policy, the normalised prefill (missed tokens over those missed with no TTL) against the mean retained tokens (reusable and dead token-seconds over the span from the week's first request to its last), one point per TTL from 1 s to a day and ∞ (no TTL), some named as in the paper, for the paper's harnesses (human-driven) and for the benchmark replay, each simulated on its own, both axes logarithmic.",
   caption: "Missed tokens against tokens kept, per cache TTL, human-driven and benchmark.",
   isWide: true,
   drawsLines: true,
