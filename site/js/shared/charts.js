@@ -1,11 +1,12 @@
 /**
- * What every chart shares: its frame and ink, folding series past the eighth into "Other", captions, loading and error
- * states, the figure layout, and the CDF and bar drawings. The colours a chart draws in come from `theme/colours.js`.
+ * What every chart shares: its frame and ink, its log-axis ticks, folding series past the eighth into "Other", loading
+ * and error states, the figure card, and the CDF and bar drawings. The colours a chart draws in come from `theme/colours.js`.
  * The drawing functions load Plot themselves; the rest is plain functions, tested with `node --test`.
  */
 
 import { OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
-import { formatCount, formatShare } from "./format.js";
+import { formatCount, formatPercent, formatShare } from "./format.js";
+import { axisWithTicks, extent, logAxisTicks, TICK_COUNT } from "../axes/ticks.js";
 
 /** A bin, category or model with fewer rows than this is not drawn: too few rows to show a shape. */
 export const MIN_ROWS_PER_BIN = 50;
@@ -17,21 +18,24 @@ const CHART_HEIGHT = 240; // every chart has the same height, so a grid of figur
 const FALLBACK_WIDTH = 480; // the width drawn when the body has not been laid out yet
 const CATEGORY_ROW_HEIGHT = 22; // pixels per category, so sixteen categories keep readable labels
 const CATEGORY_MARGIN_LEFT = 116; // pixels; room for the longest category name, "*Interpreter"
-const CATEGORY_MARGINS_Y = 80; // pixels above and below the rows: the frame's top margin and the x axis
+const CATEGORY_MARGIN_TOP = 8; // pixels above the first row: the rows have no title above them
+const CATEGORY_MARGINS_Y = 56; // pixels above and below the rows: the top margin and the x axis
 /** The width of every chart's lines, in pixels: thin lines. */
 export const LINE_WIDTH = 2;
 const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars and segments
 /** The dash and gap lengths of every dashed line, in pixels: a CDF's median, a percentile, a reference line. */
 export const DASH = "4 3";
 const MEDIAN_SHARE = 0.5; // the share of rows at which a CDF crosses its median
+/** Pixels between the y axis and an x axis's first value, so its label and the y axis's lowest never touch. */
+export const X_INSET = 8;
 
 // The Plot options every chart shares, so every chart has the same ink.
 const PLOT_STYLE = Object.freeze({ color: "var(--chart-label)", background: "transparent" });
 const PLOT_MARGINS = Object.freeze({ marginTop: 32, marginRight: 32, marginBottom: 48, marginLeft: 72 });
 /** The options of every chart's grid lines. */
 export const GRID_STYLE = Object.freeze({ stroke: "var(--chart-grid)", strokeOpacity: 1 });
-/** The options of every chart's axes. */
-export const AXIS_STYLE = Object.freeze({ stroke: "var(--chart-axis)" });
+/** The options of every chart's axes and reference rules: the axis ink, and an axis title with no arrow. */
+export const AXIS_STYLE = Object.freeze({ stroke: "var(--chart-axis)", labelArrow: "none" });
 /** The options of every chart's tooltip: Plot's white box would be unreadable in dark mode, so it takes the surface colour. */
 export const TIP_STYLE = Object.freeze({ fill: "var(--color-surface)" });
 
@@ -46,7 +50,7 @@ export function chartFrame(body) {
  */
 export function categoryRowsFrame(body, categoryCount) {
   const height = categoryCount * CATEGORY_ROW_HEIGHT + CATEGORY_MARGINS_Y;
-  return { ...chartFrame(body), height, marginLeft: CATEGORY_MARGIN_LEFT };
+  return { ...chartFrame(body), height, marginTop: CATEGORY_MARGIN_TOP, marginLeft: CATEGORY_MARGIN_LEFT };
 }
 
 /** A copy of `rows` with `row[key]` replaced by "Other" where it is not among the first eight distinct `names`. */
@@ -77,19 +81,6 @@ export function dropThinBins(rows, countKey) {
   return { rows: kept, hidden: rows.length - kept.length };
 }
 
-/**
- * A figure's caption, `harnesses` being the text that names them: "1,186,582 rows · the paper's harnesses · 16 weeks",
- * or "… · 1 week (2026-08-09)" naming a single week's Sunday.
- */
-export function captionText({ rows, harnesses, weeks }) {
-  return `${formatCount(rows)} rows · ${harnesses} · ${weeksText(weeks)}`;
-}
-
-/** The weeks a caption names: "16 weeks", or "1 week (2026-08-09)" naming a single week's Sunday. */
-export function weeksText(weeks) {
-  return weeks.length === 1 ? `1 week (${weeks[0]})` : `${weeks.length} weeks`;
-}
-
 /** Replace `container`'s content with the loading state. */
 export function showLoading(container) {
   const loading = document.createElement("p");
@@ -115,45 +106,64 @@ export function showError(container, error) {
   container.replaceChildren(note);
 }
 
-/** Fill `container` with a figure's title, definition, empty body and caption; return the body to draw into. */
-export function renderFigure(container, { title, definition, caption }) {
+/**
+ * Fill `container` with a figure card, in this order: its title, its caption (one short line), an empty place for its
+ * legend, an empty body to draw into, and a Definition control that opens on its full definition and the line of rows
+ * it rests on, `rows`, which may also be written later into the card's `.figure-rows`. Return the body.
+ */
+export function renderFigure(container, { title, caption, definition, rows = "" }) {
   const figure = document.createElement("div");
   figure.className = "figure";
   figure.innerHTML = `
     <h3 class="figure-title"></h3>
-    <p class="figure-definition"></p>
+    <p class="figure-caption"></p>
+    <div class="figure-legend legend"></div>
     <div class="figure-body"></div>
-    <p class="figure-caption"></p>`;
+    <details class="figure-definition">
+      <summary>Definition</summary>
+      <p class="figure-definition-text"></p>
+      <p class="figure-rows"></p>
+    </details>`;
   figure.querySelector(".figure-title").textContent = title;
-  figure.querySelector(".figure-definition").textContent = definition;
   figure.querySelector(".figure-caption").textContent = caption;
+  figure.querySelector(".figure-definition-text").textContent = definition;
+  figure.querySelector(".figure-rows").textContent = rows;
   container.replaceChildren(figure);
   return figure.querySelector(".figure-body");
+}
+
+/** The place above a figure's body, as `renderFigure` lays it out, where its legend goes. */
+export function legendPlace(body) {
+  return body.closest(".figure").querySelector(".figure-legend");
 }
 
 /**
  * Draw into `body` one line per series of `series`, `[{ name, label, points: [{ x, share }] }]`, with share running
  * 0 to 1, each in its colour from `colours` (a map from series name to colour, as `assignColours` gives); the tooltip
  * names a series by its label. `format` writes an x value in the tooltip, `xTickFormat` (if given) on the axis;
- * `xDomain`, when given, is the x axis's `[low, high]`, the lines cut at its ends.
+ * `xDomain`, when given, is the x axis's `[low, high]`, the lines cut at its ends; `xTicks`, when given, are the x
+ * axis's ticks, else a log axis ticks its powers of ten (`logAxisTicks`); `xLabel` and `yLabel` title the axes, none
+ * when null.
  */
-export async function drawCdf(body, series, { xLabel, logX = false, format = String, xTickFormat, colours, xDomain }) {
+export async function drawCdf(body, series, options) {
+  const { xLabel = null, yLabel = "Share", logX = false, format = String, xTickFormat, colours, xDomain } = options;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("./libraries.js");
   const points = cdfPoints(series);
   const names = series.map((one) => one.name);
+  const xTicks = options.xTicks ?? (logX ? logAxisTicks(xDomain ?? extent(points.map((point) => point.x))) : undefined);
   const chart = Plot.plot({
     ...chartFrame(body),
-    x: { type: logX ? "log" : "linear", domain: xDomain },
+    x: { type: logX ? "log" : "linear", domain: xDomain, inset: X_INSET },
     y: { domain: [0, 1] },
     clip: xDomain !== undefined,
     color: colourScale(colours, names),
     marks: [
-      Plot.gridX(GRID_STYLE),
+      xTicks === undefined ? Plot.gridX(GRID_STYLE) : Plot.gridX(xTicks, GRID_STYLE),
       Plot.gridY(GRID_STYLE),
       Plot.ruleY([MEDIAN_SHARE], { ...AXIS_STYLE, strokeDasharray: DASH }),
-      Plot.axisX({ ...AXIS_STYLE, label: xLabel, tickFormat: xTickFormat }),
-      Plot.axisY({ ...AXIS_STYLE, tickFormat: "%", label: "Share of rows" }),
+      axisWithTicks(Plot.axisX, xTicks, { ...AXIS_STYLE, label: xLabel, tickFormat: xTickFormat }),
+      Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: yLabel }),
       Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH }),
       Plot.tip(points, Plot.pointerX({ ...TIP_STYLE, x: "x", y: "share", title: (point) => cdfTipText(point, format) })),
     ],
@@ -165,14 +175,15 @@ export async function drawCdf(body, series, { xLabel, logX = false, format = Str
  * Draw into `body` one bar per row of `rows`: `row[x]` along the axis, `row[y]` its height, coloured by `row[fill]`
  * in its colour from `colours`, a Map from each fill value (and "Other") to its colour, in the order the series stack.
  * Series past the eighth of `order` (a fixed order of fill values, largest first) or of the rows' order fold into
- * "Other", summed into one bar per x. Bars stack when `stacked`; `format` writes a y value on the axis and in the
- * tooltip; `xTickFormat`, when given, writes the x axis's ticks; `xDomain`, when given, lists every x value in order,
+ * "Other", summed into one bar per x. Bars stack when `stacked`; `format` writes a y value in the tooltip and, unless
+ * `yTickFormat` is given, on the axis; `yLabel` names a y value in the tooltip and, unless `yAxisLabel` is given (null
+ * for none), titles the axis; `xTickFormat`, when given, writes the x axis's ticks; `xDomain`, when given, lists every x value in order,
  * so one with no rows keeps its place; `fillOpacity`, when given, is each bar's opacity, a number or a function of its
  * row. Returns the chart's element.
  */
 export async function drawBars(body, rows, options) {
   const { x, y, fill, order, colours, stacked = false, xLabel, yLabel, format = formatCount } = options;
-  const { xTickFormat, xDomain, fillOpacity } = options;
+  const { xTickFormat, xDomain, fillOpacity, yTickFormat = format, yAxisLabel = yLabel } = options;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("./libraries.js");
   const names = distinct(order ?? rows.map((row) => row[fill]));
@@ -183,9 +194,9 @@ export async function drawBars(body, rows, options) {
     x: { type: "band", domain: xDomain ?? distinct(foldedRows.map((row) => row[x])) },
     color: colourScale(colours, shown),
     marks: [
-      Plot.gridY(GRID_STYLE),
+      Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT }),
       Plot.axisX({ ...AXIS_STYLE, tickFormat: xTickFormat, label: xLabel }),
-      Plot.axisY({ ...AXIS_STYLE, tickFormat: format, label: yLabel }),
+      Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: yTickFormat, label: yAxisLabel }),
       Plot.barY(foldedRows, {
         x,
         ...barHeight(y, stacked),
@@ -244,7 +255,7 @@ export function cdfPoints(series) {
 }
 
 function cdfTipText(point, format) {
-  return `${point.label}\n${format(point.x)}\n${formatShare(point.share)} of rows`;
+  return `${point.label}\n${format(point.x)}\n${formatShare(point.share)} at or below`;
 }
 
 function barTipText(row, { x, y, fill, yLabel, format }) {

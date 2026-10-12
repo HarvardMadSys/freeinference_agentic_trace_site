@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  computationNote, defaultHarnesses, defaultSelection, harnessesText, isDefaultSelection, readSelection,
+  computationNote, defaultHarnesses, defaultSelection, harnessesText, isDefaultSelection, populationText, readSelection,
   selectionQuery, streamedWeeksNote, streamedWeeksText, unknownSelectionNote, weeksByMonth, withoutSelection,
   writeSelection,
 } from "../site/js/shared/selection.js";
@@ -234,4 +234,11 @@ test("a caption names the paper's harnesses, every harness, the one harness, or 
   assert.equal(harnessesText(HARNESSES.map((entry) => entry.harness), HARNESSES), "every harness");
   assert.equal(harnessesText(["codex"], HARNESSES), "codex");
   assert.equal(harnessesText(["hermes", "codex"], HARNESSES), "2 harnesses");
+});
+
+test("the population every frozen figure draws names the paper's harnesses, the weeks and their months", () => {
+  assert.equal(populationText(WEEKS, HARNESSES),
+    "All figures: the paper's harnesses, all 4 weeks, May to June 2026, and the benchmark replay where a legend names it.");
+  assert.equal(populationText(WEEKS.slice(0, 1), HARNESSES),
+    "All figures: the paper's harnesses, one week, May 2026, and the benchmark replay where a legend names it.");
 });

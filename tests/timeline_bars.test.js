@@ -57,8 +57,8 @@ test("the overlapping subagents sit on separate rows at overlapping times", () =
 test("a request splits at its time to first token into two bars", () => {
   const first = barsOf((bar) => bar.sessionId === "root" && bar.step === 0 && bar.band === "request");
   assert.deepEqual(first.map((bar) => [bar.x1, bar.x2, bar.colour]), [
-    [0, 2, "var(--color-text-muted)"],
-    [2, 10, "var(--color-text-faint)"],
+    [0, 2, "var(--request-ttft)"],
+    [2, 10, "var(--request-rest)"],
   ]);
   assert.match(first[0].tip, /^main · step 0 · turn 1\ntime to first token 2s\nrest 8s$/);
 });
@@ -143,8 +143,8 @@ test("of overlapping bars, the pointer finds the one drawn last, on top", () => 
 test("the legend's request parts are ink tones, the rest naming a request with no time to first token", () => {
   const reported = requestPartEntries([request("root", 0, 1_000, 1_010)]);
   assert.deepEqual(reported, [
-    { name: "time to first token", colour: "var(--color-text-muted)" },
-    { name: "rest of the request", colour: "var(--color-text-faint)" },
+    { name: "time to first token", colour: "var(--request-ttft)" },
+    { name: "rest of the request", colour: "var(--request-rest)" },
   ]);
   const unreported = requestPartEntries(REQUESTS);
   assert.equal(unreported[1].name, "rest of the request, or all of one with no time to first token");

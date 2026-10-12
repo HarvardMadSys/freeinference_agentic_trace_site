@@ -68,11 +68,11 @@ async function drawSessions(place, context, filter) {
   const tablePlace = document.createElement("div");
   const view = { rows, tablePlace, context, filter, disclosure: null, notePlace: document.createElement("div") };
   if (filter === null) {
-    place.replaceChildren(sectionTitle(), controlsRow(view), tablePlace);
+    place.replaceChildren(controlsRow(view), tablePlace);
   } else {
     view.disclosure = filterDisclosure(namesFilter(currentParams()), controlsRow(view));
     view.notePlace.className = "table-filter-note";
-    place.replaceChildren(sectionTitle(), view.disclosure.element, view.notePlace, tablePlace);
+    place.replaceChildren(view.disclosure.element, view.notePlace, tablePlace);
     drawFilterPickers(view);
   }
   drawTable(view);
@@ -167,17 +167,12 @@ function drawTable(view) {
     rows: shown,
     sort: state.sort,
     pageNumber: state.pageNumber,
-    summary: `${formatCount(shown.length)} of ${formatCount(view.rows.length)} sessions`,
+    // The folded filter's line already counts the sessions listed.
+    summary: view.disclosure === null ? `${formatCount(shown.length)} of ${formatCount(view.rows.length)} sessions` : "",
     onSort: (key) => sortBy(view, key),
     onPage: (pageNumber) => changeTable(view, { ...currentState(), pageNumber }),
     onRowClick: (row) => window.location.assign(sessionLink(row, exploreParams, view.context)),
   });
-}
-
-function sectionTitle() {
-  const title = document.createElement("h2");
-  title.textContent = "Sessions table";
-  return title;
 }
 
 function controlsRow(view) {

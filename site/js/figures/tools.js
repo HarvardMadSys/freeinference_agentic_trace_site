@@ -7,6 +7,7 @@
  */
 
 import { AXIS_STYLE, categoryRowsFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
+import { decadeTicks } from "../axes/ticks.js";
 import { formatCount, formatSeconds, formatTokens, MILLISECONDS_PER_SECOND } from "../shared/format.js";
 import { CALLS_PER_REQUEST_BY_CATEGORY, LATENCY_BY_BATCH_WIDTH } from "./tools_batching.js";
 
@@ -23,14 +24,14 @@ const PERCENTILES = Object.freeze([
 // one, the smallest value drawn on the log axis (a smaller one is drawn at it), how the tooltip writes a value, and
 // how the axis writes a power of ten.
 const LATENCY_RANGE = Object.freeze({
-  xLabel: "Seconds after the request",
+  xLabel: "Seconds",
   scale: 1 / MILLISECONDS_PER_SECOND,
   floor: 0.1, // seconds; as in the paper, whose axis starts at 100 ms
   format: formatSeconds,
   tickFormat: String,
 });
 const RESULT_TOKENS_RANGE = Object.freeze({
-  xLabel: "Result tokens",
+  xLabel: "Tokens",
   scale: 1,
   floor: 1, // an empty result is drawn at one token, below the shortest messages
   format: formatTokens,
@@ -46,7 +47,8 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "latency_by_category",
     title: "Tool latency by category",
-    definition: "The 5th, 25th, 50th, 75th and 95th percentile of a tool call's latency (the wait after its request until the session's next) per category, over calls that were their request's only call, where the paper also marks the mean.",
+    definition: "The 5th, 25th, 50th, 75th and 95th percentile of a tool call's latency (the wait after its request until the session's next) per category, over calls that were their request's only call, where the paper also marks the mean; a category marked * is a shell command's purpose.",
+    caption: "Tool call latency per category: box 25th to 75th percentile, whiskers 5th to 95th.",
     query: "figures/latency_by_category",
     binColumn: "category",
     draw: drawLatency,
@@ -54,7 +56,8 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "result_tokens_by_category",
     title: "Tool result size by category",
-    definition: "The 5th, 25th, 50th, 75th and 95th percentile of the tokens of a tool call's result per category, over calls whose result was matched, where the paper also marks the mean.",
+    definition: "The 5th, 25th, 50th, 75th and 95th percentile of the tokens of a tool call's result per category, over calls whose result was matched, where the paper also marks the mean; a category marked * is a shell command's purpose.",
+    caption: "Result tokens per tool category: box 25th to 75th percentile, whiskers 5th to 95th.",
     query: "figures/result_tokens_by_category",
     binColumn: "category",
     draw: drawResultTokens,
@@ -89,8 +92,9 @@ async function drawQuantileRanges(rows, body, categoryColours, range) {
     y: { type: "band", domain: categories },
     color: colourScale(categoryColours, categories),
     marks: [
-      Plot.gridX(GRID_STYLE),
-      // The labels are given as text: a narrow log axis's own tick format would leave all but one power of ten bare.
+      // Only the powers of ten are ruled and labelled: a log axis's own ticks would draw a mesh of minor lines, and its
+      // tick format would leave all but one power of ten bare on a narrow chart.
+      Plot.gridX(powersOfTen(ranges), GRID_STYLE),
       Plot.axisX(powersOfTen(ranges), { ...AXIS_STYLE, label: range.xLabel, text: range.tickFormat }),
       Plot.axisY({ ...AXIS_STYLE, label: null }),
       Plot.ruleY(ranges, { y: "category", x1: "p5", x2: "p95", stroke: "category", strokeWidth: WHISKER_WIDTH }),
@@ -122,11 +126,7 @@ function drawnRange(row, range) {
 function powersOfTen(ranges) {
   const low = Math.min(...ranges.map((drawn) => drawn.p5));
   const high = Math.max(...ranges.map((drawn) => drawn.p95));
-  const powers = [];
-  for (let exponent = Math.ceil(Math.log10(low)); exponent <= Math.floor(Math.log10(high)); exponent += 1) {
-    powers.push(10 ** exponent);
-  }
-  return powers;
+  return decadeTicks([low, high]);
 }
 
 function rangeTipText(drawn, range) {

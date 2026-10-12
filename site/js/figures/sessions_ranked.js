@@ -12,14 +12,14 @@
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
 import { causeColours, REQUEST_PART_COLOURS, TOKEN_PART_COLOURS } from "../theme/colours.js";
-import { formatCount, formatShare } from "../shared/format.js";
+import { formatCount, formatPercent, formatShare } from "../shared/format.js";
 import { partsLegend } from "./figure_rows.js";
 
 // The parts of a session's cost, bottom up in the stack, with the label each is drawn under.
 const COST_PARTS = Object.freeze({ cached: "Cached input", uncached: "Uncached input", output: "Output" });
 
 // The parts of a session's time, bottom up in the stack, with the label each is drawn under.
-const TIME_PARTS = Object.freeze({ model: "Model", tool: "Tools", human: "Human" });
+const TIME_PARTS = Object.freeze({ model: "Model", tool: "Tools", human: "User" });
 
 const PERCENTILE_DOMAIN = Object.freeze([0, 100]); // the x axis spans every ranked session, whatever bins are hidden
 const SHARE_DOMAIN = Object.freeze([0, 1]); // the y axis spans a whole share, whatever parts are hidden
@@ -29,6 +29,7 @@ export const COST_SHARE_BY_SESSION = Object.freeze({
   name: "cost_share_by_session",
   title: "Cost share by session",
   definition: "Each top-level session's cost at the pipeline's prices (cached 1, uncached 10, output 50 per token), over its requests whose provider reports cache reads and that have an input, split between cached input, uncached input and output, with the sessions ranked by cached share and each rank bin's mean shares stacked.",
+  caption: "Each session's cost by token kind, sessions ranked by cached share.",
   query: "figures/cost_share_by_session",
   binColumn: "ranked_bin",
   seriesOverSameRows: true,
@@ -36,11 +37,12 @@ export const COST_SHARE_BY_SESSION = Object.freeze({
   draw: drawCostShare,
 });
 
-/** The session time figure: each session's time split between the model, tools and people, ranked by human share. */
+/** The session time figure: each session's time split between the model, tools and people, ranked by user share. */
 export const SESSION_TIME_BY_PART = Object.freeze({
   name: "session_time_by_part",
   title: "Session time by part",
-  definition: "Each top-level session's time split between model time (its requests' latencies), tool time (its waits for a tool or a subagent) and human time (its waits for the user or an ask-user tool), with the sessions ranked by human share and each rank bin's mean shares stacked; the paper splits model time into prefill and decode, the site does not.",
+  definition: "Each top-level session's time split between model time (its requests' latencies), tool time (its waits for a tool or a subagent) and user time (its waits for the user or an ask-user tool), with the sessions ranked by user share and each rank bin's mean shares stacked; the paper splits model time into prefill and decode, the site does not.",
+  caption: "Each session's time on the model, on tools and waiting for the user.",
   query: "figures/session_time_by_part",
   binColumn: "ranked_bin",
   seriesOverSameRows: true,
@@ -88,7 +90,7 @@ function costShareLegend() {
 }
 
 /**
- * The session time's legend: model time in the ink of a request on the Session page's Timeline, and tool and human
+ * The session time's legend: model time in the ink of a request on the Session page's Timeline, and tool and user
  * time in the colours the Timeline gives a wait for a tool and for the user.
  */
 function sessionTimeLegend() {
@@ -103,18 +105,18 @@ async function drawCostShare(rows, body, colours, hidden) {
     labels: COST_PARTS,
     colours: colours.series,
     hidden,
-    xLabel: "Sessions ranked by cached share (percentile)",
+    xLabel: "Session percentile",
     yLabel: "Share of cost",
   });
 }
 
-/** Draw the session time's rank bins as a stacked area of model, tool and human shares; hidden parts left out. */
+/** Draw the session time's rank bins as a stacked area of model, tool and user shares; hidden parts left out. */
 async function drawSessionTime(rows, body, colours, hidden) {
   await drawRankedShares(body, rows, {
     labels: TIME_PARTS,
     colours: colours.series,
     hidden,
-    xLabel: "Sessions ranked by human share (percentile)",
+    xLabel: "Session percentile",
     yLabel: "Share of session time",
   });
 }
@@ -136,7 +138,7 @@ async function drawRankedShares(body, rows, { labels, colours, hidden, xLabel, y
     marks: [
       Plot.gridY(GRID_STYLE),
       Plot.axisX({ ...AXIS_STYLE, label: xLabel }),
-      Plot.axisY({ ...AXIS_STYLE, tickFormat: "%", label: yLabel }),
+      Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: yLabel }),
       Plot.areaY(stackedSharePoints(rows, shown), { x: "percentile", y: "share", fill: "part", order: shown }),
       Plot.tip(tips, Plot.pointerX({ ...TIP_STYLE, x: "percentile", y: "top", title: "text" })),
     ],

@@ -9,7 +9,7 @@
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
 import { TOOL_GROUP_COLOURS } from "../theme/colours.js";
-import { formatShare } from "../shared/format.js";
+import { formatPercent, formatShare } from "../shared/format.js";
 import { seriesLegend } from "../figures/figure_rows.js";
 import { SCOPE_LABELS, SCOPES } from "./scopes.js";
 
@@ -18,10 +18,10 @@ export const TENTHS = 10;
 const WHOLE_TURN_PERCENT = 100;
 const PERCENT_PER_TENTH = WHOLE_TURN_PERCENT / TENTHS;
 
-// The ticks of a panel's axis, in percent of the turn: three, or on a narrow chart two, so that the last label of the
-// first panel does not run into the first label of the second.
-const TURN_TICKS = Object.freeze([10, 50, 100]);
-const NARROW_TURN_TICKS = Object.freeze([50, 100]);
+// The ticks of a panel's axis, in percent of the turn: none at either end, so that the last label of the first panel
+// does not run into the first label of the second, nor the first into the share axis; two on a narrow chart.
+const TURN_TICKS = Object.freeze([25, 50, 75]);
+const NARROW_TURN_TICKS = Object.freeze([25, 75]);
 const NARROW_CHART_WIDTH = 480; // pixels; a chart narrower than this has room for two labels per panel
 const SHARE_DOMAIN = Object.freeze([0, 1]); // the y axis spans a whole share, whatever groups are hidden
 
@@ -104,7 +104,7 @@ async function drawToolMix(rows, body, colours) {
       Plot.axisX({
         ...AXIS_STYLE, ticks: turnTicks(frame.width), tickFormat: percentTick, label: "Position in the turn",
       }),
-      Plot.axisY({ ...AXIS_STYLE, tickFormat: "%", label: null }), // the caption says these are shares of calls
+      Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: null }), // the caption says these are shares of calls
       Plot.areaY(points, { fx: "scope", x: "turnPercent", y: "share", fill: "group", order: groups }),
       Plot.tip(toolMixTips(points), Plot.pointerX({
         ...TIP_STYLE, fx: "scope", x: "turnPercent", y: "top", title: "text",

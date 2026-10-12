@@ -14,8 +14,8 @@ test("a user step is labelled by its turn, a tool step by its step", () => {
 });
 
 test("the elapsed time runs from the origin to the request's end", () => {
-  assert.equal(elapsedRange(REQUEST, 1_000), "+01:00–01:14");
-  assert.equal(elapsedRange({ ...REQUEST, end_ms: 3_725_000 }, 1_000), "+01:00–1:02:04");
+  assert.equal(elapsedRange(REQUEST, 1_000), "1:00–1:14");
+  assert.equal(elapsedRange({ ...REQUEST, end_ms: 3_725_000 }, 1_000), "1:00–1:02:04");
 });
 
 test("a bar is the cached and uncached input, then the output", () => {

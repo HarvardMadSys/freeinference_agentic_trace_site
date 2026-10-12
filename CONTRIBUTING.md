@@ -167,30 +167,34 @@ that crosses a boundary, and functions that each do one job.
 
 **A figure entry** (listed in `js/figures/<section>.js`'s `FIGURES`). Every
 figure of the Explore page is one frozen object with these fields; the
-page draws its card, runs its query, hides its thin bins, writes its caption
-and calls `draw`:
+page draws its card (title, caption, legend, chart, and a Definition control
+that opens on the definition and the line of rows), runs its query, hides its
+thin bins, writes its line of rows and calls `draw`:
 
 - `name`: the figure's id, also the id of its card on the page.
 - `title`: the card's heading.
+- `caption`: the card's one short line, a sentence under 90 characters, with
+  nothing the axes and legend already say.
 - `definition`: one sentence saying what is drawn, and where the site draws
-  more simply than the paper, how.
+  more simply than the paper, how; shown behind the Definition control.
 - `query`: the query it draws, as `runQuery` names it (`"figures/<name>"`).
 - `binColumn`: the column naming the bin or series each row belongs to, every
   row of a bin carrying the bin's count in `rows`; a bin under
   `MIN_ROWS_PER_BIN` is hidden whole. `null` when every row is a bin of its own.
 - `seriesOverSameRows` (optional): true when every series is drawn from the
-  same rows, so the caption counts them once rather than summing the series.
+  same rows, so the line of rows counts them once rather than summing them.
 - `seriesNouns` (optional): when the series count different things, each
-  series' name with the plural noun of what it counts; the caption then gives
-  each count ("84,239 turns · 12,002 sessions").
+  series' name with the plural noun of what it counts; the line of rows then
+  gives each count ("84,239 turns · 12,002 sessions").
 - `isSimulation` (optional): true for a figure of the cache simulation, which
   draws the harnesses the simulation replays (the paper's, and on its own the
-  benchmark replay) in the simulated weeks only; the caption says so.
+  benchmark replay) in the simulated weeks only; the line of rows names a
+  selected week the simulation does not cover.
 - `isPartlySimulated` (optional): true for a figure drawn from the selection
   with one column from the cache simulation, as the mutation table's prefill;
-  the caption names the selected weeks the simulation does not cover.
-- `caption` (optional): the card's one short line, a sentence of at most 90
-  characters; `definition` keeps the full definition.
+  the line of rows names the selected weeks the simulation does not cover.
+- `drawsLines` (optional): true for a figure that draws its series as lines,
+  whose legend then shows a short line per series instead of a square.
 - `legend` (a figure of more than one series): `legend(rows, colours, seriesColumn)`
   returns the series its legend lists and their colours, `{ series, colours }`,
   each series `{ name, label }`. The page draws the legend as buttons that
@@ -199,7 +203,7 @@ and calls `draw`:
 - `drawnRows` (optional): `drawnRows(rows, colours)` returns the rows of the
   query the figure draws, when it draws fewer: a line or CDF per provider or
   model draws only those with one of the eight series colours, never one in
-  the Other grey. The caption counts these rows, and thin bins are hidden
+  the Other grey. The line of rows counts these, and thin bins are hidden
   among them.
 - `seriesColumn` (a figure whose rows each name their series): that column. A
   hidden series' rows are left out before `draw` is called. A figure with a
@@ -306,9 +310,16 @@ which is plain HTML.
   segments, grid and axes in `--chart-grid` and `--chart-axis`, labels in
   `--chart-label`. Text is never coloured by series.
 - **One axis.** Two measures of different scale are two charts.
-- **Captions.** A figure shows its title, a one-sentence definition, the
-  number of rows it rests on, and the harnesses and weeks it shows. Where the
-  site draws more simply than the paper, the definition says so.
+- **The card.** A figure shows its title and a one-line caption, its legend
+  above the chart, and a Definition control that opens on its full
+  definition and the rows it rests on. The harnesses and weeks every figure
+  draws are said once, under the page's title. Where the site draws more
+  simply than the paper, the definition says so.
+- **Axis text.** At most six ticks per axis (`axes/ticks.js`), no minor
+  gridlines on a log axis, no arrow on an axis title, and no title that the
+  card's title or legend already gives. One format per quantity: durations as
+  "1 s", "1 min", "1 h", "1 d"; percentages without decimals; counts and
+  tokens as "1k", "1M".
 
 ## Verifying a change
 

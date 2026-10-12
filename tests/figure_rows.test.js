@@ -2,17 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  cdfSeries,
-  drawnHarnessesAndWeeks,
-  dropThinGroups,
-  figureCaption,
-  figureDrawnRows,
-  hiddenText,
-  restingCountText,
-  restingRowCount,
-  partsLegend,
-  seriesLegend,
-  sparseTickFormat,
+  cdfSeries, dropThinGroups, figureDrawnRows, figureRowsText, hiddenText, partsLegend, restingCountText, restingRowCount,
+  seriesLegend, unsimulatedWeeks,
 } from "../site/js/figures/figure_rows.js";
 
 // Two CDF series of two points each: `requests` over 120 sessions, `tool_steps` over 30.
@@ -94,16 +85,6 @@ test("a CDF value below the floor is drawn at the floor", () => {
   assert.deepEqual(toolSteps.points, [{ x: 1, share: 0 }, { x: 12, share: 1 }]);
 });
 
-test("a crowded axis labels every step-th value from the first, at most the number asked", () => {
-  const format = sparseTickFormat(["a", "b", "c", "d", "e", "f", "g"], (value) => value.toUpperCase(), 3);
-  assert.deepEqual(["a", "b", "c", "d", "e", "f", "g"].map(format), ["A", "", "", "D", "", "", "G"]);
-});
-
-test("an axis with room for every value labels them all", () => {
-  const format = sparseTickFormat([1, 2, 4], String, 6);
-  assert.deepEqual([1, 2, 4].map(format), ["1", "2", "4"]);
-});
-
 test("with no bin column every row is a bin of its own, hidden alone and counted alone", () => {
   const rows = [
     { provider: "A", idle_gap_bin: 0, rows: 400 },
@@ -121,34 +102,11 @@ const WEEK_ENTRIES = [
   { week: "2026-08-09", simulated: true },
   { week: "2026-08-16", simulated: false },
 ];
-// Three harnesses of `harnesses.json`, the second the benchmark.
-const HARNESS_ENTRIES = [
-  { harness: "hermes", sessions: 30, benchmark: false },
-  { harness: "eval:swe-bench", sessions: 20, benchmark: true },
-  { harness: "codex", sessions: 10, benchmark: false },
-];
-
-test("a figure draws the selection's harnesses and weeks", () => {
+test("a figure of the selection leaves no week unsimulated; a simulation figure names the selected weeks not simulated", () => {
   const selection = { harnesses: ["codex"], weeks: ["2026-08-09", "2026-08-16"] };
-  assert.deepEqual(drawnHarnessesAndWeeks({}, selection, WEEK_ENTRIES, HARNESS_ENTRIES), {
-    harnesses: "codex",
-    weeks: ["2026-08-09", "2026-08-16"],
-    notSimulated: [],
-  });
-});
-
-test("a simulation figure draws the harnesses it replays in the selected weeks that were simulated, and says so", () => {
-  const figure = { isSimulation: true };
-  const paperSelection = { harnesses: ["hermes", "codex"], weeks: ["2026-08-09", "2026-08-16"] };
-  assert.deepEqual(drawnHarnessesAndWeeks(figure, paperSelection, WEEK_ENTRIES, HARNESS_ENTRIES), {
-    harnesses: "the harnesses the simulation replays",
-    weeks: ["2026-08-09"],
-    notSimulated: ["2026-08-16"],
-  });
-  const benchmarkSelection = { harnesses: ["eval:swe-bench"], weeks: ["2026-08-02"] };
-  const underBenchmark = drawnHarnessesAndWeeks(figure, benchmarkSelection, WEEK_ENTRIES, HARNESS_ENTRIES);
-  assert.equal(underBenchmark.harnesses, "the harnesses the simulation replays");
-  assert.deepEqual(underBenchmark.weeks, ["2026-08-02"]);
+  assert.deepEqual(unsimulatedWeeks({}, selection, WEEK_ENTRIES), []);
+  assert.deepEqual(unsimulatedWeeks({ isSimulation: true }, selection, WEEK_ENTRIES), ["2026-08-16"]);
+  assert.deepEqual(unsimulatedWeeks({ isPartlySimulated: true }, selection, WEEK_ENTRIES), ["2026-08-16"]);
 });
 
 test("a figure draws the rows its drawnRows keeps given the shared colours, or every row without one", () => {
@@ -159,22 +117,13 @@ test("a figure draws the rows its drawnRows keeps given the shared colours, or e
   assert.deepEqual(figureDrawnRows({}, rows, colours), rows);
 });
 
-test("a simulation figure's caption names the selected weeks the simulation does not cover", () => {
-  const figure = { isSimulation: true, binColumn: "ttl", seriesOverSameRows: true };
-  const selection = { harnesses: ["hermes", "codex"], weeks: ["2026-08-02", "2026-08-09", "2026-08-16"] };
-  const drawn = drawnHarnessesAndWeeks(figure, selection, WEEK_ENTRIES, HARNESS_ENTRIES);
-  const rows = [{ ttl: "5m", rows: 1200 }];
-  assert.equal(figureCaption(figure, rows, 0, drawn),
-    "1,200 rows · the harnesses the simulation replays · 2 weeks · not simulated: 2026-08-16");
-});
-
-test("a figure's caption names no week left out when every selected week is drawn, and notes hidden bins", () => {
-  const figure = { binColumn: "week" };
-  const selection = { harnesses: ["codex"], weeks: ["2026-08-16"] };
-  const drawn = drawnHarnessesAndWeeks(figure, selection, WEEK_ENTRIES, HARNESS_ENTRIES);
-  const rows = [{ week: "2026-08-16", rows: 60 }];
-  assert.equal(figureCaption(figure, rows, 2, drawn),
-    "60 rows · codex · 1 week (2026-08-16) · 2 weeks hidden (fewer than 50 rows each)");
+test("a figure's line of rows counts its rows, names the weeks not simulated and notes hidden bins, never the population", () => {
+  const simulation = { isSimulation: true, binColumn: "ttl", seriesOverSameRows: true };
+  assert.equal(figureRowsText(simulation, [{ ttl: "5m", rows: 1200 }], 0, ["2026-08-16"]),
+    "1,200 rows · not simulated: 2026-08-16");
+  const byWeek = { binColumn: "week" };
+  assert.equal(figureRowsText(byWeek, [{ week: "2026-08-16", rows: 60 }], 2, []),
+    "60 rows · 2 weeks hidden (fewer than 50 rows each)");
 });
 
 test("a legend of parts lists each part with its label, in order, with the colours given", () => {
@@ -186,13 +135,4 @@ test("a legend of parts lists each part with its label, in order, with the colou
     { name: "output", label: "Output" },
   ]);
   assert.equal(legend.colours, colours);
-});
-
-test("a figure with a simulated column draws the selection and names the weeks not simulated", () => {
-  const figure = { isPartlySimulated: true, binColumn: null, seriesOverSameRows: true };
-  const selection = { harnesses: ["codex"], weeks: ["2026-08-09", "2026-08-16"] };
-  const drawn = drawnHarnessesAndWeeks(figure, selection, WEEK_ENTRIES, HARNESS_ENTRIES);
-  assert.deepEqual(drawn, { harnesses: "codex", weeks: ["2026-08-09", "2026-08-16"], notSimulated: ["2026-08-16"] });
-  const caption = figureCaption(figure, [{ rows: 900 }], 0, drawn);
-  assert.equal(caption, "900 rows · codex · 2 weeks · not simulated: 2026-08-16");
 });

@@ -1,11 +1,11 @@
 /**
- * Numbers and names as every page shows them: counts, token totals, durations and duration ticks, elapsed time, shares,
- * multiples, a session's short id, a UTC minute and a week's month and day; and the two definitions they rest on, elapsed seconds and the
- * cached share.
+ * Numbers and names as every page shows them: counts, compact counts and token totals, durations and duration ticks,
+ * elapsed time and its ticks, shares and whole percentages, multiples, a session's short id, a UTC minute, a week's month
+ * and day and a span of months; and the two definitions they rest on, elapsed seconds and the cached share.
  */
 
-// A token total is shown in the largest of these units it reaches.
-const TOKEN_UNITS = [
+// A compact count is shown in the largest of these units it reaches.
+const COMPACT_UNITS = [
   [1e9, "B"],
   [1e6, "M"],
   [1e3, "k"],
@@ -17,6 +17,12 @@ const DURATION_TICK_UNITS = [
   [3600, "h"],
   [60, "min"],
 ];
+
+// A power-of-two bin of tokens is named in these, as 4k or 256k.
+const TOKENS_PER_BINARY_THOUSAND = 1024;
+
+// The unit of a TTL's name, by its last letter, as a duration is written: "1m" is "1 min", never "1m".
+const TTL_UNITS = Object.freeze({ s: "s", m: "min", h: "h", d: "d" });
 
 /** The text of a value that has none, such as a share of nothing or a median over no rows. */
 export const MISSING_TEXT = "—";
@@ -30,8 +36,11 @@ const SHORT_ID_LENGTH = 8;
 // The characters of an ISO 8601 time that make up "YYYY-MM-DDTHH:MM".
 const MINUTE_LENGTH = "YYYY-MM-DDTHH:MM".length;
 
-// The characters of a week's Sunday before its month: "YYYY-".
-const YEAR_PREFIX_LENGTH = "YYYY-".length;
+// The characters of a date's year, "YYYY", and of a whole date, "YYYY-MM-DD".
+const YEAR_LENGTH = "YYYY".length;
+const DAY_LENGTH = "YYYY-MM-DD".length;
+
+const SECONDS_PER_HOUR = 3600;
 
 /** A count with thousands separators: 1186582 → "1,186,582". */
 export function formatCount(count) {
@@ -43,14 +52,24 @@ export function formatQuantity(count, singular, plural) {
   return `${formatCount(count)} ${count === 1 ? singular : plural}`;
 }
 
-/** A token total in B, M or k with one decimal: 129087 → "129.1k"; under a thousand, the count itself. */
-export function formatTokens(tokens) {
-  for (const [size, suffix] of TOKEN_UNITS) {
-    if (tokens >= size) {
-      return withoutTrailingZero((tokens / size).toFixed(1)) + suffix;
+/** A count in B, M or k with one decimal: 129087 → "129.1k", 1000 → "1k"; under a thousand, the count itself. */
+export function formatCompactCount(count) {
+  for (const [size, suffix] of COMPACT_UNITS) {
+    if (count >= size) {
+      return withoutTrailingZero((count / size).toFixed(1)) + suffix;
     }
   }
-  return formatCount(tokens);
+  return formatCount(count);
+}
+
+/** A power-of-two count of tokens as such bins are named: 4096 → "4k", 262144 → "256k"; under 1,024, the count. */
+export function formatBinaryThousands(tokens) {
+  return tokens < TOKENS_PER_BINARY_THOUSAND ? formatCount(tokens) : `${tokens / TOKENS_PER_BINARY_THOUSAND}k`;
+}
+
+/** A token total as a compact count: 129087 → "129.1k". */
+export function formatTokens(tokens) {
+  return formatCompactCount(tokens);
 }
 
 /** A duration: under a minute "4.2s", under an hour "12m 04s", otherwise "1h 03m". */
@@ -76,16 +95,37 @@ export function formatDurationTick(seconds) {
   return `${seconds} s`;
 }
 
-/** Time since a session's start, as "+MM:SS", or "+H:MM:SS" from an hour on. */
+/** A TTL's name as the simulation gives it, written as every duration is: "1m" → "1 min", "10s" → "10 s", "1d" → "1 d". */
+export function formatTtlName(ttl) {
+  return `${ttl.slice(0, -1)} ${TTL_UNITS[ttl.slice(-1)]}`;
+}
+
+/** Time since a session's start, as "M:SS", or "H:MM:SS" from an hour on: 83.9 → "1:23", 3661 → "1:01:01". */
 export function formatElapsed(seconds) {
   const wholeSeconds = Math.floor(seconds);
   const hours = Math.floor(wholeSeconds / 3600);
   const minutes = Math.floor((wholeSeconds % 3600) / 60);
   const rest = wholeSeconds % 60;
   if (hours > 0) {
-    return `+${hours}:${padded(minutes)}:${padded(rest)}`;
+    return `${hours}:${padded(minutes)}:${padded(rest)}`;
   }
-  return `+${padded(minutes)}:${padded(rest)}`;
+  return `${minutes}:${padded(rest)}`;
+}
+
+/**
+ * How an elapsed-time axis reaching `maxSeconds` writes its ticks: `{ format, unit }`, in hours and minutes ("1:10",
+ * unit "h:mm") from an hour on, else in minutes and seconds ("12:30", unit "m:ss").
+ */
+export function elapsedTickFormat(maxSeconds) {
+  if (maxSeconds >= SECONDS_PER_HOUR) {
+    return { format: hoursAndMinutes, unit: "h:mm" };
+  }
+  return { format: formatElapsed, unit: "m:ss" };
+}
+
+/** A share of one as a whole percentage, as an axis writes it: 0.632 → "63%", 1 → "100%". */
+export function formatPercent(share) {
+  return `${Math.round(share * 100)}%`;
 }
 
 /** A share of one as a percentage with one decimal: 0.632 → "63.2%". */
@@ -124,15 +164,48 @@ export function utcMinute(milliseconds) {
   return new Date(milliseconds).toISOString().slice(0, MINUTE_LENGTH).replace("T", " ");
 }
 
-/** A week's Sunday as its month and day, for a crowded axis: "2026-08-09" → "08-09". */
+/** A week's Sunday as its month and day, as an axis writes it: "2026-08-09" → "Aug 9". */
 export function monthAndDay(week) {
-  return week.slice(YEAR_PREFIX_LENGTH);
+  const sunday = new Date(`${week}T00:00:00Z`);
+  return sunday.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+}
+
+/** The month of a date, short, as an axis writes it: "2026-08-09" → "Aug". */
+export function shortMonth(date) {
+  const day = new Date(`${date}T00:00:00Z`);
+  return day.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
+}
+
+/** A UTC minute as a table writes it, month, day and time: 1788144240000 → "Aug 31, 02:44". */
+export function shortMinute(milliseconds) {
+  const minute = utcMinute(milliseconds);
+  return `${monthAndDay(minute.slice(0, DAY_LENGTH))}, ${minute.slice(DAY_LENGTH + 1)}`;
 }
 
 /** A month as its name and year: "2026-05" → "May 2026". */
 export function monthName(month) {
   const firstDay = new Date(`${month}-01T00:00:00Z`);
   return firstDay.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+}
+
+/** The months from `firstMonth` to `lastMonth`: "May to August 2026", "December 2025 to January 2026", "May 2026". */
+export function monthSpanText(firstMonth, lastMonth) {
+  if (firstMonth === lastMonth) {
+    return monthName(firstMonth);
+  }
+  const sameYear = firstMonth.slice(0, YEAR_LENGTH) === lastMonth.slice(0, YEAR_LENGTH);
+  const first = sameYear ? monthWithoutYear(firstMonth) : monthName(firstMonth);
+  return `${first} to ${monthName(lastMonth)}`;
+}
+
+function monthWithoutYear(month) {
+  const firstDay = new Date(`${month}-01T00:00:00Z`);
+  return firstDay.toLocaleDateString("en-US", { month: "long", timeZone: "UTC" });
+}
+
+function hoursAndMinutes(seconds) {
+  const wholeMinutes = Math.floor(seconds / 60);
+  return `${Math.floor(wholeMinutes / 60)}:${padded(wholeMinutes % 60)}`;
 }
 
 function padded(number) {

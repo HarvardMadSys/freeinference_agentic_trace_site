@@ -10,7 +10,9 @@
  */
 
 import { AXIS_STYLE, cdfPoints, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
-import { formatDurationTick, formatMultiple, formatSeconds, formatShare, formatTokens } from "../shared/format.js";
+import {
+  formatDurationTick, formatMultiple, formatPercent, formatSeconds, formatShare, formatTokens,
+} from "../shared/format.js";
 import { cdfSeries } from "../figures/figure_rows.js";
 import { SCOPE_LABELS, scopeLegend, SCOPES } from "./scopes.js";
 
@@ -70,6 +72,7 @@ export const TURN_DURATION_BY_SCOPE = Object.freeze({
   title: "Turn duration",
   definition: "CDF of the duration of a turn (a user step and the tool steps after it, first start to last end) of the top-level sessions of the selected harnesses but the benchmark's, and of the benchmark's, each median marked and their ratio written, the larger over the smaller.",
   caption: "How long a turn lasts, human-driven and benchmark.",
+  drawsLines: true,
   query: "figures/turn_duration_by_scope",
   binColumn: "series",
   seriesColumn: "series",
@@ -84,6 +87,7 @@ export const SESSION_DURATION_BY_SCOPE = Object.freeze({
   title: "Session duration",
   definition: "CDF of the duration of a top-level session (its first request's start to its last request's end) of the selected harnesses but the benchmark's, and of the benchmark's, each median marked and their ratio written, the larger over the smaller.",
   caption: "How long a session lasts, human-driven and benchmark.",
+  drawsLines: true,
   query: "figures/session_duration_by_scope",
   binColumn: "series",
   seriesColumn: "series",
@@ -98,6 +102,7 @@ export const INPUT_PER_REQUEST_BY_SCOPE = Object.freeze({
   title: "Input per request",
   definition: "CDF of the input tokens of a request of the top-level sessions of the selected harnesses but the benchmark's, and of the benchmark's, over the requests whose input is reported, each median marked and their ratio written, the larger over the smaller.",
   caption: "Input tokens of each request, human-driven and benchmark.",
+  drawsLines: true,
   query: "figures/input_per_request_by_scope",
   binColumn: "series",
   seriesColumn: "series",
@@ -112,6 +117,7 @@ export const USER_PROMPT_TOKENS_BY_SCOPE = Object.freeze({
   title: "User prompt size",
   definition: "CDF of the tokens of a user's new prompt (a user step's rise in user tokens over the step before, all of them at a session's first step; a step whose user tokens did not rise has none) of the top-level sessions of the selected harnesses but the benchmark's, and of the benchmark's, each median marked and their ratio written, the larger over the smaller.",
   caption: "Tokens of each new user prompt, human-driven and benchmark.",
+  drawsLines: true,
   query: "figures/user_prompt_tokens_by_scope",
   binColumn: "series",
   seriesColumn: "series",
@@ -189,7 +195,7 @@ async function drawScopeCdf(rows, body, colours, axis) {
       Plot.gridY(GRID_STYLE),
       // The ticks are given as text: a log axis's own tick format leaves out every tick that is not a power's 1, 2 or 5.
       Plot.axisX(axis.ticks, { ...AXIS_STYLE, text: axis.tickFormat, label: null }),
-      Plot.axisY({ ...AXIS_STYLE, tickFormat: "%", label: `Share of ${axis.noun}`, labelArrow: "none" }),
+      Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: `Share of ${axis.noun}` }),
       Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH, clip: true }),
       ...medianMarks(Plot, rows, axis),
       Plot.tip(points, Plot.pointerX({ ...TIP_STYLE, x: "x", y: "share", title: (point) => tipText(point, axis) })),

@@ -5,7 +5,10 @@ import {
   drawWithLegend, hasLegend, isEverySeriesHidden, mountLegend, shownRows, toggledSeries,
 } from "../site/js/explore/legend.js";
 
-/** A stand-in for a page element: children, attributes, listeners and the place before it, as the legend uses them. */
+/**
+ * A stand-in for a page element: children, attributes, listeners and, for a figure's body, the place of its legend
+ * that `legendPlace` finds, as the legend uses them.
+ */
 class FakeElement {
   constructor(tag) {
     this.tag = tag;
@@ -15,7 +18,14 @@ class FakeElement {
     this.style = {};
     this.className = "";
     this.textContent = "";
-    this.placedBefore = [];
+    this.legendSlot = null;
+  }
+
+  closest() {
+    if (this.legendSlot === null) {
+      this.legendSlot = new FakeElement("div");
+    }
+    return { querySelector: () => this.legendSlot };
   }
 
   append(...children) {
@@ -24,10 +34,6 @@ class FakeElement {
 
   replaceChildren(...children) {
     this.children = children;
-  }
-
-  before(element) {
-    this.placedBefore.push(element);
   }
 
   setAttribute(name, value) {
@@ -133,7 +139,7 @@ test("a chart with a legend is drawn with nothing hidden, then again with each c
   const body = new FakeElement("div");
   const drawnWith = [];
   await drawWithLegend(body, LEGEND, (hidden) => drawnWith.push([...hidden]));
-  const [legendPlace] = body.placedBefore;
+  const legendPlace = body.legendSlot;
   legendPlace.children[0].click();
   await settle();
   legendPlace.children[0].click();
@@ -146,7 +152,7 @@ test("a chart whose every series is hidden shows a note instead of being drawn",
   const body = new FakeElement("div");
   let draws = 0;
   await drawWithLegend(body, LEGEND, () => { draws += 1; });
-  const [legendPlace] = body.placedBefore;
+  const legendPlace = body.legendSlot;
   legendPlace.children[0].click();
   legendPlace.children[1].click();
   await settle();
@@ -158,13 +164,13 @@ test("a new drawing, as a new selection makes, starts with every series shown", 
   useFakeDocument(context);
   const earlierBody = new FakeElement("div");
   await drawWithLegend(earlierBody, LEGEND, () => undefined);
-  earlierBody.placedBefore[0].children[0].click();
+  earlierBody.legendSlot.children[0].click();
   await settle();
   const drawnWith = [];
   const body = new FakeElement("div");
   await drawWithLegend(body, LEGEND, (hidden) => drawnWith.push([...hidden]));
   assert.deepEqual(drawnWith, [[]]);
-  assert.deepEqual(body.placedBefore[0].children.map((button) => button.getAttribute("aria-pressed")), ["true", "true"]);
+  assert.deepEqual(body.legendSlot.children.map((button) => button.getAttribute("aria-pressed")), ["true", "true"]);
 });
 
 test("a chart of one series or none is drawn once, nothing hidden, with no legend and no note", async (context) => {
@@ -174,7 +180,7 @@ test("a chart of one series or none is drawn once, nothing hidden, with no legen
     const drawnWith = [];
     await drawWithLegend(body, { series, colours: LEGEND.colours }, (hidden) => drawnWith.push([...hidden]));
     assert.deepEqual(drawnWith, [[]]);
-    assert.deepEqual(body.placedBefore, []);
+    assert.equal(body.legendSlot, null, "no legend is placed");
     assert.deepEqual(body.children, []);
   }
 });
@@ -191,7 +197,7 @@ test("a drawing after a click that fails shows its error in the chart's place", 
     }
   }
   await drawWithLegend(body, LEGEND, drawChart);
-  body.placedBefore[0].children[0].click();
+  body.legendSlot.children[0].click();
   await settle();
   assert.equal(body.children[0].className, "note is-error");
   assert.equal(body.children[0].textContent, "the chart could not be drawn");

@@ -14,14 +14,14 @@ function headerLinks(activeFile, params) {
   return links;
 }
 
-test("the header links Explore, each figure section, its sessions table and About, each carrying the selection", () => {
+test("the header links Explore, each figure section, its session list and About, each carrying the selection; the Session page marks Explore", () => {
   assert.deepEqual(headerLinks("session.html", new URLSearchParams("month=2026-07")), [
-    ["Explore", "index.html?month=2026-07", false],
+    ["Explore", "index.html?month=2026-07", true],
     ["Sessions", "index.html?month=2026-07#figures-sessions", false],
     ["Tools", "index.html?month=2026-07#figures-tools", false],
-    ["Caching", "index.html?month=2026-07#figures-caching", false],
+    ["Prefix caching", "index.html?month=2026-07#figures-caching", false],
     ["Benchmark", "index.html?month=2026-07#figures-comparison", false],
-    ["Sessions table", "index.html?month=2026-07#sessions", false],
+    ["Session list", "index.html?month=2026-07#sessions", false],
     ["About", "about.html?month=2026-07", false],
   ]);
 });
@@ -36,9 +36,14 @@ test("on the Explore page its sections are linked by anchor alone, so following 
     ["Explore", "index.html?month=2026-07&sort=requests&page=2", true],
     ["Sessions", "#figures-sessions", false],
     ["Tools", "#figures-tools", false],
-    ["Caching", "#figures-caching", false],
+    ["Prefix caching", "#figures-caching", false],
     ["Benchmark", "#figures-comparison", false],
-    ["Sessions table", "#sessions", false],
+    ["Session list", "#sessions", false],
     ["About", "about.html?month=2026-07&sort=requests&page=2", false],
   ]);
+});
+
+test("on the About page only the About link is marked active", () => {
+  const active = headerLinks("about.html", new URLSearchParams()).filter((link) => link[2]);
+  assert.deepEqual(active, [["About", "about.html", true]]);
 });

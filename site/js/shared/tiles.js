@@ -4,8 +4,9 @@
  */
 
 /**
- * A stat strip of `tiles`, `[{ label, value, detail, definition }]`, every field a string; `definition`, when a tile
- * has one, is its hover text.
+ * A stat strip of `tiles`, `[{ label, value, detail, definition, isWide }]`: `label`, `value` and `detail` strings, a
+ * detail's line breaks kept; `definition`, when a tile has one, its hover text; and `isWide`, when true, a tile two
+ * columns wide.
  */
 export function statStrip(tiles) {
   const strip = document.createElement("div");
@@ -16,9 +17,9 @@ export function statStrip(tiles) {
   return strip;
 }
 
-function statTile({ label, value, detail, definition }) {
+function statTile({ label, value, detail, definition, isWide = false }) {
   const element = document.createElement("div");
-  element.className = "stat";
+  element.className = isWide ? "stat is-wide" : "stat";
   if (definition !== undefined) {
     element.title = definition;
   }

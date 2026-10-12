@@ -1,14 +1,14 @@
 /**
  * The figure sections of the Explore page: the Sessions, Tools, Prefix-caching and Benchmark-against-production
  * figures, each a card in its section's grid, drawn for the selected weeks and harnesses, its thin bins hidden and its
- * caption written.
+ * line of rows written behind its Definition control.
  *
  * With the default selection every figure is drawn at once, from its precomputed answer. With any other, a figure's
  * query starts when its card comes into view, and a figure started for the current run is not started again. A page
  * that draws every run at once, whatever the selection, watches no card.
  *
  * `figures` is what the page keeps of them: `{ cards, places, run, visibleNames, drawsEveryRunAtOnce }`, every figure
- * with its card (`[{ figure, card }]`), the places of the latest layout by figure name (`{ body, caption }`), the
+ * with its card (`[{ figure, card }]`), the places of the latest layout by figure name (`{ body, rows }`, `rows` the line of rows), the
  * current run (`newFigureRun`; null from a layout until its run starts), the names of the figures whose cards are in
  * view, and whether every run draws all its figures at once.
  * Each layout makes fresh places, so a run that a newer one replaced draws into places no longer on the page. A run's
@@ -23,7 +23,7 @@
 import { MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote } from "../shared/charts.js";
 import { assignColours } from "../theme/colours.js";
 import { isDefaultSelection } from "../shared/selection.js";
-import { drawnHarnessesAndWeeks, dropThinGroups, figureCaption, figureDrawnRows } from "../figures/figure_rows.js";
+import { dropThinGroups, figureDrawnRows, figureRowsText, unsimulatedWeeks } from "../figures/figure_rows.js";
 import { drawWithLegend, shownRows } from "./legend.js";
 
 // Each figure section of the page: the element its figures go in, and the module listing them. Every section module
@@ -173,14 +173,14 @@ function startFigures(figures) {
   return drawings;
 }
 
-/** Run one figure's query and draw its rows into `place`, with its caption; its error stays in its own card. */
+/** Run one figure's query and draw its rows into `place`, with its line of rows; its error stays in its own card. */
 async function drawFigure(figure, place, context) {
   try {
     const colours = await figureColours(context.orders);
     const rows = figureDrawnRows(figure, await context.database.runQuery(figure.query), colours);
     const { rows: shown, hidden } = dropThinGroups(rows, figure.binColumn);
-    const drawn = drawnHarnessesAndWeeks(figure, context.selection, context.weeks, context.harnesses);
-    place.caption.textContent = figureCaption(figure, shown, hidden, drawn);
+    const notSimulated = unsimulatedWeeks(figure, context.selection, context.weeks);
+    place.rows.textContent = figureRowsText(figure, shown, hidden, notSimulated);
     if (rows.length === 0) {
       showNote(place.body, NO_ROWS_NOTE);
     } else if (shown.length === 0) {
@@ -208,7 +208,8 @@ export async function drawFigureSeries(figure, rows, body, colours, hidden) {
 
 /**
  * Draw a figure's rows into `body`. A figure of more than one series (one with a `legend`) gets its legend of buttons
- * above the chart, and its draw function its legend's colours as `colours.series`. The legend function is given the
+ * above the chart, a short line per series for a figure that `drawsLines`, else a square, and its draw function its
+ * legend's colours as `colours.series`. The legend function is given the
  * figure's `seriesColumn`, undefined for a figure that holds its series in columns.
  */
 async function drawFigureRows(figure, rows, body, colours) {
@@ -218,15 +219,17 @@ async function drawFigureRows(figure, rows, body, colours) {
   }
   const legend = figure.legend(rows, colours, figure.seriesColumn);
   const seriesColours = { ...colours, series: legend.colours };
-  await drawWithLegend(body, legend, (hidden) => drawFigureSeries(figure, rows, body, seriesColours, hidden));
+  const swatch = figure.drawsLines === true ? "line" : "square";
+  const drawShown = (hidden) => drawFigureSeries(figure, rows, body, seriesColours, hidden);
+  await drawWithLegend(body, legend, drawShown, swatch);
 }
 
-/** Fill every card with a fresh title, definition, body and empty caption; keep and return the places by name. */
+/** Fill every card with a fresh title, caption, body and Definition control; keep and return the places by name. */
 function layOutPlaces(figures) {
   const places = new Map();
   for (const { figure, card } of figures.cards) {
-    const body = renderFigure(card, { ...figure, caption: "" });
-    places.set(figure.name, { body, caption: card.querySelector(".figure-caption") });
+    const body = renderFigure(card, figure);
+    places.set(figure.name, { body, rows: card.querySelector(".figure-rows") });
   }
   figures.places = places;
   figures.run = null; // the run of this layout starts once the database holds its selection

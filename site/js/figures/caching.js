@@ -8,9 +8,9 @@
  * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE, X_INSET } from "../shared/charts.js";
 import { slottedColours } from "../theme/colours.js";
-import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
+import { formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare } from "../shared/format.js";
 import { GAP_FIGURES } from "./caching_gaps.js";
 import { API_COST_BY_TTL, INFRASTRUCTURE_COST_BY_TTL, PREFILL_AGAINST_STORAGE } from "./caching_retention.js";
 import { seriesLegend } from "./figure_rows.js";
@@ -21,9 +21,9 @@ import { seriesLegend } from "./figure_rows.js";
 const FIRST_IDLE_GAP_EDGE_S = 10;
 const LAST_IDLE_GAP_EDGE_S = 3600;
 const IDLE_GAP_BINS = 26;
-// The idle gaps the axis marks, in seconds, each with its label.
-const IDLE_GAP_TICKS = Object.freeze({ 10: "10s", 60: "1m", 300: "5m", 900: "15m", 3600: "1h" });
-const IDLE_GAP_TICK_SECONDS = Object.freeze(Object.keys(IDLE_GAP_TICKS).map(Number));
+// The idle gaps the axis marks, in seconds: 10 s, a minute, ten minutes and an hour, about a decade apart, so their
+// labels have room on a phone.
+const IDLE_GAP_TICK_SECONDS = Object.freeze([10, 60, 600, 3600]);
 
 const MARKER_RADIUS = 3; // pixels; the small markers on the idle-gap lines
 
@@ -34,6 +34,8 @@ export const FIGURES = Object.freeze([
     name: "hit_ratio_by_idle_gap",
     title: "Hit ratio after an idle gap",
     definition: "Median hit ratio (cached over input tokens) of requests per bin of idle gap (the time since the same user's previous request at the provider finished; 26 geometric bins from 10 s to 1 h, each drawn at its middle), one line per provider, where the eight providers with most requests are drawn and the paper merges a bin of fewer than 20 requests into the next, draws it at its requests' median gap and shows the four providers with most idle gaps.",
+    caption: "Median hit ratio by time since the user's previous request, one line per provider.",
+    drawsLines: true,
     query: "figures/hit_ratio_by_idle_gap",
     binColumn: null,
     seriesColumn: "provider",
@@ -57,13 +59,15 @@ export function idleGapEdgeSeconds(edge) {
 
 /**
  * The idle-gap figure's legend: each provider of the rows among the eight with most requests as "Provider A", in the
- * provider order and colours every chart shares, so a provider keeps its colour whatever the selection. A provider
- * past the eighth would take the Other colour, which a named line cannot share, so it is not drawn.
+ * order of their letters and in the colours every chart shares, so a provider keeps its colour whatever the selection.
+ * A provider past the eighth would take the Other colour, which a named line cannot share, so it is not drawn.
  */
 export function idleGapLegend(rows, colours, seriesColumn) {
-  const drawnColours = slottedColours(colours.providers);
+  const slotted = slottedColours(colours.providers);
+  const drawnColours = new Map();
   const labels = {};
-  for (const provider of drawnColours.keys()) {
+  for (const provider of [...slotted.keys()].sort()) {
+    drawnColours.set(provider, slotted.get(provider));
     labels[provider] = providerLabel(provider);
   }
   return seriesLegend(rows, seriesColumn, drawnColours, labels);
@@ -89,15 +93,15 @@ async function drawIdleGapRetention(rows, body, colours) {
   const providers = [...colours.series.keys()].filter((provider) => present.has(provider));
   const chart = Plot.plot({
     ...chartFrame(body),
-    x: { type: "log", domain: [FIRST_IDLE_GAP_EDGE_S, LAST_IDLE_GAP_EDGE_S] },
+    x: { type: "log", domain: [FIRST_IDLE_GAP_EDGE_S, LAST_IDLE_GAP_EDGE_S], inset: X_INSET },
     y: { domain: [0, 1] },
     color: colourScale(colours.series, providers),
     marks: [
-      Plot.gridX({ ...GRID_STYLE, ticks: IDLE_GAP_TICK_SECONDS }),
+      Plot.gridX(IDLE_GAP_TICK_SECONDS, GRID_STYLE),
       Plot.gridY(GRID_STYLE),
-      // The labels are given as text: a log axis's own tick format would leave out every tick but 10s, 5m and 1h.
-      Plot.axisX(IDLE_GAP_TICK_SECONDS, { ...AXIS_STYLE, label: "Idle gap", text: idleGapTickLabel }),
-      Plot.axisY({ ...AXIS_STYLE, label: "Median hit ratio", tickFormat: "%" }),
+      // The labels are given as text: a log axis's own tick format would leave out every tick but 10 s, 5 min and 1 h.
+      Plot.axisX(IDLE_GAP_TICK_SECONDS, { ...AXIS_STYLE, label: "Idle gap", text: formatDurationTick }),
+      Plot.axisY({ ...AXIS_STYLE, label: "Median hit ratio", tickFormat: formatPercent }),
       Plot.line(points, { x: "seconds", y: "hitRatio", stroke: "provider", strokeWidth: LINE_WIDTH }),
       Plot.dot(points, { x: "seconds", y: "hitRatio", fill: "provider", r: MARKER_RADIUS }),
       Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "seconds", y: "hitRatio", title: idleGapTipText })),
@@ -108,10 +112,6 @@ async function drawIdleGapRetention(rows, body, colours) {
 
 function providerLabel(provider) {
   return `Provider ${provider}`;
-}
-
-function idleGapTickLabel(seconds) {
-  return IDLE_GAP_TICKS[seconds];
 }
 
 function idleGapTipText(point) {

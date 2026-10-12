@@ -1,12 +1,16 @@
 /**
- * The distribution card: a histogram of the bins a query computed, with dashed lines at its exact percentiles.
+ * The distribution card: a histogram of the bins a query computed, with dashed lines at its exact percentiles, whose
+ * legend gives their values and the maximum.
  *
- * The card runs no query. It is given the bins on the card's fixed scale,
- * the percentiles, the row count and the maximum, and draws them.
+ * The card runs no query. It is given the bins on the card's fixed scale, the percentiles, the row count and the
+ * maximum, and draws them. A card is `{ title, caption, definition, countLabel, format, logScale, tickFormat, ticks,
+ * bins, percentiles, count, max }`: `format` writes a value in the legend and the tooltip, `tickFormat` (else
+ * `format`) on the axis, and `ticks(domain)`, when given, picks a log axis's ticks over its `[low, high]`.
  */
 
-import { AXIS_STYLE, chartFrame, DASH, GRID_STYLE, renderFigure } from "./charts.js";
-import { formatCount } from "./format.js";
+import { AXIS_STYLE, chartFrame, DASH, GRID_STYLE, legendPlace, renderFigure, TIP_STYLE, X_INSET } from "./charts.js";
+import { axisWithTicks, extent, logAxisTicks, TICK_COUNT } from "../axes/ticks.js";
+import { formatCompactCount, formatCount } from "./format.js";
 
 // The columns of a distribution query's rows: where a bin starts, where it ends, and how many rows (requests or
 // sessions, as the card counts) fall in it.
@@ -15,36 +19,53 @@ const BIN_END_COLUMN = "bin_end";
 const BIN_COUNT_COLUMN = "rows";
 
 // The percentiles drawn as dashed lines, each in the colour it has on every card.
-// Neighbouring percentiles put their labels on alternate rows, so two close lines keep readable labels.
 const PERCENTILE_LINES = [
-  { percentile: "p50", colour: "var(--series-1)", labelRow: 0 },
-  { percentile: "p75", colour: "var(--series-3)", labelRow: 1 },
-  { percentile: "p90", colour: "var(--series-4)", labelRow: 0 },
-  { percentile: "p95", colour: "var(--series-8)", labelRow: 1 },
+  { percentile: "p50", colour: "var(--series-1)" },
+  { percentile: "p75", colour: "var(--series-3)" },
+  { percentile: "p90", colour: "var(--series-4)" },
+  { percentile: "p95", colour: "var(--series-8)" },
 ];
 
-// A card's chart differs from the shared frame in these: a lower chart, room above it for two rows of percentile
-// labels, room left of it for a count of seven digits with its separators, and less below it.
-const CARD_FRAME = Object.freeze({ height: 220, marginTop: 44, marginLeft: 76, marginBottom: 28 });
+// A card's chart differs from the shared frame in one margin: room left of it for a compact count, less than a share.
+const CARD_FRAME = Object.freeze({ marginLeft: 64 });
 const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars
 const PERCENTILE_HALO_WIDTH = 4; // a surface-coloured line under each dashed line, so it shows over a bar of its own colour
 const PERCENTILE_LINE_WIDTH = 2; // pixels; thin lines, as every chart draws them
-const LABEL_GAP = 4; // pixels between the top of the chart and the lower row of percentile labels
-const LABEL_ROW_HEIGHT = 16; // pixels between the two rows of percentile labels above the chart
 const DEFAULT_COUNT_LABEL = "Rows"; // the y axis label when the card does not name what it counts
 
-/** The line under a card's title: "n = 1,186,582 · p50 129.1k · p90 512.3k · max 2M"; just "n = 0" for no rows. */
-export function subtitle(card) {
+/**
+ * The legend's entries: `[{ colour, text }]`, each percentile's dashed line as "p50 129.1k" in the card's format,
+ * none for a card with no rows.
+ */
+export function percentileEntries(card) {
   if (card.count === 0) {
-    return "n = 0";
+    return [];
   }
-  const { p50, p90 } = card.percentiles;
-  return `n = ${formatCount(card.count)} · p50 ${card.format(p50)} · p90 ${card.format(p90)} · max ${card.format(card.max)}`;
+  return PERCENTILE_LINES.map((line) => ({
+    colour: line.colour,
+    text: `${line.percentile} ${card.format(card.percentiles[line.percentile])}`,
+  }));
 }
 
-/** The card's definition followed by its scale: "… Log scale." or "… Linear scale.". */
-export function cardDefinition(card) {
-  return `${card.definition} ${card.logScale ? "Log" : "Linear"} scale.`;
+/** The legend's last entry, the card's maximum: "max 1.8M"; "" for a card with no rows. */
+export function maximumText(card) {
+  return card.count === 0 ? "" : `max ${card.format(card.max)}`;
+}
+
+/** The card's line of rows, shown with its definition: "1,125,604 requests". */
+export function rowsText(card) {
+  const noun = (card.countLabel ?? DEFAULT_COUNT_LABEL).toLowerCase();
+  return `${formatCount(card.count)} ${noun}`;
+}
+
+/** The ticks of the card's x axis over the bins it draws: its own `ticks`, else a log axis's powers of ten. */
+export function cardTicks(card) {
+  const bins = drawableBins(card);
+  if (!card.logScale || bins.length === 0) {
+    return undefined;
+  }
+  const domain = extent([...bins.map((bin) => bin.x0), ...bins.map((bin) => bin.x1)]);
+  return card.ticks === undefined ? logAxisTicks(domain) : card.ticks(domain);
 }
 
 /** The bins `{ x0, x1, count }` of a distribution query's rows, in the rows' order. */
@@ -59,40 +80,44 @@ export function binsFromRows(rows) {
 
 /**
  * The bins a card's chart draws: every bin on a linear scale; on a log scale only those starting above 0, since a
- * log axis has no place for 0 and an undrawn bin must not stretch the count axis. The subtitle still counts every row.
+ * log axis has no place for 0 and an undrawn bin must not stretch the count axis. The line of rows still counts every row.
  */
 export function drawableBins(card) {
   return card.logScale ? card.bins.filter((bin) => bin.x0 > 0) : card.bins;
 }
 
-/** Draw the distribution card into `container`, replacing what it held. */
+/** Draw the distribution card into `container`, replacing what it held: legend above the chart. */
 export async function mountHistogram(container, card) {
-  const body = renderFigure(container, { title: card.title, definition: cardDefinition(card), caption: subtitle(card) });
+  const body = renderFigure(container, {
+    title: card.title, caption: card.caption, definition: card.definition, rows: rowsText(card),
+  });
   if (card.count === 0) {
     body.append(emptyNote());
     return;
   }
+  legendPlace(body).replaceChildren(...percentileLegendItems(card));
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("./libraries.js");
   body.append(histogramChart(Plot, card, body));
-  body.after(percentileLegend());
 }
 
 function histogramChart(Plot, card, body) {
   const countLabel = card.countLabel ?? DEFAULT_COUNT_LABEL;
+  const ticks = cardTicks(card);
   return Plot.plot({
     ...chartFrame(body),
     ...CARD_FRAME,
-    x: { type: card.logScale ? "log" : "linear" },
-    y: { label: countLabel },
+    x: { type: card.logScale ? "log" : "linear", inset: X_INSET },
     marks: [
-      Plot.gridY(GRID_STYLE),
-      Plot.axisX({ ...AXIS_STYLE, tickFormat: card.format, label: null }),
-      Plot.axisY({ ...AXIS_STYLE, tickFormat: formatCount }),
+      Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT }),
+      axisWithTicks(Plot.axisX, ticks, { ...AXIS_STYLE, tickFormat: card.tickFormat ?? card.format, label: null }),
+      Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: formatCompactCount, label: countLabel }),
       Plot.rectY(drawableBins(card), { x1: "x0", x2: "x1", y: "count", fill: "var(--series-1)", inset: BAR_INSET }),
       Plot.ruleY([0], AXIS_STYLE),
       ...percentileMarks(Plot, card),
-      Plot.tip(drawableBins(card), Plot.pointerX({ x1: "x0", x2: "x1", y: "count", title: (bin) => binDescription(card, bin, countLabel) })),
+      Plot.tip(drawableBins(card), Plot.pointerX({
+        ...TIP_STYLE, x1: "x0", x2: "x1", y: "count", title: (bin) => binDescription(card, bin, countLabel),
+      })),
     ],
   });
 }
@@ -100,11 +125,9 @@ function histogramChart(Plot, card, body) {
 function percentileMarks(Plot, card) {
   const marks = [];
   for (const line of PERCENTILE_LINES) {
-    const position = [{ value: card.percentiles[line.percentile], label: line.percentile }];
-    const labelOffset = -LABEL_GAP - line.labelRow * LABEL_ROW_HEIGHT;
-    marks.push(Plot.ruleX(position, { x: "value", stroke: "var(--color-surface)", strokeWidth: PERCENTILE_HALO_WIDTH }));
-    marks.push(Plot.ruleX(position, { x: "value", stroke: line.colour, strokeWidth: PERCENTILE_LINE_WIDTH, strokeDasharray: DASH }));
-    marks.push(Plot.text(position, { x: "value", text: "label", frameAnchor: "top", lineAnchor: "bottom", dy: labelOffset }));
+    const position = [card.percentiles[line.percentile]];
+    marks.push(Plot.ruleX(position, { stroke: "var(--color-surface)", strokeWidth: PERCENTILE_HALO_WIDTH }));
+    marks.push(Plot.ruleX(position, { stroke: line.colour, strokeWidth: PERCENTILE_LINE_WIDTH, strokeDasharray: DASH }));
   }
   return marks;
 }
@@ -113,19 +136,23 @@ function binDescription(card, bin, countLabel) {
   return `${card.format(bin.x0)} – ${card.format(bin.x1)}\n${countLabel}: ${formatCount(bin.count)}`;
 }
 
-function percentileLegend() {
-  const legend = document.createElement("p");
-  legend.className = "legend";
-  for (const line of PERCENTILE_LINES) {
+// The legend's items: a dashed line and its value per percentile, then the maximum.
+function percentileLegendItems(card) {
+  const items = [];
+  for (const entry of percentileEntries(card)) {
     const item = document.createElement("span");
     item.className = "legend-item";
     item.innerHTML = `<svg class="legend-dash" viewBox="0 0 18 8" aria-hidden="true">
-      <line x1="0" y1="4" x2="18" y2="4" stroke="${line.colour}" stroke-width="2" stroke-dasharray="${DASH}" />
+      <line x1="0" y1="4" x2="18" y2="4" stroke="${entry.colour}" stroke-width="2" stroke-dasharray="${DASH}" />
     </svg>`;
-    item.append(line.percentile);
-    legend.append(item);
+    item.append(entry.text);
+    items.push(item);
   }
-  return legend;
+  const maximum = document.createElement("span");
+  maximum.className = "legend-item";
+  maximum.textContent = maximumText(card);
+  items.push(maximum);
+  return items;
 }
 
 function emptyNote() {

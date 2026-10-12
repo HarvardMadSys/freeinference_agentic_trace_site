@@ -57,6 +57,7 @@ export function mountTable(container, { columns, rows, sort, pageNumber, summary
     container.append(summaryLine(summary));
   }
   container.append(wrap, pager(page, onPage));
+  showSortedColumn(wrap);
 }
 
 /**
@@ -66,6 +67,18 @@ export function mountTable(container, { columns, rows, sort, pageNumber, summary
 export function cellContent(column, row) {
   const format = column.format ?? String;
   return { text: format(row[column.key], row), href: column.href ? column.href(row) : null };
+}
+
+/** Scroll `wrap`, a table wider than its box, so the column the table is sorted by is in view, as far left as it can. */
+function showSortedColumn(wrap) {
+  const sorted = wrap.querySelector("th.is-sorted");
+  if (sorted === null) {
+    return;
+  }
+  const hiddenWidth = sorted.offsetLeft + sorted.offsetWidth - wrap.clientWidth;
+  if (hiddenWidth > 0) {
+    wrap.scrollLeft = hiddenWidth;
+  }
 }
 
 function compareValues(first, second, sign) {
@@ -103,7 +116,7 @@ function matchesCondition(row, condition) {
 
 function summaryLine(summary) {
   const line = document.createElement("p");
-  line.className = "figure-caption";
+  line.className = "table-count";
   line.textContent = summary;
   return line;
 }
@@ -182,7 +195,7 @@ function pager(page, onPage) {
   position.className = "control-label";
   position.textContent = `Page ${page.pageNumber} of ${page.pageCount}`;
   const controls = document.createElement("div");
-  controls.className = "controls";
+  controls.className = "controls pager";
   controls.append(previous, position, next);
   return controls;
 }

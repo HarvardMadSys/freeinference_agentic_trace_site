@@ -12,9 +12,13 @@
 import {
   AXIS_STYLE, chartFrame, colourScale, distinct, drawBars, drawCdf, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
 } from "../shared/charts.js";
+import { decadeDomain, decadeTicks, sparseTickFormat, weekTickFormat } from "../axes/ticks.js";
 import { assignColours, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
-import { formatCount, formatSeconds, formatShare, formatTokens, monthAndDay } from "../shared/format.js";
-import { cdfSeries, seriesLegend, sparseTickFormat } from "./figure_rows.js";
+import {
+  formatBinaryThousands, formatCompactCount, formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare,
+  formatTokens,
+} from "../shared/format.js";
+import { cdfSeries, seriesLegend } from "./figure_rows.js";
 import { DECODE_CDF_BY_MODEL, SPEEDUP_IF_TWICE_AS_FAST, TTFT_CDF_BY_MODEL } from "./sessions_latency.js";
 import { COST_SHARE_BY_SESSION, SESSION_TIME_BY_PART } from "./sessions_ranked.js";
 
@@ -31,7 +35,7 @@ const TOKEN_SERIES = Object.freeze({ input: "Input", uncached: "Uncached input",
 const TOKEN_PARTS = Object.freeze(["cached", "uncached", "output"]);
 
 // The label each token part has in a legend and a tooltip.
-const TOKEN_PART_LABELS = Object.freeze({ cached: "Cached", uncached: "Uncached", output: "Output" });
+const TOKEN_PART_LABELS = Object.freeze({ cached: "Cached input", uncached: "Uncached input", output: "Output" });
 
 // The median column of each token part in the token growth query.
 const GROWTH_COLUMNS = Object.freeze({
@@ -48,7 +52,7 @@ const ROLE_LABELS = Object.freeze({
   system: "System",
   user: "User",
   assistant: "Assistant",
-  tool: "Tool",
+  tool: "Tool results",
   tool_definitions: "Tool definitions",
 });
 
@@ -56,7 +60,8 @@ const MIN_COUNT_DRAWN = 1; // a count below one (a session with no tool step) is
 const MIN_SECONDS_DRAWN = 0.1; // a duration below a tenth of a second is drawn at it, on the log axis
 const MIN_TOKENS_DRAWN = 1; // a token count below one (a request with nothing uncached) is drawn at one, on the log axis
 const MARKER_RADIUS = 3; // pixels; the small markers on the token growth lines
-const MAX_BAR_LABELS = 6; // a bar chart's axis labels at most this many bars, so the labels fit a phone's width
+const MAX_BAR_LABELS = 5; // a bar chart's axis labels at most this many bars, so the labels fit a phone's width
+const DURATION_TICKS_S = Object.freeze([1, 60, 3600, 86400]); // a second, a minute, an hour and a day
 
 /** The figures of the Sessions section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
@@ -64,6 +69,8 @@ export const FIGURES = Object.freeze([
     name: "requests_per_session_cdf",
     title: "Requests and steps per session",
     definition: "CDF over top-level sessions of their requests, user steps and tool steps; a session with no tool step is drawn at one.",
+    caption: "Requests, user steps and tool steps of each top-level session.",
+    drawsLines: true,
     query: "figures/requests_per_session_cdf",
     binColumn: "series",
     seriesColumn: "series",
@@ -75,6 +82,8 @@ export const FIGURES = Object.freeze([
     name: "duration_cdf",
     title: "Turn and session duration",
     definition: "CDF of each turn's duration (a user step and the tool steps after it, first start to last end) and of each session's, in seconds.",
+    caption: "Duration of each turn and of each top-level session.",
+    drawsLines: true,
     query: "figures/duration_cdf",
     binColumn: "series",
     seriesColumn: "series",
@@ -86,6 +95,8 @@ export const FIGURES = Object.freeze([
     name: "tokens_per_request_cdf",
     title: "Tokens per request",
     definition: "CDF over requests of input tokens, uncached input tokens (where the provider reports cache reads) and output tokens (where there are more than one, as in the paper).",
+    caption: "Input, uncached input and output tokens of each request.",
+    drawsLines: true,
     query: "figures/tokens_per_request_cdf",
     binColumn: "series",
     seriesColumn: "series",
@@ -97,7 +108,8 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "token_split_by_week",
     title: "Token split by week",
-    definition: "Per selected week, the share of cached input, uncached input and output in the tokens of requests whose provider reports cache reads: plain token shares, where the paper weights them by price and ranks sessions.",
+    definition: "Per week, the share of cached input, uncached input and output in the tokens of requests whose provider reports cache reads: plain token shares, where the paper weights them by price and ranks sessions.",
+    caption: "Share of cached input, uncached input and output tokens, each week.",
     query: "figures/token_split_by_week",
     binColumn: "week",
     seriesColumn: "part",
@@ -108,6 +120,8 @@ export const FIGURES = Object.freeze([
     name: "token_growth_by_messages",
     title: "Token growth with the context",
     definition: "Median cached, uncached and output tokens per request, by the number of messages in the request, in fixed power-of-two bins where the paper fits its bins to the data.",
+    caption: "Median cached, uncached and output tokens per request, by messages in the request.",
+    drawsLines: true,
     query: "figures/token_growth_by_messages",
     binColumn: "bin_start",
     legend: tokenGrowthLegend,
@@ -116,7 +130,8 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "context_share_by_role",
     title: "Context share by role",
-    definition: "Share of the input held by system, user, assistant and tool messages and by tool definitions, pooled per power-of-two bin of input tokens, where the paper takes each request's share per bin of messages and its main figure leaves tool definitions out.",
+    definition: "Share of the input held by system, user, assistant and tool messages and by tool definitions, pooled per power-of-two bin of input tokens (4k is 4,096), where the paper takes each request's share per bin of messages and its main figure leaves tool definitions out.",
+    caption: "Share of the input held by each role, by input size.",
     query: "figures/context_share_by_role",
     binColumn: "bin_start",
     seriesColumn: "role",
@@ -169,19 +184,24 @@ function contextShareLegend(rows, colours, seriesColumn) {
 /** Draw the CDFs of requests, user steps and tool steps per session, on a log axis. */
 async function drawRequestsPerSession(rows, body, colours) {
   const series = cdfSeries(rows, Object.keys(SESSION_COUNT_SERIES), { labels: SESSION_COUNT_SERIES, floor: MIN_COUNT_DRAWN });
-  await drawCdf(body, series, { xLabel: "Per session", logX: true, format: formatCount, colours: colours.series });
+  await drawCdf(body, series, {
+    xLabel: "Count", yLabel: "Share of sessions", logX: true, format: formatCount, xTickFormat: formatCompactCount,
+    colours: colours.series,
+  });
 }
 
 /** Draw the CDFs of turn and session durations, in seconds on a log axis. */
 async function drawDurations(rows, body, colours) {
   const series = cdfSeries(rows, Object.keys(DURATION_SERIES), { labels: DURATION_SERIES, floor: MIN_SECONDS_DRAWN });
-  await drawCdf(body, series, { xLabel: "Seconds", logX: true, format: formatSeconds, colours: colours.series });
+  await drawCdf(body, series, {
+    logX: true, xTicks: DURATION_TICKS_S, xTickFormat: formatDurationTick, format: formatSeconds, colours: colours.series,
+  });
 }
 
 /** Draw the CDFs of input, uncached input and output tokens per request, on a log axis. */
 async function drawTokensPerRequest(rows, body, colours) {
   const series = cdfSeries(rows, Object.keys(TOKEN_SERIES), { labels: TOKEN_SERIES, floor: MIN_TOKENS_DRAWN });
-  await drawCdf(body, series, { xLabel: "Tokens per request", logX: true, format: formatTokens, colours: colours.series });
+  await drawCdf(body, series, { logX: true, format: formatTokens, xTickFormat: formatTokens, colours: colours.series });
 }
 
 /** Draw one stacked bar per week of its cached, uncached and output shares. */
@@ -193,10 +213,11 @@ async function drawTokenSplit(rows, body, colours) {
     order: TOKEN_PARTS,
     colours: colours.series,
     stacked: true,
-    xLabel: "Week",
+    xLabel: null,
     yLabel: "Share of tokens",
     format: formatShare,
-    xTickFormat: sparseTickFormat(distinct(rows.map((row) => row.week)), monthAndDay, MAX_BAR_LABELS),
+    yTickFormat: formatPercent,
+    xTickFormat: weekTickFormat(distinct(rows.map((row) => row.week))),
   });
 }
 
@@ -209,10 +230,11 @@ async function drawContextShare(rows, body, colours) {
     order: ROLES,
     colours: colours.series,
     stacked: true,
-    xLabel: "Input tokens, from",
+    xLabel: "Input tokens",
     yLabel: "Share of input",
     format: formatShare,
-    xTickFormat: sparseTickFormat(distinct(rows.map((row) => row.bin_start)), formatTokens, MAX_BAR_LABELS),
+    yTickFormat: formatPercent,
+    xTickFormat: sparseTickFormat(distinct(rows.map((row) => row.bin_start)), formatBinaryThousands, MAX_BAR_LABELS),
   });
 }
 
@@ -225,19 +247,22 @@ async function drawTokenGrowth(rows, body, colours, hidden) {
   const { Plot } = await import("../shared/libraries.js");
   const parts = TOKEN_PARTS.filter((part) => !hidden.has(part));
   const points = growthPoints(rows, parts);
+  const xDomain = decadeDomain(points.map((point) => point.messages));
+  const yDomain = decadeDomain(points.map((point) => point.tokens));
   const marks = [
-    Plot.gridX(GRID_STYLE),
-    Plot.gridY(GRID_STYLE),
-    Plot.axisX({ ...AXIS_STYLE, label: "Messages in the request" }),
-    Plot.axisY({ ...AXIS_STYLE, label: "Median tokens" }),
+    // Only the powers of ten are ruled and labelled: a log axis's own ticks would draw a mesh of minor lines.
+    Plot.gridX(decadeTicks(xDomain), GRID_STYLE),
+    Plot.gridY(decadeTicks(yDomain), GRID_STYLE),
+    Plot.axisX(decadeTicks(xDomain), { ...AXIS_STYLE, label: "Messages in the request", text: formatCompactCount }),
+    Plot.axisY(decadeTicks(yDomain), { ...AXIS_STYLE, label: "Median tokens", text: formatTokens }),
     Plot.line(points, { x: "messages", y: "tokens", stroke: "part", strokeWidth: LINE_WIDTH }),
     Plot.dot(points, { x: "messages", y: "tokens", fill: "part", r: MARKER_RADIUS }),
     Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "messages", y: "tokens", title: growthTipText })),
   ];
   const chart = Plot.plot({
     ...chartFrame(body),
-    x: { type: "log" },
-    y: { type: "log" },
+    x: { type: "log", domain: xDomain },
+    y: { type: "log", domain: yDomain },
     color: colourScale(colours.series, parts),
     marks,
   });

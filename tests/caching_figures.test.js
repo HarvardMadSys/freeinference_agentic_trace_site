@@ -9,7 +9,7 @@ import {
   calloutPoint, costLegend, costStacks, prefillPoints, retainedDomain, ttlLabel,
 } from "../site/js/figures/caching_retention.js";
 import { scopeLegend } from "../site/js/comparison/scopes.js";
-import { decadeTicks } from "../site/js/figures/figure_rows.js";
+import { decadeTicks } from "../site/js/axes/ticks.js";
 import { assignColours, causeColours, OTHER_SERIES } from "../site/js/theme/colours.js";
 
 // The colours every figure shares, as the page gives a legend function: the providers in their fixed order.
@@ -61,7 +61,7 @@ test("the transition legend lists appends, then mutations, each in its transitio
   assert.equal(legend.colours.get("mutation"), "var(--transition-mutation)");
 });
 
-test("a provider keeps its colour from the provider order whichever providers the rows hold", () => {
+test("a provider keeps its colour from the provider order whichever providers the rows hold, listed by letter", () => {
   const legend = idleGapLegend([{ provider: "C" }, { provider: "A" }], FIGURE_COLOURS, "provider");
   assert.deepEqual(legend.series, [{ name: "A", label: "Provider A" }, { name: "C", label: "Provider C" }]);
   assert.equal(legend.colours.get("A"), "var(--series-2)");
@@ -91,13 +91,13 @@ const PREFILL_ROWS = [
 
 test("a prefill point per row, in the query's order, its TTL named, and placed where the paper labels one", () => {
   assert.deepEqual(prefillPoints(PREFILL_ROWS), [
-    { scope: "Agentic", ttl: "1m", label: "1m", retained: 415_000, prefill: 6.2, placement: "right" },
+    { scope: "Agentic", ttl: "1m", label: "1 min", retained: 415_000, prefill: 6.2, placement: "right" },
     { scope: "Agentic", ttl: "none", label: "∞", retained: 102_000_000, prefill: 1, placement: "right" },
-    { scope: "SWE-Bench", ttl: "1s", label: "1s", retained: 3_900, prefill: 17.4, placement: "right" },
-    { scope: "SWE-Bench", ttl: "10s", label: "10s", retained: 7_300, prefill: 3.2, placement: "left" },
-    { scope: "SWE-Bench", ttl: "15m", label: "15m", retained: 42_000, prefill: 1.02, placement: null },
+    { scope: "SWE-Bench", ttl: "1s", label: "1 s", retained: 3_900, prefill: 17.4, placement: "right" },
+    { scope: "SWE-Bench", ttl: "10s", label: "10 s", retained: 7_300, prefill: 3.2, placement: "left" },
+    { scope: "SWE-Bench", ttl: "15m", label: "15 min", retained: 42_000, prefill: 1.02, placement: null },
   ]);
-  assert.equal(ttlLabel("1d"), "1d");
+  assert.equal(ttlLabel("1d"), "1 d");
 });
 
 test("the retained-tokens axis runs from half the fewest to three times the most, ticked at powers of ten", () => {
@@ -144,17 +144,17 @@ test("a cost stack per TTL tops at the sum of its shown parts, its tooltip readi
   const stacks = costStacks(API_ROWS, API_LABELS);
   assert.deepEqual(stacks.map((stack) => [stack.ttl, stack.seconds]), [["1m", 60], ["30m", 1800]]);
   assert.ok(Math.abs(stacks[1].top - 0.65) < 1e-12);
-  assert.equal(stacks[1].text, "TTL 30m\nUncached input 0.10×\nCached input 0.15×\nOutput 0.40×\nTotal 0.65×");
+  assert.equal(stacks[1].text, "TTL 30 min\nUncached input 0.10×\nCached input 0.15×\nOutput 0.40×\nTotal 0.65×");
   const outputHidden = costStacks(API_ROWS.filter((row) => row.part !== "output"), API_LABELS);
   assert.ok(Math.abs(outputHidden[1].top - 0.25) < 1e-12);
-  assert.equal(outputHidden[1].text, "TTL 30m\nUncached input 0.10×\nCached input 0.15×\nTotal 0.65×");
+  assert.equal(outputHidden[1].text, "TTL 30 min\nUncached input 0.10×\nCached input 0.15×\nTotal 0.65×");
 });
 
 test("the callout sits on the marked TTL's stack and names its total, or is absent when none is marked", () => {
   const stacks = costStacks(API_ROWS, API_LABELS);
   const callout = calloutPoint(API_ROWS, stacks, "is_knee", "Knee");
   assert.equal(callout.seconds, 1800);
-  assert.equal(callout.text, "Knee 0.65× at 30m");
+  assert.equal(callout.text, "Knee 0.65× at 30 min");
   const unmarked = API_ROWS.map((row) => ({ ...row, is_knee: false }));
   assert.equal(calloutPoint(unmarked, stacks, "is_knee", "Knee"), null);
 });

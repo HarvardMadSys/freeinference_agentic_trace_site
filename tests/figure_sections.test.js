@@ -89,12 +89,13 @@ test("every figure has a title, a one-sentence definition, a bin column and a dr
   }
 });
 
-// A card's caption fits one line at desktop width.
-const MAX_CAPTION_LENGTH = 90;
+const MAX_CAPTION_LENGTH = 90; // characters: a caption under this is about a line of a card at desktop width
 
-test("a figure's caption, where it has one, is one short sentence", async () => {
+test("every figure has a caption of one short sentence, under the length of a line", async () => {
   for (const { figures } of await sections()) {
-    for (const figure of figures.filter((one) => one.caption !== undefined)) {
+    for (const figure of figures) {
+      assert.equal(typeof figure.caption, "string", `${figure.name} has a caption`);
+      assert.ok(figure.caption.length > 0, `${figure.name}: a caption that says something`);
       assert.ok(figure.caption.endsWith("."), figure.name);
       assert.equal(figure.caption.split(". ").length, 1, `${figure.name}: one sentence`);
       assert.ok(figure.caption.length <= MAX_CAPTION_LENGTH, `${figure.name}: ${figure.caption.length} characters`);

@@ -49,7 +49,7 @@
   --series-3: #1baf7a;
   --series-4: #eda100;
   --series-5: #e87ba4;
-  --series-6: #008300;
+  --series-6: #6b8e23;
   --series-7: #6250d6;
   --series-8: #e34948;
   --series-other: #9ca3af;
@@ -60,11 +60,17 @@
   --token-output: var(--series-1);
 
   /* What a wait before a request waited for, the same everywhere it is drawn. The paper draws an ask-user tool in
-     purple, but this palette's purple and blue (the subagent's) are too close for colour-blind readers, so it is amber. */
+     purple, but this palette's purple and blue (the subagent's) are too close for colour-blind readers, so it is amber.
+     A wait for the user is a calm grey-blue, not a series red: it fills half of a session's time and must not read
+     as an alarm. */
   --cause-tool: var(--series-3);
   --cause-ask-user: var(--series-4);
-  --cause-user: var(--series-8);
+  --cause-user: #7d93b8;
   --cause-subagent: var(--series-1);
+
+  /* A request's time on the Session page's Timeline and in the speed-up: time to first token dark, the rest light. */
+  --request-ttft: #4b5563;
+  --request-rest: #b6bcc6;
 
   /* How a request's context changed from the one before it: appended to, or rewritten. */
   --transition-append: var(--series-3);
@@ -81,14 +87,14 @@
   --tool-group-browser-web: var(--series-5);
   --tool-group-other: var(--series-other);
 
-  /* The six gap bins, shortest gap lightest: the blue of --series-1 from its 250 to its 700 step, evenly in lightness,
-     the lightest still 2:1 against the surface. */
-  --gap-bin-1: #86b6ef;
-  --gap-bin-2: #599be8;
-  --gap-bin-3: #307edc;
-  --gap-bin-4: #2164b7;
-  --gap-bin-5: #164c91;
-  --gap-bin-6: #0d366b;
+  /* The six gap bins, shortest gap lightest: one blue (hue 213°) from 70% to 30% lightness in even steps, so the
+     lightest still shows on white and the darkest stays blue. */
+  --gap-bin-1: #7eade7;
+  --gap-bin-2: #5c98e0;
+  --gap-bin-3: #3a82d9;
+  --gap-bin-4: #266dc5;
+  --gap-bin-5: #1f5aa3;
+  --gap-bin-6: #184781;
 
   /* A highlighted row, step or bar. */
   --color-highlight: rgb(237 161 0 / 0.25);
@@ -122,18 +128,22 @@
     --series-3: #199e70;
     --series-4: #c98500;
     --series-5: #d55181;
-    --series-6: #008300;
+    --series-6: #9ab83a;
     --series-7: #9085e9;
     --series-8: #e66767;
     --series-other: #6b7280;
 
-    /* The gap bins on a dark surface: the same blue from its 100 to its 600 step, the darkest still 2:1 against it. */
-    --gap-bin-1: #cde2fb;
-    --gap-bin-2: #9dc5f4;
-    --gap-bin-3: #6da7ec;
-    --gap-bin-4: #3987e5;
-    --gap-bin-5: #256abf;
-    --gap-bin-6: #184f95;
+    /* The gap bins on a dark surface: the same blue from 85% to 45% lightness, so the darkest still shows on navy. */
+    --gap-bin-1: #bcd6f5;
+    --gap-bin-2: #98c0f0;
+    --gap-bin-3: #75aaeb;
+    --gap-bin-4: #5194e6;
+    --gap-bin-5: #2d7ee1;
+    --gap-bin-6: #1d6ac9;
+
+    --cause-user: #8297bb;
+    --request-ttft: #9ca3af;
+    --request-rest: #4b5563;
 
     --color-highlight: rgb(201 133 0 / 0.3);
   }
@@ -234,10 +244,12 @@ code,
   color: var(--color-text-muted);
 }
 
+/* The links' padding reaches past the nav on both sides, so their text lines up with the page's text and edge. */
 .site-nav {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
+  margin-inline: -0.75rem;
 }
 
 .nav-link {
@@ -266,7 +278,7 @@ code,
   border-top: 1px solid var(--color-border);
   text-align: center;
   font-size: var(--font-size-smallest);
-  color: var(--color-text-faint);
+  color: var(--color-text-muted);
 }
 
 /* ---------- Page layout ---------- */
@@ -286,6 +298,13 @@ code,
   max-width: 44rem;
 }
 
+/* The population every figure draws, stated once under the lede rather than on every card. */
+.population {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
 .breadcrumb {
   font-size: 0.875rem;
   color: var(--color-text-muted);
@@ -302,6 +321,31 @@ code,
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
   gap: 1.5rem;
+}
+
+/* The weekly trends: three charts side by side on a wide screen, one above the other on a narrow one. */
+.trend-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+/*
+ * A figure card in a grid lays its five parts (title, caption, legend, chart, Definition) on its row's tracks, so the
+ * charts of a row start at one height whatever the length of their captions and legends.
+ */
+.card-grid > .card,
+.trend-grid > .card {
+  display: grid;
+  grid-row: span 5;
+  grid-template-rows: subgrid;
+  row-gap: 0.5rem;
+  min-width: 0;
+}
+
+.card-grid > .card > .figure,
+.trend-grid > .card > .figure {
+  display: contents;
 }
 
 .figure-section {
@@ -329,8 +373,15 @@ code,
   overflow-wrap: anywhere;
 }
 
+/* A page of running text is as wide as its text, so its cards leave no empty band beside it. */
+.page.prose {
+  max-width: calc(44rem + 2 * var(--gutter) + 2.5rem);
+}
+
+/* A group heading inside a card: one step below the card's heading, with room above it. */
 .prose h3 {
-  margin-top: 1.5rem;
+  margin-top: 2rem;
+  font-size: 1.25rem;
 }
 
 .prose dt {
@@ -340,14 +391,16 @@ code,
 
 .prose dd {
   margin: 0.125rem 0 0;
-  color: var(--color-text-muted);
 }
 
 /* ---------- Stat tiles ---------- */
 
+/* Four tiles a row, two on a phone, so eight tiles make whole rows; a wide tile takes two, and a later tile may fill a
+   gap it leaves. */
 .stat-strip {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-flow: row dense;
   gap: 1rem;
 }
 
@@ -375,6 +428,11 @@ code,
 .stat-detail {
   font-size: var(--font-size-smallest);
   color: var(--color-text-muted);
+  white-space: pre-line;
+}
+
+.stat.is-wide {
+  grid-column: span 2;
 }
 
 /* ---------- Figures and cards ---------- */
@@ -392,14 +450,43 @@ code,
   margin: 0;
 }
 
-.figure-definition {
+/* The one short line under a figure's title. */
+.figure-caption {
   font-size: 0.875rem;
   color: var(--color-text-muted);
   margin: 0;
 }
 
+.figure-legend:empty {
+  min-height: 0;
+}
+
 .figure-body {
   min-height: 12rem;
+}
+
+/* The Definition control at the foot of every card: a muted line that opens on the definition and the rows. */
+.figure-definition {
+  font-size: var(--font-size-smallest);
+  color: var(--color-text-muted);
+}
+
+.figure-definition summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.figure-definition summary:hover {
+  color: var(--color-text);
+}
+
+.figure-definition p {
+  margin: 0.375rem 0 0;
+}
+
+.figure-rows {
+  font-variant-numeric: tabular-nums;
 }
 
 /* A chart a click acts on, such as a trend bar that selects its week. */
@@ -421,8 +508,9 @@ code,
 .legend {
   display: flex;
   flex-wrap: wrap;
+  align-content: flex-start;
   gap: 0.25rem 1rem;
-  margin: 0.25rem 0 0;
+  margin: 0;
   font-size: var(--font-size-smallest);
   color: var(--chart-label);
 }
@@ -470,10 +558,18 @@ code,
   border-radius: 2px;
 }
 
-.figure-caption {
+/* A line chart's series is a short line in its legend, as it is drawn. */
+.legend-swatch.is-line {
+  width: 1rem;
+  height: 2px;
+  border-radius: 0;
+}
+
+/* A line of counts above or below a table, such as the sessions it lists. */
+.table-count {
   font-size: var(--font-size-smallest);
-  color: var(--color-text-faint);
-  margin: 0;
+  color: var(--color-text-muted);
+  margin: 0.25rem 0 0.75rem;
   font-variant-numeric: tabular-nums;
 }
 
@@ -672,7 +768,6 @@ button.is-primary {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
-  font-variant-numeric: tabular-nums;
 }
 
 .data-table th,
@@ -702,6 +797,33 @@ button.is-primary {
   text-align: right;
 }
 
+/* Numbers line up by their digits; names and dates keep the font's own spacing. */
+.data-table td.is-number {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The sessions table keeps each row's link in view while it scrolls sideways on a narrow screen. */
+#sessions-table .data-table th:first-child,
+#sessions-table .data-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--color-surface);
+}
+
+#sessions-table .data-table tbody tr:hover td:first-child {
+  background: var(--color-surface-raised);
+}
+
+/* The pager under a table: right-aligned, a row's gap below the table. */
+.pager {
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+.pager .control-label {
+  font-size: 0.875rem;
+}
+
 .data-table tbody tr.is-clickable {
   cursor: pointer;
 }
@@ -719,6 +841,8 @@ button.is-primary {
    phone's width. */
 .mutation-table th {
   cursor: default;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .mutation-table th,
@@ -740,9 +864,8 @@ button.is-primary {
 
 /* ---------- Session views ---------- */
 
-/* The Session page's stat strip holds a dozen tiles, so its tiles are narrower and its values smaller. */
+/* The Session page's stat strip holds a dozen tiles' worth, so its tiles are closer and its values smaller. */
 .session-facts .stat-strip {
-  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
   gap: 0.75rem;
 }
 
@@ -754,9 +877,10 @@ button.is-primary {
   font-size: 1.25rem;
 }
 
-/* The full id under a session's title: long and unbroken, so it may wrap anywhere. */
+/* The full id under a session's title, secondary to it: long and unbroken, so it may wrap anywhere. */
 .session-id {
   margin: 0;
+  font-size: 0.875rem;
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
 }
@@ -786,15 +910,35 @@ button.is-primary {
   border-bottom-color: var(--color-accent);
 }
 
+/* A model or tool-call pill: its name after a small dot in its colour, as a legend marks a series. */
 .chip {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   padding: 0.0625rem 0.5rem;
   border-radius: 999px;
   font-size: var(--font-size-smallest);
   font-weight: 500;
   color: var(--color-text);
   background: var(--color-surface-raised);
-  border-left: 0.25rem solid var(--chip-color, var(--series-other));
+}
+
+.chip::before {
+  content: "";
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--chip-color, var(--series-other));
+}
+
+/* The pill that stands for several models, with no colour of its own. */
+.chip.is-muted {
+  color: var(--color-text-muted);
+}
+
+.chip.is-muted::before {
+  content: none;
 }
 
 /* ---------- Requests view ---------- */
@@ -812,6 +956,37 @@ button.is-primary {
 
 .legend-title {
   font-weight: 600;
+}
+
+/* A view's legend of several titled lines, one above the other. */
+.legend-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* A choice of two or three views of one chart: neutral buttons joined into one control, the chosen one filled. */
+.segmented {
+  display: inline-flex;
+  align-self: flex-start;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  overflow: hidden;
+}
+
+.segmented button {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.segmented button + button {
+  border-left: 1px solid var(--color-border);
+}
+
+.segmented button[aria-pressed="true"] {
+  color: var(--color-text);
+  background: var(--color-surface-raised);
 }
 
 /*
@@ -1046,9 +1221,33 @@ button.is-primary {
   max-width: none;
 }
 
+/* ---------- Narrower screens ---------- */
+
+@media (max-width: 50rem) {
+  .trend-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ---------- Small screens ---------- */
 
 @media (max-width: 40rem) {
+  .stat-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  /* Two tiles share a phone's width: a value such as 1,125,604 or 2026-08-02 must fit one line of a tile. */
+  .stat,
+  .session-facts .stat {
+    padding: 0.75rem;
+  }
+
+  .stat-value,
+  .session-facts .stat-value {
+    font-size: 1.125rem;
+  }
+
   h1 {
     font-size: 1.75rem;
   }
@@ -1061,8 +1260,9 @@ button.is-primary {
     padding: 1rem;
   }
 
+  /* One column no wider than the screen: a wide table scrolls inside its card instead of widening the page. */
   .card-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   /* Nested groups indent less, so a depth-4 subagent still has room for a full bar. */

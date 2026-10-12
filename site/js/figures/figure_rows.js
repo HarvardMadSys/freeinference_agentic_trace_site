@@ -1,25 +1,20 @@
 /**
- * What the Explore page does to a figure's rows before drawing them: the rows it draws, thin bins hidden, its
- * caption (the rows it rests on, its harnesses and weeks, the weeks not simulated and the bins hidden), the series its
- * legend lists, a CDF query's points grouped into series, the labels of a crowded axis or a log one, and how a
- * multiple is written.
+ * What the Explore page does to a figure's rows before drawing them: the rows it draws, thin bins hidden, its line of
+ * rows (the rows it rests on, the weeks not simulated and the bins hidden), the series its legend lists, a CDF query's
+ * points grouped into series, and the labels of a crowded band axis or a week axis.
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
  * a CDF series), or, when `binColumn` is null, each row alone. Every row of a bin carries the bin's count, the number
  * of rows of the data it rests on, in the column `rows`. These are plain functions, tested with `node --test`.
  */
 
-import { dropThinBins, MIN_ROWS_PER_BIN, weeksText } from "../shared/charts.js";
+import { dropThinBins, MIN_ROWS_PER_BIN } from "../shared/charts.js";
 import { formatCount } from "../shared/format.js";
-import { harnessesText } from "../shared/selection.js";
-
-/** How a log axis writes its ticks: 0.1 and 1000, not Plot's SI "100m" (which reads as minutes) and "1k". */
-export const PLAIN_NUMBER_FORMAT = "~g";
 
 // The column of every figure query that holds a bin's count: the number of rows of the data behind the bin.
 const COUNT_COLUMN = "rows";
 
-// What a hidden bin is called in the caption, singular and plural, by the figure's bin column; any other is a "bin".
+// What a hidden bin is called in the line of rows, singular and plural, by the figure's bin column; any other is a "bin".
 const HIDDEN_NOUNS = Object.freeze({
   series: ["series", "series"],
   week: ["week", "weeks"],
@@ -28,13 +23,9 @@ const HIDDEN_NOUNS = Object.freeze({
 });
 const DEFAULT_HIDDEN_NOUN = ["bin", "bins"];
 
-// What a simulation figure's caption names as its harnesses: the simulation replays the paper's harnesses and, on its
-// own, the benchmark replay, and a figure draws what its definition says of those whatever harnesses are selected.
-const SIMULATED_HARNESSES_TEXT = "the harnesses the simulation replays";
-
 /**
  * The rows of a query's `rows` that `figure` draws: those its `drawnRows(rows, colours)` keeps, given the colours every
- * figure shares, or every row for a figure without one. The caption counts these rows and their thin bins are hidden.
+ * figure shares, or every row for a figure without one. The line of rows counts these and their thin bins are hidden.
  */
 export function figureDrawnRows(figure, rows, colours) {
   return figure.drawnRows === undefined ? rows : figure.drawnRows(rows, colours);
@@ -67,7 +58,7 @@ export function restingRowCount(rows, { binColumn, seriesOverSameRows = false })
 }
 
 /**
- * The caption's count of the rows a figure rests on: "1,234 rows", or, for a figure whose series count different
+ * The count of the rows a figure rests on: "1,234 rows", or, for a figure whose series count different
  * things (`seriesNouns`, from series name to plural noun), each shown series' count: "84,239 turns · 12,002 sessions".
  */
 export function restingCountText(rows, figure) {
@@ -85,34 +76,27 @@ export function restingCountText(rows, figure) {
 }
 
 /**
- * `{ harnesses, weeks, notSimulated }`: the text naming the harnesses a figure's rows come from, the weeks (Sundays)
- * they come from, and the selected weeks the simulation does not cover, by `weekEntries` (the entries of `weeks.json`).
- * That is the selection's, by `harnessEntries` (the entries of `harnesses.json`), with no week left out, except:
- * - for a simulation figure (`isSimulation`), whose rows are those of the harnesses the simulation replays, whatever
- *   harnesses are selected, in the selected weeks the simulation covers;
- * - for a figure with a column from the simulation (`isPartlySimulated`), drawn from the selection, whose
- *   unsimulated weeks are named, since that column leaves them out.
+ * The selected weeks (`selection.weeks`, Sundays) that the cache simulation does not cover, by `weekEntries` (the
+ * entries of `weeks.json`), for a figure drawn from the simulation (`isSimulation`) or with a column from it
+ * (`isPartlySimulated`); none for any other figure.
  */
-export function drawnHarnessesAndWeeks(figure, selection, weekEntries, harnessEntries) {
-  const simulated = new Set(weekEntries.filter((entry) => entry.simulated).map((entry) => entry.week));
-  const notSimulated = selection.weeks.filter((week) => !simulated.has(week));
-  if (figure.isSimulation === true) {
-    const weeks = selection.weeks.filter((week) => simulated.has(week));
-    return { harnesses: SIMULATED_HARNESSES_TEXT, weeks, notSimulated };
+export function unsimulatedWeeks(figure, selection, weekEntries) {
+  if (figure.isSimulation !== true && figure.isPartlySimulated !== true) {
+    return [];
   }
-  const harnesses = harnessesText(selection.harnesses, harnessEntries);
-  return { harnesses, weeks: selection.weeks, notSimulated: figure.isPartlySimulated === true ? notSimulated : [] };
+  const simulated = new Set(weekEntries.filter((entry) => entry.simulated).map((entry) => entry.week));
+  return selection.weeks.filter((week) => !simulated.has(week));
 }
 
 /**
- * A figure's caption: the rows it rests on, the harnesses and weeks they come from (`drawn`, as
- * `drawnHarnessesAndWeeks` gives them), the selected weeks the simulation does not cover, and how many bins were hidden:
- * "1,234 rows · the paper's harnesses · 15 weeks · not simulated: 2026-08-16".
+ * A figure's line of rows, shown with its definition: the rows it rests on, the weeks `notSimulated`, and how many bins
+ * were hidden: "1,234 rows · not simulated: 2026-08-16 · 2 bins hidden (fewer than 50 rows each)". The harnesses and
+ * weeks every figure draws are stated once, under the page's title.
  */
-export function figureCaption(figure, shownRows, hidden, drawn) {
-  const parts = [restingCountText(shownRows, figure), drawn.harnesses, weeksText(drawn.weeks)];
-  if (drawn.notSimulated.length > 0) {
-    parts.push(`not simulated: ${drawn.notSimulated.join(", ")}`);
+export function figureRowsText(figure, shownRows, hidden, notSimulated) {
+  const parts = [restingCountText(shownRows, figure)];
+  if (notSimulated.length > 0) {
+    parts.push(`not simulated: ${notSimulated.join(", ")}`);
   }
   const hiddenNote = hiddenText(hidden, figure.binColumn);
   if (hiddenNote !== "") {
@@ -121,7 +105,7 @@ export function figureCaption(figure, shownRows, hidden, drawn) {
   return parts.join(" · ");
 }
 
-/** The caption's note on hidden bins: "2 bins hidden (fewer than 50 rows each)"; "" when none is hidden. */
+/** The note on hidden bins: "2 bins hidden (fewer than 50 rows each)"; "" when none is hidden. */
 export function hiddenText(hidden, binColumn) {
   if (hidden === 0) {
     return "";
@@ -172,25 +156,6 @@ export function cdfSeries(rows, names, { labels = {}, floor = -Infinity } = {}) 
     }
   }
   return series;
-}
-
-/**
- * A tick format for a crowded band axis: `format(value)` for every `step`-th of `values` (in axis order, first
- * included), the step chosen so at most `maxLabels` are written, and "" for the rest.
- */
-export function sparseTickFormat(values, format, maxLabels) {
-  const step = Math.max(1, Math.ceil(values.length / maxLabels));
-  const labelled = new Set(values.filter((value, index) => index % step === 0));
-  return (value) => (labelled.has(value) ? format(value) : "");
-}
-
-/** The powers of ten from `low` to `high`, both included where they are powers of ten: a log axis's ticks. */
-export function decadeTicks([low, high]) {
-  const ticks = [];
-  for (let exponent = Math.ceil(Math.log10(low)); 10 ** exponent <= high; exponent += 1) {
-    ticks.push(10 ** exponent);
-  }
-  return ticks;
 }
 
 // Each bin's name and count, `[{ name, count }]`, in the order the bins first appear in the rows.

@@ -10,8 +10,9 @@
  * machine time, every row holding the same `rows`, the sessions it rests on.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, drawCdf, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
-import { formatCount, formatMultiple, formatSeconds } from "../shared/format.js";
+import { AXIS_STYLE, cdfPoints, chartFrame, colourScale, drawCdf, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
+import { durationTicks, extent } from "../axes/ticks.js";
+import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
 import { CAUSE_COLOURS, REQUEST_PART_COLOURS, slottedColours } from "../theme/colours.js";
 import { cdfSeries, seriesLegend } from "./figure_rows.js";
 
@@ -32,7 +33,7 @@ const NO_SPEEDUP = 1; // every bar starts at 1×, the sessions as they are
 const SPEEDUP_DECIMALS = 2; // a bar's label: 1.38×
 const SPEEDUP_TICK_DECIMALS = 1; // the axis's ticks: 1.1×
 const SPEEDUP_TICKS = 5; // about this many ticks on the speed-up axis
-const PART_LABEL_MARGIN = 76; // pixels left of the bars; room for the longest label, "Prefill 2×"
+const PART_LABEL_MARGIN = 92; // pixels left of the bars; room for the longest label, "Prefill 2×"
 const BAR_LABEL_GAP = 4; // pixels between a bar's end and its label
 
 /** The TTFT figure: the CDF of the time to first token per model. */
@@ -40,12 +41,14 @@ export const TTFT_CDF_BY_MODEL = Object.freeze({
   name: "ttft_cdf_by_model",
   title: "Time to first token by model",
   definition: "CDF of the time to first token per model over requests whose TTFT is trusted (positive and under 95% of the latency), where the five models with most requests in the selection that are among the eight with most requests over every week are drawn and the paper draws two fixed models, each with its decode and queueing time.",
+  caption: "Time to first token of each request, for the five busiest models.",
+  drawsLines: true,
   query: "figures/ttft_cdf_by_model",
   binColumn: "series",
   seriesColumn: "series",
   drawnRows: drawnModelRows,
   legend: modelCdfLegend,
-  draw: drawTtftByModel,
+  draw: drawModelCdf,
 });
 
 /** The decode time figure: the CDF of latency minus TTFT per model, for the models and requests of the TTFT figure. */
@@ -53,12 +56,14 @@ export const DECODE_CDF_BY_MODEL = Object.freeze({
   name: "decode_cdf_by_model",
   title: "Decode time by model",
   definition: "CDF of the decode time (the latency minus the time to first token) per model over requests whose TTFT is trusted, where the five models with most requests in the selection that are among the eight with most requests over every week are drawn, the paper draws two fixed models and the paper's queueing estimate is not drawn.",
+  caption: "Latency minus time to first token, for the same five models.",
+  drawsLines: true,
   query: "figures/decode_cdf_by_model",
   binColumn: "series",
   seriesColumn: "series",
   drawnRows: drawnModelRows,
   legend: modelCdfLegend,
-  draw: drawDecodeByModel,
+  draw: drawModelCdf,
 });
 
 /** The speed-up figure: the sessions' machine time over the same with prefill, decode or tool time alone halved. */
@@ -109,20 +114,14 @@ export function drawnModelRows(rows, colours) {
   return rows.filter((row) => drawnModels.has(row.series));
 }
 
-/** Draw the TTFT CDFs, in seconds on a log axis. */
-async function drawTtftByModel(rows, body, colours) {
-  await drawModelCdf(rows, body, colours, "Seconds to first token");
-}
-
-/** Draw the decode time CDFs, in seconds on a log axis. */
-async function drawDecodeByModel(rows, body, colours) {
-  await drawModelCdf(rows, body, colours, "Seconds of decode");
-}
-
-/** Draw one CDF per model of the rows, in seconds on a log axis labelled `xLabel`, each model in its legend's colour. */
-async function drawModelCdf(rows, body, colours, xLabel) {
+/** Draw one CDF per model of the rows, in seconds on a log axis of durations, each model in its legend's colour. */
+async function drawModelCdf(rows, body, colours) {
   const series = cdfSeries(rows, [...colours.series.keys()]);
-  await drawCdf(body, series, { xLabel, logX: true, format: formatSeconds, colours: colours.series });
+  const seconds = cdfPoints(series).map((point) => point.x);
+  await drawCdf(body, series, {
+    logX: true, xTicks: durationTicks(extent(seconds)), xTickFormat: formatDurationTick, format: formatSeconds,
+    colours: colours.series,
+  });
 }
 
 /** Draw one horizontal bar per part from 1× to its speed-up, labelled with it at its end. */

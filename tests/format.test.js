@@ -4,6 +4,8 @@ import { test } from "node:test";
 import {
   cachedShare, elapsedSeconds, formatCount, formatDurationTick, formatElapsed, formatMultiple, formatOptionalShare,
   formatQuantity, formatSeconds, formatShare, formatTokens, monthName, shortSessionId, utcMinute,
+  elapsedTickFormat, formatBinaryThousands, formatCompactCount, formatPercent, formatTtlName, monthAndDay,
+  monthSpanText, shortMinute, shortMonth,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -46,9 +48,9 @@ test("a multiple has a times sign and the decimals asked for, or is written as i
 });
 
 test("elapsed time is minutes and seconds, with hours when needed", () => {
-  assert.equal(formatElapsed(0), "+00:00");
-  assert.equal(formatElapsed(83.9), "+01:23");
-  assert.equal(formatElapsed(3661), "+1:01:01");
+  assert.equal(formatElapsed(0), "0:00");
+  assert.equal(formatElapsed(83.9), "1:23");
+  assert.equal(formatElapsed(3661), "1:01:01");
 });
 
 test("a share is a percentage with one decimal", () => {
@@ -91,4 +93,47 @@ test("a UTC minute is written as YYYY-MM-DD HH:MM", () => {
 
 test("a month is written as its name and year", () => {
   assert.equal(monthName("2026-07"), "July 2026");
+});
+
+test("a compact count is in its largest unit, lower-case k, a round one with no decimal", () => {
+  assert.equal(formatCompactCount(300000), "300k");
+  assert.equal(formatCompactCount(1000), "1k");
+  assert.equal(formatCompactCount(1_800_000), "1.8M");
+  assert.equal(formatCompactCount(250), "250");
+});
+
+test("a power-of-two token count is written in units of 1,024", () => {
+  assert.equal(formatBinaryThousands(4096), "4k");
+  assert.equal(formatBinaryThousands(262144), "256k");
+  assert.equal(formatBinaryThousands(512), "512");
+});
+
+test("an axis's percentage has no decimals", () => {
+  assert.equal(formatPercent(1), "100%");
+  assert.equal(formatPercent(0), "0%");
+  assert.equal(formatPercent(0.632), "63%");
+});
+
+test("a TTL's name is written as every duration is, never m for a minute", () => {
+  assert.equal(formatTtlName("1m"), "1 min");
+  assert.equal(formatTtlName("10s"), "10 s");
+  assert.equal(formatTtlName("6h"), "6 h");
+  assert.equal(formatTtlName("1d"), "1 d");
+});
+
+test("an elapsed axis writes h:mm from an hour on, else m:ss", () => {
+  assert.deepEqual([elapsedTickFormat(4200).unit, elapsedTickFormat(4200).format(4200)], ["h:mm", "1:10"]);
+  assert.deepEqual([elapsedTickFormat(750).unit, elapsedTickFormat(750).format(750)], ["m:ss", "12:30"]);
+});
+
+test("a date is written as its short month and day, or its month alone on a week axis", () => {
+  assert.equal(monthAndDay("2026-08-09"), "Aug 9");
+  assert.equal(shortMonth("2026-05-17"), "May");
+  assert.equal(shortMinute(Date.UTC(2026, 7, 31, 2, 44)), "Aug 31, 02:44");
+});
+
+test("a span of months names the year once when both share it", () => {
+  assert.equal(monthSpanText("2026-05", "2026-08"), "May to August 2026");
+  assert.equal(monthSpanText("2025-12", "2026-01"), "December 2025 to January 2026");
+  assert.equal(monthSpanText("2026-05", "2026-05"), "May 2026");
 });

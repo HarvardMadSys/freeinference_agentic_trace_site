@@ -1,7 +1,7 @@
 /**
- * The headline numbers of the top-level sessions in the selected weeks and harnesses, each with its definition
- * on hover, and the model mix: each model's share of their requests, largest first, coloured by the
- * global model order so a model has the same colour on every page.
+ * The headline numbers of the top-level sessions in the selected weeks and harnesses, each with a short phrase under
+ * it and its definition on hover, and the model mix: each model's share of their requests, largest first, coloured by
+ * the global model order so a model has the same colour on every page; the models under 1% share one muted pill.
  *
  * A section's `context` is what the page gives every section; see `pages/explore.js`.
  */
@@ -11,26 +11,31 @@ import { assignColours } from "../theme/colours.js";
 import { cachedShare, formatCount, formatOptionalShare, formatShare, formatTokens } from "../shared/format.js";
 import { statStrip } from "../shared/tiles.js";
 
-// Each headline number read straight from the query's one row: its label, column, format and definition.
+// Each headline number read straight from the query's one row: its label, column, format, the short phrase under it
+// and its definition.
 const HEADLINE_NUMBERS = Object.freeze([
-  Object.freeze({ label: "Sessions", column: "sessions", format: formatCount,
+  Object.freeze({ label: "Sessions", column: "sessions", format: formatCount, detail: "top-level",
     definition: "Top-level sessions: those no other session spawned." }),
-  Object.freeze({ label: "Accounts", column: "accounts", format: formatCount,
+  Object.freeze({ label: "Accounts", column: "accounts", format: formatCount, detail: "distinct users",
     definition: "Distinct accounts (user ids) that ran them." }),
-  Object.freeze({ label: "Requests", column: "requests", format: formatCount,
+  Object.freeze({ label: "Requests", column: "requests", format: formatCount, detail: "of top-level sessions",
     definition: "LLM requests of the top-level sessions." }),
-  Object.freeze({ label: "Input tokens", column: "input_tokens", format: formatTokens,
+  Object.freeze({ label: "Input tokens", column: "input_tokens", format: formatTokens, detail: "prompt tokens",
     definition: "Prompt tokens of those requests." }),
-  Object.freeze({ label: "Output tokens", column: "output_tokens", format: formatTokens,
+  Object.freeze({ label: "Output tokens", column: "output_tokens", format: formatTokens, detail: "completion tokens",
     definition: "Completion tokens of those requests." }),
-  Object.freeze({ label: "Tool calls", column: "tool_calls", format: formatCount,
+  Object.freeze({ label: "Tool calls", column: "tool_calls", format: formatCount, detail: "emitted by responses",
     definition: "Tool calls their responses made." }),
-  Object.freeze({ label: "Subagents", column: "subagents", format: formatCount,
+  Object.freeze({ label: "Subagents", column: "subagents", format: formatCount, detail: "spawned, at any depth",
     definition: "Subagent sessions they spawned, at any depth." }),
 ]);
 
-// The definition of the cached share, the one headline number computed from two columns.
+// The phrase under the cached share, the one headline number computed from two columns, and its definition.
+const CACHED_SHARE_DETAIL = "of reported input";
 const CACHED_SHARE_DEFINITION = "Cached tokens over the input of the requests whose provider reports cache reads.";
+
+// A model with a smaller share of the requests than this gets no pill of its own: it is counted in the others' pill.
+const MIN_SHARE_WITH_PILL = 0.01;
 
 /** Show the loading state in `container`. */
 export function layoutHeadline(container) {
@@ -54,16 +59,16 @@ export async function runHeadline(container, context) {
 }
 
 /**
- * The tiles `{ label, value, detail, definition }` of the headline query's row, each tile's definition also its
- * detail line; the cached share last ("—" with no reported input).
+ * The tiles `{ label, value, detail, definition }` of the headline query's row, each with its short phrase as its
+ * detail line and its definition as its hover text; the cached share last ("—" with no reported input).
  */
 export function headlineTiles(row) {
   const tiles = [];
-  for (const number of HEADLINE_NUMBERS) {
-    tiles.push(headlineTile(number.label, number.format(row[number.column]), number.definition));
+  for (const { label, column, format, detail, definition } of HEADLINE_NUMBERS) {
+    tiles.push({ label, value: format(row[column]), detail, definition });
   }
-  const share = cachedShare(row.cached_tokens, row.reported_input_tokens);
-  tiles.push(headlineTile("Cached share", formatOptionalShare(share), CACHED_SHARE_DEFINITION));
+  const share = formatOptionalShare(cachedShare(row.cached_tokens, row.reported_input_tokens));
+  tiles.push({ label: "Cached share", value: share, detail: CACHED_SHARE_DETAIL, definition: CACHED_SHARE_DEFINITION });
   return tiles;
 }
 
@@ -74,6 +79,26 @@ export function modelShares(rows) {
     total += row.requests;
   }
   return rows.map((row) => ({ model: row.model, requests: row.requests, share: row.requests / total }));
+}
+
+/**
+ * The model mix's pills: `{ shown, others }`, `shown` the models of `shares` (as `modelShares` gives them) with at least
+ * `MIN_SHARE_WITH_PILL` of the requests, and `others` the rest as one `{ count, requests, share, models }`, null when
+ * there is none.
+ */
+export function modelPills(shares) {
+  const shown = shares.filter((model) => model.share >= MIN_SHARE_WITH_PILL);
+  const rest = shares.filter((model) => model.share < MIN_SHARE_WITH_PILL);
+  if (rest.length === 0) {
+    return { shown, others: null };
+  }
+  let requests = 0;
+  let share = 0;
+  for (const model of rest) {
+    requests += model.requests;
+    share += model.share;
+  }
+  return { shown, others: { count: rest.length, requests, share, models: rest } };
 }
 
 async function drawNumbers(place, context) {
@@ -90,19 +115,19 @@ async function drawModelMix(place, context) {
   }
   const colours = assignColours(orderRows.map((row) => row.model));
   const line = document.createElement("div");
-  line.className = "controls";
+  line.className = "controls model-mix";
   const label = document.createElement("span");
   label.className = "control-label";
   label.textContent = "Model mix, share of requests";
   line.append(label);
-  for (const model of modelShares(rows)) {
+  const pills = modelPills(modelShares(rows));
+  for (const model of pills.shown) {
     line.append(modelChip(model, colours.get(model.model)));
   }
+  if (pills.others !== null) {
+    line.append(othersChip(pills.others));
+  }
   place.replaceChildren(line);
-}
-
-function headlineTile(label, value, definition) {
-  return { label, value, detail: definition, definition };
 }
 
 function modelChip(model, colour) {
@@ -111,5 +136,15 @@ function modelChip(model, colour) {
   chip.style.setProperty("--chip-color", colour);
   chip.textContent = `${model.model} · ${formatShare(model.share)}`;
   chip.title = `${formatCount(model.requests)} top-level requests in the selected weeks and harnesses went to ${model.model}.`;
+  return chip;
+}
+
+// The muted pill of the models under 1%, which lists each of them, with its share, in its hover text.
+function othersChip(others) {
+  const chip = document.createElement("span");
+  chip.className = "chip is-muted";
+  chip.textContent = `${others.count} others · ${formatShare(others.share)}`;
+  const lines = others.models.map((model) => `${model.model} · ${formatShare(model.share)}`);
+  chip.title = `${formatCount(others.requests)} requests:\n${lines.join("\n")}`;
   return chip;
 }

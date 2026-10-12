@@ -9,7 +9,7 @@
  * shows every series again, and it is never written to the URL.
  */
 
-import { showError, showNote } from "../shared/charts.js";
+import { legendPlace, showError, showNote } from "../shared/charts.js";
 
 // The note in place of a chart whose every series is hidden.
 const EVERY_SERIES_HIDDEN_NOTE = "Every series is hidden: click one in the legend to show it.";
@@ -19,17 +19,18 @@ const MIN_SERIES_IN_LEGEND = 2;
 
 /**
  * Fill `container` with one button per series of `series` (`[{ name, label }]`), each with its colour from `colours`
- * (a Map from name to colour), pressed unless its name is in `hidden`. A click flips the button between pressed and
- * struck through and calls `onToggle(name)`. Fewer than two series leave `container` empty.
+ * (a Map from name to colour) in a swatch shaped as the chart draws it, `swatch` ("square" or "line"), pressed unless
+ * its name is in `hidden`. A click flips the button between pressed and struck through and calls `onToggle(name)`.
+ * Fewer than two series leave `container` empty.
  */
-export function mountLegend(container, series, colours, hidden, onToggle) {
+export function mountLegend(container, series, colours, hidden, onToggle, swatch = "square") {
   if (!hasLegend(series)) {
     container.replaceChildren();
     return;
   }
   const buttons = [];
   for (const { name, label } of series) {
-    buttons.push(legendButton(label, colours.get(name), hidden.has(name), () => onToggle(name)));
+    buttons.push(legendButton({ label, colour: colours.get(name), swatch }, hidden.has(name), () => onToggle(name)));
   }
   container.replaceChildren(...buttons);
 }
@@ -56,12 +57,12 @@ export function shownRows(rows, seriesColumn, hidden) {
 }
 
 /**
- * Place `legend`'s buttons just above `body` and draw the chart into `body` with `drawChart(hidden)`, nothing hidden
- * at first. Each click on a button hides or shows its series and calls `drawChart` again with the new hidden set; a
+ * Place `legend`'s buttons in the legend's place above `body` (`legendPlace`), their swatches shaped `swatch` ("square" or "line"), and draw the chart
+ * into `body` with `drawChart(hidden)`, nothing hidden at first. Each click on a button hides or shows its series and calls `drawChart` again with the new hidden set; a
  * chart whose every series is hidden shows a note instead, and a drawing after a click that fails shows its error in
  * `body`. A legend of fewer than two series is not placed. Settles when the first drawing has.
  */
-export async function drawWithLegend(body, legend, drawChart) {
+export async function drawWithLegend(body, legend, drawChart, swatch = "square") {
   let hidden = new Set();
   if (!hasLegend(legend.series)) {
     await drawChart(hidden);
@@ -76,10 +77,7 @@ export async function drawWithLegend(body, legend, drawChart) {
       showError(body, error);
     }
   }
-  const place = document.createElement("div");
-  place.className = "legend";
-  body.before(place);
-  mountLegend(place, legend.series, legend.colours, hidden, onToggle);
+  mountLegend(legendPlace(body), legend.series, legend.colours, hidden, onToggle, swatch);
   await drawShownSeries(body, legend, hidden, drawChart);
 }
 
@@ -96,16 +94,17 @@ async function drawShownSeries(body, legend, hidden, drawChart) {
   await drawChart(hidden);
 }
 
-function legendButton(label, colour, isHidden, onClick) {
+// A legend button for `entry`, `{ label, colour, swatch }`, its swatch a square or a short line.
+function legendButton(entry, isHidden, onClick) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "legend-button";
   // Pressed means shown: the button's state follows each click, as the hidden set does.
   button.setAttribute("aria-pressed", String(!isHidden));
   const swatch = document.createElement("span");
-  swatch.className = "legend-swatch";
-  swatch.style.background = colour;
-  button.append(swatch, label);
+  swatch.className = entry.swatch === "line" ? "legend-swatch is-line" : "legend-swatch";
+  swatch.style.background = entry.colour;
+  button.append(swatch, entry.label);
   button.addEventListener("click", () => flipAndCall(button, onClick));
   return button;
 }

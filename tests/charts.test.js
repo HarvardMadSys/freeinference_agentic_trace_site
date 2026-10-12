@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  captionText, categoryRowsFrame, chartFrame, colourScale, dropThinBins, foldToOther, MIN_ROWS_PER_BIN, sumFolded, weeksText,
+  categoryRowsFrame, chartFrame, colourScale, dropThinBins, foldToOther, MIN_ROWS_PER_BIN, sumFolded,
 } from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
@@ -59,21 +59,6 @@ test("counts that DuckDB returns as BigInt are compared like numbers", () => {
   assert.deepEqual(dropThinBins(rows, "requests"), { rows: [{ bin: "a", requests: 50n }], hidden: 1 });
 });
 
-test("a caption over several weeks gives their count", () => {
-  const weeks = Array.from({ length: 16 }, (_, index) => `week-${index}`);
-  const caption = captionText({ rows: 1186582, harnesses: "the paper's harnesses", weeks });
-  assert.equal(caption, "1,186,582 rows · the paper's harnesses · 16 weeks");
-});
-
-test("a caption over one week names its Sunday", () => {
-  assert.equal(captionText({ rows: 4100, harnesses: "codex", weeks: ["2026-08-09"] }), "4,100 rows · codex · 1 week (2026-08-09)");
-});
-
-test("a caption's weeks are counted, or the one week named by its Sunday", () => {
-  assert.equal(weeksText(["2026-08-02", "2026-08-09"]), "2 weeks");
-  assert.equal(weeksText(["2026-08-09"]), "1 week (2026-08-09)");
-});
-
 test("every chart starts from the same frame, as wide as its body", () => {
   const frame = chartFrame({ clientWidth: 300 });
   assert.equal(frame.width, 300);
@@ -90,10 +75,11 @@ test("a colour scale keeps each shown name's colour from the map, in the order s
   });
 });
 
-test("a chart of category rows is as tall as its rows need, with room for their names", () => {
+test("a chart of category rows is as tall as its rows need, with room for their names and none above them", () => {
   const frame = categoryRowsFrame({ clientWidth: 600 }, 15);
   assert.equal(frame.width, 600);
-  assert.equal(frame.height, 15 * 22 + 80);
+  assert.equal(frame.height, 15 * 22 + 56);
+  assert.equal(frame.marginTop, 8);
   assert.equal(frame.marginLeft, 116);
 });
 

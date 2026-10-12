@@ -51,8 +51,8 @@ test("the legend lists the rows' groups in the pipeline's order, each in its own
 });
 
 test("a narrow chart labels two ticks per panel, a wide one three", () => {
-  assert.deepEqual(turnTicks(300), [50, 100]);
-  assert.deepEqual(turnTicks(900), [10, 50, 100]);
+  assert.deepEqual(turnTicks(300), [25, 75]);
+  assert.deepEqual(turnTicks(900), [25, 50, 75]);
 });
 
 test("each scope is a bin of its calls, hidden whole when thin, and the caption counts each scope's calls", () => {

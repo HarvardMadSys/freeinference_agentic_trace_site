@@ -1,9 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import {
-  barOpacity, clickHint, columnTotal, labelledWeeks, tokenPartRows, weekTick,
-} from "../site/js/explore/trends.js";
+import { barOpacity, clickHint, columnTotal, tokenPartRows } from "../site/js/explore/trends.js";
 
 test("each week's input becomes three rows, cached first, in the weeks' order", () => {
   const weekRows = [
@@ -18,21 +16,6 @@ test("each week's input becomes three rows, cached first, in the weeks' order", 
     { week: "2026-06-07", part: "uncached", tokens: 4800 },
     { week: "2026-06-07", part: "unreported", tokens: 0 },
   ]);
-});
-
-test("the first week of each month is labelled", () => {
-  const weeks = [
-    { week: "2026-05-24", month: "2026-05" },
-    { week: "2026-05-31", month: "2026-05" },
-    { week: "2026-06-07", month: "2026-06" },
-    { week: "2026-06-14", month: "2026-06" },
-  ];
-  assert.deepEqual(labelledWeeks(weeks), ["2026-05-24", "2026-06-07"]);
-});
-
-test("a labelled week's tick is its Sunday's month and day, and any other week's tick is empty", () => {
-  assert.equal(weekTick("2026-08-09", ["2026-08-09"]), "08-09");
-  assert.equal(weekTick("2026-08-16", ["2026-08-09"]), "");
 });
 
 test("a selected week's bar is solid and any other is faint", () => {

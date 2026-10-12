@@ -8,10 +8,13 @@
  * figures. A cause, a transition and a gap bin have the same colour in every chart, from `theme/colours.js`.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, drawCdf, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, colourScale, drawCdf, TIP_STYLE } from "../shared/charts.js";
+import { durationTicks } from "../axes/ticks.js";
 import { causeColours, GAP_BIN_SLOTS, TRANSITION_COLOURS } from "../theme/colours.js";
-import { formatCount, formatSeconds, formatShare, MISSING_TEXT } from "../shared/format.js";
-import { cdfSeries, PLAIN_NUMBER_FORMAT, seriesLegend } from "./figure_rows.js";
+import {
+  formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare, MISSING_TEXT,
+} from "../shared/format.js";
+import { cdfSeries, seriesLegend } from "./figure_rows.js";
 
 // The gap bins' labels, shortest gap first, as the pipeline's `gaps.GAP_BINS` names them. tests/
 // test_pipeline_mirrors_caching.py checks them, the cause names and the three constants below against the pipeline.
@@ -45,10 +48,9 @@ const MEAN_HIT_RATIO_AXIS_LOW = 0.7; // the bars start here, as in the paper, so
 
 const HIT_RATIO_DOMAIN = Object.freeze([0, 1]); // a hit ratio runs from none of the input cached to all of it
 const CAUSE_MARGIN_LEFT = 116; // pixels; room for the longest cause name, "Ask-User Tool"
-const VALUE_MARGIN_RIGHT = 40; // pixels; room for a value written after a bar that reaches 1
+const VALUE_MARGIN_RIGHT = 48; // pixels; room for a value written after a bar that reaches 1, "100%"
 const VALUE_OFFSET = 4; // pixels between a bar's end and its value
 const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars
-const VALUE_DIGITS = 2; // a mean hit ratio is written with two decimals, as in the paper
 
 /** The gap figures of the Prefix-caching section, by name. */
 export const GAP_FIGURES = Object.freeze({
@@ -56,6 +58,8 @@ export const GAP_FIGURES = Object.freeze({
     name: "hit_ratio_cdf_by_gap_bin",
     title: "Hit ratio by gap before the request",
     definition: "CDF of the hit ratio (cached over input tokens) of requests in each of six bins of the gap before them (the wait since the previous request of their session ended), shortest gap lightest; a bin with too few requests to show a shape is hidden.",
+    caption: "Hit ratio of each request, by how long it waited since the previous one.",
+    drawsLines: true,
     query: "figures/hit_ratio_cdf_by_gap_bin",
     binColumn: "series",
     seriesColumn: "series",
@@ -66,6 +70,8 @@ export const GAP_FIGURES = Object.freeze({
     name: "gap_cdf_by_cause",
     title: "Gap before a request by cause",
     definition: "CDF of the gap before a request (the wait since the previous request of its session ended) by what it waited for, a gap under 0.1 s drawn at 0.1 s, on an axis that ends at a day.",
+    caption: "Gap before each request, by what it waited for.",
+    drawsLines: true,
     query: "figures/gap_cdf_by_cause",
     binColumn: "series",
     seriesColumn: "series",
@@ -75,7 +81,8 @@ export const GAP_FIGURES = Object.freeze({
   meanHitRatioByCause: Object.freeze({
     name: "mean_hit_ratio_by_cause",
     title: "Mean hit ratio by cause",
-    definition: "Mean hit ratio (cached over input tokens) of requests by what the gap before them waited for, on an axis from 0.7 to 1, where a mean below 0.7 is drawn ending at the axis, its value written beside it.",
+    definition: "Mean hit ratio (cached over input tokens) of requests by what the gap before them waited for, each bar starting at 70%, where a mean below 70% is drawn ending there, its value written beside it.",
+    caption: "Mean hit ratio of requests, by what the gap before them waited for.",
     query: "figures/mean_hit_ratio_by_cause",
     binColumn: "waited_for",
     draw: drawMeanHitRatioByCause,
@@ -95,6 +102,8 @@ export const GAP_FIGURES = Object.freeze({
     name: "hit_ratio_cdf_by_transition",
     title: "Hit ratio after a context change",
     definition: "CDF of the hit ratio (cached over input tokens) of requests that append to the context before them and of those that rewrite it (a mutation); requests that switch model or provider are not drawn, as in the paper.",
+    caption: "Hit ratio of requests that append to the context, and of those that rewrite it.",
+    drawsLines: true,
     query: "figures/hit_ratio_cdf_by_transition",
     binColumn: "series",
     seriesColumn: "series",
@@ -198,18 +207,20 @@ function mutationTableRow(line) {
 async function drawHitRatioByGapBin(rows, body, colours) {
   const series = cdfSeries(rows, GAP_BIN_LABELS);
   await drawCdf(body, series, {
-    xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, format: formatShare, colours: colours.series,
+    xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, xTickFormat: formatPercent, format: formatShare,
+    colours: colours.series,
   });
 }
 
 /** Draw one CDF line of the gap per cause, on a log axis of seconds from 0.1 s to a day. */
 async function drawGapByCause(rows, body, colours) {
   const series = cdfSeries(rows, Object.keys(CAUSE_NAMES), { labels: CAUSE_NAMES, floor: MIN_GAP_DRAWN_S });
+  const xDomain = [MIN_GAP_DRAWN_S, MAX_GAP_DRAWN_S];
   await drawCdf(body, series, {
-    xLabel: "Gap before the request (s)",
     logX: true,
-    xDomain: [MIN_GAP_DRAWN_S, MAX_GAP_DRAWN_S],
-    xTickFormat: PLAIN_NUMBER_FORMAT,
+    xDomain,
+    xTicks: durationTicks(xDomain),
+    xTickFormat: formatDurationTick,
     format: formatSeconds,
     colours: colours.series,
   });
@@ -219,11 +230,15 @@ async function drawGapByCause(rows, body, colours) {
 async function drawHitRatioByTransition(rows, body, colours) {
   const series = cdfSeries(rows, Object.keys(TRANSITION_NAMES), { labels: TRANSITION_NAMES });
   await drawCdf(body, series, {
-    xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, format: formatShare, colours: colours.series,
+    xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, xTickFormat: formatPercent, format: formatShare,
+    colours: colours.series,
   });
 }
 
-/** Draw one horizontal bar per cause from the axis's low end to its mean hit ratio, its value written after it. */
+/**
+ * Draw one horizontal bar per cause from the axis's low end to its mean hit ratio, its value written after it as a
+ * percentage; the values stand in for an x axis.
+ */
 async function drawMeanHitRatioByCause(rows, body) {
   // Plot is loaded here, not at the top, so node can test the section's figure list.
   const { Plot } = await import("../shared/libraries.js");
@@ -233,12 +248,10 @@ async function drawMeanHitRatioByCause(rows, body) {
     ...chartFrame(body),
     marginLeft: CAUSE_MARGIN_LEFT,
     marginRight: VALUE_MARGIN_RIGHT,
-    x: { domain: [MEAN_HIT_RATIO_AXIS_LOW, 1] },
+    x: { domain: [MEAN_HIT_RATIO_AXIS_LOW, 1], axis: null },
     y: { type: "band", domain: causes },
     color: colourScale(causeColours(), causes),
     marks: [
-      Plot.gridX(GRID_STYLE),
-      Plot.axisX({ ...AXIS_STYLE, label: "Mean hit ratio" }),
       Plot.axisY({ ...AXIS_STYLE, label: null, tickFormat: (cause) => CAUSE_NAMES[cause] }),
       Plot.barX(bars, { x1: MEAN_HIT_RATIO_AXIS_LOW, x2: "end", y: "cause", fill: "cause", inset: BAR_INSET }),
       Plot.text(bars, {
@@ -251,7 +264,7 @@ async function drawMeanHitRatioByCause(rows, body) {
 }
 
 function meanText(bar) {
-  return bar.mean.toFixed(VALUE_DIGITS);
+  return formatPercent(bar.mean);
 }
 
 function meanTipText(bar) {

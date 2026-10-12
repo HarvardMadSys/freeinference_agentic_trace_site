@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { formatSeconds, formatTokens } from "../site/js/shared/format.js";
-import { binsFromRows, cardDefinition, drawableBins, subtitle } from "../site/js/shared/histogram.js";
+import {
+  binsFromRows, cardTicks, drawableBins, maximumText, percentileEntries, rowsText,
+} from "../site/js/shared/histogram.js";
 
 const TOKENS_CARD = {
   title: "Input tokens per request",
@@ -13,26 +15,39 @@ const TOKENS_CARD = {
   max: 2000000,
   logScale: true,
   format: formatTokens,
+  countLabel: "Requests",
 };
 
-test("the subtitle gives n, the median, the 90th percentile and the maximum in the card's format", () => {
-  assert.equal(subtitle(TOKENS_CARD), "n = 1,186,582 · p50 129.1k · p90 512.3k · max 2M");
+test("the legend gives each percentile and the maximum in the card's format", () => {
+  assert.deepEqual(percentileEntries(TOKENS_CARD).map((entry) => entry.text), [
+    "p50 129.1k", "p75 260k", "p90 512.3k", "p95 801k",
+  ]);
+  assert.equal(maximumText(TOKENS_CARD), "max 2M");
 });
 
-test("the subtitle of a duration card formats its values as durations", () => {
-  const durationCard = {
-    ...TOKENS_CARD,
-    percentiles: { p50: 724, p75: 1800, p90: 3780, p95: 5400 },
-    count: 5321,
-    max: 42.5,
-    format: formatSeconds,
-  };
-  assert.equal(subtitle(durationCard), "n = 5,321 · p50 12m 04s · p90 1h 03m · max 42.5s");
+test("a duration card's legend writes its values as durations", () => {
+  const durationCard = { ...TOKENS_CARD, percentiles: { p50: 724, p75: 1800, p90: 3780, p95: 5400 }, max: 42.5,
+    format: formatSeconds };
+  assert.equal(percentileEntries(durationCard)[0].text, "p50 12m 04s");
+  assert.equal(maximumText(durationCard), "max 42.5s");
 });
 
-test("the subtitle of a card with no rows is just n = 0", () => {
+test("a card with no rows has an empty legend, and its line of rows says 0", () => {
   const emptyCard = { ...TOKENS_CARD, percentiles: { p50: null, p75: null, p90: null, p95: null }, count: 0, max: null };
-  assert.equal(subtitle(emptyCard), "n = 0");
+  assert.deepEqual(percentileEntries(emptyCard), []);
+  assert.equal(maximumText(emptyCard), "");
+  assert.equal(rowsText(emptyCard), "0 requests");
+});
+
+test("the line of rows counts the card's rows in its own noun", () => {
+  assert.equal(rowsText(TOKENS_CARD), "1,186,582 requests");
+});
+
+test("a log card ticks its powers of ten over its bins, or its own ticks; a linear card leaves them to Plot", () => {
+  const bins = [{ x0: 1, x1: 10, count: 5 }, { x0: 10, x1: 1000, count: 3 }];
+  assert.deepEqual(cardTicks({ ...TOKENS_CARD, bins }), [1, 10, 100, 1000]);
+  assert.deepEqual(cardTicks({ ...TOKENS_CARD, bins, ticks: () => [1, 3, 10] }), [1, 3, 10]);
+  assert.equal(cardTicks({ ...TOKENS_CARD, bins, logScale: false }), undefined);
 });
 
 test("bins keep the rows' order and become numbers", () => {
@@ -57,9 +72,4 @@ test("a log card draws only the bins that start above 0, a linear card every bin
   ];
   assert.deepEqual(drawableBins({ ...TOKENS_CARD, bins, logScale: true }), [{ x0: 2, x1: 4, count: 1 }]);
   assert.deepEqual(drawableBins({ ...TOKENS_CARD, bins, logScale: false }), bins);
-});
-
-test("a card's definition ends with its scale, log or linear", () => {
-  assert.equal(cardDefinition({ definition: "Tokens of each request.", logScale: true }), "Tokens of each request. Log scale.");
-  assert.equal(cardDefinition({ definition: "Cached over input.", logScale: false }), "Cached over input. Linear scale.");
 });

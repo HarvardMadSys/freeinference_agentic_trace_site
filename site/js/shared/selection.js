@@ -1,6 +1,6 @@
 /**
  * The selection of weeks and harnesses a page shows, the URL keys `weeks`, `month` and `harnesses` that hold it, and
- * the notes and caption text that describe it. The pickers that change it are in `explore/selection_pickers.js`.
+ * the notes and text that describe it, and the population every frozen figure draws. The pickers that change it are in `explore/selection_pickers.js`.
  *
  * A selection is `{ weeks, harnesses, unknownWeeks, unknownMonth, unknownHarnesses }`: the selected Sundays oldest
  * first, the selected harnesses in the order of `harnesses.json`, the weeks and harnesses the URL named that the data
@@ -10,6 +10,8 @@
  * benchmark, which is the paper's population; it writes no key to the URL. While the Explore page's figures are frozen,
  * the URL's keys filter the sessions table instead, as `explore/sessions_filter.js` reads them.
  */
+
+import { monthSpanText } from "./format.js";
 
 // A value of the URL key `weeks` that selects every week, as no key does; it is read, never written.
 export const EVERY_WEEK_VALUE = "all";
@@ -142,6 +144,17 @@ export function streamedWeeksText(streamedWeeks, weeks) {
     return `${loaded} of ${weeks.length} weeks loaded in your browser.`;
   }
   return `The newest ${loaded} of ${weeks.length} weeks loaded in your browser.`;
+}
+
+/**
+ * The population every figure draws while the figures are frozen, stated once under the Explore page's title: "All
+ * figures: the paper's harnesses, all 16 weeks, May to August 2026, and the benchmark replay where a legend names it."
+ */
+export function populationText(weeks, harnesses) {
+  const harnessWords = harnessesText(defaultHarnesses(harnesses), harnesses);
+  const months = monthSpanText(weeks[0].month, weeks.at(-1).month);
+  const weekWords = weeks.length === 1 ? "one week" : `all ${weeks.length} weeks`;
+  return `All figures: ${harnessWords}, ${weekWords}, ${months}, and the benchmark replay where a legend names it.`;
 }
 
 /** The harnesses a caption names: "the paper's harnesses", "every harness", the one harness, or "3 harnesses". */

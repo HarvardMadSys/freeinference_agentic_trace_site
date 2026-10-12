@@ -7,46 +7,63 @@
  */
 
 import { showError, showLoading } from "../shared/charts.js";
-import { formatCount, formatSeconds, formatShare, formatTokens } from "../shared/format.js";
+import { durationTicks } from "../axes/ticks.js";
+import {
+  formatCompactCount, formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare, formatTokens,
+} from "../shared/format.js";
 import { binsFromRows, mountHistogram } from "../shared/histogram.js";
 
 // What a log card adds to its definition when its quantity can be 0: a log axis has no place for 0.
-const ZERO_NOTE = "A value of 0 is counted in n and the percentiles but not drawn.";
+const ZERO_NOTE = "A value of 0 is counted in the rows and the percentiles but not drawn.";
 
-// Each card: its name (the prefix of its two query files), title, definition, what it counts, format and scale.
+// The subagents axis's ticks: a 1, 3, 10, 30 series is evenly spaced on a log axis, where 1, 2, 3, 10, 20, 30 is not.
+const SUBAGENT_TICKS = Object.freeze([1, 3, 10, 30]);
+
+// Each card: its name (the prefix of its two query files), title, caption, full definition, what it counts, how a
+// value and a tick are written, its scale and, where the powers of ten would not do, its ticks over a domain.
 const CARDS = Object.freeze([
   Object.freeze({
     name: "input_tokens", title: "Input tokens per request", countLabel: "Requests", format: formatTokens, logScale: true,
-    definition: `Prompt tokens of each top-level request. ${ZERO_NOTE}`,
+    caption: "Prompt tokens of each top-level request.",
+    definition: `Prompt tokens of each top-level request, on a log scale. ${ZERO_NOTE}`,
   }),
   Object.freeze({
     name: "uncached_tokens", title: "Uncached input tokens per request", countLabel: "Requests", format: formatTokens,
-    logScale: true,
-    definition: `Input minus cached tokens of each top-level request whose provider reports cache reads. ${ZERO_NOTE}`,
+    logScale: true, caption: "Input minus cached tokens, where the provider reports cache reads.",
+    definition: `Input minus cached tokens of each top-level request whose provider reports cache reads, on a log scale. ${ZERO_NOTE}`,
   }),
   Object.freeze({
     name: "output_tokens", title: "Output tokens per request", countLabel: "Requests", format: formatTokens, logScale: true,
-    definition: `Completion tokens of each top-level request. ${ZERO_NOTE}`,
+    caption: "Completion tokens of each top-level request.",
+    definition: `Completion tokens of each top-level request, on a log scale. ${ZERO_NOTE}`,
   }),
   Object.freeze({
     name: "requests_per_session", title: "Requests per session", countLabel: "Sessions", format: formatCount,
-    logScale: true, definition: "LLM requests of each top-level session, its subagents' not counted.",
+    tickFormat: formatCompactCount, logScale: true,
+    caption: "LLM requests of each top-level session, subagents excluded.",
+    definition: "LLM requests of each top-level session, its subagents' not counted, on a log scale.",
   }),
   Object.freeze({
-    name: "turns_per_session", title: "Turns per session", countLabel: "Sessions", format: formatCount, logScale: true,
-    definition: "User steps of each top-level session: the requests whose new input is a user message.",
+    name: "turns_per_session", title: "Turns per session", countLabel: "Sessions", format: formatCount,
+    tickFormat: formatCompactCount, logScale: true, caption: "User turns of each top-level session.",
+    definition: "User steps of each top-level session, the requests whose new input is a user message, on a log scale.",
   }),
   Object.freeze({
     name: "subagents_per_session", title: "Subagents per session", countLabel: "Sessions", format: formatCount,
-    logScale: true, definition: `Subagent sessions each top-level session spawned, at any depth. ${ZERO_NOTE}`,
+    logScale: true, ticks: () => SUBAGENT_TICKS,
+    caption: "Subagent sessions each top-level session spawned, at any depth.",
+    definition: `Subagent sessions each top-level session spawned, at any depth, on a log scale. ${ZERO_NOTE}`,
   }),
   Object.freeze({
-    name: "session_duration", title: "Session duration", countLabel: "Sessions", format: formatSeconds, logScale: true,
-    definition: "Each top-level session's last completion minus its first arrival.",
+    name: "session_duration", title: "Session duration", countLabel: "Sessions", format: formatSeconds,
+    tickFormat: formatDurationTick, ticks: durationTicks, logScale: true,
+    caption: "First arrival to last completion of each top-level session.",
+    definition: "Each top-level session's last completion minus its first arrival, on a log scale.",
   }),
   Object.freeze({
     name: "cached_fraction", title: "Cached fraction per request", countLabel: "Requests", format: formatShare,
-    logScale: false,
+    tickFormat: formatPercent, logScale: false,
+    caption: "Cached over input tokens, where the provider reports cache reads.",
     definition: "Cached over input tokens of each top-level request whose provider reports cache reads, at most 1.",
   }),
 ]);

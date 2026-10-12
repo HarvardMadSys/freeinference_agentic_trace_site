@@ -3,18 +3,16 @@
  * their input tokens per week split by whether the provider reports cache reads, over every week whatever the
  * selection. The selected weeks' bars are drawn solid, the others faint, and a click on a bar selects its week alone;
  * where the page gives no `context.onWeekClick` (null), a bar takes no click. Each chart's legend is a row of buttons
- * that hide and show its series (`explore/legend.js`).
+ * that hide and show its series (`explore/legend.js`). Each chart is a card of its own, laid out as the figure cards.
  *
  * A section's `context` is what the page gives every section; see `pages/explore.js`.
  */
 
-import {
-  captionText, drawBars, foldToOther, renderFigure, showError, showLoading, sumFolded,
-} from "../shared/charts.js";
+import { drawBars, foldToOther, renderFigure, showError, showLoading, sumFolded } from "../shared/charts.js";
+import { weekTickFormat } from "../axes/ticks.js";
 import { barColours, OTHER_SERIES, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { seriesLegend } from "../figures/figure_rows.js";
-import { formatTokens, monthAndDay } from "../shared/format.js";
-import { harnessesText, weeksByMonth } from "../shared/selection.js";
+import { formatCompactCount, formatQuantity, formatTokens } from "../shared/format.js";
 import { drawWithLegend, shownRows } from "./legend.js";
 
 // A bar of a week outside the selection is drawn at this opacity, so the selected weeks stand out.
@@ -29,24 +27,24 @@ const TOKEN_PARTS = Object.freeze([
 ]);
 
 // The label each part of a week's input tokens has in the legend.
-const TOKEN_PART_LABELS = Object.freeze({ cached: "Cached", uncached: "Uncached", unreported: "Unreported" });
+const TOKEN_PART_LABELS = Object.freeze({
+  cached: "Cached input", uncached: "Uncached input", unreported: "Not reported",
+});
 
 // The sentence every trend's definition ends with while a bar click selects a week: how the selection shows and how to
 // change it.
 const CLICK_HINT = "Faint bars are weeks outside the selection; click a bar to select its week alone.";
 
-/** Fill `container` with the places of the three trend charts, each loading: `{ sessions, requests, tokens }`. */
+/** Fill `container` with the cards of the three trend charts, each loading: `{ sessions, requests, tokens }`. */
 export function layoutTrends(container) {
-  const grid = document.createElement("div");
-  grid.className = "card-grid";
-  const sessions = document.createElement("div");
-  const requests = document.createElement("div");
-  const tokens = document.createElement("div");
+  const sessions = document.createElement("article");
+  const requests = document.createElement("article");
+  const tokens = document.createElement("article");
   for (const place of [sessions, requests, tokens]) {
+    place.className = "card";
     showLoading(place);
   }
-  grid.append(sessions, requests, tokens);
-  container.replaceChildren(grid);
+  container.replaceChildren(sessions, requests, tokens);
   return { sessions, requests, tokens };
 }
 
@@ -69,16 +67,6 @@ export function tokenPartRows(weekRows) {
     }
   }
   return rows;
-}
-
-/** The weeks whose tick is labelled: the first week of each month, so sixteen ticks never crowd a narrow chart. */
-export function labelledWeeks(weeks) {
-  return weeksByMonth(weeks).map((group) => group.weeks[0].week);
-}
-
-/** The text of a week's tick: its Sunday as "MM-DD" when it is among `labelled`, otherwise none. */
-export function weekTick(week, labelled) {
-  return labelled.includes(week) ? monthAndDay(week) : "";
 }
 
 /** The opacity of a bar, by its row's week: solid when the week is among `selectedWeeks`, faint otherwise. */
@@ -105,9 +93,9 @@ async function drawSessionsPerWeek(place, context) {
   const rows = await context.database.runQuery("explore/sessions_per_week_by_harness");
   const body = renderFigure(place, {
     title: "Sessions per week",
-    definition: "Top-level sessions per week, stacked by harness, of the selected harnesses."
-      + clickHint(context.onWeekClick),
-    caption: everyWeekCaption(columnTotal(rows, "sessions"), context),
+    caption: "Top-level sessions each week, by harness.",
+    definition: `Top-level sessions per week, stacked by harness.${clickHint(context.onWeekClick)}`,
+    rows: formatQuantity(columnTotal(rows, "sessions"), "session", "sessions"),
   });
   const order = harnessRows.map((row) => row.harness);
   const colours = barColours(order);
@@ -119,9 +107,9 @@ async function drawRequestsPerWeek(place, context) {
   const rows = await context.database.runQuery("explore/requests_per_week_by_model");
   const body = renderFigure(place, {
     title: "Requests per week",
-    definition: "Requests of the top-level sessions per week, stacked by model, of the selected harnesses."
-      + clickHint(context.onWeekClick),
-    caption: everyWeekCaption(columnTotal(rows, "requests"), context),
+    caption: "LLM requests of top-level sessions each week, by model.",
+    definition: `Requests of the top-level sessions per week, stacked by model.${clickHint(context.onWeekClick)}`,
+    rows: formatQuantity(columnTotal(rows, "requests"), "request", "requests"),
   });
   // The models' order, which every figure colours them by: the eight with most requests take the series colours.
   const order = modelRows.map((row) => row.model);
@@ -133,9 +121,10 @@ async function drawInputTokensPerWeek(place, context) {
   const rows = await context.database.runQuery("explore/input_tokens_per_week");
   const body = renderFigure(place, {
     title: "Input tokens per week",
-    definition: "Input tokens of the top-level requests per week, of the selected harnesses: cached and uncached where "
-      + `the provider reports cache reads, unreported where it does not.${clickHint(context.onWeekClick)}`,
-    caption: everyWeekCaption(columnTotal(rows, "requests"), context),
+    caption: "Input tokens each week: cached, uncached or not reported.",
+    definition: "Input tokens of the top-level requests per week: cached and uncached where the provider reports cache "
+      + `reads, not reported where it does not.${clickHint(context.onWeekClick)}`,
+    rows: formatQuantity(columnTotal(rows, "requests"), "request", "requests"),
   });
   await drawTrend(body, tokenPartRows(rows), context, {
     y: "tokens",
@@ -177,16 +166,13 @@ function weekBarOptions(context) {
   return {
     x: "week",
     stacked: true,
-    xLabel: "Week",
-    xTickFormat: (week) => weekTick(week, labelledWeeks(context.weeks)),
+    xLabel: null,
+    yAxisLabel: null, // the card's title names what the bars count
+    xTickFormat: weekTickFormat(context.weeks.map((entry) => entry.week)),
     xDomain: context.weeks.map((entry) => entry.week),
+    yTickFormat: formatCompactCount,
     fillOpacity: (row) => barOpacity(row, context.selection.weeks),
   };
-}
-
-function everyWeekCaption(rowCount, context) {
-  const harnesses = harnessesText(context.selection.harnesses, context.harnesses);
-  return captionText({ rows: rowCount, harnesses, weeks: context.weeks.map((entry) => entry.week) });
 }
 
 function selectPointedWeek(chart, onWeekClick) {

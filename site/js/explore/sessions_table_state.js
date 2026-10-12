@@ -5,24 +5,24 @@
  */
 
 import {
-  cachedShare, formatCount, formatOptionalShare, formatSeconds, formatTokens, MISSING_TEXT, shortSessionId, utcMinute,
+  cachedShare, formatCount, formatOptionalShare, formatSeconds, formatTokens, MISSING_TEXT, shortMinute, shortSessionId,
 } from "../shared/format.js";
 import { filterRows, searchRows, sortRows } from "../shared/table.js";
 
 // The table's sort when the URL names none: most input first.
 const DEFAULT_SORT = Object.freeze({ key: "input_tokens", direction: "descending" });
 
-// The table's columns: the row key each shows, its title, how its value is written, and whether it is a number.
+// The table's columns: the row key each shows, its title, how its value is written, and whether it is a number. A
+// session's week is not a column: its start gives it, and the month filter chooses by it; nor are its subagents, none
+// in almost every row, which the Session page counts: so the table fits a desktop card.
 // The session column gets its link when the table is drawn, since the link carries the selection.
 export const COLUMNS = Object.freeze([
   Object.freeze({ key: "session_id", title: "Session", format: shortSessionId }),
-  Object.freeze({ key: "week", title: "Week" }),
-  Object.freeze({ key: "first_start_ms", title: "Started (UTC)", format: utcMinute }),
+  Object.freeze({ key: "first_start_ms", title: "Started (UTC)", format: shortMinute }),
   Object.freeze({ key: "harness", title: "Harness", format: harnessText }),
   Object.freeze({ key: "main_model", title: "Main model", format: textOrMissing }),
   Object.freeze({ key: "requests", title: "Requests", format: formatCount, isNumber: true }),
   Object.freeze({ key: "turns", title: "Turns", format: formatCount, isNumber: true }),
-  Object.freeze({ key: "subagents", title: "Subagents", format: formatCount, isNumber: true }),
   Object.freeze({ key: "tool_calls", title: "Tool calls", format: formatCount, isNumber: true }),
   Object.freeze({ key: "duration_s", title: "Duration", format: formatSeconds, isNumber: true }),
   Object.freeze({ key: "input_tokens", title: "Input tokens", format: formatTokens, isNumber: true }),

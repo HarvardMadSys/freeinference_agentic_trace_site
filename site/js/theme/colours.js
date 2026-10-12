@@ -38,8 +38,8 @@ export const TOKEN_PART_COLOURS = Object.freeze({
  * tool category or a wait.
  */
 export const REQUEST_PART_COLOURS = Object.freeze({
-  ttft: "var(--color-text-muted)",
-  decode: "var(--color-text-faint)",
+  ttft: "var(--request-ttft)",
+  decode: "var(--request-rest)",
   whole: "var(--color-text-faint)",
 });
 

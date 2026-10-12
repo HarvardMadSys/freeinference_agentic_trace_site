@@ -93,8 +93,8 @@ test("a switch is marked too, and its tooltip names the transition alone", () =>
 
 test("a tooltip gives the agent, step, turn, time and tokens", () => {
   const points = requestPoints(TREE, REQUESTS);
-  assert.equal(pointTip(points[2]), "main · step 2 · turn 1\n+03:20\n1.8k input tokens: 1.5k cached, 300 uncached");
-  assert.equal(pointTip(points[3]), "main · step 3 · turn 2\n+05:00\n1.9k input tokens, no cache report");
+  assert.equal(pointTip(points[2]), "main · step 2 · turn 1\n3:20\n1.8k input tokens: 1.5k cached, 300 uncached");
+  assert.equal(pointTip(points[3]), "main · step 3 · turn 2\n5:00\n1.9k input tokens, no cache report");
 });
 
 test("the top-level line is the first series and subagents' lines a slot neither area split uses", () => {
