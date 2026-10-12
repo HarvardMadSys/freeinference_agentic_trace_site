@@ -31,7 +31,7 @@ its definition beside it:
 | Sessions | `context_share_by_role` | Share of input held by system, user, assistant, tool results and tool definitions, per bin of input size |
 | Sessions | `ttft_cdf_by_model` | CDF of TTFT per model, for the five models with most requests among the eight with most requests over every week, trusted TTFTs only |
 | Sessions | `decode_cdf_by_model` | CDF of latency minus TTFT per model, for the same models and requests |
-| Sessions | `session_time_by_part` | Each session's time split between model time, tool waits and human waits, sessions ranked by human share, in rank bins |
+| Sessions | `session_time_by_part` | Each session's time split between model time, tool waits and user waits, sessions ranked by user share, in rank bins |
 | Sessions | `speedup_if_twice_as_fast` | The session-time speed-up if prefill, decode or tool time alone ran twice as fast, with tool gaps capped as the pipeline caps them |
 | Benchmark against production | `turn_duration_by_scope` | CDF of turn duration, human-driven against benchmark, both medians and their ratio |
 | Benchmark against production | `session_duration_by_scope` | CDF of session duration, human-driven against benchmark |
@@ -84,13 +84,11 @@ on the page SHALL run a query in the browser.
 The Explore page SHALL list the top-level sessions of the answer as its
 last section, 50 rows a page, with the columns:
 - session (a shortened id, linked);
-- week;
 - started (UTC);
 - harness (the benchmark's marked as a benchmark replay);
 - main model;
 - requests;
 - turns;
-- subagents;
 - tool calls;
 - duration;
 - input tokens;
