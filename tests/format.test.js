@@ -5,7 +5,7 @@ import {
   cachedShare, elapsedSeconds, formatCount, formatDurationTick, formatElapsed, formatMultiple, formatOptionalShare,
   formatQuantity, formatSeconds, formatShare, formatTokens, monthName, shortSessionId, utcMinute,
   elapsedTickFormat, formatBinaryThousands, formatCompactCount, formatPercent, formatTtlName, monthAndDay,
-  monthSpanText, shortMinute, shortMonth, formatWholeCount,
+  dateSpanText, shortMinute, shortMonth, formatWholeCount,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -142,8 +142,7 @@ test("a date is written as its short month and day, or its month alone on a week
   assert.equal(shortMinute(Date.UTC(2026, 7, 31, 2, 44)), "Aug 31, 02:44");
 });
 
-test("a span of months names the year once when both share it", () => {
-  assert.equal(monthSpanText("2026-05", "2026-08"), "May to August 2026");
-  assert.equal(monthSpanText("2025-12", "2026-01"), "December 2025 to January 2026");
-  assert.equal(monthSpanText("2026-05", "2026-05"), "May 2026");
+test("a span of days names the year once when both share it", () => {
+  assert.equal(dateSpanText("2026-05-17", "2026-09-05"), "May 17 to September 5, 2026");
+  assert.equal(dateSpanText("2025-12-28", "2026-01-03"), "December 28, 2025 to January 3, 2026");
 });

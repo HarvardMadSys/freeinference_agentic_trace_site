@@ -236,9 +236,14 @@ test("a caption names the paper's harnesses, every harness, the one harness, or 
   assert.equal(harnessesText(["hermes", "codex"], HARNESSES), "2 harnesses");
 });
 
-test("the population every frozen figure draws names the paper's harnesses, the weeks and their months", () => {
+test("the population every frozen figure draws names the paper's harnesses, the weeks, their days and the unsimulated", () => {
   assert.equal(populationText(WEEKS, HARNESSES),
-    "All figures: the paper's harnesses, all 4 weeks, May to June 2026, and the benchmark replay where a legend names it.");
+    "All figures: the paper's harnesses, all 4 weeks (cache simulation: all but 2026-06-14), May 24 to June 20, 2026, "
+      + "and the benchmark replay where a legend names it.");
   assert.equal(populationText(WEEKS.slice(0, 1), HARNESSES),
-    "All figures: the paper's harnesses, one week, May 2026, and the benchmark replay where a legend names it.");
+    "All figures: the paper's harnesses, one week, May 24 to May 30, 2026, and the benchmark replay where a legend names it.");
+  assert.equal(populationText(WEEKS.slice(3), HARNESSES),
+    "All figures: the paper's harnesses, one week (no cache simulation), June 14 to June 20, 2026, "
+      + "and the benchmark replay where a legend names it.");
+  assert.equal(populationText([], HARNESSES), "");
 });

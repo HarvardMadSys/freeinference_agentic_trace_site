@@ -1,7 +1,7 @@
 /**
  * Numbers and names as every page shows them: counts, compact counts and token totals, durations and duration ticks,
  * elapsed time and its ticks, shares and whole percentages, multiples, a session's short id, a UTC minute, a week's month
- * and day and a span of months; and the two definitions they rest on, elapsed seconds and the cached share.
+ * and day and a span of days; and the two definitions they rest on, elapsed seconds and the cached share.
  */
 
 // A compact count is shown in the largest of these units it reaches.
@@ -203,19 +203,20 @@ export function monthName(month) {
   return firstDay.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
 }
 
-/** The months from `firstMonth` to `lastMonth`: "May to August 2026", "December 2025 to January 2026", "May 2026". */
-export function monthSpanText(firstMonth, lastMonth) {
-  if (firstMonth === lastMonth) {
-    return monthName(firstMonth);
-  }
-  const sameYear = firstMonth.slice(0, YEAR_LENGTH) === lastMonth.slice(0, YEAR_LENGTH);
-  const first = sameYear ? monthWithoutYear(firstMonth) : monthName(firstMonth);
-  return `${first} to ${monthName(lastMonth)}`;
+/**
+ * The days from `firstDay` to `lastDay` ("YYYY-MM-DD"), the year written once when both share it: "May 17 to September
+ * 5, 2026", "December 28, 2025 to January 3, 2026".
+ */
+export function dateSpanText(firstDay, lastDay) {
+  const sameYear = firstDay.slice(0, YEAR_LENGTH) === lastDay.slice(0, YEAR_LENGTH);
+  return `${longDate(firstDay, !sameYear)} to ${longDate(lastDay, true)}`;
 }
 
-function monthWithoutYear(month) {
-  const firstDay = new Date(`${month}-01T00:00:00Z`);
-  return firstDay.toLocaleDateString("en-US", { month: "long", timeZone: "UTC" });
+// A day as "September 5, 2026", or "September 5" without its year.
+function longDate(day, withYear) {
+  const date = new Date(`${day}T00:00:00Z`);
+  const parts = { month: "long", day: "numeric", timeZone: "UTC" };
+  return date.toLocaleDateString("en-US", withYear ? { ...parts, year: "numeric" } : parts);
 }
 
 function hoursAndMinutes(seconds) {
