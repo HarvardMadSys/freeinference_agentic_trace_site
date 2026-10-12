@@ -50,9 +50,9 @@ One page, `index.html`, in this order:
      change, context mutations by cause, prefill against storage, API
      cost by TTL, infrastructure cost by TTL.
    - Human-driven against benchmark: turn duration, session duration,
-     input per request, user prompt size (the two scope CDFs that have a
-     human-driven twin above keep their place here; the figure count
-     stays 29 plus the two histograms).
+     input per request (user prompt size sits in Sessions, since it has no
+     human-driven twin; 29 paper figures plus the two histograms make 31
+     cards).
    Each card: title, caption of at most twelve words, the definition of at
    most forty words and the rows behind the control.
 6. **Session list**: the table, sorted by start date descending, with
