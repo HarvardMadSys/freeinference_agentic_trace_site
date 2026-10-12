@@ -7,13 +7,13 @@ change is expected; if one is needed, `make data` and commit `site/data`.
 ## 1. The look and the frame
 
 - [x] 1.1 Tokens and typography: Open Data's palette and fonts in `style.css` for light; a retuned dark mode (dark paper, surfaces, inks); the eight series slots redrawn in both modes with more contrast and colour (each ≥ 3:1 on its card, hues spread, the same hue per slot in both modes), the part colours prefill blue, decode orange, tool green, user red as the paper's, the token-part colours from the slots; a contrast test over both modes; the monospace eyebrow style, card rule and radius; nothing under 14 px; `tests/colours.test.js` and the repository test follow.
-- [ ] 1.2 The sticky header with the brand, the affiliation, the in-page and external links; scroll margins on every anchored section; the Open Data footer. `tests/layout.test.js` follows.
+- [x] 1.2 The sticky header with the brand, the affiliation, the in-page and external links; scroll margins on every anchored section; the Open Data footer. `tests/layout.test.js` follows.
 
 ## 2. The landing page
 
-- [ ] 2.1 The hero (eyebrow, title with the crimson phrase, lede, four buttons) and the stats strip beside it, its numbers from the shipped answers and tested; the headline tiles and the population line go.
-- [ ] 2.2 The Overview: the model-mix donut from the `explore/model_mix` answer (eight named, Other) and the harness-mix donut from the sessions-per-week answer, with the shared colour orders and legends that toggle; the model-mix chips go; then the three trend cards.
-- [ ] 2.3 Cite (the paper's BibTeX with a copy button), Team (the authors, Harvard MadSys, the About paragraph with its links) and the footer, as the design lists; `site/about.html`, `js/pages/about.js` and `tests/test_about_page.py` go; "where the site draws more simply" moves to `docs/differences.md`; the restating-queries check moves into `tests/test_pipeline_mirrors.py`; README and CONTRIBUTING follow.
+- [x] 2.1 The hero (eyebrow, title with the crimson phrase, lede, four buttons) and the stats strip beside it, its numbers from the shipped answers and tested; the headline tiles and the population line go.
+- [x] 2.2 The Overview: the model-mix donut from the `explore/model_mix` answer (eight named, Other) and the harness-mix donut from the sessions-per-week answer, with the shared colour orders and legends that toggle; the model-mix chips go; then the three trend cards.
+- [x] 2.3 Cite (the paper's BibTeX with a copy button), Team (the authors, Harvard MadSys, the About paragraph with its links) and the footer, as the design lists; `site/about.html`, `js/pages/about.js` and `tests/test_about_page.py` go; "where the site draws more simply" moves to `docs/differences.md`; the restating-queries check moves into `tests/test_pipeline_mirrors.py`; README and CONTRIBUTING follow.
 
 ## 3. Figures regrouped and trimmed
 

@@ -23,8 +23,6 @@ and that the numbers below are the queries' and the pipeline's.
   every week, where the paper draws two fixed models, each with its decode
   time and an estimate of its queueing time; the site draws no queueing
   estimate.
-- **Session time by part**: model time, tool waits and user waits, where the
-  paper also splits model time into prefill and decode.
 - **Tool latency by category** and **Tool result size by category**:
   percentiles per category, where the paper also marks the mean.
 - **Hit ratio after an idle gap**: the pipeline's fixed idle-gap bins, each
