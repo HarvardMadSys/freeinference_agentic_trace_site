@@ -35,35 +35,30 @@ optionally with `&step=<step>` and `&view=requests|context|timeline`
 - **THEN** the page SHALL show its top-level session with that subagent's group expanded and scrolled into view
 
 ### Requirement: Session facts
-The Session page SHALL show a stat strip with:
-- harness and models (each with its number of requests);
-- started time (UTC) and duration;
-- turns and requests, the top-level session's and its subagents' given
-  apart;
-- subagents and tool calls;
-- input, cached and output tokens, and the cached share of input.
-
-A link SHALL return to the Explore page's sessions table with the selection,
-sort, filters and page the visitor came from.
+Beside the title, one card SHALL list the session's facts as labelled
+fields in three columns (one on a phone): harness;
+models, each with its requests; started (UTC); duration; turns; requests;
+input tokens; cached share with the cached tokens; output tokens;
+subagents; tool calls. A link SHALL lead back
+to the Explore page's session list with its state.
 
 #### Scenario: A session with subagents
-- **WHEN** the session spawned three subagents that made 40 requests in all
-- **THEN** the strip SHALL count three subagents and give the 40 requests apart from the top-level session's own
+- **WHEN** a session has three subagent sessions
+- **THEN** the subagents field SHALL read 3 and the requests field SHALL count the top-level session's own requests
 
 #### Scenario: Back to the table
-- **WHEN** the visitor opened the session from the table sorted by duration on page 2
-- **THEN** the back link SHALL open the Explore page at the sessions table, sorted by duration, on page 2
+- **WHEN** the visitor follows the back link
+- **THEN** the Explore page SHALL open at the session list with the same filters, sort and page
 
 ### Requirement: Requests view
 The Requests view SHALL list the requests in start order, one row per
 request. Each row SHALL show:
 - a label: "Turn N" for a user step, "↳ step S" for a tool step;
-- the elapsed time since the session's first request, from the request's
-  start to its end, in minutes and seconds (`0:07–0:12`), and in hours,
-  minutes and seconds from an hour on (`1:00–1:02:04`);
-- a horizontal bar of the request's input split into cached and uncached,
-  then its output, in three fixed colours, scaled to the largest request in
-  the session;
+- the elapsed time since the session's first request;
+- a horizontal bar of the request's cached input, uncached input and
+  output, in three fixed colours, scaled to the largest request in the
+  session; a request whose provider reports no cache reads SHALL count
+  its whole input as uncached, and no fourth part SHALL be drawn or named;
 - a chip for each tool call the request emitted, coloured by category,
   whose tooltip gives its name, category, programs when it has them, and
   outcome.
@@ -85,14 +80,11 @@ Clicking a row SHALL open its details:
 - finish reason;
 - its transition (append, mutation, switch) and cause;
 - what it waited for and for how long;
-- each tool call with its name, category, programs (a shell call's, in
-  the command's order, joined by commas; blank for other calls), outcome,
-  latency and result tokens, and under it, in monospace, its arguments
-  skeleton: the command with every value replaced by its type for a shell
-  call, the argument names and value types for any other.
+- each tool call with its name, category, programs, outcome, latency and
+  result tokens, and under it, in monospace, its arguments skeleton.
 
 #### Scenario: A shell call's programs
-- **WHEN** the visitor opens the details of a request whose shell call has the programs `nc`, `echo`, `echo` and the command skeleton `nc -z -w <num> <path> <num> && echo <str> || echo <str>`
+- **WHEN** the visitor opens the details of a request that ran `nc -z host 80 && echo up || echo down`
 - **THEN** that call's Programs cell SHALL read `nc, echo, echo`, and the line under it `nc -z -w <num> <path> <num> && echo <str> || echo <str>`
 
 #### Scenario: A native call's arguments
@@ -107,35 +99,37 @@ Clicking a row SHALL open its details:
 - **WHEN** two subagents' requests ran over overlapping intervals
 - **THEN** a bracket in the gutter SHALL join their rows
 
-### Requirement: Context view
-The Context view SHALL plot, against elapsed time since the session's first
-request:
-- the top-level session's input per request, as a stacked area of cached
-  and uncached tokens;
-- one context-trajectory line per agent: the top-level session in one
-  colour and each subagent in another, each line being that agent's input
-  tokens per request.
+#### Scenario: No cache report
+- **WHEN** a request's provider reports no cache reads
+- **THEN** its bar SHALL show its input as uncached and its output, and the legend SHALL name only cached input, uncached input and output
 
-A switch SHALL instead split the stacked area by role. Each turn's start and
-each request whose transition is a mutation or a switch SHALL be marked.
-Clicking a point SHALL open that request in the Requests view.
+### Requirement: Context view
+The Context view SHALL draw the top-level session's input tokens over
+elapsed time, split into cached and uncached (a request with no cache
+report counted as uncached) or by role, with each subagent's trajectory as
+its own line, mutations as dots and turn starts as dotted rules; a tooltip
+gives the request's parts. Under the chart a range slider with two handles
+over the session's elapsed time SHALL set the view's time range and
+redraw it, with ticks computed for the range.
 
 #### Scenario: A context mutation
-- **WHEN** step 12's transition is `mutation`
-- **THEN** the chart SHALL mark step 12, and its tooltip SHALL name the transition and its cause
+- **WHEN** a request's transition is a mutation
+- **THEN** a dot SHALL mark it on its agent's line, and the tooltip SHALL name the cause
+
+#### Scenario: Narrowing the time range
+- **WHEN** the visitor drags the slider's handles to the session's second hour
+- **THEN** the chart SHALL redraw over that hour only, with ticks for it, and the slider SHALL keep its handles where they were put
 
 ### Requirement: Timeline view
-The Timeline view SHALL draw a Gantt chart with one row per agent: the
-top-level session first, then each subagent in spawn order. Over elapsed
-time, each row SHALL show:
-- each request split into time to first token and the rest;
-- each tool call as a bar that starts at its request's end, lasts its
-  latency, and is coloured by category;
-- each wait before a request, coloured by what it waited for.
-
-The caption SHALL say that a tool call's start is taken as its request's
-end. Clicking a bar SHALL open that request in the Requests view.
+The Timeline view SHALL draw one row per agent with a bar per request
+over elapsed time, coloured by what the request waited for, with the
+tooltip and click of the Requests view; under it the same range slider as
+the Context view SHALL set the time range and redraw.
 
 #### Scenario: A long user wait
-- **WHEN** a request waited 20 minutes for the user
-- **THEN** the gap before it SHALL be drawn as a user wait, and its tooltip SHALL give the duration
+- **WHEN** a user turn follows a gap of an hour
+- **THEN** the gap SHALL be drawn in the user-wait colour between the two bars
+
+#### Scenario: Narrowing the time range
+- **WHEN** the visitor narrows the slider to one hour of a day-long session
+- **THEN** only the bars within that hour SHALL be drawn, clipped at the range's edges
