@@ -79,6 +79,15 @@ export function shownSessions(rows, state) {
   return sortRows(filterRows(found, conditions), state.sort.key, state.sort.direction);
 }
 
+/**
+ * The rows of `rows` whose harness is one of `harnesses`. The answer for the default selection holds every harness,
+ * the benchmark's included, so a table that lists the page's selection keeps only the selected harnesses' rows.
+ */
+export function rowsOfHarnesses(rows, harnesses) {
+  const selected = new Set(harnesses);
+  return rows.filter((row) => selected.has(row.harness));
+}
+
 /** The sort after a click on the column `key`: the same column reversed, or a new one, numbers largest first. */
 export function nextSort(sort, key) {
   if (sort.key === key) {

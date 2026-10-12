@@ -24,8 +24,8 @@ import {
   writeTableFilter,
 } from "./sessions_filter.js";
 import {
-  choices, COLUMNS, nextSort, readTableState, shownSessions, wholeNumberOrNull, withCachedShare, withFirstPage,
-  writeTableState,
+  choices, COLUMNS, nextSort, readTableState, rowsOfHarnesses, shownSessions, wholeNumberOrNull, withCachedShare,
+  withFirstPage, writeTableState,
 } from "./sessions_table_state.js";
 
 /** Show the loading state in `container`. */
@@ -64,7 +64,9 @@ export function linkedColumns(context, exploreParams) {
 
 async function drawSessions(place, context, filter) {
   const queryRows = await context.database.runQuery("explore/sessions_of_selection");
-  const rows = queryRows.map(withCachedShare);
+  // The table that filters itself lists every harness; otherwise it lists the page's selected harnesses alone.
+  const listed = filter === null ? rowsOfHarnesses(queryRows, context.selection.harnesses) : queryRows;
+  const rows = listed.map(withCachedShare);
   const tablePlace = document.createElement("div");
   const view = { rows, tablePlace, context, filter, disclosure: null, notePlace: document.createElement("div") };
   if (filter === null) {

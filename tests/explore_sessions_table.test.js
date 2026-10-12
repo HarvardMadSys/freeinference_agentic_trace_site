@@ -7,6 +7,7 @@ import {
   harnessText,
   nextSort,
   readTableState,
+  rowsOfHarnesses,
   shownSessions,
   withCachedShare,
   withFirstPage,
@@ -159,4 +160,14 @@ test("while the table filters itself, a row's link carries the Explore page's ke
 test("the benchmark's harness is marked as a benchmark replay", () => {
   assert.equal(harnessText("eval:swe-bench", { benchmark: true }), "eval:swe-bench (benchmark replay)");
   assert.equal(harnessText("codex", { benchmark: false }), "codex");
+});
+
+test("a table of the page's selection keeps only the selected harnesses' rows, the benchmark's left out", () => {
+  const rows = [
+    { session_id: "aaaa", harness: "codex" },
+    { session_id: "bbbb", harness: "eval:swe-bench" },
+    { session_id: "cccc", harness: "kilo" },
+  ];
+  const kept = rowsOfHarnesses(rows, ["codex", "kilo"]);
+  assert.deepEqual(kept.map((row) => row.session_id), ["aaaa", "cccc"]);
 });
