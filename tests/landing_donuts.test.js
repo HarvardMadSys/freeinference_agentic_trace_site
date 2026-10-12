@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { donutArcs, pointAt, ringSegmentPath, sliceShares } from "../site/js/landing/arcs.js";
@@ -91,4 +92,16 @@ test("each legend entry names its slice and its share of every slice", () => {
     { name: "glm", label: "glm 75.0%" },
     { name: "Other", label: "Other 25.0%" },
   ]);
+});
+
+test("the harness mix and the sessions trend draw the page's one answer of sessions per week, not their own", () => {
+  const query = "explore/sessions_per_week_by_harness";
+  const readers = ["landing/donuts.js", "explore/trends.js"];
+  for (const reader of readers) {
+    const text = readFileSync(new URL(`../site/js/${reader}`, import.meta.url), "utf8");
+    assert.ok(!text.includes(`runQuery("${query}")`), `${reader} asks for ${query} itself`);
+    assert.ok(text.includes("await context.sessionsPerWeekByHarness"), `${reader} reads the page's answer`);
+  }
+  const page = readFileSync(new URL("../site/js/pages/explore.js", import.meta.url), "utf8");
+  assert.equal(page.split(`runQuery("${query}")`).length - 1, 1, "the page asks for it once");
 });

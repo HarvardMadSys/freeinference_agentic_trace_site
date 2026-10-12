@@ -27,15 +27,17 @@
  * - `streamedWeeks`, the Sundays streamed in so far behind the switch (null when the page does not stream).
  * `orders` is `{ harnesses, models, categories, providers }`, the promised rows of `setup/harness_order`,
  * `setup/model_order`, `setup/category_order` and `setup/provider_order`, asked for once. A section runs as
- * `run(container, context)` with `context = { database, orders, selection, weeks, harnesses, onWeekClick,
- * replaceQuery, filterInTable }`, and lays out fresh places in its container each time, so a run that a newer one
- * replaced draws into places no longer on the page. `filterInTable` is whether the sessions table filters its rows by
- * month and harness itself, which it does while the figures are frozen.
+ * `run(container, context)` with `context = { database, orders, sessionsPerWeekByHarness, selection, weeks, harnesses,
+ * onWeekClick, replaceQuery, filterInTable }`, and lays out fresh places in its container each time, so a run that a
+ * newer one replaced draws into places no longer on the page. `sessionsPerWeekByHarness` is the promised rows of
+ * `explore/sessions_per_week_by_harness`, asked for once a run, since the harness mix and the sessions trend both draw
+ * them. `filterInTable` is whether the sessions table filters its rows by month and harness itself, which it does
+ * while the figures are frozen.
  */
 
 import { showError, showNote } from "../shared/charts.js";
 import { fetchHarnesses, fetchWeeks, openDatabase, STREAM_ROWS_AFTER_DRAW } from "../shared/database.js";
-import { renderFooter, renderHeader } from "../shared/layout.js";
+import { mountHeader, renderFooter } from "../shared/layout.js";
 import {
   defaultSelection, readSelection, selectionQuery, writeSelection,
 } from "../shared/selection.js";
@@ -87,7 +89,7 @@ async function start() {
   try {
     [weeks, harnesses] = await Promise.all([fetchWeeks(), fetchHarnesses()]);
   } catch (error) {
-    renderHeader(document.querySelector("#site-header"), PAGE_FILE, new URLSearchParams());
+    mountHeader(document.querySelector("#site-header"), PAGE_FILE, new URLSearchParams());
     renderHero(document.querySelector("#hero"), null);
     // Every section shows the error in its own place; the hidden card shows nothing.
     showErrorInEverySection(error);
@@ -167,9 +169,13 @@ async function runEverySection(page) {
   if (run !== page.latestRun) {
     return;
   }
+  const sessionsPerWeekByHarness = page.database.runQuery("explore/sessions_per_week_by_harness");
+  // Each section that awaits the rows shows a failure in its own place, not here.
+  sessionsPerWeekByHarness.catch(() => undefined);
   const context = {
     database: page.database,
     orders: page.orders,
+    sessionsPerWeekByHarness,
     selection,
     weeks: page.weeks,
     harnesses: page.harnesses,
@@ -222,7 +228,7 @@ function selectWeek(page, week) {
 function renderPageHeader() {
   // The brand's link carries every key of the URL, the sessions table's included, as the Session page's links do: a
   // visitor who follows it finds the table as it was.
-  renderHeader(document.querySelector("#site-header"), PAGE_FILE, new URLSearchParams(window.location.search));
+  mountHeader(document.querySelector("#site-header"), PAGE_FILE, new URLSearchParams(window.location.search));
 }
 
 function mountPicker(page) {

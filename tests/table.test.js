@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { cellContent, filterRows, pageRows, ROWS_PER_PAGE, searchRows, sortRows } from "../site/js/shared/table.js";
+import {
+  cellContent, filterRows, markMoreBeyondEdge, pageRows, ROWS_PER_PAGE, searchRows, sortRows,
+} from "../site/js/shared/table.js";
 
 const SESSIONS = [
   { id: "a1", harness: "claude-code", requests: 12 },
@@ -140,4 +142,23 @@ test("a column with an href links each cell to the address it gives for the row"
 test("a cell's format is given its row too, to write the value with another of the row's fields", () => {
   const column = { key: "requests", title: "Requests", format: (value, row) => `${value} of ${row.id}` };
   assert.deepEqual(cellContent(column, SESSIONS[1]), { text: `${SESSIONS[1].requests} of B2`, href: null });
+});
+
+// A stand-in row that scrolls sideways: `scrollWidth` of content in a box `clientWidth` wide, scrolled `scrollLeft`.
+function fakeRow(scrollLeft, clientWidth, scrollWidth) {
+  const classes = new Set();
+  const classList = { toggle: (name, isOn) => (isOn ? classes.add(name) : classes.delete(name)) };
+  return { scrollLeft, clientWidth, scrollWidth, classList, classes };
+}
+
+test("a row is marked while content lies beyond its right edge, and not once scrolled to the end or fitting", () => {
+  const start = fakeRow(0, 160, 334);
+  markMoreBeyondEdge(start);
+  assert.ok(start.classes.has("has-more-beyond-edge"));
+  const end = fakeRow(174, 160, 334);
+  markMoreBeyondEdge(end);
+  assert.ok(!end.classes.has("has-more-beyond-edge"));
+  const fitting = fakeRow(0, 400, 334);
+  markMoreBeyondEdge(fitting);
+  assert.ok(!fitting.classes.has("has-more-beyond-edge"));
 });

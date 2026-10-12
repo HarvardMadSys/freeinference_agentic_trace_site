@@ -1,5 +1,6 @@
 /**
- * A table the visitor sorts, searches, filters and pages in the browser.
+ * A table the visitor sorts, searches, filters and pages in the browser, and the fade at the right edge of a table, or
+ * of any row, that scrolls sideways.
  *
  * The pure functions take an array of row objects and return a new one; the
  * page chains them and passes the result to `mountTable`, which draws one page
@@ -59,8 +60,17 @@ export function mountTable(container, { columns, rows, sort, pageNumber, summary
   }
   container.append(wrap, pager(page, onPage));
   showSortedColumn(wrap);
-  markHiddenColumns(wrap);
-  wrap.addEventListener("scroll", () => markHiddenColumns(wrap));
+  markMoreBeyondEdge(wrap);
+  wrap.addEventListener("scroll", () => markMoreBeyondEdge(wrap));
+}
+
+/**
+ * Mark `element` with the class `has-more-beyond-edge` while its content lies beyond its right edge, so the page fades
+ * that edge to say it scrolls sideways: a table's columns, or the header's links on a phone.
+ */
+export function markMoreBeyondEdge(element) {
+  const isMoreBeyond = element.scrollLeft + element.clientWidth < element.scrollWidth - 1;
+  element.classList.toggle("has-more-beyond-edge", isMoreBeyond);
 }
 
 /**
@@ -85,11 +95,6 @@ function showSortedColumn(wrap) {
   if (sortedRightEdge > wrap.clientWidth) {
     wrap.scrollLeft = sortedRightEdge - wrap.clientWidth;
   }
-}
-
-/** Mark `wrap` while columns lie beyond its right edge, so the page fades that edge to say the table scrolls. */
-function markHiddenColumns(wrap) {
-  wrap.classList.toggle("has-hidden-columns", wrap.scrollLeft + wrap.clientWidth < wrap.scrollWidth - 1);
 }
 
 function compareValues(first, second, sign) {

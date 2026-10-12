@@ -12,7 +12,8 @@ Both SHALL share one sticky header: the brand, the affiliation "Harvard
 SEAS · MadSys Lab" linking to the lab, the in-page links Overview,
 Figures, Session list and Cite, and the external links Dataset, Paper, Code
 and Open Data (on a phone, the brand and the four in-page links alone, on
-one row). The header SHALL stay at the top while the page scrolls,
+one row that scrolls sideways, its right edge faded while more links lie
+beyond it). The header SHALL stay at the top while the page scrolls,
 and every anchored section SHALL land below it. There SHALL be no About
 page; the definitions live behind each card's control, the differences
 from the paper in the repository's `docs/differences.md`, and the credits

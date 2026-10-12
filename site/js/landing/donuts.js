@@ -1,6 +1,7 @@
 /**
- * The Overview's two donuts: the model mix, each model's share of the requests (`explore/model_mix`), and the harness
- * mix, each harness's share of the top-level sessions (`explore/sessions_per_week_by_harness`, summed over the weeks).
+ * The Overview's two donuts: the model mix, each model's share of the human-driven requests (`explore/model_mix`), and the harness
+ * mix, each harness's share of the human-driven sessions (`explore/sessions_per_week_by_harness`, which the page asks
+ * for once and the sessions trend draws too, summed over the weeks).
  * A donut names the series that hold the eight colours of its colour order (`setup/model_order`,
  * `setup/harness_order`), in those colours, as the trends colour them, and folds the rest into "Other"; its slices run
  * largest first, "Other" last. Its legend hides and shows a slice (`explore/legend.js`); once one is hidden, the shares
@@ -85,7 +86,7 @@ async function drawModelMix(place, context) {
 
 async function drawHarnessMix(place, context) {
   const orderRows = await context.orders.harnesses;
-  const rows = await context.database.runQuery("explore/sessions_per_week_by_harness");
+  const rows = await context.sessionsPerWeekByHarness; // the page asks for them once, for this and the sessions trend
   const order = orderRows.map((row) => row.harness);
   await drawMix(place, donutSlices(rows, "harness", "sessions", order), barColours(order), {
     title: "Harness mix",

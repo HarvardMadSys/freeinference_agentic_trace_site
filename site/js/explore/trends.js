@@ -88,7 +88,7 @@ export function clickHint(onWeekClick) {
 
 async function drawSessionsPerWeek(place, context) {
   const harnessRows = await context.orders.harnesses;
-  const rows = await context.database.runQuery("explore/sessions_per_week_by_harness");
+  const rows = await context.sessionsPerWeekByHarness; // the page asks for them once, for this and the harness mix
   const body = renderFigure(place, {
     title: "Sessions per week",
     caption: "Top-level sessions each week, by harness.",

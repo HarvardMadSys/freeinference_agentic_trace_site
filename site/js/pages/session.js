@@ -12,7 +12,7 @@ import { showError, showLoading, showNote } from "../shared/charts.js";
 import { toolCategoryColours } from "../theme/colours.js";
 import { fetchHarnesses, fetchWeeks, openDatabase } from "../shared/database.js";
 import { shortSessionId } from "../shared/format.js";
-import { renderFooter, renderHeader } from "../shared/layout.js";
+import { mountHeader, renderFooter } from "../shared/layout.js";
 import { selectionQuery } from "../shared/selection.js";
 
 // The title of each view's tab.
@@ -20,7 +20,7 @@ const VIEW_TITLES = Object.freeze({ requests: "Requests", context: "Context", ti
 
 const parameters = new URLSearchParams(window.location.search);
 const selection = selectionParameters(parameters);
-renderHeader(document.querySelector("#site-header"), "session.html", selection);
+mountHeader(document.querySelector("#site-header"), "session.html", selection);
 renderFooter(document.querySelector("#site-footer"), "session.html", selection);
 // The link back opens the Explore page at its sessions table, with the table's search, filters, sort and page.
 document.querySelector("#back-link").href = `index.html${selectionQuery(selection)}#sessions`;

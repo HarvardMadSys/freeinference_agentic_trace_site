@@ -7,6 +7,7 @@
  */
 
 import { selectionQuery } from "./selection.js";
+import { markMoreBeyondEdge } from "./table.js";
 
 /** Every address outside the site that a page links, each written once. */
 export const URLS = Object.freeze({
@@ -89,6 +90,18 @@ export function renderHeader(container, activeFile, carried) {
         ${externalLinks.join("")}
       </nav>
     </div>`;
+}
+
+/**
+ * Draw the site header into `container` as `renderHeader` does, and wire its links: on a phone they scroll sideways in
+ * one row, whose right edge fades while more links lie beyond it.
+ */
+export function mountHeader(container, activeFile, carried) {
+  renderHeader(container, activeFile, carried);
+  const nav = container.querySelector(".site-nav");
+  nav.addEventListener("scroll", () => markMoreBeyondEdge(nav));
+  // The observer also marks the row once when it starts, after its first layout.
+  new ResizeObserver(() => markMoreBeyondEdge(nav)).observe(nav);
 }
 
 /**

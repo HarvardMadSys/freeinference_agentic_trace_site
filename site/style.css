@@ -563,8 +563,8 @@ code,
 
 /*
  * On a narrow screen the header is one row: the brand and the four links to the page's sections, which scroll sideways
- * under a fade at the right edge. The links off the site are left out, since the hero and the footer carry them. The
- * footer's link lists sit side by side under the brand.
+ * under a fade at the right edge while more lie beyond it. The links off the site are left out, since the hero and the
+ * footer carry them. The footer's link lists sit side by side under the brand.
  */
 @media (max-width: 46rem) {
   :root {
@@ -594,7 +594,6 @@ code,
     border-top: none;
     overflow-x: auto;
     scrollbar-width: none;
-    mask-image: linear-gradient(90deg, #000 80%, transparent);
   }
 
   .footer-inner {
@@ -611,6 +610,14 @@ code,
 
   .footer-legal nav {
     justify-content: flex-start;
+  }
+}
+
+/* On the narrowest screens the header's brand is the name alone, its "agentic trace" kept in the footer's, so that
+   the first links show beside it and the fade at the row's edge reads as more to scroll to. */
+@media (max-width: 30rem) {
+  .site-header .brand em {
+    display: none;
   }
 }
 
@@ -1652,8 +1659,9 @@ button:disabled:hover {
   }
 }
 
-/* A wrap whose table has columns beyond its right edge fades that edge, to say the table scrolls sideways. */
-.table-wrap.has-hidden-columns {
+/* A table, or the header's row of links, with more beyond its right edge fades that edge, to say it scrolls sideways
+   (`markMoreBeyondEdge` in js/shared/table.js). */
+.has-more-beyond-edge {
   mask-image: linear-gradient(90deg, #000 calc(100% - 2.5rem), transparent);
 }
 
