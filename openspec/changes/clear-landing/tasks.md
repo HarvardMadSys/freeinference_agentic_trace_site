@@ -22,7 +22,7 @@ change is expected; if one is needed, `make data` and commit `site/data`.
 
 ## 4. The session list
 
-- [ ] 4.1 Default sort by start date descending; the month filter only (pills and "All months"), the harness pills and buttons gone, every harness listed with the benchmark marked in its cell; URL keys `months` kept, `harnesses` read and dropped; the columns as the design lists; a sticky header row; the table restyled to the look. `tests/explore_sessions_*.test.js` follow.
+- [ ] 4.1 Default sort by start date descending; one row of form controls: month, harness and model drop-downs, the search box and the minimum-requests field; the pills, buttons and folded disclosure gone; every harness listed by default with the benchmark marked in its cell and named in the drop-down; URL keys `months` and `harnesses` hold one value each; the columns as the design lists; a sticky header row; the table restyled to the look. `tests/explore_sessions_*.test.js` follow.
 
 ## 5. The Session page
 

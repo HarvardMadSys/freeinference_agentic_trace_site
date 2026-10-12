@@ -122,9 +122,11 @@ After the figures, a Session list SHALL list every top-level session of
 every harness, the benchmark replay marked in its harness cell, sorted by
 start date descending by default, 50 rows a page, with the columns
 Session (a shortened id, linked), Started (UTC), Harness, Model, Requests,
-Turns, Duration, Input tokens, Cached share. Above it, one row of controls:
-one pill per month and "All months", a search box, a model choice and a
-minimum number of requests. The visitor SHALL be able to sort by any
+Turns, Duration, Input tokens, Cached share. Above it, one row of plain form controls and nothing else: a month
+drop-down ("All months" and one entry per month), a harness drop-down
+("All harnesses" and one entry per harness, the benchmark replay
+named as such), a model drop-down, a search box and a minimum number of
+requests. There SHALL be no pills and no buttons. The visitor SHALL be able to sort by any
 column. The table SHALL keep its header row visible while it scrolls
 inside its wrap, SHALL fit its card at desktop width, and SHALL keep the
 filters, sort and page in the URL. Clicking a row SHALL open the Session
@@ -139,8 +141,8 @@ page.
 - **THEN** only sessions with at least 100 requests SHALL be listed, with the count shown as matching over total
 
 #### Scenario: Filtering to a month and a harness
-- **WHEN** the visitor ticks only July 2026
-- **THEN** the table SHALL list July 2026's sessions of every harness, the URL SHALL read `?months=2026-07`, and every figure SHALL be unchanged
+- **WHEN** the visitor picks July 2026 in the month drop-down and `codex` in the harness drop-down
+- **THEN** the table SHALL list July 2026's `codex` sessions, the URL SHALL read `?months=2026-07&harnesses=codex`, and every figure SHALL be unchanged
 
 #### Scenario: The benchmark
 - **WHEN** the table draws

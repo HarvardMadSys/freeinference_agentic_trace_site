@@ -48,10 +48,12 @@ One page, `index.html`, in this order:
      stays 29 plus the two histograms).
    Each card: title, caption of at most twelve words, the definition of at
    most forty words and the rows behind the control.
-6. **Session list**: the table, sorted by start date descending, with a
-   month filter (one pill per month, "All months"), the search box and
-   the model and minimum-requests controls, over every harness; the
-   benchmark replay marked in its cell. Columns: Session, Started, Harness,
+6. **Session list**: the table, sorted by start date descending, with
+   one row of plain form controls: a month drop-down, a harness drop-down
+   (the benchmark replay named as such), a model drop-down, the search
+   box and the minimum-requests field; no pills, no buttons, no folded
+   disclosure. Every harness is listed by default, the benchmark replay
+   marked in its cell. Columns: Session, Started, Harness,
    Model, Requests, Turns, Duration, Input tokens, Cached share. A sticky
    header row inside the wrap; no sticky first column.
 7. **Cite**: the BibTeX of the paper in a block with a copy button, as

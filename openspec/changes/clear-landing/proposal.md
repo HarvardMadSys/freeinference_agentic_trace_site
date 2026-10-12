@@ -33,8 +33,9 @@ Crimson Text and Inter on warm paper.
   cost, Latency, Tools, Prefix caching, Human-driven against benchmark.
   The eight histogram cards go; the two with no CDF twin join their
   sections.
-- **The session list** sorts by start date, newest first, filters by month
-  only, shows every harness with the benchmark marked, and is restyled.
+- **The session list** sorts by start date, newest first, filters through
+  plain drop-downs (month, harness, model) and a search box, shows every
+  harness with the benchmark marked, and is restyled; no pills or buttons.
 - **The Session page** shows its facts as one card with labelled fields
   beside the title, names three token parts (cached input, uncached
   input, output), and gets a time-range slider on the Context and
