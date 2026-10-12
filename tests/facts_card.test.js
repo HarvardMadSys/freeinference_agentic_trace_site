@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { requestsPerModel, sessionFacts } from "../site/js/session/facts.js";
+import { requestsPerModel, sessionFacts } from "../site/js/session/facts_card.js";
 
 const TOP_LEVEL = {
   depth: 0, harness: "claude-code", first_start_ms: Date.UTC(2026, 7, 9, 14, 3, 59),
@@ -33,7 +33,7 @@ test("a session's subagents and their requests are given apart from the top-leve
 test("token totals and the cached share cover every agent", () => {
   const values = factValues([TOP_LEVEL, SUBAGENT], [{ model: "model-x" }]);
   assert.equal(values["Input tokens"][0], "10k");
-  assert.deepEqual(values["Cached share"], ["60%", "6k cached tokens"]);
+  assert.deepEqual(values["Cached share"], ["60%", "6k cached"]);
   assert.equal(values["Output tokens"][0], "600");
 });
 
@@ -49,20 +49,23 @@ test("a session with no cache-reporting input has no cached share", () => {
   assert.equal(values["Cached share"][0], "—");
 });
 
-test("the start is the UTC minute and the models carry their requests", () => {
+test("the start is the UTC minute and the models are lines, each with its requests", () => {
   const requests = [{ model: "model-y" }, { model: "model-x" }, { model: "model-y" }];
   const values = factValues([TOP_LEVEL], requests);
-  assert.deepEqual(values["Started"], ["2026-08-09", "14:03 UTC"]);
+  assert.deepEqual(values["Started"], ["2026-08-09 14:03 UTC", ""]);
   assert.deepEqual(values["Harness"], ["claude-code", ""]);
-  assert.deepEqual(values["Models"], ["2", [{ text: "model-y", note: "2" }, { text: "model-x", note: "1" }]]);
+  assert.deepEqual(values["Models"], [[{ text: "model-y", note: "2" }, { text: "model-x", note: "1" }], ""]);
 });
 
-test("no tile's detail restates its label, and the Models tile alone is wide", () => {
+test("the card lists the eleven fields in order, and no detail restates its label", () => {
   const facts = sessionFacts([TOP_LEVEL], [{ model: "model-x" }]);
+  assert.deepEqual(facts.map((fact) => fact.label), [
+    "Harness", "Models", "Started", "Duration", "Turns", "Requests", "Subagents", "Tool calls", "Input tokens",
+    "Cached share", "Output tokens",
+  ]);
   for (const label of ["Harness", "Duration", "Subagents", "Input tokens", "Output tokens"]) {
     assert.equal(facts.find((fact) => fact.label === label).detail, "", label);
   }
-  assert.deepEqual(facts.filter((fact) => fact.isWide).map((fact) => fact.label), ["Models"]);
 });
 
 test("models with as many requests are in name order", () => {

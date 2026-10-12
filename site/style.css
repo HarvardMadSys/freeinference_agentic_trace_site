@@ -946,19 +946,6 @@ button.is-primary {
 
 /* ---------- Session views ---------- */
 
-/* The Session page's stat strip holds a dozen tiles' worth, so its tiles are closer and its values smaller. */
-.session-facts .stat-strip {
-  gap: 0.75rem;
-}
-
-.session-facts .stat {
-  padding: 0.75rem 1rem;
-}
-
-.session-facts .stat-value {
-  font-size: 1.25rem;
-}
-
 /* The full id under a session's title, secondary to it: long and unbroken, so it may wrap anywhere. */
 .session-id {
   margin: 0;
@@ -1320,13 +1307,11 @@ button.is-primary {
   }
 
   /* Two tiles share a phone's width: a value such as 1,125,604 or 2026-08-02 must fit one line of a tile. */
-  .stat,
-  .session-facts .stat {
+  .stat {
     padding: 0.75rem;
   }
 
-  .stat-value,
-  .session-facts .stat-value {
+  .stat-value {
     font-size: 1.125rem;
   }
 
@@ -1356,5 +1341,55 @@ button.is-primary {
   .details {
     margin-left: 0;
     padding: 0.75rem;
+  }
+}
+
+/* ---------- Session facts ---------- */
+
+/* The Session page's title beside its facts card on a wide screen; the card under the title on a narrow one. */
+.session-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 30rem);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* The facts card: labelled fields in two columns. */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 1.25rem;
+  margin: 0;
+}
+
+.fact dt {
+  font-size: var(--font-size-smallest);
+  font-weight: 500;
+  color: var(--color-text-faint);
+}
+
+.fact dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.fact-line {
+  display: block;
+}
+
+.fact-detail {
+  font-size: var(--font-size-smallest);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.fact dd > .fact-detail {
+  display: block;
+}
+
+@media (max-width: 50rem) {
+  .session-heading {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
