@@ -37,10 +37,12 @@ test("a duration tick is in the largest unit it reaches, to one decimal at most"
   assert.equal(formatDurationTick(604800), "7 d");
 });
 
-test("a multiple has the decimals asked for and a times sign", () => {
+test("a multiple has a times sign and the decimals asked for, or is written as it is", () => {
   assert.equal(formatMultiple(1.3757185, 2), "1.38×");
   assert.equal(formatMultiple(3.1066, 1), "3.1×");
   assert.equal(formatMultiple(1, 2), "1.00×");
+  assert.equal(formatMultiple(2), "2×");
+  assert.equal(formatMultiple(0.4), "0.4×");
 });
 
 test("elapsed time is minutes and seconds, with hours when needed", () => {

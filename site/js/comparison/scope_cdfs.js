@@ -138,10 +138,13 @@ export function scopeMedians(rows, floor) {
   return drawn.sort((first, second) => first.median - second.median);
 }
 
-/** The ratio of the medians as it is written, "3.1×", when the rows hold both scopes; else null. */
+/**
+ * The ratio of the medians as it is written, "3.1×", when the rows hold both scopes and a finite ratio (the query has
+ * none when the smaller median is zero); else null.
+ */
 export function medianRatioText(rows) {
   const present = new Set(rows.map((row) => row.series));
-  if (SCOPES.some((series) => !present.has(series))) {
+  if (SCOPES.some((series) => !present.has(series)) || !Number.isFinite(rows[0].median_ratio)) {
     return null;
   }
   return formatMultiple(rows[0].median_ratio, RATIO_DECIMALS);

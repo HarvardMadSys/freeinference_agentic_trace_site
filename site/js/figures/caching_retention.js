@@ -10,8 +10,8 @@
 
 import { AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
 import { SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
-import { formatTokens } from "../shared/format.js";
-import { decadeTicks, multipleText, seriesLegend } from "./figure_rows.js";
+import { formatMultiple, formatTokens } from "../shared/format.js";
+import { decadeTicks, seriesLegend } from "./figure_rows.js";
 import { SCOPE_LABELS, scopeLegend } from "../comparison/scopes.js";
 
 // tests/test_pipeline_mirrors_caching.py checks the TTL names and the labelled TTLs below against the pipeline.
@@ -55,6 +55,7 @@ const COST_PART_COLOURS = Object.freeze({
 const COST_AXIS_TTLS = Object.freeze(["1s", "10s", "1m", "10m", "1h", "1d"]); // the TTLs a cost figure's axis names
 const COST_AXIS_HEADROOM = 1.1; // a cost axis ends a tenth above the highest stack, as the paper's does
 const COST_AXIS_TICKS = 5; // about this many ticks on a cost axis
+const MULTIPLE_DECIMALS = 2; // a multiple in a tooltip or a callout: 0.65×
 
 const MARKER_RADIUS = 3; // pixels; the small marker of each TTL's point
 const CALLOUT_RADIUS = 5; // pixels; the hollow marker on the TTL a cost figure calls out
@@ -172,11 +173,11 @@ export function costStacks(rows, labels) {
     for (const part of Object.keys(labels).reverse()) {
       const row = ttlRows.find((one) => one.part === part);
       if (row !== undefined) {
-        lines.push(`${labels[part]} ${row.cost_multiple.toFixed(2)}×`);
+        lines.push(`${labels[part]} ${formatMultiple(row.cost_multiple, MULTIPLE_DECIMALS)}`);
         top += row.cost_multiple;
       }
     }
-    lines.push(`Total ${ttlRows[0].total_multiple.toFixed(2)}×`);
+    lines.push(`Total ${formatMultiple(ttlRows[0].total_multiple, MULTIPLE_DECIMALS)}`);
     stacks.push({ seconds: ttlRows[0].ttl_seconds, ttl, top, text: lines.join("\n") });
   }
   return stacks;
@@ -192,7 +193,7 @@ export function calloutPoint(rows, stacks, flag, word) {
     return null;
   }
   const stack = stacks.find((one) => one.ttl === marked.ttl);
-  const text = `${word} ${marked.total_multiple.toFixed(2)}× at ${marked.ttl}`;
+  const text = `${word} ${formatMultiple(marked.total_multiple, MULTIPLE_DECIMALS)} at ${marked.ttl}`;
   return { seconds: stack.seconds, top: stack.top, text };
 }
 
@@ -215,7 +216,7 @@ async function drawPrefillAgainstStorage(rows, body, colours) {
       Plot.axisX(decadeTicks(domain), {
         ...AXIS_STYLE, label: "Mean retained tokens", labelArrow: "none", text: formatTokens,
       }),
-      Plot.axisY(PREFILL_TICKS, { ...AXIS_STYLE, label: "Normalised prefill", labelArrow: "none", text: multipleText }),
+      Plot.axisY(PREFILL_TICKS, { ...AXIS_STYLE, label: "Normalised prefill", labelArrow: "none", text: multipleTick }),
       Plot.line(points, { x: "retained", y: "prefill", stroke: "scope", strokeWidth: LINE_WIDTH }),
       Plot.dot(points, { x: "retained", y: "prefill", fill: "scope", r: MARKER_RADIUS }),
       ...ttlNameMarks(Plot, points),
@@ -237,7 +238,7 @@ function ttlNameMarks(Plot, points) {
 }
 
 function prefillTipText(point) {
-  const prefill = `prefill ${point.prefill.toFixed(2)}× the no-TTL floor`;
+  const prefill = `prefill ${formatMultiple(point.prefill, MULTIPLE_DECIMALS)} the no-TTL floor`;
   return `${SCOPE_LABELS[point.scope]}\nTTL ${point.label}\n${prefill}\n${formatTokens(point.retained)} tokens retained`;
 }
 
@@ -263,7 +264,7 @@ async function drawCostByTtl(rows, body, colours, { labels, flag, word }) {
       Plot.gridX(ticks, { ...GRID_STYLE, x: "seconds" }),
       Plot.gridY({ ...GRID_STYLE, ticks: COST_AXIS_TICKS }),
       Plot.axisX(ticks, { ...AXIS_STYLE, x: "seconds", label: null, text: "ttl" }),
-      Plot.axisY({ ...AXIS_STYLE, label: null, ticks: COST_AXIS_TICKS, tickFormat: multipleText }),
+      Plot.axisY({ ...AXIS_STYLE, label: null, ticks: COST_AXIS_TICKS, tickFormat: multipleTick }),
       Plot.areaY(rows, { x: "ttl_seconds", y: "cost_multiple", fill: "part", order: parts }),
       Plot.ruleY([1], { ...AXIS_STYLE, strokeDasharray: DASH }),
       ...calloutMarks(Plot, callout, highestCost),
@@ -289,4 +290,9 @@ function calloutMarks(Plot, callout, highestCost) {
     Plot.dot(placed, { x: "seconds", y: "top", r: CALLOUT_RADIUS, strokeWidth: LINE_WIDTH, ...ink }),
     Plot.text(placed, { x: "seconds", y: "textAt", text: "text", lineAnchor: "bottom", ...halo }),
   ];
+}
+
+// A multiple as an axis writes it, as it is; Plot also passes a tick's index, which is no number of decimals.
+function multipleTick(multiple) {
+  return formatMultiple(multiple);
 }

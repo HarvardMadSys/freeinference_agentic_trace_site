@@ -4,8 +4,8 @@
 -- Per row: `series` (`Agentic`, human-driven, or `SWE-Bench`, the benchmark, the pipeline's scope names), the token
 -- count `x` at which the share `share` of the scope's requests is reached, and, the same on every row of a scope,
 -- `rows` (its requests) and `median` (its median input); `median_ratio`, the same on every row, is the larger median
--- over the smaller, and missing unless both scopes have requests. Each scope has 201 points, `share` running evenly
--- from 0 to 1 in steps of 1/200.
+-- over the smaller, and missing when the smaller is zero or unless both scopes have requests. Each scope has 201
+-- points, `share` running evenly from 0 to 1 in steps of 1/200.
 WITH request_inputs AS (
   SELECT CASE WHEN harness IN (SELECT harness FROM benchmark_harness) THEN 'SWE-Bench' ELSE 'Agentic' END AS series,
          prompt_tokens AS tokens
@@ -24,7 +24,7 @@ quantiles AS (
   GROUP BY series
 ),
 median_ratio AS (
-  SELECT CASE WHEN count(*) = 2 THEN max(median) / min(median) END AS median_ratio
+  SELECT CASE WHEN count(*) = 2 THEN max(median) / nullif(min(median), 0) END AS median_ratio -- none over a zero
   FROM quantiles
 )
 SELECT quantiles.series,

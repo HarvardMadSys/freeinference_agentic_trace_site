@@ -193,11 +193,6 @@ export function decadeTicks([low, high]) {
   return ticks;
 }
 
-/** A multiple as an axis writes it: 2 → "2×". */
-export function multipleText(multiple) {
-  return `${multiple}×`;
-}
-
 // Each bin's name and count, `[{ name, count }]`, in the order the bins first appear in the rows.
 function binCounts(rows, binColumn) {
   const counts = new Map();

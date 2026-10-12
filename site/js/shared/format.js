@@ -93,9 +93,10 @@ export function formatShare(share) {
   return `${(share * 100).toFixed(1)}%`;
 }
 
-/** A multiple with `decimals` decimals and a times sign: (1.3757, 2) → "1.38×". */
+/** A multiple and a times sign, with `decimals` decimals when given, else as it is: (1.3757, 2) → "1.38×"; 2 → "2×". */
 export function formatMultiple(multiple, decimals) {
-  return `${multiple.toFixed(decimals)}×`;
+  const digits = decimals === undefined ? String(multiple) : multiple.toFixed(decimals);
+  return `${digits}×`;
 }
 
 /** A share as `formatShare` writes it, or "—" for a missing share (null), such as a share of nothing. */

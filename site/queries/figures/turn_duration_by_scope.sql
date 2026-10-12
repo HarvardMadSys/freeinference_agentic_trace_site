@@ -4,8 +4,8 @@
 -- request's start. Per row: `series` (`Agentic`, human-driven, or `SWE-Bench`, the benchmark, the pipeline's scope
 -- names), the duration `x` in seconds at which the share `share` of the scope's turns is reached, and, the same on
 -- every row of a scope, `rows` (its turns) and `median` (its median duration); `median_ratio`, the same on every row,
--- is the larger median over the smaller, and missing unless both scopes have turns. Each scope has 201 points, `share`
--- running evenly from 0 to 1 in steps of 1/200.
+-- is the larger median over the smaller, and missing when the smaller is zero or unless both scopes have turns. Each
+-- scope has 201 points, `share` running evenly from 0 to 1 in steps of 1/200.
 WITH scoped_requests AS (
   SELECT week,
          session_id,
@@ -33,7 +33,7 @@ quantiles AS (
   GROUP BY series
 ),
 median_ratio AS (
-  SELECT CASE WHEN count(*) = 2 THEN max(median) / min(median) END AS median_ratio
+  SELECT CASE WHEN count(*) = 2 THEN max(median) / nullif(min(median), 0) END AS median_ratio -- none over a zero
   FROM quantiles
 )
 SELECT quantiles.series,

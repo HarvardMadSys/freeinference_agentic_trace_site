@@ -120,6 +120,26 @@ def test_a_scope_cdf_s_human_driven_half_is_the_sessions_cdf(connection: duckdb.
     assert rows[rows.series == population.AGENTIC].x.tolist() == sessions_rows[sessions_rows.series == series].x.tolist()
 
 
+ZERO_MEDIAN_WEEK = "2026-06-07"  # the week of the rows below
+# Requests, (harness, input tokens): the human-driven scope's median input is zero, the benchmark's 10.
+ZERO_MEDIAN_REQUESTS = [("pi", 0), ("pi", 0), ("pi", 5), (population.BENCHMARK_HARNESS, 10)]
+
+
+def test_a_ratio_over_a_zero_median_is_missing() -> None:
+    harnesses, inputs = zip(*ZERO_MEDIAN_REQUESTS)
+    requests = pyarrow.table({
+        "week": [ZERO_MEDIAN_WEEK] * len(inputs), "harness": list(harnesses), "is_top_level": [True] * len(inputs),
+        "prompt_tokens": list(inputs),
+    })
+    connection = site_database.database_of_rows(requests, pyarrow.table({"week": [ZERO_MEDIAN_WEEK]}))
+    connection.execute(site_database.statement_text("setup/insert_benchmark_harness"), [population.BENCHMARK_HARNESS])
+    site_database.select_weeks(connection, [ZERO_MEDIAN_WEEK], ["pi"])
+    rows = site_database.run_query(connection, "figures/input_per_request_by_scope")
+    connection.close()
+    assert rows.groupby("series")["median"].first().to_dict() == {population.AGENTIC: 0, population.SWE_BENCH: 10}
+    assert rows.median_ratio.isna().all()
+
+
 def one_call_database(category: str, programs: list[str] | None) -> duckdb.DuckDBPyConnection:
     """A database holding one top-level request of a paper harness, the only one of its turn, which made one call of
     `category` that ran `programs`; its week and harness are selected."""

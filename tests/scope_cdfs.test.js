@@ -29,6 +29,8 @@ test("the ratio of the medians is written with one decimal, and only while both 
   assert.equal(medianRatioText(ROWS), "376.6×");
   assert.equal(medianRatioText(ROWS.filter((row) => row.series === "SWE-Bench")), null);
   assert.equal(medianRatioText([]), null);
+  assert.equal(medianRatioText(ROWS.map((row) => ({ ...row, median_ratio: null }))), null);
+  assert.equal(medianRatioText(ROWS.map((row) => ({ ...row, median_ratio: Infinity }))), null);
 });
 
 test("a scope CDF's legend lists the scopes of the rows, human-driven first, in their colours", () => {

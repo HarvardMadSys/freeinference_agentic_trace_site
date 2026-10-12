@@ -9,7 +9,7 @@ import {
   calloutPoint, costLegend, costStacks, prefillPoints, retainedDomain, ttlLabel,
 } from "../site/js/figures/caching_retention.js";
 import { scopeLegend } from "../site/js/comparison/scopes.js";
-import { decadeTicks, multipleText } from "../site/js/figures/figure_rows.js";
+import { decadeTicks } from "../site/js/figures/figure_rows.js";
 import { assignColours, causeColours, OTHER_SERIES } from "../site/js/theme/colours.js";
 
 // The colours every figure shares, as the page gives a legend function: the providers in their fixed order.
@@ -105,7 +105,6 @@ test("the retained-tokens axis runs from half the fewest to three times the most
   assert.deepEqual(domain, [1_950, 306_000_000]);
   assert.deepEqual(decadeTicks(domain), [1e4, 1e5, 1e6, 1e7, 1e8]);
   assert.deepEqual(decadeTicks([1, 100]), [1, 10, 100]);
-  assert.equal(multipleText(2), "2×");
 });
 
 test("the scope legend lists the paper's harnesses as human-driven, then the benchmark, each in its colour", () => {
