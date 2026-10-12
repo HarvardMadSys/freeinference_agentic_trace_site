@@ -27,9 +27,9 @@ change is expected; if one is needed, `make data` and commit `site/data`.
 
 ## 5. The Session page
 
-- [ ] 5.1 The facts card beside the title with labelled fields; the tiles go; `tests/facts.test.js` follows.
-- [ ] 5.2 Three token parts everywhere on the page (cached input, uncached input, output; unreported cache counted as uncached); the Requests bar, legend, details and the Context areas and tooltips; the ten pinned tests follow.
-- [ ] 5.3 The range slider on the Context and Timeline views: a brush strip under the chart setting the x domain and redrawing; `elapsedTicks` over a start and an end; node tests of the range arithmetic.
+- [x] 5.1 The facts card beside the title with labelled fields; the tiles go; `tests/facts.test.js` follows.
+- [x] 5.2 Three token parts everywhere on the page (cached input, uncached input, output; unreported cache counted as uncached); the Requests bar, legend, details and the Context areas and tooltips; the ten pinned tests follow.
+- [x] 5.3 The range slider on the Context and Timeline views: a brush strip under the chart setting the x domain and redrawing; `elapsedTicks` over a start and an end; node tests of the range arithmetic.
 
 ## 6. Done
 
