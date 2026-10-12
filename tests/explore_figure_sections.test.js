@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  drawFigureSeries, figureColours, figuresToStart, newFigureRun, noteVisibility,
+  drawFigureSeries, figureColours, figuresToStart, newFigureRun, noteVisibility, runDrawsAtOnce,
 } from "../site/js/explore/figure_sections.js";
 import { SERIES_SLOTS } from "../site/js/theme/colours.js";
 
@@ -26,6 +26,22 @@ const CONTEXT = { selection: { weeks: ["2026-07-05"], harnesses: ["hermes"] } };
 function names(figureList) {
   return figureList.map((figure) => figure.name);
 }
+
+// The weeks and harnesses of `CONTEXT`'s page: its selection is narrowed to one week.
+const PAGE = {
+  weeks: [{ week: "2026-06-28" }, { week: "2026-07-05" }],
+  harnesses: [{ harness: "hermes", benchmark: false }, { harness: "eval:swe-bench", benchmark: true }],
+};
+
+test("a page that draws every run at once draws a narrowed selection's run at once", () => {
+  assert.equal(runDrawsAtOnce(true, { ...PAGE, ...CONTEXT }), true);
+});
+
+test("a page that draws in view draws a narrowed selection in view, and the default selection at once", () => {
+  assert.equal(runDrawsAtOnce(false, { ...PAGE, ...CONTEXT }), false);
+  const everyWeek = { weeks: ["2026-06-28", "2026-07-05"], harnesses: ["hermes"] };
+  assert.equal(runDrawsAtOnce(false, { ...PAGE, selection: everyWeek }), true);
+});
 
 test("a new run carries its context and has started no figure", () => {
   const run = newFigureRun(CONTEXT, false);

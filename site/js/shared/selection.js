@@ -39,6 +39,17 @@ export function readSelection(params, weeks, harnesses) {
   };
 }
 
+/** The default selection: every week of `weeks.json` and the default harnesses, nothing unknown asked for. */
+export function defaultSelection(weeks, harnesses) {
+  return {
+    weeks: weeks.map((entry) => entry.week),
+    harnesses: defaultHarnesses(harnesses),
+    unknownWeeks: [],
+    unknownMonth: null,
+    unknownHarnesses: [],
+  };
+}
+
 /** The harnesses selected by default: every harness of `harnesses.json` but the benchmark, in its order. */
 export function defaultHarnesses(harnesses) {
   return harnesses.filter((entry) => !entry.benchmark).map((entry) => entry.harness);
@@ -60,10 +71,7 @@ export function isDefaultHarnessChoice(selectedHarnesses, harnesses) {
  * `scope` key is dropped. A URL without these keys opens on the default.
  */
 export function writeSelection(params, selection, weeks, harnesses) {
-  const written = new URLSearchParams(params);
-  for (const key of SELECTION_KEYS) {
-    written.delete(key);
-  }
+  const written = withoutSelection(params);
   if (selection.weeks.length > 0 && !holdsAllWeeks(selection.weeks, weeks)) {
     writeWeeks(written, selection.weeks, weeks);
   }
@@ -71,6 +79,15 @@ export function writeSelection(params, selection, weeks, harnesses) {
     written.set("harnesses", selection.harnesses.join(","));
   }
   return written;
+}
+
+/** A copy of `params` without the keys a selection is written in (`weeks`, `month`, `harnesses`, `scope`). */
+export function withoutSelection(params) {
+  const kept = new URLSearchParams(params);
+  for (const key of SELECTION_KEYS) {
+    kept.delete(key);
+  }
+  return kept;
 }
 
 /** The query string of `params` for the address bar: "?" and the keys, commas left plain; "" for no keys. */

@@ -17,7 +17,11 @@ stay as they are for `make data`, which fills them once with every week
 and the paper's harnesses; nothing in the browser fills them any more
 except the Session page's `selected_session`. The Explore page's time to
 draw stays what it is (under a second) and its transfer falls from about
-68 MB to under 2 MB per visit.
+68 MB to under 2 MB per visit. Measured with the switch on (headless
+Chromium, `serve.py`, which does not compress): a visit to `/` makes 127
+requests and transfers 5.3 MB, 4.2 MB of it the sessions table's answer,
+with no `.wasm` and no `.parquet`; gzipped, as a static host serves JSON,
+its own files come to 0.94 MB, plus 0.34 MB of chart libraries.
 
 ## The sessions table's filter
 

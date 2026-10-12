@@ -3,11 +3,13 @@
  * section's grid, drawn for the selected weeks and harnesses, its thin bins hidden and its caption written.
  *
  * With the default selection every figure is drawn at once, from its precomputed answer. With any other, a figure's
- * query starts when its card comes into view, and a figure started for the current run is not started again.
+ * query starts when its card comes into view, and a figure started for the current run is not started again. A page
+ * that draws every run at once, whatever the selection, watches no card.
  *
- * `figures` is what the page keeps of them: `{ cards, places, run, visibleNames }`, every figure with its card
- * (`[{ figure, card }]`), the places of the latest layout by figure name (`{ body, caption }`), the current run
- * (`newFigureRun`; null from a layout until its run starts), and the names of the figures whose cards are in view.
+ * `figures` is what the page keeps of them: `{ cards, places, run, visibleNames, drawsEveryRunAtOnce }`, every figure
+ * with its card (`[{ figure, card }]`), the places of the latest layout by figure name (`{ body, caption }`), the
+ * current run (`newFigureRun`; null from a layout until its run starts), the names of the figures whose cards are in
+ * view, and whether every run draws all its figures at once.
  * Each layout makes fresh places, so a run that a newer one replaced draws into places no longer on the page. A run's
  * `context` is what the page gives every section; see `pages/explore.js`. Each figure shows its own loading state,
  * error or note.
@@ -39,11 +41,15 @@ const NO_ROWS_NOTE = "No rows for this selection.";
 const ALL_THIN_NOTE = `Too few rows: every bin of this selection has fewer than ${MIN_ROWS_PER_BIN} rows.`;
 
 /**
- * Place a card for every figure of every section and watch which cards are in view; return what the page keeps of the
- * figures, nothing laid out yet.
+ * Place a card for every figure of every section and, unless `drawsEveryRunAtOnce`, watch which cards are in view;
+ * return what the page keeps of the figures, nothing laid out yet.
  */
-export async function mountFigureSections() {
-  const figures = { cards: await placeCards(), places: new Map(), run: null, visibleNames: new Set() };
+export async function mountFigureSections(drawsEveryRunAtOnce = false) {
+  const cards = await placeCards();
+  const figures = { cards, places: new Map(), run: null, visibleNames: new Set(), drawsEveryRunAtOnce };
+  if (drawsEveryRunAtOnce) {
+    return figures;
+  }
   const onReport = (entries) => noteCardsInView(figures, entries);
   const observer = new IntersectionObserver(onReport, { rootMargin: IN_VIEW_MARGIN });
   for (const { card } of figures.cards) {
@@ -82,13 +88,20 @@ export function showErrorInFigures(figures, error) {
 
 /**
  * Start a run of the figures for `context`'s selection, in the places of the latest layout: every figure at once for
- * the default selection, else those in view now and the others as they come into view. Settles when the figures
- * started now are drawn.
+ * the default selection or a page that draws every run at once, else those in view now and the others as they come
+ * into view. Settles when the figures started now are drawn.
  */
 export async function runFigures(figures, context) {
-  const drawsAtOnce = isDefaultSelection(context.selection, context.weeks, context.harnesses);
-  figures.run = newFigureRun(context, drawsAtOnce);
+  figures.run = newFigureRun(context, runDrawsAtOnce(figures.drawsEveryRunAtOnce, context));
   await Promise.all(startFigures(figures));
+}
+
+/**
+ * Whether a run for `context` draws every figure at once: always when the page draws every run at once
+ * (`drawsEveryRunAtOnce`), else only for the default selection.
+ */
+export function runDrawsAtOnce(drawsEveryRunAtOnce, context) {
+  return drawsEveryRunAtOnce || isDefaultSelection(context.selection, context.weeks, context.harnesses);
 }
 
 /** A run of the figures for `context`: drawn all at once when `drawsAtOnce`, else as they come into view; none started. */

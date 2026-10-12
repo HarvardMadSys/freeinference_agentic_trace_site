@@ -9,6 +9,11 @@
  * section again. Once the first run has drawn, the database streams the weeks' rows in, and the picker's note counts
  * the weeks streamed.
  *
+ * While `FIGURES_ARE_FROZEN`, the page shows the default selection whatever the URL says: it mounts no picker, hides
+ * the selection's card, leaves the URL as it is, answers every section from its precomputed file, draws every figure
+ * at once, takes no click on a trend bar, and starts neither DuckDB nor the stream; its header's links carry no
+ * selection.
+ *
  * `page` is what the page owns: `{ weeks, harnesses, selection, database, orders, figures, latestRun, streamedWeeks }`:
  * - `weeks` and `harnesses`, the entries of `weeks.json` and `harnesses.json`;
  * - `selection`, the current selection, and `database`, the database;
@@ -28,7 +33,9 @@
 import { showError, showNote } from "../shared/charts.js";
 import { fetchHarnesses, fetchWeeks, openDatabase, STREAM_ROWS_AFTER_DRAW } from "../shared/database.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
-import { readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
+import {
+  defaultSelection, readSelection, selectionQuery, withoutSelection, writeSelection,
+} from "../shared/selection.js";
 import { layoutDistributions, runDistributions } from "../explore/distributions.js";
 import {
   layoutFigures, mountFigureSections, runFigures, showErrorInFigureSections, showErrorInFigures, showNoteInFigures,
@@ -37,6 +44,11 @@ import { layoutHeadline, runHeadline } from "../explore/headline.js";
 import { mountSelection, showStreamedWeeks } from "../explore/selection_pickers.js";
 import { layoutSessionsTable, runSessionsTable, withFirstPage } from "../explore/sessions_table.js";
 import { layoutTrends, runTrends } from "../explore/trends.js";
+
+// Whether every section and figure is frozen on its precomputed answer for every week and the paper's harnesses:
+// true mounts no picker and starts neither DuckDB nor the stream; false lets the visitor pick weeks and harnesses, and
+// the browser computes every section for them.
+export const FIGURES_ARE_FROZEN = true;
 
 // The page's own file, which the header marks as the current page.
 const PAGE_FILE = "index.html";
@@ -58,6 +70,9 @@ start();
 /** Draw everything `weeks.json` and `harnesses.json` allow, then run the sections. */
 async function start() {
   renderFooter(document.querySelector("#site-footer"));
+  if (FIGURES_ARE_FROZEN) {
+    document.querySelector("#selection").hidden = true;
+  }
   let weeks;
   let harnesses;
   try {
@@ -70,8 +85,9 @@ async function start() {
     return;
   }
   const params = new URLSearchParams(window.location.search);
-  const selection = readSelection(params, weeks, harnesses);
-  const database = openDatabase(new URL("data/", window.location.href).href, weeks, harnesses);
+  const selection = FIGURES_ARE_FROZEN ? defaultSelection(weeks, harnesses) : readSelection(params, weeks, harnesses);
+  const dataUrl = new URL("data/", window.location.href).href;
+  const database = openDatabase(dataUrl, weeks, harnesses, { answersOnly: FIGURES_ARE_FROZEN });
   // The orders cover every week and harness, so they do not change with the selection; a section awaits its own.
   const orders = {
     harnesses: database.runQuery("setup/harness_order"),
@@ -85,14 +101,28 @@ async function start() {
   }
   const streamedWeeks = STREAM_ROWS_AFTER_DRAW ? [] : null;
   const page = { weeks, harnesses, selection, database, orders, figures: null, latestRun: 0, streamedWeeks };
-  // The URL is written back in its shortest form: a key that says the default, or names no known week, goes.
-  replaceQuery(writeSelection(params, selection, weeks, harnesses));
-  mountPicker(page);
+  showSelectionAndHeader(page, params);
   // The pickers are drawn first; the figure modules load and their cards are placed after.
-  page.figures = mountFigureSections();
+  page.figures = mountFigureSections(FIGURES_ARE_FROZEN);
   await runEverySection(page);
   scrollToAnchor();
-  await database.streamRows((progress) => showStreamed(page, progress.streamedWeeks));
+  if (!FIGURES_ARE_FROZEN) {
+    await database.streamRows((progress) => showStreamed(page, progress.streamedWeeks));
+  }
+}
+
+/**
+ * Write the URL's selection back in its shortest form, which draws the header, and mount the pickers; while the
+ * figures are frozen, draw the header alone and leave the URL as it is.
+ */
+function showSelectionAndHeader(page, params) {
+  if (FIGURES_ARE_FROZEN) {
+    renderPageHeader();
+    return;
+  }
+  // A key that says the default, or names no known week, goes.
+  replaceQuery(writeSelection(params, page.selection, page.weeks, page.harnesses));
+  mountPicker(page);
 }
 
 /**
@@ -132,7 +162,8 @@ async function runEverySection(page) {
     selection,
     weeks: page.weeks,
     harnesses: page.harnesses,
-    onWeekClick: (week) => selectWeek(page, week),
+    // Frozen, the selection never changes, so a trend bar takes no click.
+    onWeekClick: FIGURES_ARE_FROZEN ? null : (week) => selectWeek(page, week),
     replaceQuery,
   };
   const sectionRuns = SECTIONS.map((section) => section.run(sectionElement(section), context));
@@ -178,8 +209,10 @@ function selectWeek(page, week) {
 
 function renderPageHeader() {
   // The header's links carry every key of the URL, the sessions table's included, as the Session page's do: a visitor
-  // who follows Explore or About and comes back finds the table as it was.
-  renderHeader(document.querySelector("#site-header"), PAGE_FILE, new URLSearchParams(window.location.search));
+  // who follows Explore or About and comes back finds the table as it was. Frozen, the page has no selection to carry.
+  const params = new URLSearchParams(window.location.search);
+  const carried = FIGURES_ARE_FROZEN ? withoutSelection(params) : params;
+  renderHeader(document.querySelector("#site-header"), PAGE_FILE, carried);
 }
 
 function mountPicker(page) {

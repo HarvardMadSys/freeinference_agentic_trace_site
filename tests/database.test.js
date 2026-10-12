@@ -113,6 +113,27 @@ test("another selection, and a query before any selection, start DuckDB and fetc
   assert.deepEqual(asked.filter((file) => file.startsWith("data/all_weeks/")), []);
 });
 
+test("a database that answers only from files answers a narrowed selection's query from its file", async (context) => {
+  const asked = [];
+  const files = { "data/all_weeks/explore/headline_numbers.json": ANSWER_TEXT };
+  context.mock.method(globalThis, "fetch", fakeFetch(files, asked));
+  const database = openDatabase("http://localhost:8000/data/", WEEKS, HARNESSES, { answersOnly: true });
+  // node cannot load the CDN's DuckDB module, so filling the selection tables here would reject.
+  await database.setSelection({ weeks: ["2026-05-24"], harnesses: ["swe-bench"] });
+  assert.deepEqual(await database.runQuery("explore/headline_numbers"), JSON.parse(ANSWER_TEXT));
+  assert.deepEqual(asked, ["data/all_weeks/explore/headline_numbers.json"]);
+});
+
+test("a database that answers only from files streams nothing", async (context) => {
+  const asked = [];
+  context.mock.method(globalThis, "fetch", fakeFetch({}, asked));
+  const warn = context.mock.method(console, "warn", () => undefined);
+  const progress = [];
+  const database = openDatabase("http://localhost:8000/data/", WEEKS, HARNESSES, { answersOnly: true });
+  await database.streamRows((update) => progress.push(update));
+  assert.deepEqual([asked, progress, warn.mock.callCount()], [[], [], 0]);
+});
+
 test("streaming the rows is switched on or off by one boolean", () => {
   assert.equal(typeof STREAM_ROWS_AFTER_DRAW, "boolean");
 });

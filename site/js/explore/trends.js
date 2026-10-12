@@ -1,8 +1,9 @@
 /**
  * The weekly trends: top-level sessions per week stacked by harness, their requests per week stacked by model, and
  * their input tokens per week split by whether the provider reports cache reads, over every week whatever the
- * selection. The selected weeks' bars are drawn solid, the others faint, and a click on a bar selects its week alone.
- * Each chart's legend is a row of buttons that hide and show its series (`explore/legend.js`).
+ * selection. The selected weeks' bars are drawn solid, the others faint, and a click on a bar selects its week alone;
+ * where the page gives no `context.onWeekClick` (null), a bar takes no click. Each chart's legend is a row of buttons
+ * that hide and show its series (`explore/legend.js`).
  *
  * A section's `context` is what the page gives every section; see `pages/explore.js`.
  */
@@ -30,7 +31,8 @@ const TOKEN_PARTS = Object.freeze([
 // The label each part of a week's input tokens has in the legend.
 const TOKEN_PART_LABELS = Object.freeze({ cached: "Cached", uncached: "Uncached", unreported: "Unreported" });
 
-// The sentence every trend's definition ends with: how the selection shows and how to change it.
+// The sentence every trend's definition ends with while a bar click selects a week: how the selection shows and how to
+// change it.
 const CLICK_HINT = "Faint bars are weeks outside the selection; click a bar to select its week alone.";
 
 /** Fill `container` with the places of the three trend charts, each loading: `{ sessions, requests, tokens }`. */
@@ -84,6 +86,11 @@ export function barOpacity(row, selectedWeeks) {
   return selectedWeeks.includes(row.week) ? 1 : UNSELECTED_BAR_OPACITY;
 }
 
+/** The end of every trend's definition: " " and the click hint when a bar click selects a week, else nothing. */
+export function clickHint(onWeekClick) {
+  return onWeekClick === null ? "" : ` ${CLICK_HINT}`;
+}
+
 /** The sum of `row[column]` over `rows`. */
 export function columnTotal(rows, column) {
   let total = 0;
@@ -98,7 +105,8 @@ async function drawSessionsPerWeek(place, context) {
   const rows = await context.database.runQuery("explore/sessions_per_week_by_harness");
   const body = renderFigure(place, {
     title: "Sessions per week",
-    definition: `Top-level sessions per week, stacked by harness, of the selected harnesses. ${CLICK_HINT}`,
+    definition: "Top-level sessions per week, stacked by harness, of the selected harnesses."
+      + clickHint(context.onWeekClick),
     caption: everyWeekCaption(columnTotal(rows, "sessions"), context),
   });
   const order = harnessRows.map((row) => row.harness);
@@ -111,8 +119,8 @@ async function drawRequestsPerWeek(place, context) {
   const rows = await context.database.runQuery("explore/requests_per_week_by_model");
   const body = renderFigure(place, {
     title: "Requests per week",
-    definition: "Requests of the top-level sessions per week, stacked by model, of the selected harnesses. "
-      + CLICK_HINT,
+    definition: "Requests of the top-level sessions per week, stacked by model, of the selected harnesses."
+      + clickHint(context.onWeekClick),
     caption: everyWeekCaption(columnTotal(rows, "requests"), context),
   });
   // The models' order, which every figure colours them by: the eight with most requests take the series colours.
@@ -126,7 +134,7 @@ async function drawInputTokensPerWeek(place, context) {
   const body = renderFigure(place, {
     title: "Input tokens per week",
     definition: "Input tokens of the top-level requests per week, of the selected harnesses: cached and uncached where "
-      + `the provider reports cache reads, unreported where it does not. ${CLICK_HINT}`,
+      + `the provider reports cache reads, unreported where it does not.${clickHint(context.onWeekClick)}`,
     caption: everyWeekCaption(columnTotal(rows, "requests"), context),
   });
   await drawTrend(body, tokenPartRows(rows), context, {
@@ -144,19 +152,24 @@ async function drawInputTokensPerWeek(place, context) {
  * Draw into `body` a trend's bars of `rows`, one stack per week, `options` saying which column is the height (`y`),
  * which the series (`fill`), the series' `order`, `colours` and, where a series' name is not its label, `labels`, and
  * how the y axis reads. Above them goes the legend that hides and shows a series; a series past the eighth of the
- * order is first folded into "Other", so the legend hides "Other" as one. A click on a bar selects its week.
+ * order is first folded into "Other", so the legend hides "Other" as one. A click on a bar selects its week, if any
+ * function takes it.
  */
 async function drawTrend(body, rows, context, options) {
   const { y, fill, order, colours, labels = {} } = options;
   const folded = sumFolded(foldToOther(rows, fill, order), { x: "week", y, fill });
-  body.classList.add("is-clickable");
+  if (context.onWeekClick !== null) {
+    body.classList.add("is-clickable");
+  }
   const drawShown = (hidden) => drawTrendBars(body, shownRows(folded, fill, hidden), context, options);
   await drawWithLegend(body, seriesLegend(folded, fill, colours, labels), drawShown);
 }
 
 async function drawTrendBars(body, rows, context, options) {
   const chart = await drawBars(body, rows, { ...weekBarOptions(context), ...options });
-  chart.addEventListener("click", () => selectPointedWeek(chart, context.onWeekClick));
+  if (context.onWeekClick !== null) {
+    chart.addEventListener("click", () => selectPointedWeek(chart, context.onWeekClick));
+  }
 }
 
 // What every trend chart shares: one stacked bar per week of every week, the selected weeks solid.

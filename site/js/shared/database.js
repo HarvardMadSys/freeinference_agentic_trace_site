@@ -18,7 +18,7 @@ import { isDefaultSelection } from "./selection.js";
 
 // After the default view is drawn, fetch every week's rows into memory so a narrowed selection runs without range
 // reads; false leaves every narrowed selection on HTTP ranges.
-export const STREAM_ROWS_AFTER_DRAW = true;
+export const STREAM_ROWS_AFTER_DRAW = false;
 
 // The indexes of weeks and harnesses, relative to a page; read before any query.
 const WEEKS_FILE = "data/weeks.json";
@@ -48,10 +48,11 @@ export async function fetchHarnesses() {
 /**
  * The database of one page, over the data folder at `dataUrl` (an absolute URL) with the files of `weeks` (the entries
  * of `weeks.json`) and the benchmark harnesses of `harnesses` (the entries of `harnesses.json`), and no selection yet.
- * DuckDB is not loaded until a query needs it. A page opens it once.
+ * DuckDB is not loaded until a query needs it. A page opens it once. With `answersOnly` true, every query that has an
+ * answer file is answered from it whatever the selection, a selection fills no table and the stream does nothing.
  */
-export function openDatabase(dataUrl, weeks, harnesses) {
-  return new Database(dataUrl, weeks, harnesses);
+export function openDatabase(dataUrl, weeks, harnesses, { answersOnly = false } = {}) {
+  return new Database(dataUrl, weeks, harnesses, answersOnly);
 }
 
 /**
@@ -85,6 +86,7 @@ class Database {
   #dataUrl;
   #weeks;
   #harnesses;
+  #answersOnly; // true when every answered query reads its file whatever the selection, and DuckDB never starts
   #selection = null; // the selection last set, `{ weeks, harnesses }`; null before the first
   #filledSelection = null; // the selection the selection tables hold; null while they hold none
   #opening = null; // the promised DuckDB, `{ engine, connection, httpProtocol }`, from the first query that needed it
@@ -93,15 +95,16 @@ class Database {
   // Queries are not serialised by it, only started in it: they run side by side, as DuckDB's worker queues them anyway.
   #turn = Promise.resolve();
 
-  constructor(dataUrl, weeks, harnesses) {
+  constructor(dataUrl, weeks, harnesses, answersOnly) {
     this.#dataUrl = dataUrl;
     this.#weeks = weeks;
     this.#harnesses = harnesses;
+    this.#answersOnly = answersOnly;
   }
 
   /** The rows of the query `name`, as plain objects whose integers and decimals are numbers. */
   async runQuery(name) {
-    const answerFile = answerFileFor(name, this.#isDefault());
+    const answerFile = answerFileFor(name, this.#readsAnswers());
     if (answerFile !== null) {
       const answer = await (await fetchFile(answerFile)).json();
       return answer.map(plainRow);
@@ -119,13 +122,13 @@ class Database {
   }
 
   /**
-   * Make `weeks` (Sundays) and `harnesses` (names) the selection: the default leaves DuckDB alone, any other fills
-   * `selected_weeks` and `selected_harnesses` once every earlier change of the tables has finished. A page awaits it
-   * before running its queries, and drops the results of a run that a newer selection has replaced.
+   * Make `weeks` (Sundays) and `harnesses` (names) the selection: the default, or any when answering only from files,
+   * leaves DuckDB alone; any other fills `selected_weeks` and `selected_harnesses` once every earlier change of the
+   * tables has finished. A page awaits it before its queries, and drops the results of a run a newer one replaced.
    */
   setSelection({ weeks, harnesses }) {
     this.#selection = { weeks, harnesses };
-    return this.#afterEarlierChanges(() => (this.#isDefault() ? undefined : this.#connectionWithSelection()));
+    return this.#afterEarlierChanges(() => (this.#readsAnswers() ? undefined : this.#connectionWithSelection()));
   }
 
   /** Empty `selected_session`, then hold the one session `rootSessionId` of `week`; ordered as `setSelection`. */
@@ -135,11 +138,11 @@ class Database {
 
   /**
    * Fetch every week's row files into DuckDB's memory, newest week first, calling `onProgress({ streamedWeeks })` after
-   * each week with the Sundays streamed so far; return at once, doing nothing, when `STREAM_ROWS_AFTER_DRAW` is false.
-   * A page calls it once, after its first view is drawn. A failure stops the stream with one console warning.
+   * each week with the Sundays streamed so far; return at once, doing nothing, when `STREAM_ROWS_AFTER_DRAW` is false
+   * or the database answers only from files. A page calls it once, after its first view; a failure warns and stops it.
    */
   async streamRows(onProgress) {
-    if (!STREAM_ROWS_AFTER_DRAW) {
+    if (!STREAM_ROWS_AFTER_DRAW || this.#answersOnly) {
       return;
     }
     try {
@@ -178,6 +181,11 @@ class Database {
 
   #isDefault() {
     return this.#selection !== null && isDefaultSelection(this.#selection, this.#weeks, this.#harnesses);
+  }
+
+  /** Whether the queries that have an answer file read it: always for a database that answers only from files. */
+  #readsAnswers() {
+    return this.#answersOnly || this.#isDefault();
   }
 
   /** Run `change` once the previous change has settled; its result or error is returned. */

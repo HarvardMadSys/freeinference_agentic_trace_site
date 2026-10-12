@@ -552,6 +552,11 @@ code,
   margin: 0;
 }
 
+/* A page whose figures are frozen hides the selection section, which its display rule would otherwise keep shown. */
+.selection[hidden] {
+  display: none;
+}
+
 select,
 input[type="text"],
 input[type="search"],

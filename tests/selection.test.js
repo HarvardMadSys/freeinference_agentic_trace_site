@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  computationNote, defaultHarnesses, harnessesText, isDefaultSelection, readSelection, selectionQuery,
-  streamedWeeksNote, streamedWeeksText, unknownSelectionNote, weeksByMonth, writeSelection,
+  computationNote, defaultHarnesses, defaultSelection, harnessesText, isDefaultSelection, readSelection,
+  selectionQuery, streamedWeeksNote, streamedWeeksText, unknownSelectionNote, weeksByMonth, withoutSelection,
+  writeSelection,
 } from "../site/js/shared/selection.js";
 
 // Four weeks over two months, oldest first, as weeks.json holds them.
@@ -39,6 +40,18 @@ function write(selection) {
 
 test("with no selection in the URL, every week and every harness but the benchmark are selected", () => {
   assert.deepEqual(read(""), DEFAULT_SELECTION);
+});
+
+test("the default selection is every week and the paper's harnesses, as a URL without keys reads", () => {
+  assert.deepEqual(defaultSelection(WEEKS, HARNESSES), DEFAULT_SELECTION);
+  assert.deepEqual(defaultSelection(WEEKS, HARNESSES), readSelection(new URLSearchParams(), WEEKS, HARNESSES));
+  assert.equal(isDefaultSelection(defaultSelection(WEEKS, HARNESSES), WEEKS, HARNESSES), true);
+});
+
+test("without the selection, the URL keeps every other key and loses weeks, month, harnesses and scope", () => {
+  const params = new URLSearchParams("weeks=2026-05-24&month=2026-05&harnesses=codex&scope=All&sort=requests&page=2");
+  assert.equal(withoutSelection(params).toString(), "sort=requests&page=2");
+  assert.equal(params.get("harnesses"), "codex");
 });
 
 test("the default harnesses are every harness but the benchmark, in the file's order", () => {
