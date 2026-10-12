@@ -2,9 +2,10 @@
 
 A static website for exploring the FreeInference agentic trace, the dataset of
 the paper *From Requests to Sessions: A Large-Scale Characterization of
-Human-Driven Agentic Workloads*. It draws the paper's figures over the paper's
-data, lists every session, and opens any session to show how its context grew,
-what it cached, which tools it called and which subagents it spawned.
+Human-Driven Agentic Workloads*. Its Session Explorer lists every session and
+opens any one to show how its context grew, what it cached, which tools it
+called and which subagents it spawned; its Insights draw the paper's charts
+over the paper's data, each with the one sentence it shows.
 
 Everything runs in the browser. The site is a folder of HTML pages, ES
 modules, JSON answers and Parquet files, with Observable Plot drawing the
@@ -34,7 +35,7 @@ text in `all_weeks/queries.json`, and `make test` fails on a query edited
 since (`tests/test_answers.py`), as `make deploy` does through
 `make check-answers`.
 
-The one thing a visitor narrows is the session list. Its answer holds every
+The one thing a visitor narrows is the Session Explorer's list. Its answer holds every
 harness's sessions, the benchmark's marked, and the list filters it in the
 browser by month (the weeks whose Sunday falls in it), harness, main model,
 a minimum of requests and a search of the session id, newest session first.

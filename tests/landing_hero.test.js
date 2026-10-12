@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { countInWords, ledeLead, renderHero } from "../site/js/landing/hero.js";
+import { countInWords, ledeOpening, renderHero } from "../site/js/landing/hero.js";
 
 test("a count under a hundred is written in words, a larger one in digits", () => {
   assert.equal(countInWords(1), "one");
@@ -14,10 +14,10 @@ test("a count under a hundred is written in words, a larger one in digits", () =
 });
 
 test("the lede's first clause counts the weeks, one week in the singular, and names none it does not know", () => {
-  assert.equal(ledeLead(16), "Sixteen weeks of coding agents,");
-  assert.equal(ledeLead(1), "One week of coding agents,");
-  assert.equal(ledeLead(52), "Fifty-two weeks of coding agents,");
-  assert.equal(ledeLead(null), "Weeks of coding agents,");
+  assert.equal(ledeOpening(16), "Sixteen weeks of coding agents,");
+  assert.equal(ledeOpening(1), "One week of coding agents,");
+  assert.equal(ledeOpening(52), "Fifty-two weeks of coding agents,");
+  assert.equal(ledeOpening(null), "Weeks of coding agents,");
 });
 
 test("the hero holds the dataset's name as its title, the lede counting the weeks and the four buttons", () => {

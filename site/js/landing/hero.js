@@ -44,7 +44,7 @@ export function countInWords(count) {
  * The lede's first clause for `weekCount` weeks: "Sixteen weeks of coding agents,", "One week of coding agents,";
  * "Weeks of coding agents," when the count is not known (null), as when `weeks.json` could not be read.
  */
-export function ledeLead(weekCount) {
+export function ledeOpening(weekCount) {
   if (weekCount === null) {
     return "Weeks of coding agents,";
   }
@@ -60,7 +60,7 @@ export function renderHero(container, weekCount) {
   );
   container.innerHTML = `
     <h1 id="hero-title">${TITLE} <em>${TITLE_ACCENT}</em></h1>
-    <p class="hero-lede">${ledeLead(weekCount)} ${LEDE_REST}</p>
+    <p class="hero-lede">${ledeOpening(weekCount)} ${LEDE_REST}</p>
     <div class="hero-actions">
       <a class="button button--primary" href="${INSIGHTS_BUTTON.href}">${INSIGHTS_BUTTON.title}</a>
       ${externalButtons.join("")}

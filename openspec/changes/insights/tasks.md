@@ -17,4 +17,4 @@ and no data change is expected.
 - [x] 3.3 Prefix caching and Human-driven against benchmark: twelve cards and two takeaways.
 
 ## 4. Close
-- [ ] 4.1 README (page table, layout lines, section names), CONTRIBUTING (the figure entry pattern with `insight`), `openspec validate insights --strict`, a browser pass over the landing page at 1280 and 360 px in both schemes.
+- [x] 4.1 README (page table, layout lines, section names), CONTRIBUTING (the figure entry pattern with `insight`), `openspec validate insights --strict`, a browser pass over the landing page at 1280 and 360 px in both schemes.
