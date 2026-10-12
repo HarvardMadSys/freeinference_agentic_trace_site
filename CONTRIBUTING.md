@@ -45,12 +45,16 @@ binding, and `make test` checks the countable ones.
   `site_data/site_database.py` in Python): HTTP has no directory listing, and
   a file registered under its name is what the stream can swap for its bytes.
 - **Every definition comes from the pipeline.** Where a query restates one
-  in SQL (the cost share's prices, the rank bins, the wait classes), a mirror
-  test ties each copied constant to the pipeline's and a parity test ties the
-  number to the paper's. Two queries do: `figures/cost_share_by_session.sql`
-  (the prices and the rank bins) and `figures/session_time_by_part.sql` (the
-  rank bins and which waits are tool time and which a person's), checked by
-  `tests/test_pipeline_mirrors.py` and `tests/test_paper_parity_sessions.py`.
+  in SQL (the cost share's prices, the rank bins, the wait classes, the tool
+  groups), a mirror test ties each copied constant to the pipeline's and a
+  parity test ties the number to the paper's. Three queries do:
+  `figures/cost_share_by_session.sql` (the prices and the rank bins) and
+  `figures/session_time_by_part.sql` (the rank bins and which waits are tool
+  time and which a person's), checked by `tests/test_pipeline_mirrors.py` and
+  `tests/test_paper_parity_sessions.py`; and
+  `figures/tool_mix_by_turn_position.sql` (the tenths, each category's tool
+  group and the programs that decide a `*File Ops` call's), checked by
+  `tests/test_pipeline_mirrors.py` and `tests/test_paper_parity_comparison.py`.
   Otherwise the browser filters, groups, counts, sums and takes quantiles. It
   never decides what a turn, a wait or a cache hit is; `site_data` computes
   those by calling the pipeline's functions.
@@ -74,6 +78,8 @@ js/engine/            DuckDB in the page: starting it, its views and setup, the 
 js/explore/           the Explore page's sections, the figure runner (figure_sections.js) and the legend of buttons
 js/figures/           the Explore page's figures: one module per section, listing its figure entries, the modules a
                       section takes entries from, and the row rules every figure shares (figure_rows.js)
+js/comparison/        the Explore page's Benchmark-against-production figures: the section's module, listing its
+                      figure entries, and one module per figure
 js/session/           the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
 js/session_requests/  the Session page's Requests view
 js/session_charts/    the Session page's Context and Timeline views

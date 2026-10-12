@@ -1,5 +1,5 @@
 /**
- * The Explore page: weekly trends, headline numbers, distribution cards, the paper's figures in three sections, and
+ * The Explore page: weekly trends, headline numbers, distribution cards, the paper's figures in four sections, and
  * the sessions table of the selected weeks and harnesses.
  *
  * The page draws its header, pickers, figure cards and every section's loading state from `weeks.json` and

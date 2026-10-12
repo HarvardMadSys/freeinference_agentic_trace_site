@@ -20,6 +20,7 @@ test("the header links Explore, each figure section, its sessions table and Abou
     ["Sessions", "index.html?month=2026-07#figures-sessions", false],
     ["Tools", "index.html?month=2026-07#figures-tools", false],
     ["Caching", "index.html?month=2026-07#figures-caching", false],
+    ["Benchmark", "index.html?month=2026-07#figures-comparison", false],
     ["Sessions table", "index.html?month=2026-07#sessions", false],
     ["About", "about.html?month=2026-07", false],
   ]);
@@ -36,6 +37,7 @@ test("on the Explore page its sections are linked by anchor alone, so following 
     ["Sessions", "#figures-sessions", false],
     ["Tools", "#figures-tools", false],
     ["Caching", "#figures-caching", false],
+    ["Benchmark", "#figures-comparison", false],
     ["Sessions table", "#sessions", false],
     ["About", "about.html?month=2026-07&sort=requests&page=2", false],
   ]);

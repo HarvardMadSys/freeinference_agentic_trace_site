@@ -9,7 +9,7 @@ import re
 
 import pytest
 
-from paper.metrics import binning, gaps, latency, prices
+from paper.metrics import binning, gaps, latency, prices, trajectories
 from release import population, schema
 
 SITE_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site"
@@ -19,6 +19,9 @@ FIGURE_QUERIES = SITE_FOLDER / "queries" / "figures"  # the figure queries
 COST_SHARE_QUERY = FIGURE_QUERIES / "cost_share_by_session.sql"  # the prices
 SESSION_TIME_QUERY = FIGURE_QUERIES / "session_time_by_part.sql"  # which waits are tool time and which a person's
 RANK_BIN_QUERIES = [COST_SHARE_QUERY, SESSION_TIME_QUERY]  # each cuts sessions into the pipeline's rank bins
+TOOL_MIX_QUERY = FIGURE_QUERIES / "tool_mix_by_turn_position.sql"  # the tenths, the tool groups and the program sets
+COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the tool groups, each with its colour
+TOOL_MIX_MODULE = SITE_FOLDER / "js" / "comparison" / "tool_mix.js"  # the tenths
 EDGE_TOLERANCE = 1e-9  # relative; the browser computes the geometric edges itself, so they agree only to rounding
 
 
@@ -48,6 +51,23 @@ def sql_number(path: pathlib.Path, column: str) -> float:
 def sql_strings(path: pathlib.Path, column: str) -> list[str]:
     """The quoted strings, in order, of the literal list `[...] AS <column>` in the query at `path`."""
     return re.findall(r"'([^']+)'", declaration(path, rf"\[([^\]]*)\] AS {column}\b").group(1))
+
+
+def sql_string(path: pathlib.Path, column: str) -> str:
+    """The value of the literal `'<text>' AS <column>` in the query at `path`."""
+    return declaration(path, rf"'([^']+)' AS {column}\b").group(1)
+
+
+def sql_pairs(path: pathlib.Path, table: str) -> dict[str, str]:
+    """The rows of the literal table `<table> (…) AS (VALUES ('<key>', '<value>'), …)` in the query at `path`."""
+    body = declaration(path, rf"{table} \([^)]*\) AS \(\s*VALUES(.*?)\n\)").group(1)
+    return dict(re.findall(r"\('([^']+)', '([^']+)'\)", body))
+
+
+def javascript_quoted_keys(path: pathlib.Path, constant: str) -> list[str]:
+    """The quoted keys, in order, of `const <constant> = Object.freeze({ "key": …, … });`."""
+    body = declaration(path, rf"const {constant} = Object\.freeze\(\{{(.*?)\}}\);").group(1)
+    return re.findall(r'^\s*"([^"]+)"\s*:', body, re.MULTILINE)
 
 
 def browser_idle_gap_edges() -> list[float]:
@@ -99,3 +119,19 @@ def test_the_rank_bins_are_the_pipeline_s(path: pathlib.Path) -> None:
 def test_the_session_time_s_waits_are_the_pipeline_s() -> None:
     assert sql_strings(SESSION_TIME_QUERY, "tool_waits") == list(latency.TOOL_WAITS)
     assert sql_strings(SESSION_TIME_QUERY, "human_waits") == list(latency.HUMAN_WAITS)
+
+
+def test_the_tool_mix_s_tenths_are_the_pipeline_s() -> None:
+    assert sql_number(TOOL_MIX_QUERY, "tenths") == trajectories.BINS
+    assert javascript_number(TOOL_MIX_MODULE, "TENTHS") == trajectories.BINS
+
+
+def test_the_tool_mix_s_group_rule_is_the_pipeline_s() -> None:
+    assert sql_string(TOOL_MIX_QUERY, "file_ops_category") == trajectories.FILE_OPS
+    assert sql_pairs(TOOL_MIX_QUERY, "group_of_category") == trajectories.GROUP_OF_CATEGORY
+    assert set(sql_strings(TOOL_MIX_QUERY, "reading_programs")) == trajectories.READING_PROGRAMS
+    assert set(sql_strings(TOOL_MIX_QUERY, "writing_programs")) == trajectories.WRITING_PROGRAMS
+
+
+def test_the_tool_groups_coloured_are_the_pipeline_s_in_its_order() -> None:
+    assert javascript_quoted_keys(COLOURS_MODULE, "TOOL_GROUP_COLOURS") == list(trajectories.GROUPS)

@@ -69,6 +69,17 @@
   --transition-append: var(--series-3);
   --transition-mutation: var(--series-8);
 
+  /* The eight tool groups of the tool mix along a turn, in hues near the paper's: reading blue, writing green, running
+     red, and the rest of the work grey. */
+  --tool-group-read: var(--series-1);
+  --tool-group-search: var(--series-2);
+  --tool-group-write-edit: var(--series-3);
+  --tool-group-execute: var(--series-8);
+  --tool-group-build-test: var(--series-4);
+  --tool-group-git-vcs: var(--series-7);
+  --tool-group-browser-web: var(--series-5);
+  --tool-group-other: var(--series-other);
+
   /* The six gap bins, shortest gap lightest: the blue of --series-1 from its 250 to its 700 step, evenly in lightness,
      the lightest still 2:1 against the surface. */
   --gap-bin-1: #86b6ef;

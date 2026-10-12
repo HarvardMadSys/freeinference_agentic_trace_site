@@ -57,6 +57,21 @@ export const TRANSITION_COLOURS = Object.freeze({
   mutation: "var(--transition-mutation)",
 });
 
+/**
+ * The colour of each tool group of the tool mix along a turn, by the group's name in the pipeline's order, the same in
+ * every chart; Other is the grey of a folded series.
+ */
+export const TOOL_GROUP_COLOURS = Object.freeze({
+  "Read": "var(--tool-group-read)",
+  "Search": "var(--tool-group-search)",
+  "Write/Edit": "var(--tool-group-write-edit)",
+  "Execute": "var(--tool-group-execute)",
+  "Build/Test": "var(--tool-group-build-test)",
+  "Git/VCS": "var(--tool-group-git-vcs)",
+  "Browser/Web": "var(--tool-group-browser-web)",
+  "Other": "var(--tool-group-other)",
+});
+
 /** The six gap-bin colours, shortest gap first: one blue from light to dark. */
 export const GAP_BIN_SLOTS = Object.freeze([
   "var(--gap-bin-1)",

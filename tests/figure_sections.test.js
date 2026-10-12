@@ -32,6 +32,9 @@ const SECTION_FIGURES = {
     "mean_hit_ratio_by_cause",
     "hit_ratio_cdf_by_transition",
   ],
+  "../site/js/comparison/comparison.js": [
+    "tool_mix_by_turn_position",
+  ],
 };
 
 // The figures of every section, as each module exports them, each list with its module's path.

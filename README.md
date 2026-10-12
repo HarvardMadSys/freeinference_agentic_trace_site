@@ -16,7 +16,7 @@ the results. There is no server and no bundler.
 
 | Page | File | What it shows |
 |---|---|---|
-| Explore | `index.html` | The week and harness pickers, weekly trends, headline numbers, distribution cards, the paper's figures in three sections (`#figures-sessions`, `#figures-tools`, `#figures-caching`) and a searchable table of the selected sessions (`#sessions`) |
+| Explore | `index.html` | The week and harness pickers, weekly trends, headline numbers, distribution cards, the paper's figures in four sections (`#figures-sessions`, `#figures-tools`, `#figures-caching`, `#figures-comparison`) and a searchable table of the selected sessions (`#sessions`) |
 | Session | `session.html` | One session and its subagents: a bar per request, context over time, and a timeline per agent |
 | About | `about.html` | What the site shows, definitions, where it draws more simply than the paper, how the data were built, and links |
 
@@ -132,6 +132,8 @@ site/              exactly the files that are deployed
   js/figures/      one module per figure section (sessions, tools, caching), the modules they take figures from
                    (sessions_latency, sessions_ranked, caching_gaps), and figure_rows, the row rules every figure
                    shares
+  js/comparison/   the Benchmark-against-production figure section: its module, comparison, and the modules of its
+                   figures (tool_mix)
   js/session/      the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
   js/session_requests/  the Requests view: a row per request, its details, brackets and legend
   js/session_charts/    the Context and Timeline views and the series and bars they draw
@@ -152,11 +154,12 @@ tests/             what make test runs
   test_tool_calls.py, test_simulation.py, test_build.py, test_site_database.py
                    site_data's steps on the fixture release, against values counted by hand
   test_queries.py, test_explore_queries.py, test_figure_queries.py, test_session_figure_queries.py,
-  test_caching_queries.py
+  test_caching_queries.py, test_comparison_queries.py
                    every .sql file run against the fixture data, its columns and its numbers
   test_answers.py           every answer make data writes for the fixture, against its query run live there; and the
                             shipped answers come from the queries' current text
-  test_paper_parity.py, test_paper_parity_sessions.py, test_paper_parity_caching.py
+  test_paper_parity.py, test_paper_parity_sessions.py, test_paper_parity_caching.py,
+  test_paper_parity_comparison.py
                    with the default selection, the numbers a figure shares with the paper's numbers.json
   test_pipeline_mirrors.py, test_pipeline_mirrors_caching.py
                    the pipeline constants the browser holds a copy of, against the pipeline's own
@@ -172,10 +175,11 @@ openspec/          the specifications and the changes that built the site
 Every definition comes from the pipeline. The ones the site shows (session,
 turn, wait, cached share, idle gap) are computed by the pipeline's own
 functions when `make data` runs. Where a query restates one in SQL (the cost
-share's prices, the rank bins, the wait classes), a mirror test ties each
-copied constant to the pipeline's and a parity test ties the number to the
-paper's; two queries do, `figures/cost_share_by_session.sql` and
-`figures/session_time_by_part.sql`. Otherwise the browser, and the answers
+share's prices, the rank bins, the wait classes, the tool groups), a mirror
+test ties each copied constant to the pipeline's and a parity test ties the
+number to the paper's; three queries do, `figures/cost_share_by_session.sql`,
+`figures/session_time_by_part.sql` and `figures/tool_mix_by_turn_position.sql`.
+Otherwise the browser, and the answers
 `make data` precomputes with the browser's own queries, only filter, count,
 sum and take quantiles. With the default selection, every number a figure
 shares with the paper equals the paper's, and `tests/test_paper_parity*.py`

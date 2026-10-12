@@ -1,6 +1,7 @@
 /**
- * The figure sections of the Explore page: the Sessions, Tools and Prefix-caching figures, each a card in its
- * section's grid, drawn for the selected weeks and harnesses, its thin bins hidden and its caption written.
+ * The figure sections of the Explore page: the Sessions, Tools, Prefix-caching and Benchmark-against-production
+ * figures, each a card in its section's grid, drawn for the selected weeks and harnesses, its thin bins hidden and its
+ * caption written.
  *
  * With the default selection every figure is drawn at once, from its precomputed answer. With any other, a figure's
  * query starts when its card comes into view, and a figure started for the current run is not started again. A page
@@ -31,6 +32,7 @@ const SECTIONS = Object.freeze([
   Object.freeze({ selector: "#figures-sessions", module: "../figures/sessions.js" }),
   Object.freeze({ selector: "#figures-tools", module: "../figures/tools.js" }),
   Object.freeze({ selector: "#figures-caching", module: "../figures/caching.js" }),
+  Object.freeze({ selector: "#figures-comparison", module: "../comparison/comparison.js" }),
 ]);
 
 // A card counts as in view from one viewport height above the viewport to one below it, so the row of figures after

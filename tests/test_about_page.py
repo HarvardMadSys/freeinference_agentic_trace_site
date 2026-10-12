@@ -9,7 +9,7 @@ import pathlib
 import re
 
 import paper.sessions.latency
-from paper.metrics import gaps, latency, prices
+from paper.metrics import gaps, latency, prices, trajectories
 from paper.prefix_caching import reuse
 from release import population, schema
 from simulation import cache
@@ -19,7 +19,9 @@ ABOUT_PAGE = SITE_FOLDER / "about.html"
 CHARTS_MODULE = SITE_FOLDER / "js" / "shared" / "charts.js"  # declares `MIN_ROWS_PER_BIN`
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # declares `SERIES_SLOTS`, the eight series colours
 IDLE_GAP_TITLE = "Hit ratio after an idle gap"
-FIGURE_MODULES = SITE_FOLDER / "js" / "figures"  # every figure entry, one `query: "figures/<name>"` each
+# The folders of every figure entry, one `query: "figures/<name>"` each: the first three sections', and the
+# Benchmark-against-production section's.
+FIGURE_FOLDERS = [SITE_FOLDER / "js" / "figures", SITE_FOLDER / "js" / "comparison"]
 FIGURE_ENTRY_QUERY = re.compile(r'query: "figures/\w+"')
 FIGURE_TITLE_AND_DEFINITION = re.compile(r'title: "([^"]+)",\s*definition: "([^"]+)"')
 # Phrases of a figure's definition that name the paper without stating a difference from it.
@@ -58,10 +60,18 @@ def simpler_than_the_paper() -> str:
     return found.group(0)
 
 
+def figure_modules() -> list[pathlib.Path]:
+    """The Explore page's figure modules, folder by folder."""
+    modules = []
+    for folder in FIGURE_FOLDERS:
+        modules.extend(sorted(folder.glob("*.js")))
+    return modules
+
+
 def figure_titles_and_definitions() -> list[tuple[str, str]]:
     """Every figure entry's title and definition, from the Explore page's figure modules."""
     entries = []
-    for module in sorted(FIGURE_MODULES.glob("*.js")):
+    for module in figure_modules():
         entries.extend(FIGURE_TITLE_AND_DEFINITION.findall(module.read_text()))
     return entries
 
@@ -113,7 +123,7 @@ def difference_item(title: str) -> str:
 def figure_count() -> int:
     """How many figure entries the Explore page's figure modules list."""
     entries = 0
-    for module in sorted(FIGURE_MODULES.glob("*.js")):
+    for module in figure_modules():
         entries += len(FIGURE_ENTRY_QUERY.findall(module.read_text()))
     return entries
 
@@ -173,6 +183,10 @@ def test_the_about_page_s_release_lists_are_the_release_s() -> None:
     assert f"Transition: {', '.join(schema.TRANSITIONS)}</dt>" in about_page()
     for category in schema.TOOL_CATEGORIES:
         assert category in definition("category"), category
+
+
+def test_the_about_page_s_tool_groups_are_the_pipeline_s() -> None:
+    assert f"draws: {listed(list(trajectories.GROUPS))}." in definition("tool-group")
 
 
 def test_the_about_page_s_simulation_values_are_the_simulation_s() -> None:

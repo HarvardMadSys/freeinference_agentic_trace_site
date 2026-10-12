@@ -13,6 +13,7 @@ const PAGES = [
   { file: "index.html", anchor: "#figures-sessions", title: "Sessions" },
   { file: "index.html", anchor: "#figures-tools", title: "Tools" },
   { file: "index.html", anchor: "#figures-caching", title: "Caching" },
+  { file: "index.html", anchor: "#figures-comparison", title: "Benchmark" },
   { file: "index.html", anchor: "#sessions", title: "Sessions table" },
   { file: "about.html", anchor: "", title: "About" },
 ];

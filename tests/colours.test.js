@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import {
   assignColours, barColours, CAUSE_COLOURS, causeColours, GAP_BIN_SLOTS, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS,
-  slottedColours, TRANSITION_COLOURS,
+  slottedColours, TOOL_GROUP_COLOURS, TRANSITION_COLOURS,
 } from "../site/js/theme/colours.js";
 
 const NINE_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
@@ -73,4 +73,12 @@ test("the slotted colours are the first eight names in their order, none in the 
   const slotted = slottedColours(assignColours(NINE_MODELS));
   assert.deepEqual([...slotted.keys()], NINE_MODELS.slice(0, 8));
   assert.ok(![...slotted.values()].includes(OTHER_SERIES));
+});
+
+test("the eight tool groups each have their own colour token, and the map cannot be changed", () => {
+  const colours = Object.values(TOOL_GROUP_COLOURS);
+  assert.equal(colours.length, 8);
+  assert.equal(new Set(colours).size, 8);
+  assert.equal(TOOL_GROUP_COLOURS["Write/Edit"], "var(--tool-group-write-edit)");
+  assert.ok(Object.isFrozen(TOOL_GROUP_COLOURS));
 });
