@@ -125,6 +125,17 @@ export function placedInRow(bar) {
   return { ...bar, y1: bar.row + top, y2: bar.row + bottom };
 }
 
+/** The bars of `bars` that overlap the time `range`, `{ start, end }` in seconds, each cut at the range's edges. */
+export function barsWithin(bars, range) {
+  const shown = [];
+  for (const bar of bars) {
+    if (bar.x2 > range.start && bar.x1 < range.end) {
+      shown.push({ ...bar, x1: Math.max(bar.x1, range.start), x2: Math.min(bar.x2, range.end) });
+    }
+  }
+  return shown;
+}
+
 /** `{ row, band }` under a pointer at `y` rows from the top: the upper part of a row is its request band. */
 export function pointerPlace(y) {
   const row = Math.floor(y);

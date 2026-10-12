@@ -2,13 +2,14 @@
  * The Context view: the input of every request against time since the session's first request. The top-level
  * session's input is a stacked area, split into cached and uncached tokens or, by a switch, by role; each agent's
  * input is a line; dotted rules mark each turn's start and dots each mutation or switch. A click on a point opens
- * that request in the Requests view.
+ * that request in the Requests view, and a range slider under the chart narrows the time it shows.
  */
 
 import {
   AGENT_LINE_COLOURS, AREA_SPLITS, areaParts, areaRows, MARK_COLOURS, markEntries, pointTip, requestPoints,
   trajectoryPoints, transitionMarks, turnStarts,
 } from "./context_series.js";
+import { alignToChart, rangeSlider } from "./range_slider.js";
 import { legendLine } from "../session/legend.js";
 import { listenForRequestClick, startChartView, viewChartWidth } from "../session/view_chart.js";
 import { elapsedAxis } from "../axes/ticks.js";
@@ -53,13 +54,24 @@ function drawContextView(Plot, container, tree, requests) {
     ].join(" · "),
   });
   container.replaceChildren(figure);
-  const chartBox = document.createElement("div");
-  const legend = document.createElement("div");
-  legend.className = "legend-lines";
-  const drawSplit = (split) => drawChart(Plot, { chartBox, legend, body }, tree, requests, split);
-  legendPlace(body).replaceChildren(splitSwitch(drawSplit), legend);
-  body.append(chartBox);
-  drawSplit(DEFAULT_SPLIT);
+  const totalSeconds = Math.max(...trajectoryPoints(tree, requests).map((point) => point.elapsed));
+  const chart = {
+    Plot, tree, requests, body,
+    chartBox: document.createElement("div"),
+    legend: document.createElement("div"),
+    view: { split: DEFAULT_SPLIT, range: { start: 0, end: totalSeconds } },
+  };
+  chart.legend.className = "legend-lines";
+  chart.slider = rangeSlider(totalSeconds, (range) => redrawWith(chart, { range }));
+  legendPlace(body).replaceChildren(splitSwitch((split) => redrawWith(chart, { split })), chart.legend);
+  body.append(chart.chartBox, chart.slider);
+  drawChart(chart);
+}
+
+/** Change the chart's view by `change`, a new `split` or `range`, and draw it again. */
+function redrawWith(chart, change) {
+  Object.assign(chart.view, change);
+  drawChart(chart);
 }
 
 /**
@@ -89,42 +101,54 @@ function chooseSplit(group, chosenButton, drawSplit, split) {
   drawSplit(split);
 }
 
-/** Draw the chart for `split` into `boxes.chartBox` and its legend into `boxes.legend`. */
-function drawChart(Plot, boxes, tree, requests, split) {
+/**
+ * Draw `chart.view`, the area split by `split` over the time `range`, into `chart.chartBox`, its legend into
+ * `chart.legend`, and line the slider up with it. The areas and lines are clipped at the range's edges; the points,
+ * dots and turn rules are those within it.
+ */
+function drawChart({ Plot, tree, requests, body, chartBox, legend, slider, view }) {
+  const { split, range } = view;
   const parts = areaParts(split);
-  const points = requestPoints(tree, requests);
-  const trajectories = trajectoryPoints(tree, requests);
+  const points = requestPoints(tree, requests).filter((point) => isWithin(point.elapsed, range));
   const marks = transitionMarks(points);
-  const width = viewChartWidth(boxes.body);
-  const maxElapsed = Math.max(...trajectories.map((point) => point.elapsed));
-  const axis = elapsedAxis(maxElapsed, width);
-  const chart = Plot.plot({
-    ...chartFrame(boxes.body),
+  const width = viewChartWidth(body);
+  const plot = Plot.plot({
+    ...chartFrame(body),
     width,
-    x: { domain: [0, maxElapsed], inset: X_INSET },
+    x: { domain: [range.start, range.end], inset: X_INSET },
     y: { nice: true },
     color: colourScale(new Map(parts.map((part) => [part.name, part.colour])), parts.map((part) => part.name)),
     marks: [
       Plot.gridY(GRID_STYLE),
       Plot.areaY(areaRows(tree, requests, split), {
         x: "elapsed", y: "tokens", fill: "part", z: "part", order: parts.map((part) => part.name), curve: "step-after",
+        clip: true,
       }),
-      Plot.ruleX(turnStarts(tree, requests), { ...AXIS_STYLE, strokeDasharray: TURN_DASH }),
-      agentLines(Plot, trajectories),
+      Plot.ruleX(turnStarts(tree, requests).filter((start) => isWithin(start, range)), {
+        ...AXIS_STYLE, strokeDasharray: TURN_DASH,
+      }),
+      agentLines(Plot, trajectoryPoints(tree, requests)),
       transitionDots(Plot, marks),
-      Plot.axisX({ ...AXIS_STYLE, ...axis }),
+      Plot.axisX({ ...AXIS_STYLE, ...elapsedAxis([range.start, range.end], width) }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatTokens, label: "Input tokens" }),
       Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "elapsed", y: "inputTokens", title: pointTip })),
     ],
   });
-  listenForRequestClick(boxes.body, chart);
-  boxes.chartBox.replaceChildren(chart);
-  boxes.legend.replaceChildren(...contextLegend(parts, tree, marks));
+  listenForRequestClick(body, plot);
+  chartBox.replaceChildren(plot);
+  alignToChart(slider, plot);
+  legend.replaceChildren(...contextLegend(parts, tree, marks));
+}
+
+function isWithin(seconds, range) {
+  return seconds >= range.start && seconds <= range.end;
 }
 
 /** One line per agent, stepping at each request: the top-level session's first, then the subagents', lighter. */
 function agentLines(Plot, trajectories) {
-  const lineOptions = { x: "elapsed", y: "inputTokens", z: "sessionId", curve: "step-after", strokeWidth: LINE_WIDTH };
+  const lineOptions = {
+    x: "elapsed", y: "inputTokens", z: "sessionId", curve: "step-after", strokeWidth: LINE_WIDTH, clip: true,
+  };
   return [
     Plot.line(trajectories.filter((point) => !point.isTopLevel), {
       ...lineOptions, stroke: AGENT_LINE_COLOURS.subagents, strokeOpacity: SUBAGENT_LINE_OPACITY,

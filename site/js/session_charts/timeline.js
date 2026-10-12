@@ -2,13 +2,15 @@
  * The Timeline view: a Gantt chart with one row per agent, the top-level session first, then each subagent in order
  * of its first request. Against time since the session's first request, a row shows its requests split at time to
  * first token, its tool calls in a thinner band below, and its waits as lighter bars coloured by what they waited
- * for. A click on a bar opens its request in the Requests view.
+ * for. A click on a bar opens its request in the Requests view, and a range slider under the chart narrows the time
+ * it shows.
  */
 
 import { categoryEntries, legendLine } from "../session/legend.js";
 import {
-  ganttBars, ganttRows, placedInRow, requestPartEntries, undrawnCounts, waitEntries,
+  barsWithin, ganttBars, ganttRows, placedInRow, requestPartEntries, undrawnCounts, waitEntries,
 } from "./timeline_bars.js";
+import { alignToChart, rangeSlider } from "./range_slider.js";
 import { pointerFrame } from "./timeline_pointer.js";
 import { startChartView, viewChartWidth } from "../session/view_chart.js";
 import { elapsedAxis } from "../axes/ticks.js";
@@ -45,24 +47,36 @@ function drawTimelineView(Plot, container, tree, requests, toolCalls, { category
   legend.className = "legend-lines";
   legend.append(...timelineLegend(requests, toolCalls, categoryColours));
   legendPlace(body).replaceChildren(legend);
-  const rows = ganttRows(tree);
   const bars = ganttBars(tree, requests, toolCalls, categoryColours).map(placedInRow);
-  const chart = ganttChart(Plot, body, rows, bars);
-  body.append(pointerFrame(chart, bars, rows.length));
+  const totalSeconds = Math.max(...bars.map((bar) => bar.x2));
+  const gantt = { Plot, body, rows: ganttRows(tree), bars, chartPlace: document.createElement("div") };
+  gantt.slider = rangeSlider(totalSeconds, (range) => drawGantt(gantt, range));
+  body.append(gantt.chartPlace, gantt.slider);
+  drawGantt(gantt, { start: 0, end: totalSeconds });
 }
 
-/** The Gantt chart of `bars` over `rows`: row 0 at the top, each bar in its band of its row. */
-function ganttChart(Plot, body, rows, bars) {
+/**
+ * Draw the Gantt over the time `range` into `gantt.chartPlace`, its bars cut at the range's edges, with its pointer,
+ * and line the slider up with it.
+ */
+function drawGantt({ Plot, body, rows, bars, chartPlace, slider }, range) {
+  const shownBars = barsWithin(bars, range);
+  const chart = ganttChart(Plot, body, rows, shownBars, range);
+  chartPlace.replaceChildren(pointerFrame(chart, shownBars, rows.length));
+  alignToChart(slider, chart);
+}
+
+/** The Gantt chart of `bars` over `rows` and the time `range`: row 0 at the top, each bar in its band of its row. */
+function ganttChart(Plot, body, rows, bars, range) {
   const width = viewChartWidth(body);
   const height = Math.min(MAX_HEIGHT, MARGINS.marginTop + MARGINS.marginBottom + ROW_HEIGHT * rows.length);
-  const maxElapsed = Math.max(...bars.map((bar) => bar.x2));
-  const axis = elapsedAxis(maxElapsed, width);
+  const axis = elapsedAxis([range.start, range.end], width);
   return Plot.plot({
     ...chartFrame(body),
     ...MARGINS,
     width,
     height,
-    x: { domain: [0, maxElapsed] },
+    x: { domain: [range.start, range.end] },
     y: { domain: [0, rows.length], reverse: true },
     color: { type: "identity" },
     opacity: { type: "identity" },

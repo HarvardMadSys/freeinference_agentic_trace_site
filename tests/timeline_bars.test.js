@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  barAt, ganttBars, ganttRows, placedInRow, pointerPlace, requestPartEntries, undrawnCounts, waitEntries, WAIT_OPACITY,
+  barAt, barsWithin, ganttBars, ganttRows, placedInRow, pointerPlace, requestPartEntries, undrawnCounts, waitEntries,
+  WAIT_OPACITY,
 } from "../site/js/session_charts/timeline_bars.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
@@ -155,4 +156,16 @@ test("the legend lists only the waits present, lighter, in the wait causes' colo
     { name: "tools", colour: "var(--cause-tool)", opacity: WAIT_OPACITY },
     { name: "subagents", colour: "var(--cause-subagent)", opacity: WAIT_OPACITY },
   ]);
+});
+
+test("over a time range, only the bars that overlap it are drawn, cut at its edges", () => {
+  const bars = [
+    { step: 0, x1: 0, x2: 50 },
+    { step: 1, x1: 90, x2: 130 },
+    { step: 2, x1: 140, x2: 160 },
+    { step: 3, x1: 190, x2: 260 },
+    { step: 4, x1: 300, x2: 320 },
+  ];
+  const shown = barsWithin(bars, { start: 100, end: 200 });
+  assert.deepEqual(shown.map((bar) => [bar.step, bar.x1, bar.x2]), [[1, 100, 130], [2, 140, 160], [3, 190, 200]]);
 });

@@ -5,7 +5,7 @@
  * drawing modules give what they return to Plot.
  */
 
-import { elapsedTickFormat, shortMonth } from "../shared/format.js";
+import { elapsedTickFormat, formatElapsed, shortMonth } from "../shared/format.js";
 
 // The characters of a week's Sunday that name its month: "YYYY-MM".
 const MONTH_LENGTH = "YYYY-MM".length;
@@ -20,6 +20,7 @@ const NARROW_CHART_WIDTH = 480;
 // month the data begin late in, such as May 17 before June 7, does not crowd the next.
 const MIN_WEEKS_BETWEEN_LABELS = 4;
 const DAYS_PER_WEEK = 7;
+const SECONDS_PER_MINUTE = 60;
 const MILLISECONDS_PER_DAY = 86400000;
 /**
  * The tick count a linear axis asks Plot for: Plot rounds a count to steps of 1, 2 or 5, which gives up to about
@@ -166,14 +167,21 @@ export function weekTickFormat(weeks) {
   return (week) => (labelled.includes(week) ? shortMonth(week) : "");
 }
 
-/**
- * The ticks of an elapsed-time axis from 0 to `maxSeconds`: every multiple of the smallest round step that gives at
- * most `maxTicks` intervals, or of a whole number of seconds when even a week is too fine.
- */
+/** The ticks of an elapsed-time axis from 0 to `maxSeconds`, as `elapsedRangeTicks` gives them. */
 export function elapsedTicks(maxSeconds, maxTicks) {
-  const step = TICK_STEPS_S.find((seconds) => maxSeconds / seconds <= maxTicks) ?? Math.ceil(maxSeconds / maxTicks);
+  return elapsedRangeTicks([0, maxSeconds], maxTicks);
+}
+
+/**
+ * The ticks of an elapsed-time axis over `[start, end]`, in seconds: every multiple within it of the smallest round
+ * step that gives at most `maxTicks` intervals over the range, or of a whole number of seconds when even a week is too
+ * fine.
+ */
+export function elapsedRangeTicks([start, end], maxTicks) {
+  const span = end - start;
+  const step = TICK_STEPS_S.find((seconds) => span / seconds <= maxTicks) ?? Math.ceil(span / maxTicks);
   const ticks = [];
-  for (let tick = 0; tick <= maxSeconds; tick += step) {
+  for (let tick = Math.ceil(start / step) * step; tick <= end; tick += step) {
     ticks.push(tick);
   }
   return ticks;
@@ -185,12 +193,18 @@ export function tickCount(width) {
 }
 
 /**
- * The elapsed-time x axis of a chart `width` pixels wide reaching `maxSeconds`: `{ ticks, tickFormat, label }`, its
- * ticks in h:mm from an hour on, else m:ss, its title naming which.
+ * The elapsed-time x axis over `[start, end]` seconds of a chart `width` pixels wide: `{ ticks, tickFormat, label }`,
+ * its ticks in h:mm from an hour on (in h:mm:ss when a tick falls between whole minutes), else in m:ss, its title
+ * naming which.
  */
-export function elapsedAxis(maxSeconds, width) {
-  const { format, unit } = elapsedTickFormat(maxSeconds);
-  return { ticks: elapsedTicks(maxSeconds, tickCount(width)), tickFormat: format, label: `Time since first request (${unit})` };
+export function elapsedAxis([start, end], width) {
+  const ticks = elapsedRangeTicks([start, end], tickCount(width));
+  const { format, unit } = elapsedTickFormat(end);
+  // Past an hour, ticks a few seconds apart would all read as the same minute in h:mm.
+  if (unit === "h:mm" && ticks.some((tick) => tick % SECONDS_PER_MINUTE !== 0)) {
+    return { ticks, tickFormat: formatElapsed, label: "Time since first request (h:mm:ss)" };
+  }
+  return { ticks, tickFormat: format, label: `Time since first request (${unit})` };
 }
 
 // The whole weeks from the Sunday `first` to the Sunday `last`.

@@ -1393,3 +1393,61 @@ button.is-primary {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ---------- Range slider ---------- */
+
+/* Under the Context and Timeline charts: a thin bar for the session's time, the chosen range marked between two
+   handles. Its left margin and width are set to the chart's plot area when the chart is drawn. */
+.range-slider {
+  max-width: 100%;
+  margin-top: 0.5rem;
+}
+
+.range-track {
+  position: relative;
+  height: 0.375rem;
+  margin: 0.75rem 0;
+  border-radius: var(--radius-small);
+  background: var(--color-surface-raised);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.range-selection {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--color-text-faint);
+}
+
+/* A handle sits outside the range at its end, so the two never cover one another however narrow the range; a pointer
+   drags it without scrolling the page or selecting text. */
+.range-handle {
+  position: absolute;
+  top: 50%;
+  width: 0.75rem;
+  height: 1.375rem;
+  transform: translate(-100%, -50%);
+  border: 1px solid var(--color-text-faint);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-subtle);
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.range-handle.is-end {
+  transform: translate(0, -50%);
+}
+
+.range-handle:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.range-readout {
+  margin: 0;
+  font-size: var(--font-size-smallest);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
