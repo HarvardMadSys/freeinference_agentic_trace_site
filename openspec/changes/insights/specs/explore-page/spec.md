@@ -1,12 +1,12 @@
 ## RENAMED Requirements
 - FROM: `### Requirement: Paper figures`
-- TO: `### Requirement: Findings`
+- TO: `### Requirement: Insights`
 
 ## MODIFIED Requirements
 
 ### Requirement: Sessions table
-Directly after the Overview, a Sessions section (eyebrow "Sessions",
-heading "Browse every session", anchor `#sessions`) SHALL list every
+Directly after the Overview, a Sessions section (eyebrow "Browse",
+heading "Sessions", anchor `#sessions`) SHALL list every
 top-level session of every harness, the benchmark replay marked in its
 harness cell, sorted by start date descending by default, 20 rows a page,
 with the columns Session (a shortened id, linked), Started (UTC), Harness,
@@ -44,31 +44,29 @@ the Session page.
 
 #### Scenario: Where the list sits
 - **WHEN** the visitor scrolls past the Overview
-- **THEN** the next section SHALL be the Sessions section, and the Findings SHALL follow it
+- **THEN** the next section SHALL be the Sessions section, and the Insights SHALL follow it
 
-### Requirement: Findings
-After the Sessions section, a Findings section (eyebrow "Findings",
-heading "What the trace shows", anchor `#findings`) SHALL draw the figures
-and the two kept histograms from the shipped answers, in six numbered
-topics, each with a heading, a takeaway sentence of at most twenty-five
-words under it, and no other intro text; each card with a title, a finding
-line of at most sixteen words under the title (a number-led phrase in the
-strong weight, then a plain clause), a caption of at most twelve words
-under the chart, and its definition (at most forty words) and row count
-behind a control:
+### Requirement: Insights
+After the Sessions section, an Insights section (eyebrow "Findings",
+heading "Insights", anchor `#insights`) SHALL draw the figures and the two
+kept histograms from the shipped answers, in six numbered topics, each
+with a heading, a takeaway sentence of at most twenty words under it, and
+no other intro text; each card with a title, an insight of at most twelve
+words under the title (one sentence saying what the chart means, a number
+in it only where the number is the point), a caption of at most twelve
+words under the chart, and its definition (at most forty words) and row
+count behind a control:
 
 | Topic | Figures, in order |
 |---|---|
-| 01 Session structure (`#findings-sessions`) | `requests_per_session_cdf`, `duration_cdf`, `subagents_per_session` (histogram), `user_prompt_tokens_by_scope` |
-| 02 Tokens and cost (`#findings-tokens`) | `tokens_per_request_cdf`, `token_split_by_week`, `token_growth_by_messages`, `context_share_by_role`, `cached_fraction_per_request` (histogram), `cost_share_by_session` |
-| 03 Latency (`#findings-latency`) | `ttft_cdf_by_model`, `decode_cdf_by_model`, `session_time_by_part` (the paper's four parts: prefill, decode, tool, user idle, sessions ranked by user-idle share), `speedup_if_twice_as_fast` |
-| 04 Tools (`#findings-tools`) | `latency_by_category`, `result_tokens_by_category`, `calls_per_request_by_category`, `latency_by_batch_width`, `tool_mix_by_turn_position` |
-| 05 Prefix caching (`#findings-caching`) | `hit_ratio_cdf_by_gap_bin`, `hit_ratio_by_idle_gap`, `gap_cdf_by_cause`, `mean_hit_ratio_by_cause`, `hit_ratio_cdf_by_transition`, `mutations_by_cause`, `prefill_against_storage`, `api_cost_by_ttl`, `infrastructure_cost_by_ttl` |
-| 06 Human-driven against benchmark (`#findings-comparison`) | `turn_duration_by_scope`, `session_duration_by_scope`, `input_per_request_by_scope` |
+| 01 Session structure (`#insights-sessions`) | `requests_per_session_cdf`, `duration_cdf`, `subagents_per_session` (histogram), `user_prompt_tokens_by_scope` |
+| 02 Tokens and cost (`#insights-tokens`) | `tokens_per_request_cdf`, `token_split_by_week`, `token_growth_by_messages`, `context_share_by_role`, `cached_fraction_per_request` (histogram), `cost_share_by_session` |
+| 03 Latency (`#insights-latency`) | `ttft_cdf_by_model`, `decode_cdf_by_model`, `session_time_by_part` (the paper's four parts: prefill, decode, tool, user idle, sessions ranked by user-idle share), `speedup_if_twice_as_fast` |
+| 04 Tools (`#insights-tools`) | `latency_by_category`, `result_tokens_by_category`, `calls_per_request_by_category`, `latency_by_batch_width`, `tool_mix_by_turn_position` |
+| 05 Prefix caching (`#insights-caching`) | `hit_ratio_cdf_by_gap_bin`, `hit_ratio_by_idle_gap`, `gap_cdf_by_cause`, `mean_hit_ratio_by_cause`, `hit_ratio_cdf_by_transition`, `mutations_by_cause`, `prefill_against_storage`, `api_cost_by_ttl`, `infrastructure_cost_by_ttl` |
+| 06 Human-driven against benchmark (`#insights-comparison`) | `turn_duration_by_scope`, `session_duration_by_scope`, `input_per_request_by_scope` |
 
-Every number a finding states SHALL be read from the figure's answer by a
-function the entry names and checked by a test; a finding whose number the
-answer cannot yield SHALL state no number. Each figure SHALL stay one query
+Each figure SHALL stay one query
 file answered by `make data` and one chart function, with the definitions,
 parity and legend behaviour of the archived change `calmer-explore`.
 Nothing on the page SHALL run a query in the browser.
@@ -93,18 +91,14 @@ Nothing on the page SHALL run a query in the browser.
 - **WHEN** the figures are drawn
 - **THEN** every number a figure shares with the paper SHALL equal the paper's
 
-#### Scenario: A finding's number
-- **WHEN** `make data` reruns and a figure's median moves
-- **THEN** the findings test SHALL fail until the finding's text is changed, because the number it states no longer appears in the answer's formatted value
-
 #### Scenario: A caption that grew
-- **WHEN** a caption exceeds twelve words, a finding sixteen or a takeaway twenty-five
+- **WHEN** a caption or an insight exceeds twelve words, a takeaway twenty, or a card has no insight
 - **THEN** the node test that counts them SHALL fail
 
 ### Requirement: Hero and stats strip
 The page SHALL open with a hero: an eyebrow naming the dataset, a title of
 two phrases with one in the accent colour, one lede sentence, and four
-buttons: "Explore the findings" to the Findings section, "Dataset" (the
+buttons: "Insights" to the Insights section, "Dataset" (the
 Hugging Face dataset), the paper and the code. Beside it a stats strip
 SHALL show, computed from the shipped answers and never typed: the weeks,
 human-driven sessions, requests, input tokens, tool calls and harnesses,
