@@ -3,8 +3,8 @@
  *
  * Every colour is a CSS variable from `style.css`, so a chart follows the page into dark mode with no JavaScript.
  * Names get colours from one fixed order, so the same model, category or provider has the same colour in
- * every chart, and a token part, a wait cause, a transition and a gap bin always take their own tokens. These are
- * plain constants and functions, tested with `node --test`.
+ * every chart, and a token part, a wait cause, a transition, a gap bin and a simulated population always take their
+ * own tokens. These are plain constants and functions, tested with `node --test`.
  */
 
 /** The eight series colours, in order. A chart assigns them in order and never cycles: a ninth series is "Other". */
@@ -79,6 +79,15 @@ export const TOOL_GROUP_COLOURS = Object.freeze({
   "Git/VCS": "var(--tool-group-git-vcs)",
   "Browser/Web": "var(--tool-group-browser-web)",
   "Other": "var(--tool-group-other)",
+});
+
+/**
+ * The colour of each population the cache simulation replays, by the simulation's name of it: the paper's harnesses
+ * (human-driven) blue and the benchmark replay red, as the paper draws them.
+ */
+export const SCOPE_COLOURS = Object.freeze({
+  Agentic: "var(--series-1)",
+  "SWE-Bench": "var(--series-8)",
 });
 
 /** The six gap-bin colours, shortest gap first: one blue from light to dark. */

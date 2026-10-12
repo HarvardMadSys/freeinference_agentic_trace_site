@@ -70,7 +70,7 @@ def test_each_kind_s_rows_over_every_week_are_printed(tmp_path: pathlib.Path, ca
     assert printed[0].startswith("requests: 21 rows, ")
     assert printed[1].startswith("tool_calls: 16 rows, ")
     assert printed[2].startswith("sessions: 9 rows, ")
-    assert printed[3].startswith("simulation: 4 rows, ")
+    assert printed[3].startswith("simulation: 8 rows, ")
     assert printed[-2].startswith("weeks.json: 2 rows, ")
     assert printed[-1].startswith(f"{site_data.paths.ANSWERS_FOLDER}: {len(answer_files())} files, ")
 
@@ -87,7 +87,7 @@ def mark_first_week_simulated_from_older_traces(tmp_path: pathlib.Path) -> None:
 def test_a_week_simulated_from_older_traces_is_published_without_simulation_rows(tmp_path: pathlib.Path) -> None:
     out = build(tmp_path)
     assert [entry["simulated"] for entry in json.loads((out / "weeks.json").read_text())] == [True, False]
-    assert len(pandas.read_parquet(week_file(out, "simulation", FIRST_SUNDAY))) == 4
+    assert len(pandas.read_parquet(week_file(out, "simulation", FIRST_SUNDAY))) == 8
     mark_first_week_simulated_from_older_traces(tmp_path)
     build(tmp_path)  # into the same folder, whose simulation file of the first week is now stale
     assert [entry["simulated"] for entry in json.loads((out / "weeks.json").read_text())] == [False, False]
@@ -143,8 +143,9 @@ def test_the_simulation_is_written_with_both_scopes_and_without_a_policy(tmp_pat
     written = pandas.read_parquet(week_file(build(tmp_path), "simulation", FIRST_SUNDAY))
     assert "policy" not in written.columns
     assert written[["scope", "ttl", "span_seconds"]].values.tolist() == [
-        ["Agentic", "1h", 603_200.0], ["Agentic", "5m", 603_200.0],
-        ["SWE-Bench", "1h", 25.0], ["SWE-Bench", "5m", 25.0],
+        ["Agentic", "1h", 603_200.0], ["Agentic", "1m", 603_200.0], ["Agentic", "5m", 603_200.0],
+        ["Agentic", "none", 603_200.0], ["SWE-Bench", "1h", 25.0], ["SWE-Bench", "1m", 25.0],
+        ["SWE-Bench", "5m", 25.0], ["SWE-Bench", "none", 25.0],
     ]
 
 

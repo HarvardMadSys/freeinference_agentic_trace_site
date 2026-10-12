@@ -14,6 +14,8 @@ from paper.prefix_caching import reuse
 from release import population, schema
 from simulation import cache
 
+import site_data.simulation
+
 SITE_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site"
 ABOUT_PAGE = SITE_FOLDER / "about.html"
 CHARTS_MODULE = SITE_FOLDER / "js" / "shared" / "charts.js"  # declares `MIN_ROWS_PER_BIN`
@@ -191,7 +193,8 @@ def test_the_about_page_s_tool_groups_are_the_pipeline_s() -> None:
 
 def test_the_about_page_s_simulation_values_are_the_simulation_s() -> None:
     assert f"the {cache.BLOCK_TOKENS}-token blocks" in definition("cache-simulation")
-    assert codes(definition("policy")) == list(cache.POLICIES)
+    assert codes(definition("policy")) == [site_data.simulation.KEPT_POLICY]
+    assert f"simulates {NUMBER_WORDS[len(cache.POLICIES)]} policies" in definition("policy")
 
 
 def test_the_list_of_differences_names_every_figure_whose_definition_states_one() -> None:

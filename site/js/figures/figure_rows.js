@@ -10,7 +10,7 @@
 
 import { dropThinBins, MIN_ROWS_PER_BIN, weeksText } from "../shared/charts.js";
 import { formatCount } from "../shared/format.js";
-import { harnessesText, isDefaultHarnessChoice } from "../shared/selection.js";
+import { harnessesText } from "../shared/selection.js";
 
 /** How a log axis writes its ticks: 0.1 and 1000, not Plot's SI "100m" (which reads as minutes) and "1k". */
 export const PLAIN_NUMBER_FORMAT = "~g";
@@ -27,9 +27,9 @@ const HIDDEN_NOUNS = Object.freeze({
 });
 const DEFAULT_HIDDEN_NOUN = ["bin", "bins"];
 
-// What a simulation figure's caption names while other than the paper's harnesses are selected: the simulation
-// replays the paper's population only, so the figure draws it whatever harnesses are selected.
-const SIMULATED_HARNESSES_TEXT = "the paper's harnesses only, which the simulation replays";
+// What a simulation figure's caption names as its harnesses: the simulation replays the paper's harnesses and, on its
+// own, the benchmark replay, and a figure draws what its definition says of those whatever harnesses are selected.
+const SIMULATED_HARNESSES_TEXT = "the harnesses the simulation replays";
 
 /**
  * The rows of a query's `rows` that `figure` draws: those its `drawnRows(rows, colours)` keeps, given the colours every
@@ -87,20 +87,16 @@ export function restingCountText(rows, figure) {
  * `{ harnesses, weeks, notSimulated }`: the text naming the harnesses a figure's rows come from, the weeks (Sundays)
  * they come from, and the selected weeks they leave out because the simulation does not cover them. That is the
  * selection's, by `harnessEntries` (the entries of `harnesses.json`), with no week left out, except for a simulation
- * figure (`isSimulation`), whose rows are the paper's harnesses' in the selected weeks the simulation covers, by
- * `weekEntries` (the entries of `weeks.json`); its text then says so when other harnesses are selected.
+ * figure (`isSimulation`), whose rows are those of the harnesses the simulation replays, whatever harnesses are
+ * selected, in the selected weeks the simulation covers, by `weekEntries` (the entries of `weeks.json`).
  */
 export function drawnHarnessesAndWeeks(figure, selection, weekEntries, harnessEntries) {
-  const selectedText = harnessesText(selection.harnesses, harnessEntries);
   if (figure.isSimulation !== true) {
-    return { harnesses: selectedText, weeks: selection.weeks, notSimulated: [] };
+    return { harnesses: harnessesText(selection.harnesses, harnessEntries), weeks: selection.weeks, notSimulated: [] };
   }
   const simulated = new Set(weekEntries.filter((entry) => entry.simulated).map((entry) => entry.week));
   const weeks = selection.weeks.filter((week) => simulated.has(week));
   const notSimulated = selection.weeks.filter((week) => !simulated.has(week));
-  if (isDefaultHarnessChoice(selection.harnesses, harnessEntries)) {
-    return { harnesses: selectedText, weeks, notSimulated };
-  }
   return { harnesses: SIMULATED_HARNESSES_TEXT, weeks, notSimulated };
 }
 

@@ -160,3 +160,41 @@ def test_a_gap_of_0_s_counts_and_an_overlap_does_not(wait_cases: duckdb.DuckDBPy
     assert bins.series.unique().tolist() == ["<1m"]
     assert bins.rows.unique().tolist() == [1]
     assert bins.x.unique().tolist() == [0.5]
+
+
+# The fixture's first-week TTL-only tallies, as `fixture_release.write_simulation` writes them, per scope in TTL order:
+# missed tokens and reusable plus dead token-seconds. The span is 603,200 s for Agentic and 25 s for SWE-Bench.
+AGENTIC_MISSES = [5_000, 4_000, 2_000, 1_600]
+AGENTIC_RETAINED = [400 + 100, 1_000 + 500, 3_000 + 2_000, 3_600 + 5_000_000]
+BENCHMARK_MISSES = [1_200, 1_000, 500, 400]
+BENCHMARK_RETAINED = [80 + 20, 100 + 50, 150 + 80, 160 + 200]
+SIMULATED_TTLS = ["1m", "5m", "1h", "none"]  # the fixture's TTLs, shortest first
+
+
+def test_prefill_against_storage_per_scope_and_ttl(connection: duckdb.DuckDBPyConnection,
+                                                    fixture_weeks: list[str]) -> None:
+    # The second week is not simulated, so only the first week's tallies count; the prefill is normalised by each
+    # scope's misses with no TTL, the retained tokens by its span.
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
+    rows = site_database.run_query(connection, "figures/prefill_against_storage")
+    agentic = rows[rows.scope == "Agentic"]
+    benchmark = rows[rows.scope == "SWE-Bench"]
+    assert agentic.ttl.tolist() == SIMULATED_TTLS
+    assert agentic.normalised_prefill.tolist() == pytest.approx([misses / 1_600 for misses in AGENTIC_MISSES])
+    assert agentic.mean_retained_tokens.tolist() == pytest.approx([retained / 603_200 for retained in AGENTIC_RETAINED])
+    assert benchmark.ttl.tolist() == SIMULATED_TTLS
+    assert benchmark.normalised_prefill.tolist() == pytest.approx([misses / 400 for misses in BENCHMARK_MISSES])
+    assert benchmark.mean_retained_tokens.tolist() == pytest.approx([retained / 25 for retained in BENCHMARK_RETAINED])
+    # The replayed top-level requests of the first week: `tree-root` 5 and `idle-week-1` 3; `swe-bench` 2.
+    assert agentic.rows.unique().tolist() == [8]
+    assert benchmark.rows.unique().tolist() == [2]
+
+
+def test_prefill_against_storage_ignores_the_harness_selection_and_skips_weeks_not_simulated(
+        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
+    every_paper_harness = site_database.run_query(connection, "figures/prefill_against_storage")
+    site_database.select_weeks(connection, fixture_weeks, ["pi"])
+    assert site_database.run_query(connection, "figures/prefill_against_storage").equals(every_paper_harness)
+    site_database.select_weeks(connection, [SECOND_SUNDAY], fixture_release.PAPER_HARNESSES)
+    assert site_database.run_query(connection, "figures/prefill_against_storage").empty

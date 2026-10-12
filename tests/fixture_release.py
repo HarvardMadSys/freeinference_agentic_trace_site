@@ -251,16 +251,22 @@ def tool_call_row(request: FixtureRequest, call_index: int, name: str, latency_m
 
 def write_simulation(simulated_week: pathlib.Path, week_directory: pathlib.Path) -> None:
     """A few tallies, the totals and the per-request misses of one week, with `sources.json` naming the week's
-    manifest."""
+    manifest.
+
+    Each scope has TTL-only tallies at four TTLs, among them the one-minute TTL the costs are normalised by and no TTL,
+    whose misses the prefill is normalised by; its hit and missed tokens add up to the same input at every TTL. With no
+    TTL the Agentic cache keeps its blocks so long that storing them costs more than recomputing what a one-hour TTL
+    misses, so the cheapest TTL is one a figure draws.
+    """
     simulated_week.mkdir(parents=True)
     tallies = pandas.DataFrame({
-        "scope": ["Agentic", "Agentic", "Agentic", "SWE-Bench", "SWE-Bench"],
-        "policy": ["ttl_only", "ttl_only", "reclaim_both", "ttl_only", "ttl_only"],
-        "ttl": ["5m", "1h", "5m", "5m", "1h"],
-        "hit_tokens": [6_000, 8_000, 6_000, 1_000, 1_500],
-        "miss_tokens": [4_000, 2_000, 4_000, 1_000, 500],
-        "reusable_token_seconds": [1_000.0, 3_000.0, 900.0, 100.0, 150.0],
-        "dead_token_seconds": [500.0, 2_000.0, 0.0, 50.0, 80.0],
+        "scope": ["Agentic"] * 5 + ["SWE-Bench"] * 4,
+        "policy": ["ttl_only", "ttl_only", "ttl_only", "ttl_only", "reclaim_both"] + ["ttl_only"] * 4,
+        "ttl": ["1m", "5m", "1h", "none", "5m", "1m", "5m", "1h", "none"],
+        "hit_tokens": [5_000, 6_000, 8_000, 8_400, 6_000, 800, 1_000, 1_500, 1_600],
+        "miss_tokens": [5_000, 4_000, 2_000, 1_600, 4_000, 1_200, 1_000, 500, 400],
+        "reusable_token_seconds": [400.0, 1_000.0, 3_000.0, 3_600.0, 900.0, 80.0, 100.0, 150.0, 160.0],
+        "dead_token_seconds": [100.0, 500.0, 2_000.0, 5_000_000.0, 0.0, 20.0, 50.0, 80.0, 200.0],
     })
     totals = pandas.DataFrame({
         "scope": ["Agentic", "SWE-Bench"],

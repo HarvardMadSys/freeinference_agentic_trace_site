@@ -5,6 +5,9 @@ import { drawnProviderRows, idleGapEdgeSeconds, idleGapLegend } from "../site/js
 import {
   causeLegend, gapBinColours, gapBinLegend, meanHitRatioBars, transitionLegend,
 } from "../site/js/figures/caching_gaps.js";
+import {
+  decadeTicks, multipleText, prefillPoints, retainedDomain, scopeLegend, ttlLabel,
+} from "../site/js/figures/caching_retention.js";
 import { assignColours, causeColours, OTHER_SERIES } from "../site/js/theme/colours.js";
 
 // The colours every figure shares, as the page gives a legend function: the providers in their fixed order.
@@ -73,4 +76,41 @@ test("the idle-gap figure lists and draws only the eight providers with most req
     assert.notEqual(legend.colours.get(name), OTHER_SERIES, name);
   }
   assert.deepEqual(drawnProviderRows(rows, colours).map((row) => row.provider), providers.slice(0, 8));
+});
+
+// Rows of the prefill query: two TTLs of the paper's harnesses and three of the benchmark replay, in the query's order.
+const PREFILL_ROWS = [
+  { scope: "Agentic", ttl: "1m", normalised_prefill: 6.2, mean_retained_tokens: 415_000, rows: 900 },
+  { scope: "Agentic", ttl: "none", normalised_prefill: 1, mean_retained_tokens: 102_000_000, rows: 900 },
+  { scope: "SWE-Bench", ttl: "1s", normalised_prefill: 17.4, mean_retained_tokens: 3_900, rows: 60 },
+  { scope: "SWE-Bench", ttl: "10s", normalised_prefill: 3.2, mean_retained_tokens: 7_300, rows: 60 },
+  { scope: "SWE-Bench", ttl: "15m", normalised_prefill: 1.02, mean_retained_tokens: 42_000, rows: 60 },
+];
+
+test("a prefill point per row, in the query's order, its TTL named, and placed where the paper labels one", () => {
+  assert.deepEqual(prefillPoints(PREFILL_ROWS), [
+    { scope: "Agentic", ttl: "1m", label: "1m", retained: 415_000, prefill: 6.2, placement: "right" },
+    { scope: "Agentic", ttl: "none", label: "∞", retained: 102_000_000, prefill: 1, placement: "right" },
+    { scope: "SWE-Bench", ttl: "1s", label: "1s", retained: 3_900, prefill: 17.4, placement: "right" },
+    { scope: "SWE-Bench", ttl: "10s", label: "10s", retained: 7_300, prefill: 3.2, placement: "left" },
+    { scope: "SWE-Bench", ttl: "15m", label: "15m", retained: 42_000, prefill: 1.02, placement: null },
+  ]);
+  assert.equal(ttlLabel("1d"), "1d");
+});
+
+test("the retained-tokens axis runs from half the fewest to three times the most, ticked at powers of ten", () => {
+  const domain = retainedDomain(prefillPoints(PREFILL_ROWS));
+  assert.deepEqual(domain, [1_950, 306_000_000]);
+  assert.deepEqual(decadeTicks(domain), [1e4, 1e5, 1e6, 1e7, 1e8]);
+  assert.deepEqual(decadeTicks([1, 100]), [1, 10, 100]);
+  assert.equal(multipleText(2), "2×");
+});
+
+test("the scope legend lists the paper's harnesses as human-driven, then the benchmark, each in its colour", () => {
+  const legend = scopeLegend([{ scope: "SWE-Bench" }, { scope: "Agentic" }], FIGURE_COLOURS, "scope");
+  assert.deepEqual(legend.series, [
+    { name: "Agentic", label: "Human-driven" }, { name: "SWE-Bench", label: "Benchmark" },
+  ]);
+  assert.equal(legend.colours.get("Agentic"), "var(--series-1)");
+  assert.equal(legend.colours.get("SWE-Bench"), "var(--series-8)");
 });

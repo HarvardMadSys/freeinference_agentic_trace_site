@@ -23,7 +23,7 @@ import site_database
 
 RELATIVE_TOLERANCE = 1e-12  # an answer's number and the live query's are equal when this close
 # The queries that read the `simulation` view, which a data folder with no simulated week does not have.
-SIMULATION_QUERIES: list[str] = []
+SIMULATION_QUERIES = ["figures/prefill_against_storage"]
 SHIPPED_DATA_FOLDER = site_database.QUERIES_FOLDER.parent / "data"  # the data the repository tracks, built by `make data`
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]

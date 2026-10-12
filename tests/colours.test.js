@@ -4,6 +4,8 @@ import { test } from "node:test";
 import {
   assignColours, barColours, CAUSE_COLOURS, causeColours, GAP_BIN_SLOTS, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS,
   slottedColours, TOOL_GROUP_COLOURS, TRANSITION_COLOURS,
+  assignColours, barColours, CAUSE_COLOURS, causeColours, GAP_BIN_SLOTS, OTHER_SERIES, SCOPE_COLOURS, SERIES_SLOTS,
+  TOKEN_PART_COLOURS, slottedColours, TRANSITION_COLOURS,
 } from "../site/js/theme/colours.js";
 
 const NINE_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
@@ -81,4 +83,9 @@ test("the eight tool groups each have their own colour token, and the map cannot
   assert.equal(new Set(colours).size, 8);
   assert.equal(TOOL_GROUP_COLOURS["Write/Edit"], "var(--tool-group-write-edit)");
   assert.ok(Object.isFrozen(TOOL_GROUP_COLOURS));
+});
+
+test("the paper's harnesses are drawn blue and the benchmark replay red, as the paper draws them", () => {
+  assert.deepEqual(Object.entries(SCOPE_COLOURS), [["Agentic", "var(--series-1)"], ["SWE-Bench", "var(--series-8)"]]);
+  assert.ok(Object.isFrozen(SCOPE_COLOURS));
 });

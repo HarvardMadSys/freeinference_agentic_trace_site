@@ -41,18 +41,18 @@ def test_the_kept_policy_is_one_the_simulation_runs() -> None:
 def test_the_simulated_week_s_ttl_only_tallies_of_both_scopes_appear_unchanged(tmp_path: pathlib.Path) -> None:
     rows = fixture_rows(tmp_path)
     assert list(rows.columns) == SITE_COLUMNS
-    assert rows.week.tolist() == ["2026-05-31"] * 4  # the second week contributes none, the reclaim_both tally neither
-    assert rows.scope.tolist() == [population.AGENTIC] * 2 + [population.SWE_BENCH] * 2
-    assert rows.ttl.tolist() == ["5m", "1h", "5m", "1h"]
-    assert rows.hit_tokens.tolist() == [6_000, 8_000, 1_000, 1_500]
-    assert rows.dead_token_seconds.tolist() == [500.0, 2_000.0, 50.0, 80.0]
+    assert rows.week.tolist() == ["2026-05-31"] * 8  # the second week contributes none, the reclaim_both tally neither
+    assert rows.scope.tolist() == [population.AGENTIC] * 4 + [population.SWE_BENCH] * 4
+    assert rows.ttl.tolist() == ["1m", "5m", "1h", "none"] * 2
+    assert rows.hit_tokens.tolist() == [5_000, 6_000, 8_000, 8_400, 800, 1_000, 1_500, 1_600]
+    assert rows.dead_token_seconds.tolist() == [100.0, 500.0, 2_000.0, 5_000_000.0, 20.0, 50.0, 80.0, 200.0]
 
 
 def test_each_row_carries_its_scope_s_totals_of_the_week(tmp_path: pathlib.Path) -> None:
     rows = fixture_rows(tmp_path)
-    assert rows.active_token_seconds.tolist() == [20_000.0] * 2 + [2_000.0] * 2
-    assert rows.span_seconds.tolist() == [603_200.0] * 2 + [25.0] * 2
-    assert rows.output_tokens.tolist() == [1_300.0] * 2 + [200.0] * 2
+    assert rows.active_token_seconds.tolist() == [20_000.0] * 4 + [2_000.0] * 4
+    assert rows.span_seconds.tolist() == [603_200.0] * 4 + [25.0] * 4
+    assert rows.output_tokens.tolist() == [1_300.0] * 4 + [200.0] * 4
 
 
 def test_no_simulated_week_gives_no_rows(tmp_path: pathlib.Path) -> None:

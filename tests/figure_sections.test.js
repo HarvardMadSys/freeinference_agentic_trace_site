@@ -33,6 +33,7 @@ const SECTION_FIGURES = {
     "gap_cdf_by_cause",
     "mean_hit_ratio_by_cause",
     "hit_ratio_cdf_by_transition",
+    "prefill_against_storage",
   ],
   "../site/js/comparison/comparison.js": [
     "tool_mix_by_turn_position",
@@ -76,6 +77,19 @@ test("every figure has a title, a one-sentence definition, a bin column and a dr
       assert.equal(figure.definition.split(". ").length, 1, `${figure.name}: one sentence`);
       assert.ok(typeof figure.binColumn === "string" || figure.binColumn === null, figure.name);
       assert.equal(typeof figure.draw, "function", figure.name);
+    }
+  }
+});
+
+// A card's caption fits one line at desktop width.
+const MAX_CAPTION_LENGTH = 90;
+
+test("a figure's caption, where it has one, is one short sentence", async () => {
+  for (const { figures } of await sections()) {
+    for (const figure of figures.filter((one) => one.caption !== undefined)) {
+      assert.ok(figure.caption.endsWith("."), figure.name);
+      assert.equal(figure.caption.split(". ").length, 1, `${figure.name}: one sentence`);
+      assert.ok(figure.caption.length <= MAX_CAPTION_LENGTH, `${figure.name}: ${figure.caption.length} characters`);
     }
   }
 });

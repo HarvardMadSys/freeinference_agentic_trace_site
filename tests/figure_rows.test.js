@@ -137,17 +137,17 @@ test("a figure draws the selection's harnesses and weeks", () => {
   });
 });
 
-test("a simulation figure draws the paper's harnesses in the selected weeks that were simulated, and says so", () => {
+test("a simulation figure draws the harnesses it replays in the selected weeks that were simulated, and says so", () => {
   const figure = { isSimulation: true };
   const paperSelection = { harnesses: ["hermes", "codex"], weeks: ["2026-08-09", "2026-08-16"] };
   assert.deepEqual(drawnHarnessesAndWeeks(figure, paperSelection, WEEK_ENTRIES, HARNESS_ENTRIES), {
-    harnesses: "the paper's harnesses",
+    harnesses: "the harnesses the simulation replays",
     weeks: ["2026-08-09"],
     notSimulated: ["2026-08-16"],
   });
   const benchmarkSelection = { harnesses: ["eval:swe-bench"], weeks: ["2026-08-02"] };
   const underBenchmark = drawnHarnessesAndWeeks(figure, benchmarkSelection, WEEK_ENTRIES, HARNESS_ENTRIES);
-  assert.equal(underBenchmark.harnesses, "the paper's harnesses only, which the simulation replays");
+  assert.equal(underBenchmark.harnesses, "the harnesses the simulation replays");
   assert.deepEqual(underBenchmark.weeks, ["2026-08-02"]);
 });
 
@@ -165,7 +165,7 @@ test("a simulation figure's caption names the selected weeks the simulation does
   const drawn = drawnHarnessesAndWeeks(figure, selection, WEEK_ENTRIES, HARNESS_ENTRIES);
   const rows = [{ ttl: "5m", rows: 1200 }];
   assert.equal(figureCaption(figure, rows, 0, drawn),
-    "1,200 rows · the paper's harnesses · 2 weeks · not simulated: 2026-08-16");
+    "1,200 rows · the harnesses the simulation replays · 2 weeks · not simulated: 2026-08-16");
 });
 
 test("a figure's caption names no week left out when every selected week is drawn, and notes hidden bins", () => {

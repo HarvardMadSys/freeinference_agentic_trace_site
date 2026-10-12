@@ -175,7 +175,10 @@ and calls `draw`:
   series' name with the plural noun of what it counts; the caption then gives
   each count ("84,239 turns · 12,002 sessions").
 - `isSimulation` (optional): true for a figure of the cache simulation, which
-  covers the paper's harnesses and the simulated weeks only; the caption says so.
+  draws the harnesses the simulation replays (the paper's, and on its own the
+  benchmark replay) in the simulated weeks only; the caption says so.
+- `caption` (optional): the card's one short line, a sentence of at most 90
+  characters; `definition` keeps the full definition.
 - `legend` (a figure of more than one series): `legend(rows, colours, seriesColumn)`
   returns the series its legend lists and their colours, `{ series, colours }`,
   each series `{ name, label }`. The page draws the legend as buttons that

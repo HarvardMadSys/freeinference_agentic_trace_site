@@ -1,12 +1,17 @@
 """The pipeline constants the Prefix-caching figures hold a copy of, to draw, still equal the pipeline's own: the gap
-bins in their query and in the browser, the wait causes' names, order and colours, and the gap figures' axis limits."""
+bins in their query and in the browser, the wait causes' names, order and colours, the gap figures' axis limits, the
+simulated TTLs, the simulation's scope names and the TTLs the retention figures label."""
 
 import math
 import pathlib
 import re
 
+import pytest
+
 from paper.metrics import gaps
-from paper.prefix_caching import reuse
+from paper.prefix_caching import cache_retention, reuse
+from release import population
+from simulation import cache
 
 import test_pipeline_mirrors
 
@@ -16,6 +21,9 @@ CAUSE_QUERY = SITE_FOLDER / "queries" / "figures" / "mean_hit_ratio_by_cause.sql
 CACHING_GAPS_MODULE = SITE_FOLDER / "js" / "figures" / "caching_gaps.js"  # the bins' labels, the causes' names
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the causes' colours
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the causes a wait bar names
+RETENTION_MODULE = SITE_FOLDER / "js" / "figures" / "caching_retention.js"  # the scopes' names, the labelled TTLs
+PREFILL_QUERY = SITE_FOLDER / "queries" / "figures" / "prefill_against_storage.sql"  # orders the TTLs, names the scopes
+TTL_QUERIES = [PREFILL_QUERY]  # each lists the simulated TTLs with their seconds
 OPEN_ENDED = "'infinity'::DOUBLE"  # how the query writes the last bin's upper bound
 
 # A gap bin of the query: `('<label>', <order>, <lower bound>, <upper bound>)`.
@@ -24,6 +32,12 @@ GAP_BIN_ROW = re.compile(r"\('([^']+)', (\d+), ([\d.]+), ([\d.]+|'infinity'::DOU
 CAUSE_ROW = re.compile(r"\('(\w+)', (\d+)\)")
 # A key and string value of a JavaScript object written on one line or several: `key: "value"`.
 OBJECT_ENTRY = re.compile(r'(\w+): "([^"]+)"')
+# A TTL of a query: `('<name>', <seconds>)`, the last one's seconds infinite.
+TTL_ROW = re.compile(r"\('(\w+)', (\d+|'infinity'::DOUBLE)\)")
+# A scope a query names a request's harness by: `THEN '<scope>' ELSE '<scope>'`.
+SCOPE_CASE = re.compile(r"THEN '([\w-]+)' ELSE '([\w-]+)'")
+# A key of a JavaScript object of TTLs: a quoted name, or the constant `[NO_TTL]`.
+TTL_ENTRY = re.compile(r'"([^"]+)":|\[NO_TTL\]:')
 
 
 def bound(text: str) -> float:
@@ -67,3 +81,41 @@ def test_the_gap_figures_axis_limits_are_the_paper_s() -> None:
     for constant in ["MIN_GAP_DRAWN_S", "MAX_GAP_DRAWN_S", "MEAN_HIT_RATIO_AXIS_LOW"]:
         browser_value = test_pipeline_mirrors.javascript_number(CACHING_GAPS_MODULE, constant)
         assert browser_value == getattr(reuse, constant), constant
+
+
+@pytest.mark.parametrize("path", TTL_QUERIES, ids=lambda path: path.stem)
+def test_a_query_s_ttls_are_the_simulation_s_in_its_order(path: pathlib.Path) -> None:
+    query_ttls = [(name, bound(seconds)) for name, seconds in TTL_ROW.findall(path.read_text())]
+    assert query_ttls == [(name, float(seconds)) for name, seconds in cache.TTLS]
+
+
+def test_the_prefill_query_names_each_request_s_scope_as_the_pipeline_does() -> None:
+    # A request of the benchmark's harness is the benchmark replay's, any other the paper's harnesses'.
+    assert SCOPE_CASE.findall(PREFILL_QUERY.read_text()) == [(population.SWE_BENCH, population.AGENTIC)]
+
+
+def test_the_retention_figures_name_the_scopes_and_the_ttl_none_as_the_pipeline_and_the_paper() -> None:
+    scope_names = test_pipeline_mirrors.declaration(RETENTION_MODULE, r"const SCOPE_NAMES = Object\.freeze\(\{(.*?)\}\);")
+    assert re.findall(r'"?([\w-]+)"?: "', scope_names.group(1)) == [population.AGENTIC, population.SWE_BENCH]
+    assert test_pipeline_mirrors.javascript_object_keys(COLOURS_MODULE, "SCOPE_COLOURS") == [
+        population.AGENTIC, population.SWE_BENCH]
+    assert javascript_string(RETENTION_MODULE, "NO_TTL") == cache_retention.NO_TTL
+    assert javascript_string(RETENTION_MODULE, "NO_TTL_LABEL") == cache_retention.TTL_LABELS[cache_retention.NO_TTL]
+
+
+def test_the_prefill_figure_labels_the_ttls_the_paper_labels_beside_the_benchmark() -> None:
+    assert labelled_ttls(population.AGENTIC) == list(cache_retention.HUMAN_TTL_LABELS_BESIDE_BENCHMARK)
+    assert labelled_ttls(population.SWE_BENCH) == list(cache_retention.BENCHMARK_TTL_LABELS)
+
+
+def javascript_string(path: pathlib.Path, constant: str) -> str:
+    """The value of `const <constant> = "<text>";` in the module at `path`."""
+    return test_pipeline_mirrors.declaration(path, rf'const {constant} = "([^"]+)";').group(1)
+
+
+def labelled_ttls(scope: str) -> list[str]:
+    """The TTLs `LABELLED_TTLS` of caching_retention.js places a name beside for `scope`, in order, `[NO_TTL]` read as
+    the TTL it names."""
+    body = test_pipeline_mirrors.declaration(RETENTION_MODULE, rf'"?{scope}"?: Object\.freeze\(\{{(.*?)\}}\)').group(1)
+    no_ttl = javascript_string(RETENTION_MODULE, "NO_TTL")
+    return [name if name else no_ttl for name in TTL_ENTRY.findall(body)]

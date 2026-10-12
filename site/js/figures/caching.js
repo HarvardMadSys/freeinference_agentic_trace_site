@@ -1,7 +1,8 @@
 /**
  * The Prefix-caching section of the Explore page's figures: how much of a request's input the provider served from
- * cache, after a gap of each length and cause, after an idle gap and after each kind of context change. The figures of
- * the gap or change before a request are drawn in `caching_gaps.js`.
+ * cache, after a gap of each length and cause, after an idle gap and after each kind of context change, and what the
+ * cache simulation says each TTL prefills and keeps. The figures of the gap or change before a request are drawn in
+ * `caching_gaps.js`, those of the simulation in `caching_retention.js`.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. A figure of more than one series colours each
  * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
@@ -11,6 +12,7 @@ import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE 
 import { slottedColours } from "../theme/colours.js";
 import { formatCount, formatSeconds, formatShare } from "../shared/format.js";
 import { GAP_FIGURES } from "./caching_gaps.js";
+import { PREFILL_AGAINST_STORAGE } from "./caching_retention.js";
 import { seriesLegend } from "./figure_rows.js";
 
 // The idle-gap bins mirror the pipeline's `gaps.IDLE_GAP_EDGES_S`: 26 bins between 27 geometric edges from 10 s to
@@ -42,6 +44,7 @@ export const FIGURES = Object.freeze([
   GAP_FIGURES.gapByCause,
   GAP_FIGURES.meanHitRatioByCause,
   GAP_FIGURES.hitRatioByTransition,
+  PREFILL_AGAINST_STORAGE,
 ]);
 
 /** An idle-gap edge in seconds: edge 0 is 10 s and edge 26 one hour; a fractional edge lies between, geometrically. */

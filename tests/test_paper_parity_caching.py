@@ -8,15 +8,20 @@ import json
 import typing
 
 import duckdb
+import pandas
 import pytest
 
-from paper.metrics import gaps
+from paper.metrics import cache_costs, gaps
+from paper.prefix_caching import cache_retention
 
 import site_database
 import test_paper_parity
 
 SECTION = "prefix_caching"  # the section of `numbers.json` every compared item is in
-COMPARED_ITEMS = ["hit_ratio_by_gap_bin", "gap_by_cause", "mean_hit_ratio_by_cause", "hit_ratio_after_transition"]
+COMPARED_ITEMS = ["hit_ratio_by_gap_bin", "gap_by_cause", "mean_hit_ratio_by_cause", "hit_ratio_after_transition",
+                  "prefill_against_storage"]
+BENCHMARK_SECTION = "benchmark_vs_production"  # the section comparing the benchmark replay with the paper's harnesses
+BENCHMARK_SCOPE = "Agentic and SWE-Bench"  # the scope `numbers.json` records with the benchmark section's items
 TRANSITIONS = ["append", "mutation"]  # the transitions whose median hit ratio the paper reports
 PAPER_SCOPE = "Agentic"  # the scope `numbers.json` records with each compared item: the paper's harnesses
 
@@ -84,3 +89,44 @@ def test_the_median_hit_ratio_after_each_transition(agentic: duckdb.DuckDBPyConn
                    test_paper_parity.cdf_point(rows, transition, test_paper_parity.MEDIAN_SHARE))
         for transition in TRANSITIONS])
 
+
+
+def prefill_curves(agentic: duckdb.DuckDBPyConnection) -> dict[str, pandas.DataFrame]:
+    """`figures/prefill_against_storage`'s rows of each scope, indexed by TTL, by scope."""
+    rows = site_database.run_query(agentic, "figures/prefill_against_storage")
+    return {scope: scope_rows.set_index("ttl") for scope, scope_rows in rows.groupby("scope")}
+
+
+def test_the_prefill_above_the_floor_and_the_retained_tokens_of_the_paper_s_harnesses(
+        agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+    # The `Agentic` rows' `normalised_prefill` minus one at each TTL the paper quotes, against
+    # `prefix_caching.prefill_against_storage.prefill_above_floor_<ttl>`, and their `mean_retained_tokens` at each TTL
+    # it compares over those at 15 minutes, against `retained_<ttl>_over_15m`.
+    curve = prefill_curves(agentic)["Agentic"]
+    comparisons = []
+    for ttl in cache_retention.PREFILL_TTLS:
+        prefill_above_floor = float(curve.normalised_prefill[ttl] - 1)
+        comparisons.append(comparison("prefill_against_storage", f"prefill_above_floor_{ttl}", prefill_above_floor))
+    reference = curve.mean_retained_tokens[cache_costs.REFERENCE_TTL]
+    for ttl in cache_retention.RETAINED_TTLS:
+        retained = float(curve.mean_retained_tokens[ttl] / reference)
+        comparisons.append(comparison("prefill_against_storage", f"retained_{ttl}_over_{cache_costs.REFERENCE_TTL}",
+                                      retained))
+    test_paper_parity.assert_match(paper_numbers, comparisons)
+
+
+def test_the_benchmark_s_prefill_above_the_floor_beside_the_paper_s_harnesses(agentic: duckdb.DuckDBPyConnection,
+                                                                               paper_numbers: dict) -> None:
+    # The `SWE-Bench` rows' `normalised_prefill` minus one at 1 and 5 minutes, and the `Agentic` rows' at 15 minutes,
+    # against `benchmark_vs_production.prefill_against_storage`.
+    assert paper_numbers[BENCHMARK_SECTION]["prefill_against_storage"]["scope"] == BENCHMARK_SCOPE
+    curves = prefill_curves(agentic)
+    site_values = {
+        "benchmark_1m_above_floor": curves["SWE-Bench"].normalised_prefill["1m"] - 1,
+        "benchmark_5m_above_floor": curves["SWE-Bench"].normalised_prefill["5m"] - 1,
+        "production_15m_above_floor": curves["Agentic"].normalised_prefill["15m"] - 1,
+    }
+    test_paper_parity.assert_match(paper_numbers, [
+        test_paper_parity.Comparison(BENCHMARK_SECTION, "prefill_against_storage", name, float(value),
+                                     test_paper_parity.RELATIVE_TOLERANCE)
+        for name, value in site_values.items()])
