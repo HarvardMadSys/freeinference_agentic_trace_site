@@ -119,7 +119,7 @@ test("an empty array has one empty page", () => {
   assert.deepEqual(pageRows([], 4, 50), { rows: [], pageCount: 1, pageNumber: 1 });
 });
 
-test("a page holds fifty rows", () => {
+test("a page holds twenty rows", () => {
   assert.equal(ROWS_PER_PAGE, 20);
 });
 

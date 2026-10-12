@@ -52,7 +52,7 @@
 
   /*
    * Categorical series, in the fixed order charts assign them. A ninth series folds into "Other".
-   * Eight OKLCH hues, the same in both schemes: blue 255°, orange 50°, green 143°, amber 90°, magenta 340°, teal 192°,
+   * Eight OKLCH hues, the same in both schemes: blue 255°, orange 50°, green 143°, amber 81°, magenta 340°, teal 192°,
    * violet 293° and red 18°. They are not evenly spread, because the paper's four (blue, orange, green and red) are
    * fixed, and its red and orange stand only 26° apart; 30° is the floor between any two, and the other four fill
    * the wheel around them. In light most slots are the lightest colour of their hue that keeps 3.3:1 on the white

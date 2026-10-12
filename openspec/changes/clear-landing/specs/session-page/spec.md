@@ -10,9 +10,10 @@ views.
 
 ### Requirement: Session facts
 Beside the title, one card SHALL list the session's facts as labelled
-fields in two columns: harness; models, each with its requests; started
-(UTC); duration; turns; requests; subagents; tool calls; input tokens;
-cached share with the cached tokens; output tokens. A link SHALL lead back
+fields in three columns (two on a narrow screen, one on a phone): harness;
+models, each with its requests; started (UTC); duration; turns; requests;
+input tokens; cached share with the cached tokens; output tokens;
+subagents; tool calls. A link SHALL lead back
 to the Explore page's session list with its state.
 
 #### Scenario: A session with subagents

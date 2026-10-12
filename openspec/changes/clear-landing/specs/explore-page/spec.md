@@ -10,11 +10,11 @@ its figures by topic, lists its sessions, and credits and cites the work.
 ### Requirement: Hero and stats strip
 The page SHALL open with a hero: an eyebrow naming the dataset, a title of
 two phrases with one in the accent colour, one lede sentence, and four
-buttons: to the first figure section, to the Hugging Face dataset, to the
-paper and to the code. Beside it a stats strip SHALL show, computed from
-the shipped answers and never typed: the weeks, sessions, requests, input
-tokens, tool calls and harnesses, and a line naming the span of dates and
-the cache simulation's coverage.
+buttons: to the first figure section, "Dataset" (the Hugging Face dataset),
+the paper and the code. Beside it a stats strip SHALL show, computed from
+the shipped answers and never typed: the weeks, human-driven sessions,
+requests, input tokens, tool calls and harnesses, and a line naming the
+span of dates and that the benchmark replay is not counted.
 
 #### Scenario: Opening the page
 - **WHEN** a visitor opens the page
@@ -39,8 +39,8 @@ trend cards.
 The page SHALL end with a Cite section holding the paper's BibTeX in a
 block with a copy button; a Team section naming Harvard MadSys and
 collaborators, the paper's authors with their affiliations, and an About
-paragraph with links to the dataset, the code, Open Data and
-FreeInference; and a footer with the brand line, the on-site and
+paragraph saying what the site is, whose links the header, the hero and
+the footer carry; and a footer with the brand line, the on-site and
 elsewhere links, the Harvard copyright and policy links, as Open Data's.
 
 #### Scenario: Copying the citation
@@ -52,8 +52,8 @@ elsewhere links, the Harvard copyright and policy links, as Open Data's.
 ### Requirement: Weekly trends
 Three cards in the Overview SHALL show per week the sessions by harness,
 the requests by model and the input tokens cached and uncached, as stacked
-bars, the four largest series named and the rest folded into Other, with
-legends that toggle. With the figures frozen, a bar SHALL NOT narrow the
+bars, the series the donuts name (those holding the eight series colours)
+named and the rest folded into Other, with legends that toggle. With the figures frozen, a bar SHALL NOT narrow the
 page.
 
 #### Scenario: Clicking a bar
@@ -62,7 +62,7 @@ page.
 
 #### Scenario: Models per week
 - **WHEN** the requests-per-week card draws
-- **THEN** each week's bar SHALL be split by model, the four largest named and the rest Other
+- **THEN** each week's bar SHALL be split by model, the models the model-mix donut names named and the rest Other
 
 ### Requirement: Headline numbers
 The headline numbers SHALL be the stats strip of the hero and nothing
@@ -107,7 +107,7 @@ the browser.
 
 #### Scenario: A simulation figure for a week without a simulation
 - **WHEN** a week has no simulation rows
-- **THEN** the simulated figures SHALL draw the other weeks and the stats strip SHALL say which week the simulation misses
+- **THEN** the simulated figures SHALL draw the other weeks and their line of rows SHALL say which week the simulation misses
 
 #### Scenario: The paper's point
 - **WHEN** the figures are drawn
@@ -120,17 +120,18 @@ the browser.
 ### Requirement: Sessions table
 After the figures, a Session list SHALL list every top-level session of
 every harness, the benchmark replay marked in its harness cell, sorted by
-start date descending by default, 50 rows a page, with the columns
-Session (a shortened id, linked), Started (UTC), Harness, Model, Requests,
-Turns, Duration, Input tokens, Cached share. Above it, one row of plain form controls and nothing else: a month
+start date descending by default, 20 rows a page, with the columns
+Session (a shortened id, linked), Started (UTC), Harness, Requests, Model,
+Turns, Duration, Input tokens, Cached share. Above it, one row of plain form controls and a line saying
+that a month holds the weeks whose Sunday falls in it: a month
 drop-down ("All months" and one entry per month), a harness drop-down
 ("All harnesses" and one entry per harness, the benchmark replay
-named as such), a model drop-down, a search box and a minimum number of
-requests. There SHALL be no pills and no buttons. The visitor SHALL be able to sort by any
-column. The table SHALL keep its header row visible while it scrolls
-inside its wrap, SHALL fit its card at desktop width, and SHALL keep the
-filters, sort and page in the URL. Clicking a row SHALL open the Session
-page.
+named "swe-bench (benchmark)"), a model drop-down, a minimum number of
+requests and a search box. There SHALL be no pills and no buttons. The visitor SHALL be able to sort by any
+column. The table SHALL NOT scroll inside its card: the page scrolls, and
+where the table fits its card its header row SHALL stay in view under the
+site header. It SHALL keep the filters, sort and page in the URL. Clicking a
+row SHALL open the Session page.
 
 #### Scenario: Searching for a session
 - **WHEN** the visitor types the first eight characters of a session's id
@@ -138,7 +139,7 @@ page.
 
 #### Scenario: Filtering
 - **WHEN** the visitor chooses a minimum of 100 requests
-- **THEN** only sessions with at least 100 requests SHALL be listed, with the count shown as matching over total
+- **THEN** only sessions with at least 100 requests SHALL be listed, with the count shown as matching over total ("120 of 12,002 sessions"); with no filter the count SHALL name the benchmark replay's share ("12,002 sessions, 1,035 of them benchmark replay")
 
 #### Scenario: Filtering to a month and a harness
 - **WHEN** the visitor picks July 2026 in the month drop-down and `codex` in the harness drop-down
@@ -146,7 +147,7 @@ page.
 
 #### Scenario: The benchmark
 - **WHEN** the table draws
-- **THEN** the benchmark replay's sessions SHALL be listed with the others and marked as benchmark replays
+- **THEN** the benchmark replay's sessions SHALL be listed with the others, named "swe-bench" with a BENCHMARK chip whose tooltip explains the replay
 
 #### Scenario: Coming back from a session
 - **WHEN** the visitor follows the Session page's link back
