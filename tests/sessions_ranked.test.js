@@ -40,7 +40,7 @@ test("a bin's tooltip points at the top of the shown parts and names each with i
 test("the session time's legend lists the paper's four parts bottom up, each in its part colour", () => {
   const legend = SESSION_TIME_BY_PART.legend();
   assert.deepEqual(legend.series.map((one) => one.name), ["prefill", "decode", "tool", "user"]);
-  assert.deepEqual(legend.series.map((one) => one.label), ["Prefill", "Decode", "Tools", "User idle"]);
+  assert.deepEqual(legend.series.map((one) => one.label), ["Prefill", "Decode", "Tool wait", "User idle"]);
   assert.deepEqual([...legend.colours], Object.entries(TIME_PART_COLOURS));
 });
 
@@ -49,7 +49,7 @@ test("the session time's tooltip names the four parts with their shares", () => 
   const labels = Object.fromEntries(SESSION_TIME_BY_PART.legend().series.map((one) => [one.name, one.label]));
   const [tip] = rankTips([row], ["prefill", "decode", "tool", "user"], labels);
   assert.equal(tip.top, 1);
-  assert.equal(tip.text, "Percentile 50.0\nPrefill: 12.5%\nDecode: 12.5%\nTools: 25.0%\nUser idle: 50.0%\n10 sessions");
+  assert.equal(tip.text, "Percentile 50.0\nPrefill: 12.5%\nDecode: 12.5%\nTool wait: 25.0%\nUser idle: 50.0%\n10 sessions");
 });
 
 test("the cost share's legend draws each token part in its token colour", () => {

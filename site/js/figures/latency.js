@@ -14,12 +14,14 @@ import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../s
 import { cdfPoints, drawCdf } from "../shared/cdf.js";
 import { durationTicks, extent, fewerOnNarrow, tickCountFor } from "../axes/ticks.js";
 import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
-import { slottedColours, TIME_PART_COLOURS } from "../theme/colours.js";
+import { slottedColours, TIME_PART_COLOURS, TIME_PART_NAMES } from "../theme/colours.js";
 import { cdfSeries, seriesLegend } from "./figure_rows.js";
 import { SESSION_TIME_BY_PART } from "./sessions_ranked.js";
 
 // The parts of the machine time, by their name in the speed-up query, top down, with the name each bar is drawn under.
-const SPEEDUP_PARTS = Object.freeze({ prefill: "Prefill", decode: "Decode", tool: "Tools" });
+const SPEEDUP_PARTS = Object.freeze({
+  prefill: TIME_PART_NAMES.prefill, decode: TIME_PART_NAMES.decode, tool: TIME_PART_NAMES.tool,
+});
 
 // Each part's bar in the paper's colour of that part of a session's time, as the session time figure draws it.
 const SPEEDUP_COLOURS = new Map([
@@ -34,7 +36,7 @@ const NO_SPEEDUP = 1; // every bar starts at 1×, the sessions as they are
 const SPEEDUP_DECIMALS = 2; // a bar's label: 1.38×
 const SPEEDUP_TICK_DECIMALS = 1; // the axis's ticks: 1.1×
 const SPEEDUP_TICKS = 5; // about this many ticks on the speed-up axis
-const PART_LABEL_MARGIN = 92; // pixels left of the bars; room for the longest label, "Prefill 2×"
+const PART_LABEL_MARGIN = 104; // pixels left of the bars; room for the longest label, "Tool wait 2×"
 const BARS_MARGIN_TOP = 8; // pixels above the bars, which have no axis title above them
 const BAR_LABEL_GAP = 4; // pixels between a bar's end and its label
 
@@ -90,7 +92,7 @@ export const FIGURES = Object.freeze([
 
 /**
  * The bars of the speed-up figure: one `{ part, label, speedup, text }` per part of the rows, top down, `label` naming
- * the part run twice as fast ("Tools 2×") and `text` the speed-up as its bar is labelled ("1.38×").
+ * the part run twice as fast ("Tool wait 2×") and `text` the speed-up as its bar is labelled ("1.38×").
  */
 export function speedupBars(rows) {
   const speedups = new Map(rows.map((row) => [row.part, row.speedup]));

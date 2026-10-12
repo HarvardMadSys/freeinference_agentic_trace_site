@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import {
   assignColours, barColours, CAUSE_COLOURS, causeColours, GAP_BIN_SLOTS, OTHER_SERIES, SCOPE_COLOURS, SERIES_SLOTS,
-  slottedColours, TIME_PART_COLOURS, TOKEN_PART_COLOURS, TOOL_GROUP_COLOURS, TOOL_GROUP_OF_CATEGORY,
+  slottedColours, TIME_PART_COLOURS, TIME_PART_NAMES, TOKEN_PART_COLOURS, TOOL_GROUP_COLOURS, TOOL_GROUP_OF_CATEGORY,
   toolCategoryColours, TRANSITION_COLOURS,
 } from "../site/js/theme/colours.js";
 
@@ -97,6 +97,14 @@ test("the parts of a session's time take their part tokens, in the paper's order
     ["user", "var(--part-user)"],
   ]);
   assert.ok(Object.isFrozen(TIME_PART_COLOURS));
+});
+
+test("the parts of a session's time have one name each, by the keys of their colours", () => {
+  assert.deepEqual(Object.entries(TIME_PART_NAMES), [
+    ["prefill", "Prefill"], ["decode", "Decode"], ["tool", "Tool wait"], ["user", "User idle"],
+  ]);
+  assert.deepEqual(Object.keys(TIME_PART_NAMES), Object.keys(TIME_PART_COLOURS));
+  assert.ok(Object.isFrozen(TIME_PART_NAMES));
 });
 
 test("a tool category takes its tool group's colour, one without a group the Other grey, and Other goes last", () => {

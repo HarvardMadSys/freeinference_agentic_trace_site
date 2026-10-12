@@ -11,7 +11,7 @@
 import { AXIS_STYLE, chartFrame, colourScale, TALL_CHART_HEIGHT, TIP_STYLE } from "../shared/charts.js";
 import { drawCdf } from "../shared/cdf.js";
 import { durationTicks, fewerOnNarrow } from "../axes/ticks.js";
-import { causeColours, GAP_BIN_SLOTS, TRANSITION_COLOURS } from "../theme/colours.js";
+import { causeColours, GAP_BIN_SLOTS, TIME_PART_NAMES, TRANSITION_COLOURS } from "../theme/colours.js";
 import {
   formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare, MISSING_TEXT,
 } from "../shared/format.js";
@@ -24,10 +24,10 @@ const GAP_BIN_LABELS = Object.freeze(["<1m", "1–5m", "5–15m", "15–30m", "3
 const GAP_BIN_TEXT = Object.freeze({ "<1m": "Under 1 min", "1–5m": "1–5 min", "5–15m": "5–15 min",
   "15–30m": "15–30 min", "30m–1h": "30 min–1 h", ">1h": "Over 1 h" });
 
-// What a gap waited for, by the release's `waited_for` value in the order of the pipeline's `gaps.CAUSE_NAMES`, named
-// in sentence case as Session time by part names its parts.
+// What a gap waited for, by the release's `waited_for` value in the order of the pipeline's `gaps.CAUSE_NAMES`, in
+// sentence case: a wait for a tool and for the user named as the parts of a session's time they count toward.
 const CAUSE_NAMES = Object.freeze({
-  tool: "Tool wait", ask_user_tool: "Ask-user tool", user: "User idle", subagent: "Subagent",
+  tool: TIME_PART_NAMES.tool, ask_user_tool: "Ask-user tool", user: TIME_PART_NAMES.user, subagent: "Subagent",
 });
 
 // The transitions the figure draws, in their order, with the names it draws them under. A switch to another model or

@@ -136,7 +136,7 @@ test("a cost legend lists the parts bottom up in the stack, each in the colour o
   const infrastructure = costLegend([{ part: "storage" }], "part", { recompute: "Recompute", storage: "Storage" });
   assert.deepEqual(infrastructure.series, [{ name: "storage", label: "Storage" }]);
   assert.equal(infrastructure.colours.get("recompute"), "var(--token-uncached)");
-  assert.equal(infrastructure.colours.get("storage"), "var(--series-4)");
+  assert.equal(infrastructure.colours.get("storage"), "var(--series-7)");
 });
 
 test("a cost stack per TTL tops at the sum of its shown parts, its tooltip reading down from the top", () => {

@@ -15,6 +15,7 @@ import { weekTickFormat } from "../axes/ticks.js";
 import { barColours, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { seriesLegend } from "../figures/figure_rows.js";
 import { formatCountTick, formatQuantity, formatTokens } from "../shared/format.js";
+import { TOKEN_PART_NAMES } from "../session/token_parts.js";
 import { drawWithLegend, shownRows } from "./legend.js";
 
 // A trend names as many series as the donut above it, the harnesses or models that hold the eight series colours, and
@@ -34,7 +35,7 @@ const TOKEN_PARTS = Object.freeze([
 
 // The label each part of a week's input tokens has in the legend.
 const TOKEN_PART_LABELS = Object.freeze({
-  cached: "Cached input", uncached: "Uncached input", unreported: "Not reported",
+  cached: TOKEN_PART_NAMES.cached, uncached: TOKEN_PART_NAMES.uncached, unreported: "Not reported",
 });
 
 // The sentence every trend's definition ends with while a bar click selects a week: how the selection shows and how to

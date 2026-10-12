@@ -26,7 +26,10 @@ export const OTHER_SERIES = "var(--series-other)";
 /** The name a series past the eighth takes once folded; it is here because `barColours` gives it `OTHER_SERIES`. */
 export const OTHER_NAME = "Other";
 
-/** The colour of each part of a request's tokens, the same in every chart. */
+/**
+ * The colour of each part of a request's tokens, the same in every chart: slots no part of a session's time uses, so
+ * that a chart of tokens and a chart of time of the same form never give one hue two meanings.
+ */
 export const TOKEN_PART_COLOURS = Object.freeze({
   cached: "var(--token-cached)",
   uncached: "var(--token-uncached)",
@@ -39,6 +42,14 @@ export const TIME_PART_COLOURS = Object.freeze({
   decode: "var(--part-decode)",
   tool: "var(--part-tool)",
   user: "var(--part-user)",
+});
+
+/** The name of each part of a session's time in every legend, tooltip and label, by the keys of its colours. */
+export const TIME_PART_NAMES = Object.freeze({
+  prefill: "Prefill",
+  decode: "Decode",
+  tool: "Tool wait",
+  user: "User idle",
 });
 
 /**
@@ -54,7 +65,8 @@ export const REQUEST_PART_COLOURS = Object.freeze({
 
 /**
  * The colour of each role of a request's input, by the release's name of it, the same in every chart: slots no token
- * part uses, so that a role is never taken for cached or uncached input.
+ * part uses, so that a role is never taken for a token part; the user's, the assistant's and tool results take the
+ * colours of the parts of a session's time they come from (`--role-*` in `style.css`).
  */
 export const ROLE_COLOURS = Object.freeze({
   system: "var(--role-system)",

@@ -69,7 +69,7 @@ def test_the_browser_s_gap_bin_labels_are_the_pipeline_s_in_its_order() -> None:
 
 
 def test_the_causes_named_are_the_pipeline_s_in_its_order() -> None:
-    assert list(javascript_object(CACHING_GAPS_MODULE, "CAUSE_NAMES")) == list(gaps.CAUSE_NAMES)
+    assert test_pipeline_mirrors.javascript_object_keys(CACHING_GAPS_MODULE, "CAUSE_NAMES") == list(gaps.CAUSE_NAMES)
 
 
 def test_every_cause_has_a_colour_and_the_query_orders_them_as_the_pipeline() -> None:

@@ -10,20 +10,24 @@ import { AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_
 import { axisWithTicks, TICK_COUNT } from "../axes/ticks.js";
 import { SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { formatMultiple } from "../shared/format.js";
+import { TOKEN_PART_NAMES } from "../session/token_parts.js";
 import { seriesLegend } from "../figures/figure_rows.js";
 import { MULTIPLE_DECIMALS, multipleTick, ttlLabel } from "./prefill.js";
 
 // The parts of what an API customer pays, bottom up in the stack as the paper stacks them, each with its name, and of
 // what an inference provider pays.
-const API_PARTS = Object.freeze({ output: "Output", cache_read: "Cached input", input: "Uncached input" });
+const API_PARTS = Object.freeze({
+  output: TOKEN_PART_NAMES.output, cache_read: TOKEN_PART_NAMES.cached, input: TOKEN_PART_NAMES.uncached,
+});
 // The API legend lists the token parts as every legend does, but output, a stack too thin to see; its tooltip names it.
 const API_LEGEND_ORDER = Object.freeze(["cache_read", "input"]);
 const INFRASTRUCTURE_PARTS = Object.freeze({ recompute: "Recompute", storage: "Storage" });
 // Each cost part's colour: the API's parts in the colours of the tokens they price, recomputing in the uncached
-// input's, as it prefills the missed tokens again, and storage in the yellow the paper gives it.
+// input's, as it prefills the missed tokens again, and storage in violet, the one slot neither a token part nor a part
+// of a session's time uses.
 const COST_PART_COLOURS = Object.freeze({
   output: TOKEN_PART_COLOURS.output, cache_read: TOKEN_PART_COLOURS.cached, input: TOKEN_PART_COLOURS.uncached,
-  recompute: TOKEN_PART_COLOURS.uncached, storage: SERIES_SLOTS[3],
+  recompute: TOKEN_PART_COLOURS.uncached, storage: SERIES_SLOTS[6],
 });
 const COST_AXIS_TTLS = Object.freeze(["1s", "1m", "1h", "1d"]); // the TTLs a cost figure's axis names, room between
 const COST_AXIS_HEADROOM = 1.1; // a cost axis ends a tenth above the highest stack, as the paper's does

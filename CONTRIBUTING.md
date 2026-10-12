@@ -368,7 +368,11 @@ which is plain HTML.
   `style.css`, assigned in that order to a chart's series and never cycled;
   a ninth series folds into "Other" (`--series-other`). A request's cached,
   uncached and output tokens are always `--token-cached`, `--token-uncached`
-  and `--token-output`. The same model, provider or wait cause has the
+  and `--token-output`, slots no part of a session's time takes, and the
+  roles of the input take none of theirs, so that a chart of tokens and one
+  of time or of roles never give one hue two meanings; their names have
+  one home each, `TOKEN_PART_NAMES` in `session/token_parts.js` and
+  `TIME_PART_NAMES` in `theme/colours.js`. The same model, provider or wait cause has the
   same colour in every chart. A tool category takes its tool group's colour
   (`toolCategoryColours` in `theme/colours.js`, the one home of category,
   group and colour), and every category without a group, Other included, the

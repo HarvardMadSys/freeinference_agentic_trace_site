@@ -11,7 +11,7 @@
 
 import { agentLabel, agentsInStartOrder, callsByRequest, requestKey } from "../session/tree.js";
 import {
-  OTHER_SERIES, REQUEST_PART_COLOURS, TIMELINE_TOOL_CALL_COLOUR, TIMELINE_WAIT_COLOURS,
+  OTHER_SERIES, REQUEST_PART_COLOURS, TIME_PART_NAMES, TIMELINE_TOOL_CALL_COLOUR, TIMELINE_WAIT_COLOURS,
 } from "../theme/colours.js";
 import { elapsedSeconds, formatSeconds, MILLISECONDS_PER_SECOND } from "../shared/format.js";
 
@@ -30,8 +30,8 @@ export const WAIT_CAUSES = Object.freeze({
 // The legend's entries of the waits, each the causes it draws in one colour: a wait for a tool and the user's named as
 // the parts of a session's time they count toward, and a wait for subagents, which counts as tool time, on its own.
 const WAIT_LEGEND = Object.freeze([
-  Object.freeze({ name: "Tool wait", causes: Object.freeze(["tool"]) }),
-  Object.freeze({ name: "User idle", causes: Object.freeze(["user", "ask_user_tool"]) }),
+  Object.freeze({ name: TIME_PART_NAMES.tool, causes: Object.freeze(["tool"]) }),
+  Object.freeze({ name: TIME_PART_NAMES.user, causes: Object.freeze(["user", "ask_user_tool"]) }),
   Object.freeze({ name: "Subagent wait", causes: Object.freeze(["subagent"]) }),
 ]);
 
@@ -189,8 +189,8 @@ export function barAt(bars, { x, row, band, toleranceSeconds }) {
  */
 export function requestPartEntries(requests) {
   const entries = [
-    { name: "Prefill (time to first token)", colour: REQUEST_PART_COLOURS.ttft },
-    { name: "Decode (the rest)", colour: REQUEST_PART_COLOURS.decode },
+    { name: `${TIME_PART_NAMES.prefill} (time to first token)`, colour: REQUEST_PART_COLOURS.ttft },
+    { name: `${TIME_PART_NAMES.decode} (the rest)`, colour: REQUEST_PART_COLOURS.decode },
   ];
   if (requests.some((request) => request.ttft_ms === null)) {
     entries.push({ name: "No time to first token", colour: REQUEST_PART_COLOURS.whole });

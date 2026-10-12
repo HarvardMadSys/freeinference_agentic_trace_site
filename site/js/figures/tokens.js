@@ -16,17 +16,17 @@ import { assignColours, ROLE_COLOURS, SERIES_SLOTS, TOKEN_PART_COLOURS } from ".
 import {
   formatBinaryThousands, formatCount, formatCountTick, formatPercent, formatShare, formatTokens,
 } from "../shared/format.js";
+import { TOKEN_PART_NAMES } from "../session/token_parts.js";
 import { cdfSeries, seriesLegend } from "./figure_rows.js";
 import { COST_SHARE_BY_SESSION } from "./sessions_ranked.js";
 
 // The series of the tokens-per-request CDF, by their name in the query, with the name each is drawn under.
-const TOKEN_SERIES = Object.freeze({ input: "Input", uncached: "Uncached input", output: "Output" });
+const TOKEN_SERIES = Object.freeze({
+  input: "Input", uncached: TOKEN_PART_NAMES.uncached, output: TOKEN_PART_NAMES.output,
+});
 
 // A request's token parts, bottom up in a stacked bar, each drawn in its token colour.
 const TOKEN_PARTS = Object.freeze(["cached", "uncached", "output"]);
-
-// The label each token part has in a legend and a tooltip.
-const TOKEN_PART_LABELS = Object.freeze({ cached: "Cached input", uncached: "Uncached input", output: "Output" });
 
 // The median column of each token part in the token growth query.
 const GROWTH_COLUMNS = Object.freeze({
@@ -117,9 +117,10 @@ export const FIGURES = Object.freeze([
 
 /** The tokens-per-request CDF's legend: input, uncached input and output, the last two in their token colours. */
 function tokensPerRequestLegend(rows, colours, seriesColumn) {
-  // Input is the whole prompt, not a part of it, so it takes the fourth series colour, the first no token part uses.
+  // Input is the whole prompt, not a part of it, so it takes violet, the one slot neither a token part nor a part of a
+  // session's time uses.
   const tokenColours = new Map([
-    ["input", SERIES_SLOTS[3]],
+    ["input", SERIES_SLOTS[6]],
     ["uncached", TOKEN_PART_COLOURS.uncached],
     ["output", TOKEN_PART_COLOURS.output],
   ]);
@@ -128,12 +129,12 @@ function tokensPerRequestLegend(rows, colours, seriesColumn) {
 
 /** The token split's legend: the token parts, in their colours. */
 function tokenSplitLegend(rows, colours, seriesColumn) {
-  return seriesLegend(rows, seriesColumn, tokenPartColours(), TOKEN_PART_LABELS);
+  return seriesLegend(rows, seriesColumn, tokenPartColours(), TOKEN_PART_NAMES);
 }
 
 /** The token growth's legend: the token parts, in their colours; each is a column of every row. */
 function tokenGrowthLegend() {
-  const series = TOKEN_PARTS.map((part) => ({ name: part, label: TOKEN_PART_LABELS[part] }));
+  const series = TOKEN_PARTS.map((part) => ({ name: part, label: TOKEN_PART_NAMES[part] }));
   return { series, colours: tokenPartColours() };
 }
 
@@ -237,7 +238,7 @@ function growthTipText(point) {
   const lastMessage = 2 * point.messages - 1; // a power-of-two bin runs to one below the next power of two
   const messages = `${formatCount(point.messages)}–${formatCount(lastMessage)} messages`;
   const median = `median ${formatTokens(point.median)} tokens`;
-  return `${TOKEN_PART_LABELS[point.part]}\n${messages}\n${median}\n${formatCount(point.rows)} requests`;
+  return `${TOKEN_PART_NAMES[point.part]}\n${messages}\n${median}\n${formatCount(point.rows)} requests`;
 }
 
 /** The token part colours as a map from part to colour, as the chart helpers take them. */

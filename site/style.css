@@ -77,10 +77,12 @@
   --part-tool: var(--series-3);
   --part-user: var(--series-8);
 
-  /* The three parts of a request's tokens, the same everywhere they are drawn. */
-  --token-cached: var(--series-3);
-  --token-uncached: var(--series-2);
-  --token-output: var(--series-1);
+  /* The three parts of a request's tokens, the same everywhere they are drawn, in slots no part of a session's time
+     uses: cached input teal, uncached input amber, output magenta. A stacked chart of tokens and one of time never
+     show one hue with two meanings. */
+  --token-cached: var(--series-6);
+  --token-uncached: var(--series-4);
+  --token-output: var(--series-5);
 
   /* What a wait before a request waited for, the same everywhere it is drawn: a tool and the user in their parts'
      colours, a subagent violet, the slot no part of a session's time uses, and an ask-user tool amber. */
@@ -96,12 +98,13 @@
   --wait-user: color-mix(in srgb, var(--part-user) 45%, var(--wait-tint-base));
   --wait-subagent: color-mix(in srgb, var(--cause-subagent) 45%, var(--wait-tint-base));
 
-  /* The roles of a request's input, in slots no token part uses: system violet, user teal, assistant magenta, tool
-     results amber and tool definitions grey. */
+  /* The roles of a request's input, in slots no token part uses, since the Context view splits one area either way:
+     system violet, and the three others in the colour of the part of a session's time they come from, the user's
+     red, the assistant's (what the model decoded) orange and tool results green; tool definitions grey. */
   --role-system: var(--series-7);
-  --role-user: var(--series-6);
-  --role-assistant: var(--series-5);
-  --role-tool-results: var(--series-4);
+  --role-user: var(--part-user);
+  --role-assistant: var(--part-decode);
+  --role-tool-results: var(--part-tool);
   --role-tool-definitions: var(--series-other);
 
   /* How a request's context changed from the one before it: appended to, or rewritten. */

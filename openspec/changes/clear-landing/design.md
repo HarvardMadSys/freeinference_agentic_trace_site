@@ -93,11 +93,28 @@ chips, nav and the cite caption. Cards keep a 1px rule, a soft shadow and
 a 0.9rem radius; figure sections keep the 240 px charts. Dark mode stays under `prefers-color-scheme`, with a dark paper and
 surfaces retuned from Open Data's inks, and the eight series slots
 redrawn in both modes for more contrast and more colour: every slot at
-least 3:1 against its mode's card, hues spread evenly, the two modes'
+least 3:1 against its mode's card, hues at least 30° apart, the two modes'
 slots the same hue so a series keeps its identity; the part colours
 (prefill blue, decode orange, tool green, user red, as the paper's
 Figure 4c) and the token-part colours derive from the slots. A script
 under `tests/` checks the contrast of every token in both modes.
+
+Time parts carry the paper's palette; token parts take slots no time part
+uses, so the same chart form never shows one hue with two meanings:
+cached input teal, uncached input amber, output magenta, in both schemes.
+Cost share by session and Session time by part, both stacked ranked
+shares, and the Session page's Requests view and Timeline then never give
+blue, orange or green two meanings. The roles of the input, which the
+Context view draws in the same area as the token parts and Context share
+by role in the same stacked bars as Token split by week, take no token
+part's slot: system violet, and user red, assistant orange and tool
+results green, the parts of a session's time each comes from; tool
+definitions grey. Where a chart needs one more colour beside the token
+parts (the whole input on Tokens per request, storage on Infrastructure
+cost by TTL) it takes violet, the one slot neither a token part nor a time
+part uses. Eight slots cannot hold every family apart: the tool groups
+take all eight, and the ask-user wait cause shares amber with uncached
+input, on charts of other forms; their legends name them.
 
 The hues are not evenly spread. Four are the paper's (blue, orange, green
 and red), and the paper's red and orange stand only 26° apart in OKLCH;

@@ -38,11 +38,11 @@ const SPEEDUP_ROWS = [
   { part: "decode", speedup: 1.1637, rows: 10967 },
 ];
 
-test("the speed-up bars are prefill, decode and tools, top down, each labelled with its multiple", () => {
+test("the speed-up bars are prefill, decode and tool wait, top down, each labelled with its multiple", () => {
   assert.deepEqual(speedupBars(SPEEDUP_ROWS), [
     { part: "prefill", label: "Prefill 2×", speedup: 1.0944, text: "1.09×" },
     { part: "decode", label: "Decode 2×", speedup: 1.1637, text: "1.16×" },
-    { part: "tool", label: "Tools 2×", speedup: 1.3757, text: "1.38×" },
+    { part: "tool", label: "Tool wait 2×", speedup: 1.3757, text: "1.38×" },
   ]);
   assert.deepEqual(speedupBars([]), []);
 });

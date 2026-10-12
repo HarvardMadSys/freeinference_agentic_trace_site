@@ -2,7 +2,8 @@
  * The palette's contrast in both colour schemes, read from `site/style.css`: every series slot and every colour that
  * marks data at least 3:1 on its scheme's card, every text colour at least 4.5:1 on the paper and on a card, each
  * slot the same hue in both schemes, the slots spread round the colour wheel and apart for a red-green colour-blind
- * reader, and the parts of a session's time in the paper's hues.
+ * reader, the parts of a session's time in the paper's hues, and the token parts in colours no part of the time and no
+ * role takes.
  */
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -40,7 +41,6 @@ const TEXT_TOKENS = [
 const MARK_PREFIXES = [
   "--series-", "--part-", "--token-", "--cause-", "--role-", "--transition-", "--tool-group-", "--gap-bin-",
 ];
-
 
 // Fills and rules that sit behind or beside a mark and stand for nothing alone; no contrast is asked of them.
 const TINT_TOKENS = [
@@ -271,5 +271,30 @@ test("the parts of a session's time take the paper's hues: prefill blue, decode 
       const shift = hueDistance(oklchHue(colourOf(tokens, name)), hue);
       assert.ok(shift <= MAX_HUE_SHIFT, `${scheme} ${name} is ${shift.toFixed(1)}° from the paper's hue`);
     }
+  }
+});
+
+// The colours of the parts of a session's time, of a request's tokens and of the roles of its input.
+const TIME_PART_TOKENS = ["--part-prefill", "--part-decode", "--part-tool", "--part-user"];
+const TOKEN_PART_TOKENS = ["--token-cached", "--token-uncached", "--token-output"];
+const ROLE_TOKENS = ["--role-system", "--role-user", "--role-assistant", "--role-tool-results", "--role-tool-definitions"];
+
+/** The names of `firsts` and `seconds` that resolve to one colour in `tokens`, as `"--a = --b"`. */
+function sharedColours(tokens, firsts, seconds) {
+  const shared = [];
+  for (const first of firsts) {
+    for (const second of seconds) {
+      if (colourOf(tokens, first) === colourOf(tokens, second)) {
+        shared.push(`${first} = ${second}`);
+      }
+    }
+  }
+  return shared;
+}
+
+test("the token parts take colours no part of a session's time takes, and the roles none a token part takes", () => {
+  for (const [scheme, tokens] of Object.entries(SCHEMES)) {
+    assert.deepEqual(sharedColours(tokens, TOKEN_PART_TOKENS, TIME_PART_TOKENS), [], `${scheme}: tokens and time`);
+    assert.deepEqual(sharedColours(tokens, ROLE_TOKENS, TOKEN_PART_TOKENS), [], `${scheme}: roles and tokens`);
   }
 });

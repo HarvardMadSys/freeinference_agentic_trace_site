@@ -75,9 +75,9 @@ def javascript_number(path: pathlib.Path, constant: str) -> float:
 
 
 def javascript_object_keys(path: pathlib.Path, constant: str) -> list[str]:
-    """The keys, in order, of `const <constant> = Object.freeze({ key: …, … });`, quoted or not."""
+    """The keys, in order, of `const <constant> = Object.freeze({ key: …, … });`, quoted or not, one or more a line."""
     body = declaration(path, rf"const {constant} = Object\.freeze\(\{{(.*?)\}}\);").group(1)
-    return re.findall(r'^\s*"?([\w-]+)"?\s*:', body, re.MULTILINE)
+    return re.findall(r'(?:^|,)\s*"?([\w-]+)"?\s*:', body, re.MULTILINE)
 
 
 def sql_number(path: pathlib.Path, column: str) -> float:
