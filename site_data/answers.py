@@ -1,7 +1,8 @@
 """The answers of the default selection: every Explore and figure query, and the colour orders, run once over the data
 folder as the browser runs it, each written as `all_weeks/<folder>/<query>.json`, and the SHA-256 of each such
-query's text and of each view over the selection the queries read, written to `all_weeks/queries.json` as
-`{"<folder>/<query>": "<hex>"}`, so a query or view edited since can be found (`site_data/check_answers.py`).
+query's text, of each bucket query (`site_data/buckets.py`) and of each view over the selection the queries read,
+written to `all_weeks/queries.json` as `{"<folder>/<query>": "<hex>"}`, so a query or view edited since can be found
+(`site_data/check_answers.py`).
 
 The answers are written into `all_weeks.partial/`, which replaces `all_weeks/` only once every answer is written: a run
 that fails leaves the previous answers in place.
@@ -35,9 +36,9 @@ import shutil
 
 import duckdb
 
-from site_data import harnesses, paths, site_database, weeks
+from site_data import buckets, harnesses, paths, site_database, weeks
 
-ANSWERED_PAGES = ["explore", "figures"]  # the pages whose queries are answered; `session/` is not
+ANSWERED_PAGES = ["explore", "figures"]  # the folders whose queries are answered; `buckets/` fills the buckets instead
 # The setup queries that fix each harness's, model's, category's and provider's colour from every week and harness;
 # answered so a page draws its colours without DuckDB.
 COLOUR_ORDER_QUERIES = ["setup/category_order", "setup/harness_order", "setup/model_order", "setup/provider_order"]
@@ -133,11 +134,13 @@ def write_answer_files(data_directory: pathlib.Path, answers_directory: pathlib.
 
 
 def query_hashes(queries_folder: pathlib.Path = site_database.QUERIES_FOLDER) -> dict[str, str]:
-    """Each answered query of `queries_folder`, and each view over the selection that queries read, by name, to the
-    SHA-256 of its text as hex. A query left without an answer because no week is simulated is included: its text is
-    what the step ran."""
+    """Each answered query of `queries_folder`, each bucket query, and each view over the selection that queries read,
+    by name, to the SHA-256 of its text as hex. A query left without an answer because no week is simulated is
+    included: its text is what the step ran."""
     hashes = {}
-    for name in [*answered_query_names(queries_folder), *site_database.SELECTION_VIEW_STATEMENTS]:
+    hashed_names = [*answered_query_names(queries_folder), *buckets.BUCKET_PARTS.values(),
+                    *site_database.SELECTION_VIEW_STATEMENTS]
+    for name in hashed_names:
         hashes[name] = query_text_hash(queries_folder, name)
     return hashes
 

@@ -14,10 +14,18 @@ import site_data.paths
 
 import fixture_release
 
-KIND_FOLDERS = ["requests", "tool_calls", "sessions", "simulation"]  # in the order the step writes them
-INDEX_FILES = ["harnesses.json", "weeks.json"]  # written after the kinds' files, in this order
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
+KIND_FOLDERS = ["requests", "tool_calls", "sessions", "simulation"]  # in the order the step writes them
+INDEX_FILES = ["harnesses.json", "weeks.json"]  # written after the kinds' files, in this order
+# The session buckets of each week, by the first two characters of its top-level sessions' ids, and its index: the
+# first week's `idle-week-1`, `swe-bench` and `tree-root`, the second's `idle-week-2`, `idle-benchmark` and `mutation`.
+BUCKET_FILES = [
+    f"session_buckets/{FIRST_SUNDAY}/id.json.gz", f"session_buckets/{FIRST_SUNDAY}/sw.json.gz",
+    f"session_buckets/{FIRST_SUNDAY}/tr.json.gz", f"session_buckets/{FIRST_SUNDAY}/index.json.gz",
+    f"session_buckets/{SECOND_SUNDAY}/id.json.gz", f"session_buckets/{SECOND_SUNDAY}/mu.json.gz",
+    f"session_buckets/{SECOND_SUNDAY}/index.json.gz",
+]
 REQUEST_COLUMNS = [
     "session_id", "step", "start_ms", "end_ms", "ttft_ms", "model", "provider", "step_trigger",
     "waited_for", "prompt_tokens", "completion_tokens", "cache_read_tokens", "system_tokens", "user_tokens",
@@ -55,7 +63,7 @@ def answer_files() -> list[str]:
 def test_every_week_s_file_of_every_kind_and_every_answer_is_written(tmp_path: pathlib.Path) -> None:
     out = build(tmp_path)
     hashes_file = f"{site_data.paths.ANSWERS_FOLDER}/{site_data.paths.QUERY_HASHES_FILE}"
-    expected = [*INDEX_FILES, *answer_files(), hashes_file]
+    expected = [*INDEX_FILES, *answer_files(), hashes_file, *BUCKET_FILES]
     for kind_folder in KIND_FOLDERS:
         for week in [FIRST_SUNDAY, SECOND_SUNDAY]:
             if kind_folder != "simulation" or week == FIRST_SUNDAY:  # the second week is not simulated
@@ -66,13 +74,15 @@ def test_every_week_s_file_of_every_kind_and_every_answer_is_written(tmp_path: p
 def test_each_kind_s_rows_over_every_week_are_printed(tmp_path: pathlib.Path, capsys: pytest.CaptureFixture) -> None:
     build(tmp_path)
     printed = capsys.readouterr().out.splitlines()
-    assert [line.split(":")[0] for line in printed] == [*KIND_FOLDERS, *INDEX_FILES, site_data.paths.ANSWERS_FOLDER]
+    assert [line.split(":")[0] for line in printed] == [*KIND_FOLDERS, *INDEX_FILES, site_data.paths.ANSWERS_FOLDER,
+                                                        site_data.paths.SESSION_BUCKETS_FOLDER]
     assert printed[0].startswith("requests: 21 rows, ")
     assert printed[1].startswith("tool_calls: 16 rows, ")
     assert printed[2].startswith("sessions: 9 rows, ")
     assert printed[3].startswith("simulation: 8 rows, ")
-    assert printed[-2].startswith("weeks.json: 2 rows, ")
-    assert printed[-1].startswith(f"{site_data.paths.ANSWERS_FOLDER}: {len(answer_files())} files, ")
+    assert printed[-3].startswith("weeks.json: 2 rows, ")
+    assert printed[-2].startswith(f"{site_data.paths.ANSWERS_FOLDER}: {len(answer_files())} files, ")
+    assert printed[-1].startswith(f"{site_data.paths.SESSION_BUCKETS_FOLDER}: 5 buckets and 2 indexes, ")
 
 
 def mark_first_week_simulated_from_older_traces(tmp_path: pathlib.Path) -> None:

@@ -6,8 +6,9 @@ written, so a corrupted week stops the run, with its message and exit status
 week, at `<kind>/week=<sunday>/rows.parquet`, without a `week` column: the
 week is the folder's name. A week's file is sorted, here and only here, by
 root session, so a session's tree sits together. The indexes `harnesses.json`
-and `weeks.json` are written next, and last the answers of the default
-selection, read back from the files just written (`site_data/answers.py`).
+and `weeks.json` are written next, then the answers of the default selection,
+and last the Session page's buckets, both read back from the files just
+written (`site_data/answers.py`, `site_data/buckets.py`).
 """
 
 import argparse
@@ -21,7 +22,7 @@ import pyarrow
 from pyarrow import parquet
 
 from release import reader
-from site_data import answers, harnesses, loading, paths, requests, sessions, simulation, tool_calls, weeks
+from site_data import answers, buckets, harnesses, loading, paths, requests, sessions, simulation, tool_calls, weeks
 
 ROWS_PER_GROUP = 100_000  # large, so a query makes few ranged reads
 COMPRESSION = "zstd"  # small files that DuckDB-WASM reads
@@ -45,9 +46,9 @@ class WrittenKind:
 
 
 def main(arguments: list[str] | None = None) -> None:
-    """Write each kind's week files, `harnesses.json`, `weeks.json` and the answers into the output folder, and print
-    each kind's rows and size over every week, each index's, the answers' files and bytes, and each query left
-    without an answer."""
+    """Write each kind's week files, `harnesses.json`, `weeks.json`, the answers and the session buckets into the
+    output folder, and print each kind's rows and size over every week, each index's, the answers' files and bytes,
+    each query left without an answer, and the buckets' count and size."""
     options = parsed_arguments(arguments)
     try:
         entries = weeks.weeks_index(options.release, options.simulation)
@@ -68,6 +69,7 @@ def main(arguments: list[str] | None = None) -> None:
     print(f"{paths.ANSWERS_FOLDER}: {written_answers.files} files, {written_answers.bytes:,} bytes")
     for name in written_answers.unanswered:
         print(f"{name}: no answer, because no week is simulated")
+    print_buckets(buckets.write_buckets(options.out))
 
 
 def parsed_arguments(arguments: list[str] | None) -> argparse.Namespace:
@@ -119,6 +121,13 @@ def write_week_file(week_rows: pyarrow.Table, path: pathlib.Path) -> None:
     """Write one week's rows of a kind, in row groups of at most `ROWS_PER_GROUP` rows."""
     path.parent.mkdir(parents=True, exist_ok=True)
     parquet.write_table(week_rows, path, row_group_size=ROWS_PER_GROUP, compression=COMPRESSION)
+
+
+def print_buckets(written: buckets.WrittenBuckets) -> None:
+    """Print the buckets' and indexes' count and size, and the median and largest bucket's size."""
+    print(f"{paths.SESSION_BUCKETS_FOLDER}: {written.buckets:,} buckets and {written.indexes} indexes, "
+          f"{written.bytes / BYTES_PER_MB:.1f} MB; median bucket {written.median_bucket_bytes:,} bytes, "
+          f"largest {written.largest_bucket_bytes:,} bytes")
 
 
 def print_size(path: pathlib.Path, rows: int) -> None:

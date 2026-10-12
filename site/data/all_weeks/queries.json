@@ -1,4 +1,7 @@
 {
+ "buckets/week_requests": "6686e06d14578c9c481fa2f55799f6cc9db98e7cc940a3b6eddda3d7902d4613",
+ "buckets/week_tool_calls": "650c2efdc091e9e31ce366a8e7d2470dfef473a47b4cca955c5da6c86da5408a",
+ "buckets/week_tree": "d15d18b6043a6e0809ef872108db57b510886841c861fcc2d373b9538c5a4b58",
  "explore/cached_fraction_bins": "cca7e0387491c70d0e51a8b835b09071283091a14097040e7b5e680a1e3e14a8",
  "explore/cached_fraction_stats": "2c806f723c6b9d44fe5fbc948e3dc68c8a8f93a20b51c66b5b498f6faf99dc88",
  "explore/headline_numbers": "67e5debba5bd6cda077e73f0931d7282368b5765c3194652efdc3c54a2bca88d",

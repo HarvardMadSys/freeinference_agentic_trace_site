@@ -14,6 +14,7 @@ import pytest
 
 import site_data.__main__
 import site_data.answers
+import site_data.buckets
 import site_data.check_answers
 import site_data.paths
 import site_data.site_database
@@ -180,6 +181,7 @@ def test_the_answers_record_the_hash_of_each_answered_query_s_text(data_director
     hashes_path = data_directory / site_data.paths.ANSWERS_FOLDER / site_data.paths.QUERY_HASHES_FILE
     recorded = json.loads(hashes_path.read_text())
     assert sorted(recorded) == sorted([*site_data.answers.answered_query_names(),
+                                       *site_data.buckets.BUCKET_PARTS.values(),
                                        *site_data.site_database.SELECTION_VIEW_STATEMENTS])
     assert recorded == site_data.answers.query_hashes()
     assert site_data.check_answers.stale_queries(data_directory) == []
@@ -188,7 +190,8 @@ def test_the_answers_record_the_hash_of_each_answered_query_s_text(data_director
 def test_the_check_prints_how_many_queries_the_answers_match(data_directory: pathlib.Path,
                                                              capsys: pytest.CaptureFixture) -> None:
     site_data.check_answers.main(["--data", str(data_directory)])
-    count = len(site_data.answers.answered_query_names()) + len(site_data.site_database.SELECTION_VIEW_STATEMENTS)
+    count = (len(site_data.answers.answered_query_names()) + len(site_data.buckets.BUCKET_PARTS)
+             + len(site_data.site_database.SELECTION_VIEW_STATEMENTS))
     assert capsys.readouterr().out == f"answers match {count} queries and views\n"
 
 

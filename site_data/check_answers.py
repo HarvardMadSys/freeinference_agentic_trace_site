@@ -1,5 +1,6 @@
-"""Whether the answers in a data folder come from the queries as they are now: each answered query's text is hashed
-and compared with the hash `make data` recorded in `all_weeks/queries.json` when it wrote the answers.
+"""Whether the answers and buckets in a data folder come from the queries as they are now: each answered query's and
+bucket query's text is hashed and compared with the hash `make data` recorded in `all_weeks/queries.json` when it
+wrote them.
 
 A query is stale when its text has changed since, or when no hash of it was recorded (a query added since). A data
 folder with no `queries.json` has no answers to check, or answers written before the hashes were; either way, `make
@@ -20,13 +21,13 @@ from site_data import answers, paths, site_database
 
 DEFAULT_DATA_FOLDER = pathlib.Path("site/data")  # as `make data` writes it, relative to the repository's root
 # Why a query is stale, as the check names it.
-CHANGED = "its text changed since make data wrote its answer"  # its hash is not the recorded one
+CHANGED = "its text changed since make data last ran it"  # its hash is not the recorded one
 UNRECORDED = "no recorded answer"  # `queries.json` holds no hash of it
 
 
 @dataclasses.dataclass(frozen=True)
 class StaleQuery:
-    """An answered query whose answer may not be its current text's, and why."""
+    """An answered or bucket query whose output may not come from its current text, and why."""
 
     name: str  # `<folder>/<query>`
     reason: str  # `CHANGED` or `UNRECORDED`
@@ -39,8 +40,8 @@ def hashes_file(data_directory: pathlib.Path) -> pathlib.Path:
 
 def stale_queries(data_directory: pathlib.Path,
                   queries_folder: pathlib.Path = site_database.QUERIES_FOLDER) -> list[StaleQuery]:
-    """Each answered query of `queries_folder`, or view over the selection, whose text's hash is not the one recorded in
-    the data folder's `queries.json`, by name."""
+    """Each answered or bucket query of `queries_folder`, or view over the selection, whose text's hash is not the
+    one recorded in the data folder's `queries.json`, by name."""
     recorded = json.loads(hashes_file(data_directory).read_text())
     stale = []
     for name, current_hash in answers.query_hashes(queries_folder).items():

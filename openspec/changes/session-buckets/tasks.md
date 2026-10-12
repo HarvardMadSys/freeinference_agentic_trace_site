@@ -5,7 +5,7 @@ runs once the bucket queries exist; the rebuilt `site/data` is committed
 with task 1.2.
 
 ## 1. The data
-- [ ] 1.1 `queries/buckets/{week_tree,week_requests,week_tool_calls}.sql` (the three session queries' columns, a whole week, ordered by top-level session, session, step); `queries/session/` removed; `site_data/buckets.py` groups the rows per top-level session and writes the gzipped buckets and the index per week, mtime 0, no empty bucket; `queries.json` hashes the bucket queries; the step prints the buckets' count and size; tests: a bucket's rows equal the query's rows for one top-level session, a subagent's id resolves through the index, a rebuild writes identical bytes, no week in `weeks.json` lacks its index.
+- [x] 1.1 `queries/buckets/{week_tree,week_requests,week_tool_calls}.sql` (the three session queries' columns, a whole week, ordered by top-level session, session, step); `queries/session/` removed; `site_data/buckets.py` groups the rows per top-level session and writes the gzipped buckets and the index per week, mtime 0, no empty bucket; `queries.json` hashes the bucket queries; the step prints the buckets' count and size; tests: a bucket's rows equal the query's rows for one top-level session, a subagent's id resolves through the index, a rebuild writes identical bytes, no week in `weeks.json` lacks its index.
 - [ ] 1.2 `explore/trace_totals.sql` as an every-harness answer beside the sessions table's; `make data`; `site/data` committed (buckets, index, the new answer, `queries.json`); the repository test requires every week's bucket folder and index tracked.
 
 ## 2. The Session page
