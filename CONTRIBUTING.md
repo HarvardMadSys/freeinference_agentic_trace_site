@@ -308,8 +308,12 @@ which is plain HTML.
   same colour in every chart: a wait cause, a transition and a gap bin always
   take `--cause-*`, `--transition-*` and `--gap-bin-1` to `--gap-bin-6`, read
   through `CAUSE_COLOURS`, `TRANSITION_COLOURS` and `GAP_BIN_SLOTS` in
-  `theme/colours.js`. The palette was validated for colour-vision
-  deficiency in both modes; three light-mode slots sit under 3:1 contrast on
+  `theme/colours.js`. The eight series slots were validated for
+  colour-vision deficiency in both modes, with a dark green in the sixth. The
+  olive that replaced it (#6b8e23, #9ab83a), the gap-bin blues, the request greys
+  (`--request-ttft`, `--request-rest`) and the lavender of a wait for the user
+  (`--cause-user`) were chosen by contrast on the card and have not been run
+  through that validator. Three light-mode slots sit under 3:1 contrast on
   white, so every chart ships a legend and a hover tooltip, and tables stay
   available where values matter.
 - **Marks.** Thin lines (2px), small markers, a 2px gap between stacked

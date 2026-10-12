@@ -61,11 +61,11 @@
 
   /* What a wait before a request waited for, the same everywhere it is drawn. The paper draws an ask-user tool in
      purple, but this palette's purple and blue (the subagent's) are too close for colour-blind readers, so it is amber.
-     A wait for the user is a calm grey-blue, not a series red: it fills half of a session's time and must not read
-     as an alarm. */
+     A wait for the user is a calm lavender, not a series red: it fills half of a session's time and must not read
+     as an alarm; and not a grey-blue, which on the Timeline, drawn light, reads as the grey of a request. */
   --cause-tool: var(--series-3);
   --cause-ask-user: var(--series-4);
-  --cause-user: #7d93b8;
+  --cause-user: #8a78c0;
   --cause-subagent: var(--series-1);
 
   /* A request's time on the Session page's Timeline and in the speed-up: time to first token dark, the rest light. */
@@ -76,14 +76,15 @@
   --transition-append: var(--series-3);
   --transition-mutation: var(--series-8);
 
-  /* The eight tool groups of the tool mix along a turn, in hues near the paper's: reading blue, writing green, running
-     red, and the rest of the work grey. */
+  /* The eight tool groups of the tool mix along a turn, in the colours the tool cards give the categories of the same
+     name: Read blue, Search amber (*Search), Execute teal (*Interpreter), Git/VCS red (*Git/VCS); and for the groups
+     with no category of their name, Write/Edit violet, Build/Test olive, Browser/Web pink and Other grey. */
   --tool-group-read: var(--series-1);
-  --tool-group-search: var(--series-2);
-  --tool-group-write-edit: var(--series-3);
-  --tool-group-execute: var(--series-8);
-  --tool-group-build-test: var(--series-4);
-  --tool-group-git-vcs: var(--series-7);
+  --tool-group-search: var(--series-4);
+  --tool-group-write-edit: var(--series-7);
+  --tool-group-execute: var(--series-3);
+  --tool-group-build-test: var(--series-6);
+  --tool-group-git-vcs: var(--series-8);
   --tool-group-browser-web: var(--series-5);
   --tool-group-other: var(--series-other);
 
@@ -141,7 +142,7 @@
     --gap-bin-5: #2d7ee1;
     --gap-bin-6: #1d6ac9;
 
-    --cause-user: #8297bb;
+    --cause-user: #7a6db0; /* 3.9:1 on the card: calm, and not the brightest block of the page */
     --request-ttft: #9ca3af;
     --request-rest: #4b5563;
 
