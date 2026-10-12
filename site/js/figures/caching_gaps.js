@@ -9,7 +9,7 @@
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, drawCdf, TIP_STYLE } from "../shared/charts.js";
-import { durationTicks } from "../axes/ticks.js";
+import { durationTicks, everyOther, isNarrowChart } from "../axes/ticks.js";
 import { causeColours, GAP_BIN_SLOTS, TRANSITION_COLOURS } from "../theme/colours.js";
 import {
   formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare, MISSING_TEXT,
@@ -44,8 +44,7 @@ const MUTATION_TABLE_ROWS = Object.freeze({
   tool_definitions: "Tool definitions", dropped_turns: "Dropped turns", compaction: "Compaction",
   tool_result: "Tool result drop", other: "Other",
 });
-const STEPS_DIGITS = 2; // the share of steps is written with two decimals, as in the paper: a cause can be 0.04%
-const SHARE_DIGITS = 1; // the shares of sessions and of prefill with one
+const SHARE_DIGITS = 2; // every share of the table has two decimals, as the paper writes steps: a cause can be 0.04%
 
 const MIN_GAP_DRAWN_S = 0.1; // a shorter gap is drawn at it, on the log axis, as in the paper
 const MAX_GAP_DRAWN_S = 86400; // the gap axis ends at a day, as the paper's does
@@ -159,14 +158,15 @@ export function meanHitRatioBars(rows) {
 
 /**
  * The lines of the mutation table, one per row of `rows` in the table's order: `{ name, isCause, cells }`, `cells` the
- * row's name and its shares of steps, sessions and prefill as percentages, "—" for a share of nothing.
+ * row's name and its shares of steps, sessions and prefill as percentages with two decimals and no sign, "—" for a
+ * share of nothing.
  */
 export function mutationTableLines(rows) {
   const lines = [];
   for (const [name, label] of Object.entries(MUTATION_TABLE_ROWS)) {
     const row = rows.find((candidate) => candidate.table_row === name);
     if (row !== undefined) {
-      const shares = [percentText(row.steps_share, STEPS_DIGITS), percentText(row.sessions_share, SHARE_DIGITS),
+      const shares = [percentText(row.steps_share, SHARE_DIGITS), percentText(row.sessions_share, SHARE_DIGITS),
         percentText(row.prefill_share, SHARE_DIGITS)];
       lines.push({ name, isCause: !Object.hasOwn(TRANSITION_NAMES, name), cells: [label, ...shares] });
     }
@@ -180,8 +180,8 @@ function drawMutationsByCause(rows, body) {
   table.className = "data-table mutation-table";
   table.innerHTML = `
     <thead><tr>
-      <th>Transition</th><th class="is-number">Steps</th>
-      <th class="is-number">Sessions</th><th class="is-number">Prefill</th>
+      <th>Transition</th><th class="is-number">Steps %</th>
+      <th class="is-number">Sessions %</th><th class="is-number">Prefill %</th>
     </tr></thead>
     <tbody></tbody>`;
   for (const line of mutationTableLines(rows)) {
@@ -221,10 +221,11 @@ async function drawHitRatioByGapBin(rows, body, colours) {
 async function drawGapByCause(rows, body, colours) {
   const series = cdfSeries(rows, Object.keys(CAUSE_NAMES), { labels: CAUSE_NAMES, floor: MIN_GAP_DRAWN_S });
   const xDomain = [MIN_GAP_DRAWN_S, MAX_GAP_DRAWN_S];
+  const ticks = durationTicks(xDomain);
   await drawCdf(body, series, {
     logX: true,
     xDomain,
-    xTicks: durationTicks(xDomain),
+    xTicks: isNarrowChart(chartFrame(body).width) ? everyOther(ticks) : ticks,
     xTickFormat: formatDurationTick,
     format: formatSeconds,
     colours: colours.series,
@@ -276,6 +277,7 @@ function meanTipText(bar) {
   return `${bar.name}\nmean hit ratio ${formatShare(bar.mean)}\n${formatCount(bar.rows)} requests`;
 }
 
+// A share as its percentage, without the sign, which the table's headers carry; "—" for a share of nothing.
 function percentText(share, digits) {
-  return share === null ? MISSING_TEXT : `${(share * 100).toFixed(digits)}%`;
+  return share === null ? MISSING_TEXT : (share * 100).toFixed(digits);
 }

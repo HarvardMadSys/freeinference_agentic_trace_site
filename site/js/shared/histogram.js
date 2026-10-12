@@ -5,11 +5,12 @@
  * The card runs no query. It is given the bins on the card's fixed scale, the percentiles, the row count and the
  * maximum, and draws them. A card is `{ title, caption, definition, countLabel, format, logScale, tickFormat, ticks,
  * bins, percentiles, count, max }`: `format` writes a value in the legend and the tooltip, `tickFormat` (else
- * `format`) on the axis, and `ticks(domain)`, when given, picks a log axis's ticks over its `[low, high]`.
+ * `format`) on the axis, and `ticks(domain, maxTicks)`, when given, picks at most `maxTicks` of a log axis's ticks over
+ * its `[low, high]`.
  */
 
 import { AXIS_STYLE, chartFrame, DASH, GRID_STYLE, legendPlace, renderFigure, TIP_STYLE, X_INSET } from "./charts.js";
-import { axisWithTicks, extent, logAxisTicks, TICK_COUNT } from "../axes/ticks.js";
+import { axisWithTicks, extent, logAxisTicks, MAX_TICKS, maxTicksFor, TICK_COUNT } from "../axes/ticks.js";
 import { formatCompactCount, formatCount } from "./format.js";
 
 // The columns of a distribution query's rows: where a bin starts, where it ends, and how many rows (requests or
@@ -58,14 +59,17 @@ export function rowsText(card) {
   return `${formatCount(card.count)} ${noun}`;
 }
 
-/** The ticks of the card's x axis over the bins it draws: its own `ticks`, else a log axis's powers of ten. */
-export function cardTicks(card) {
+/**
+ * The ticks of the card's x axis over the bins it draws, at most `maxTicks` of them: its own `ticks`, else a log axis's
+ * powers of ten.
+ */
+export function cardTicks(card, maxTicks = MAX_TICKS) {
   const bins = drawableBins(card);
   if (!card.logScale || bins.length === 0) {
     return undefined;
   }
   const domain = extent([...bins.map((bin) => bin.x0), ...bins.map((bin) => bin.x1)]);
-  return card.ticks === undefined ? logAxisTicks(domain) : card.ticks(domain);
+  return card.ticks === undefined ? logAxisTicks(domain, maxTicks) : card.ticks(domain, maxTicks);
 }
 
 /** The bins `{ x0, x1, count }` of a distribution query's rows, in the rows' order. */
@@ -103,9 +107,10 @@ export async function mountHistogram(container, card) {
 
 function histogramChart(Plot, card, body) {
   const countLabel = card.countLabel ?? DEFAULT_COUNT_LABEL;
-  const ticks = cardTicks(card);
+  const frame = chartFrame(body);
+  const ticks = cardTicks(card, maxTicksFor(frame.width));
   return Plot.plot({
-    ...chartFrame(body),
+    ...frame,
     ...CARD_FRAME,
     x: { type: card.logScale ? "log" : "linear", inset: X_INSET },
     marks: [

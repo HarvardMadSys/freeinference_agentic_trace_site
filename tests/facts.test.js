@@ -54,7 +54,7 @@ test("the start is the UTC minute and the models carry their requests", () => {
   const values = factValues([TOP_LEVEL], requests);
   assert.deepEqual(values["Started"], ["2026-08-09", "14:03 UTC"]);
   assert.deepEqual(values["Harness"], ["claude-code", ""]);
-  assert.deepEqual(values["Models"], ["2", "model-y 2\nmodel-x 1"]);
+  assert.deepEqual(values["Models"], ["2", [{ text: "model-y", note: "2" }, { text: "model-x", note: "1" }]]);
 });
 
 test("no tile's detail restates its label, and the Models tile alone is wide", () => {

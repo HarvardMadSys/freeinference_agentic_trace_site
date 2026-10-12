@@ -15,7 +15,7 @@ import {
   defaultHarnesses, EVERY_WEEK_VALUE, isDefaultHarnessChoice, namesIn, weeksByMonth,
 } from "../shared/selection.js";
 import {
-  choiceInFocus, controlGroup, controlsRow, harnessButtons, harnessPills, restoreFocus, togglePill,
+  choiceButton, choiceInFocus, controlGroup, controlsRow, harnessButtons, harnessPills, restoreFocus, togglePill,
 } from "./selection_pickers.js";
 
 // The URL keys the filter is written in.
@@ -166,9 +166,10 @@ export function filterDisclosure(isOpen, controls) {
 }
 
 /**
- * Draw in `pickers` the month pills (each month, every month) and the harness pills (each harness, every harness, the
- * paper's) for `filter`, keeping the focus; the last month or harness ticked cannot be unticked. A change calls `onChange(filter)` with the filter then chosen and nothing
- * unknown, since the URL no longer names it.
+ * Draw in `pickers` the month pills (each month, then a button for every month) and the harness pills (each harness,
+ * then buttons for every harness and the paper's) for `filter`, keeping the focus; the last month or harness chosen
+ * cannot be unchosen. A change calls `onChange(filter)` with the filter then chosen and nothing unknown, since the URL
+ * no longer names it.
  */
 export function mountFilterPickers(pickers, filter, weeks, harnesses, onChange) {
   const focusedChoice = choiceInFocus(pickers);
@@ -187,13 +188,16 @@ export function mountFilterPickers(pickers, filter, weeks, harnesses, onChange) 
   restoreFocus(pickers, focusedChoice);
 }
 
-/** One pill per month of `everyMonth`, then "All months", each calling `onChoose(months)` with the months chosen. */
+/**
+ * One pill per month of `everyMonth`, then the text button "All months", each calling `onChoose(months)` with the
+ * months chosen.
+ */
 function monthPills(everyMonth, chosenMonths, onChoose) {
   const element = controlGroup("Months");
   for (const month of everyMonth) {
     element.append(togglePill(chosenMonths, [month], monthName(month), `month ${month}`, onChoose, KEEPS_ONE));
   }
-  element.append(togglePill(chosenMonths, everyMonth, "All months", "all months", onChoose, KEEPS_ONE));
+  element.append(choiceButton("All months", () => onChoose(everyMonth)));
   return element;
 }
 

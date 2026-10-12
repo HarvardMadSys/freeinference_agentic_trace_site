@@ -11,7 +11,7 @@
  */
 
 import { AXIS_STYLE, cdfPoints, chartFrame, colourScale, drawCdf, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
-import { durationTicks, extent, isNarrowChart, maxTicksFor, NARROW_MAX_TICKS } from "../axes/ticks.js";
+import { durationTicks, everyOther, extent, isNarrowChart, NARROW_MAX_TICKS } from "../axes/ticks.js";
 import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
 import { CAUSE_COLOURS, REQUEST_PART_COLOURS, slottedColours } from "../theme/colours.js";
 import { cdfSeries, seriesLegend } from "./figure_rows.js";
@@ -34,6 +34,7 @@ const SPEEDUP_DECIMALS = 2; // a bar's label: 1.38×
 const SPEEDUP_TICK_DECIMALS = 1; // the axis's ticks: 1.1×
 const SPEEDUP_TICKS = 5; // about this many ticks on the speed-up axis
 const PART_LABEL_MARGIN = 92; // pixels left of the bars; room for the longest label, "Prefill 2×"
+const BARS_MARGIN_TOP = 8; // pixels above the bars, which have no axis title above them
 const BAR_LABEL_GAP = 4; // pixels between a bar's end and its label
 
 /** The TTFT figure: the CDF of the time to first token per model. */
@@ -118,7 +119,8 @@ export function drawnModelRows(rows, colours) {
 async function drawModelCdf(rows, body, colours) {
   const series = cdfSeries(rows, [...colours.series.keys()]);
   const seconds = cdfPoints(series).map((point) => point.x);
-  const xTicks = durationTicks(extent(seconds), maxTicksFor(chartFrame(body).width));
+  const ticks = durationTicks(extent(seconds));
+  const xTicks = isNarrowChart(chartFrame(body).width) ? everyOther(ticks) : ticks;
   await drawCdf(body, series, {
     logX: true, xTicks, xTickFormat: formatDurationTick, format: formatSeconds,
     colours: colours.series,
@@ -135,6 +137,7 @@ async function drawSpeedups(rows, body) {
   const ticks = isNarrowChart(frame.width) ? NARROW_MAX_TICKS : SPEEDUP_TICKS;
   const chart = Plot.plot({
     ...frame,
+    marginTop: BARS_MARGIN_TOP,
     marginLeft: PART_LABEL_MARGIN,
     x: { domain: [NO_SPEEDUP, speedupAxisEnd(bars)] },
     y: { domain: bars.map((bar) => bar.label) },

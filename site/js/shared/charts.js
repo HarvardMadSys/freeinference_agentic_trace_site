@@ -26,11 +26,14 @@ const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between n
 /** The dash and gap lengths of every dashed line, in pixels: a CDF's median, a percentile, a reference line. */
 export const DASH = "4 3";
 const MEDIAN_SHARE = 0.5; // the share of rows at which a CDF crosses its median
-/** Pixels between the y axis and an x axis's first value, so its label and the y axis's lowest never touch. */
-export const X_INSET = 8;
+/** Pixels between the y axis and an x axis's first value, so its label and the y axis's lowest keep a gap. */
+export const X_INSET = 16;
 
-// The Plot options every chart shares, so every chart has the same ink.
-const PLOT_STYLE = Object.freeze({ color: "var(--chart-label)", background: "transparent" });
+// The Plot options every chart shares, so every chart has the same ink, in the page's own face: Plot's default face
+// draws "*Search" with another asterisk than the page's text.
+const PLOT_STYLE = Object.freeze({
+  color: "var(--chart-label)", background: "transparent", fontFamily: "var(--font-sans)",
+});
 const PLOT_MARGINS = Object.freeze({ marginTop: 32, marginRight: 32, marginBottom: 48, marginLeft: 72 });
 /** The options of every chart's grid lines. */
 export const GRID_STYLE = Object.freeze({ stroke: "var(--chart-grid)", strokeOpacity: 1 });

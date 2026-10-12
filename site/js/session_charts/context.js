@@ -144,10 +144,12 @@ function transitionDots(Plot, marks) {
 
 // The legend's lines: the parts of the top-level input, each agent's line, and the markers on them.
 function contextLegend(parts, tree, marks) {
-  const agents = [{ name: "main", colour: AGENT_LINE_COLOURS.main }];
+  const agents = [{ name: "main", colour: AGENT_LINE_COLOURS.main, shape: "line" }];
   if (tree.length > 1) {
-    agents.push({ name: "subagents", colour: AGENT_LINE_COLOURS.subagents, opacity: SUBAGENT_LINE_OPACITY });
+    const colour = AGENT_LINE_COLOURS.subagents;
+    agents.push({ name: "subagents", colour, opacity: SUBAGENT_LINE_OPACITY, shape: "line" });
   }
-  const markers = [...markEntries(marks), { name: "turn start", colour: TURN_START_COLOUR }];
+  const dots = markEntries(marks).map((entry) => ({ ...entry, shape: "dot" }));
+  const markers = [...dots, { name: "turn start", colour: TURN_START_COLOUR, shape: "dotted" }];
   return [legendLine("Top-level input", parts), legendLine("Agents", agents), legendLine("Markers", markers)];
 }

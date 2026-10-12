@@ -15,6 +15,10 @@ import { seriesLegend } from "../figures/figure_rows.js";
 import { formatCompactCount, formatQuantity, formatTokens } from "../shared/format.js";
 import { drawWithLegend, shownRows } from "./legend.js";
 
+// A trend names this many series, its harnesses or models with most rows, and folds the rest into "Other": at most
+// seven legend entries fit three rows in a third of the page, so the three trend cards keep one height.
+const NAMED_SERIES = 6;
+
 // A bar of a week outside the selection is drawn at this opacity, so the selected weeks stand out.
 const UNSELECTED_BAR_OPACITY = 0.3;
 
@@ -140,13 +144,13 @@ async function drawInputTokensPerWeek(place, context) {
 /**
  * Draw into `body` a trend's bars of `rows`, one stack per week, `options` saying which column is the height (`y`),
  * which the series (`fill`), the series' `order`, `colours` and, where a series' name is not its label, `labels`, and
- * how the y axis reads. Above them goes the legend that hides and shows a series; a series past the eighth of the
+ * how the y axis reads. Above them goes the legend that hides and shows a series; a series past the sixth of the
  * order is first folded into "Other", so the legend hides "Other" as one. A click on a bar selects its week, if any
  * function takes it.
  */
 async function drawTrend(body, rows, context, options) {
   const { y, fill, order, colours, labels = {} } = options;
-  const folded = sumFolded(foldToOther(rows, fill, order), { x: "week", y, fill });
+  const folded = sumFolded(foldToOther(rows, fill, order.slice(0, NAMED_SERIES)), { x: "week", y, fill });
   if (context.onWeekClick !== null) {
     body.classList.add("is-clickable");
   }

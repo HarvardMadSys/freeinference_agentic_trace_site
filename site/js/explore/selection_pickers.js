@@ -116,8 +116,8 @@ export function harnessButtons(harnesses, onChoose) {
   const everyHarness = harnesses.map((entry) => entry.harness);
   const paperHarnesses = defaultHarnesses(harnesses);
   element.append(
-    actionButton("every harness", () => onChoose(everyHarness)),
-    actionButton("the paper's harnesses", () => onChoose(paperHarnesses)),
+    choiceButton("Every harness", () => onChoose(everyHarness)),
+    choiceButton("The paper's harnesses", () => onChoose(paperHarnesses)),
   );
   return element;
 }
@@ -178,9 +178,11 @@ function markText(text) {
   return element;
 }
 
-function actionButton(text, onClick) {
+/** A text button reading `text` that makes a choice at once, as "All months" does, calling `onClick`. */
+export function choiceButton(text, onClick) {
   const button = document.createElement("button");
   button.type = "button";
+  button.className = "text-button";
   button.dataset.choice = text;
   button.textContent = text;
   button.addEventListener("click", onClick);

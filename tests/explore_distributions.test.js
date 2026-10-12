@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { histogramCard } from "../site/js/explore/distributions.js";
+import { histogramCard, subagentTicks } from "../site/js/explore/distributions.js";
 import { formatTokens } from "../site/js/shared/format.js";
 
 const INPUT_CARD = {
@@ -36,4 +36,10 @@ test("a card with no rows has no bins and a count of 0", () => {
   const card = histogramCard(INPUT_CARD, [], statsRow);
   assert.deepEqual(card.bins, []);
   assert.equal(card.count, 0);
+});
+
+test("the subagents axis ticks within its bins' range, every other tick on a narrow chart", () => {
+  assert.deepEqual(subagentTicks([1, 41], 6), [1, 3, 10, 30]);
+  assert.deepEqual(subagentTicks([1, 12], 6), [1, 3, 10]);
+  assert.deepEqual(subagentTicks([1, 41], 3), [1, 10]);
 });

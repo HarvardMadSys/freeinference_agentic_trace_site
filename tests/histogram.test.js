@@ -47,6 +47,8 @@ test("a log card ticks its powers of ten over its bins, or its own ticks; a line
   const bins = [{ x0: 1, x1: 10, count: 5 }, { x0: 10, x1: 1000, count: 3 }];
   assert.deepEqual(cardTicks({ ...TOKENS_CARD, bins }), [1, 10, 100, 1000]);
   assert.deepEqual(cardTicks({ ...TOKENS_CARD, bins, ticks: () => [1, 3, 10] }), [1, 3, 10]);
+  const wide = [{ x0: 1, x1: 10, count: 5 }, { x0: 10, x1: 1e6, count: 3 }];
+  assert.deepEqual(cardTicks({ ...TOKENS_CARD, bins: wide }, 3), [1, 1e3, 1e6]);
   assert.equal(cardTicks({ ...TOKENS_CARD, bins, logScale: false }), undefined);
 });
 

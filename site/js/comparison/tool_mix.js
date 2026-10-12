@@ -24,6 +24,8 @@ const PERCENT_PER_TENTH = WHOLE_TURN_PERCENT / TENTHS;
 const TURN_TICKS = Object.freeze([25, 50, 75]);
 const NARROW_TURN_TICKS = Object.freeze([25, 75]);
 const SHARE_DOMAIN = Object.freeze([0, 1]); // the y axis spans a whole share, whatever groups are hidden
+const PANEL_TITLE_MARGIN = 44; // pixels above the panels: room for their titles clear of the share axis's "100%"
+const PANEL_TITLE_PADDING = 18; // pixels between a panel's top and its title
 
 /** The tool mix figure entry, whose fields CONTRIBUTING.md defines. */
 export const TOOL_MIX_BY_TURN_POSITION = Object.freeze({
@@ -93,14 +95,16 @@ async function drawToolMix(rows, body, colours) {
   const present = new Set(rows.map((row) => row.tool_group));
   const groups = [...colours.series.keys()].filter((group) => present.has(group));
   const points = toolMixPoints(rows, groups);
-  const frame = chartFrame(body);
+  const frame = { ...chartFrame(body), marginTop: PANEL_TITLE_MARGIN };
   const chart = Plot.plot({
     ...frame,
-    fx: { domain: scopesOf(rows), tickFormat: scopeLabel, label: null },
+    fx: { domain: scopesOf(rows) },
     x: { domain: [PERCENT_PER_TENTH, WHOLE_TURN_PERCENT] }, // from the first tenth's end
     y: { domain: SHARE_DOMAIN },
     color: colourScale(colours.series, groups),
     marks: [
+      // Each panel's title, lifted clear of the share axis's top label.
+      Plot.axisFx({ tickFormat: scopeLabel, label: null, tickSize: 0, tickPadding: PANEL_TITLE_PADDING }),
       Plot.gridY(GRID_STYLE),
       Plot.axisX({
         ...AXIS_STYLE, ticks: turnTicks(frame.width), tickFormat: percentTick, label: "Position in the turn",

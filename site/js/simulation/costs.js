@@ -6,7 +6,7 @@
  * Their figure entries, whose fields CONTRIBUTING.md defines, are listed in `figures/caching.js` with the others.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_STYLE, X_INSET } from "../shared/charts.js";
 import { axisWithTicks, TICK_COUNT } from "../axes/ticks.js";
 import { SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { formatMultiple } from "../shared/format.js";
@@ -138,7 +138,7 @@ async function drawCostByTtl(rows, body, colours, { labels, flag, word }) {
   }
   const chart = Plot.plot({
     ...chartFrame(body),
-    x: { type: "log", domain: [stacks[0].seconds, stacks[stacks.length - 1].seconds] },
+    x: { type: "log", domain: [stacks[0].seconds, stacks[stacks.length - 1].seconds], inset: X_INSET },
     y: { domain: [0, highestCost] },
     color: colourScale(colours.series, parts),
     marks: [

@@ -158,16 +158,16 @@ test("the callout sits on the marked TTL's stack and names its total, or is abse
   assert.equal(calloutPoint(unmarked, stacks, "is_knee", "Knee"), null);
 });
 
-test("the mutation table's lines come in the paper's order, causes after transitions, shares in percent", () => {
+test("the mutation table's lines come in the paper's order, causes after transitions, shares as percentages of two decimals", () => {
   const rows = [
     { table_row: "compaction", steps_share: 0.000416, sessions_share: 0.0368, prefill_share: 0.0056, rows: 900 },
     { table_row: "append", steps_share: 0.96, sessions_share: 0.4359, prefill_share: 0.3752, rows: 900 },
     { table_row: "mutation", steps_share: 0.04, sessions_share: 0.5641, prefill_share: null, rows: 900 },
   ];
   assert.deepEqual(mutationTableLines(rows), [
-    { name: "append", isCause: false, cells: ["Append", "96.00%", "43.6%", "37.5%"] },
-    { name: "mutation", isCause: false, cells: ["Mutation", "4.00%", "56.4%", "—"] },
-    { name: "compaction", isCause: true, cells: ["Compaction", "0.04%", "3.7%", "0.6%"] },
+    { name: "append", isCause: false, cells: ["Append", "96.00", "43.59", "37.52"] },
+    { name: "mutation", isCause: false, cells: ["Mutation", "4.00", "56.41", "—"] },
+    { name: "compaction", isCause: true, cells: ["Compaction", "0.04", "3.68", "0.56"] },
   ]);
 });
 

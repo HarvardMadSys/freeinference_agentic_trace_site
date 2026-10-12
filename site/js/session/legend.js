@@ -31,8 +31,10 @@ export function categoryEntries(toolCalls, categoryColours) {
 }
 
 /**
- * A legend line: `title`, then a swatch and a name per entry of `entries`, `[{ name, colour, opacity }]`; `opacity`
- * is the swatch's opacity, for a series drawn lighter, and is left out for a solid one.
+ * A legend line: `title`, then a swatch and a name per entry of `entries`, `[{ name, colour, opacity, shape }]`;
+ * `opacity` is the swatch's opacity, for a series drawn lighter, and is left out for a solid one; `shape` is the
+ * swatch's shape, as the chart draws the entry: a bar for an area or a bar (the default), "line", "dot" or "dotted"
+ * for a dotted rule.
  */
 export function legendLine(title, entries) {
   const line = document.createElement("p");
@@ -45,8 +47,9 @@ export function legendLine(title, entries) {
     const item = document.createElement("span");
     item.className = "legend-item";
     const swatch = document.createElement("span");
-    swatch.className = "legend-dash";
-    swatch.style.background = entry.colour;
+    swatch.className = entry.shape === undefined ? "legend-dash" : `legend-dash is-${entry.shape}`;
+    swatch.style.color = entry.colour; // a dotted rule draws its dots in this colour
+    swatch.style.background = entry.shape === "dotted" ? "none" : entry.colour;
     if (entry.opacity !== undefined) {
       swatch.style.opacity = String(entry.opacity);
     }

@@ -15,8 +15,8 @@ import {
 const DATE_LENGTH = "YYYY-MM-DD".length;
 
 /**
- * The tiles of the stat strip, in order, as `statStrip` draws them: `[{ label, value, detail, isWide }]`, the first
- * three strings; a tile's detail line adds a number or names a part, and is empty where it would restate the label.
+ * The tiles of the stat strip, in order, as `statStrip` draws them: `[{ label, value, detail, isWide }]`; a tile's
+ * detail line adds a number or names a part, and is empty where it would restate the label.
  * The Models tile is wide, so eleven tiles fill whole rows of four or of two.
  */
 export function sessionFacts(tree, requests) {
@@ -51,11 +51,11 @@ export function requestsPerModel(requests) {
   return models.map((model) => ({ model, requests: counts.get(model) }));
 }
 
-// The Models tile: how many models, and one line per model with its requests, "glm-5.3-flash 4,073".
+// The Models tile: how many models, and one line per model, its name and, muted, its requests: "glm-5.3-flash 4,073".
 function modelsFact(requests) {
   const models = requestsPerModel(requests);
-  const counted = models.map((entry) => `${entry.model} ${formatCount(entry.requests)}`);
-  return { label: "Models", value: formatCount(models.length), detail: counted.join("\n"), isWide: true };
+  const lines = models.map((entry) => ({ text: entry.model, note: formatCount(entry.requests) }));
+  return { label: "Models", value: formatCount(models.length), detail: lines, isWide: true };
 }
 
 function treeTotals(tree) {
