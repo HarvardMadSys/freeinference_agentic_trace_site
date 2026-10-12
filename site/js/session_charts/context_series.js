@@ -28,14 +28,14 @@ export const MARK_COLOURS = Object.freeze({ mutation: TRANSITION_COLOURS.mutatio
 
 // Each role of the input, in stacking order, with the request column that counts its tokens.
 const ROLE_COLUMNS = Object.freeze({
-  system: "system_tokens",
-  user: "user_tokens",
-  assistant: "assistant_tokens",
-  "tool results": "tool_tokens",
-  "tool definitions": "tool_definition_tokens",
+  System: "system_tokens",
+  User: "user_tokens",
+  Assistant: "assistant_tokens",
+  "Tool results": "tool_tokens",
+  "Tool definitions": "tool_definition_tokens",
 });
 
-const NO_CACHE_REPORT = "input, no cache report";
+const NO_CACHE_REPORT = "Input, no cache report";
 
 /**
  * One point per request of every agent, in agent order and then start order: `{ sessionId, step, turn, label,
@@ -100,8 +100,8 @@ export function areaParts(tree, requests, split) {
     return [...colours].map(([name, colour]) => ({ name, colour }));
   }
   const parts = [
-    { name: "cached input", colour: TOKEN_PART_COLOURS.cached },
-    { name: "uncached input", colour: TOKEN_PART_COLOURS.uncached },
+    { name: "Cached input", colour: TOKEN_PART_COLOURS.cached },
+    { name: "Uncached input", colour: TOKEN_PART_COLOURS.uncached },
   ];
   if (requestsOf(topLevelOf(tree), requests).some((request) => request.cache_read_tokens === null)) {
     parts.push({ name: NO_CACHE_REPORT, colour: OTHER_SERIES });
@@ -192,9 +192,9 @@ function partTokens(request, split) {
     return tokens;
   }
   if (request.cache_read_tokens === null) {
-    return { "cached input": 0, "uncached input": 0, [NO_CACHE_REPORT]: request.prompt_tokens };
+    return { "Cached input": 0, "Uncached input": 0, [NO_CACHE_REPORT]: request.prompt_tokens };
   }
-  return { "cached input": request.cache_read_tokens, "uncached input": request.uncached_tokens, [NO_CACHE_REPORT]: 0 };
+  return { "Cached input": request.cache_read_tokens, "Uncached input": request.uncached_tokens, [NO_CACHE_REPORT]: 0 };
 }
 
 function topLevelOf(tree) {

@@ -10,19 +10,18 @@ import {
   trajectoryPoints, transitionMarks, turnStarts,
 } from "./context_series.js";
 import { legendLine } from "../session/legend.js";
+import { elapsedAxis, listenForRequestClick, startChartView, viewChartWidth } from "../session/view_chart.js";
 import {
-  elapsedTicks, listenForRequestClick, scrollBox, startChartView, tickCount, viewChartWidth,
-} from "../session/view_chart.js";
-import {
-  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE, renderFigure,
+  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, TIP_STYLE, renderFigure,
 } from "../shared/charts.js";
-import { formatElapsed, formatQuantity, formatTokens } from "../shared/format.js";
+import { formatQuantity, formatTokens } from "../shared/format.js";
 
 // Subagents' lines are drawn a little lighter, so the top-level session's line reads above them where they cross.
 const SUBAGENT_LINE_OPACITY = 0.8;
 
 const TRANSITION_DOT_RADIUS = 3.5; // pixels: small markers
 const TURN_DASH = "2 3"; // dash and gap of a turn's dotted rule, in pixels
+const TURN_START_COLOUR = AXIS_STYLE.stroke; // a turn's dotted rule is drawn in the axis ink
 
 // The split the area shows when the view opens.
 const DEFAULT_SPLIT = "tokens";
@@ -39,48 +38,51 @@ function drawContextView(Plot, container, tree, requests) {
   const figure = document.createElement("div");
   const body = renderFigure(figure, {
     title: "Context over time",
+    caption: "Input tokens of each request over the session.",
     definition:
       "Input tokens of each request at its start, against time since the session's first request: the top-level " +
       "session's input as a stacked area, and one line per agent. Dotted rules mark each turn's start; dots mark a " +
       "request whose context was rewritten (mutation) or that went to another model or provider (switch). By " +
       "role, the parts are counted with one tokenizer, not the provider's, so they need not add up to the input. " +
       "Click a point to open its request.",
-    caption: [
+    rows: [
       formatQuantity(requests.length, "request", "requests"),
       formatQuantity(tree.length, "agent", "agents"),
     ].join(" · "),
   });
+  container.replaceChildren(figure);
   const chartBox = document.createElement("div");
   const legend = document.createElement("div");
+  legend.className = "legend-lines";
   const drawSplit = (split) => drawChart(Plot, { chartBox, legend, body }, tree, requests, split);
-  body.append(splitSwitch(drawSplit), chartBox, legend);
-  container.replaceChildren(figure);
+  legendPlace(body).replaceChildren(splitSwitch(drawSplit), legend);
+  body.append(chartBox);
   drawSplit(DEFAULT_SPLIT);
 }
 
-/** The two pills above the chart that choose how the area splits the input; choosing one redraws the chart. */
+/**
+ * The two-part switch above the chart that chooses how the area splits the input, a pressed button per part;
+ * choosing one redraws the chart.
+ */
 function splitSwitch(drawSplit) {
   const group = document.createElement("div");
-  group.className = "control-group";
+  group.className = "segmented";
   group.setAttribute("role", "group");
   group.setAttribute("aria-label", "Split the input");
   for (const [split, text] of Object.entries(AREA_SPLITS)) {
-    const input = document.createElement("input");
-    input.type = "radio";
-    input.name = "context-split";
-    input.checked = split === DEFAULT_SPLIT;
-    const pill = document.createElement("label");
-    pill.className = input.checked ? "pill is-selected" : "pill";
-    pill.append(input, text);
-    input.addEventListener("change", () => chooseSplit(group, pill, drawSplit, split));
-    group.append(pill);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = text;
+    button.setAttribute("aria-pressed", String(split === DEFAULT_SPLIT));
+    button.addEventListener("click", () => chooseSplit(group, button, drawSplit, split));
+    group.append(button);
   }
   return group;
 }
 
-function chooseSplit(group, chosenPill, drawSplit, split) {
-  for (const pill of group.querySelectorAll(".pill")) {
-    pill.classList.toggle("is-selected", pill === chosenPill);
+function chooseSplit(group, chosenButton, drawSplit, split) {
+  for (const button of group.querySelectorAll("button")) {
+    button.setAttribute("aria-pressed", String(button === chosenButton));
   }
   drawSplit(split);
 }
@@ -93,6 +95,7 @@ function drawChart(Plot, boxes, tree, requests, split) {
   const marks = transitionMarks(points);
   const width = viewChartWidth(boxes.body);
   const maxElapsed = Math.max(...trajectories.map((point) => point.elapsed));
+  const axis = elapsedAxis(maxElapsed, width);
   const chart = Plot.plot({
     ...chartFrame(boxes.body),
     width,
@@ -107,14 +110,13 @@ function drawChart(Plot, boxes, tree, requests, split) {
       Plot.ruleX(turnStarts(tree, requests), { ...AXIS_STYLE, strokeDasharray: TURN_DASH }),
       agentLines(Plot, trajectories),
       transitionDots(Plot, marks),
-      Plot.axisX({ ...AXIS_STYLE, ticks: elapsedTicks(maxElapsed, tickCount(width)), tickFormat: formatElapsed,
-        label: "Time since the session's first request" }),
+      Plot.axisX({ ...AXIS_STYLE, ...axis }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatTokens, label: "Input tokens" }),
       Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "elapsed", y: "inputTokens", title: pointTip })),
     ],
   });
   listenForRequestClick(boxes.body, chart);
-  boxes.chartBox.replaceChildren(scrollBox(chart));
+  boxes.chartBox.replaceChildren(chart);
   boxes.legend.replaceChildren(...contextLegend(parts, tree, marks));
 }
 
@@ -139,11 +141,12 @@ function transitionDots(Plot, marks) {
   return dots;
 }
 
+// The legend's lines: the parts of the top-level input, each agent's line, and the markers on them.
 function contextLegend(parts, tree, marks) {
-  const lines = [{ name: "main", colour: AGENT_LINE_COLOURS.main }];
+  const agents = [{ name: "main", colour: AGENT_LINE_COLOURS.main }];
   if (tree.length > 1) {
-    lines.push({ name: "subagents", colour: AGENT_LINE_COLOURS.subagents, opacity: SUBAGENT_LINE_OPACITY });
+    agents.push({ name: "subagents", colour: AGENT_LINE_COLOURS.subagents, opacity: SUBAGENT_LINE_OPACITY });
   }
-  lines.push(...markEntries(marks));
-  return [legendLine("Top-level input", parts), legendLine("Input per agent", lines)];
+  const markers = [...markEntries(marks), { name: "turn start", colour: TURN_START_COLOUR }];
+  return [legendLine("Top-level input", parts), legendLine("Agents", agents), legendLine("Markers", markers)];
 }

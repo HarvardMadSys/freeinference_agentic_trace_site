@@ -10,16 +10,13 @@ import {
   ganttBars, ganttRows, placedInRow, requestPartEntries, undrawnCounts, waitEntries,
 } from "./timeline_bars.js";
 import { pointerFrame } from "./timeline_pointer.js";
-import { elapsedTicks, startChartView, tickCount, viewChartWidth } from "../session/view_chart.js";
-import { AXIS_STYLE, chartFrame, GRID_STYLE, renderFigure } from "../shared/charts.js";
-import { formatElapsed, formatQuantity } from "../shared/format.js";
+import { elapsedAxis, startChartView, viewChartWidth } from "../session/view_chart.js";
+import { AXIS_STYLE, chartFrame, GRID_STYLE, legendPlace, renderFigure } from "../shared/charts.js";
+import { formatQuantity } from "../shared/format.js";
 
-const ROW_HEIGHT = 24; // pixels per agent row
+const ROW_HEIGHT = 32; // pixels per agent row
 const MAX_HEIGHT = 808; // the tallest chart, in pixels: the tallest tree in the data (41 agents) keeps 18-px rows
-const MARGINS = Object.freeze({ marginTop: 16, marginRight: 24, marginBottom: 48, marginLeft: 116 });
-
-// The sentence the caption must hold: the data has no tool call start times.
-const TOOL_START_NOTE = "A tool call's start is taken as its request's end.";
+const MARGINS = Object.freeze({ marginTop: 8, marginRight: 24, marginBottom: 48, marginLeft: 116 });
 
 /**
  * Draw the Timeline view of the session tree `tree`, its `requests` and `toolCalls` (rows of the session queries)
@@ -34,18 +31,23 @@ function drawTimelineView(Plot, container, tree, requests, toolCalls, { category
   const figure = document.createElement("div");
   const body = renderFigure(figure, {
     title: "Where the time went",
+    caption: "Where each agent's time went: model, tool calls and waits.",
     definition:
       "One row per agent. Each request is split into time to first token and the rest; each tool call runs from " +
-      "its request's end for its latency, in the thin band below; a lighter bar is a wait before a request, " +
-      "coloured by what it waited for. Requests are drawn in ink tones, so a colour is a tool category or a wait. " +
-      "Click a bar to open its request.",
-    caption: timelineCaption(tree, requests, toolCalls),
+      "its request's end for its latency, in the thin band below, since the data hold no tool call's start; a " +
+      "lighter bar is a wait before a request, coloured by what it waited for. Requests are drawn in ink tones, so " +
+      "a colour is a tool category or a wait. Click a bar to open its request.",
+    rows: timelineRows(tree, requests, toolCalls),
   });
   container.replaceChildren(figure);
+  const legend = document.createElement("div");
+  legend.className = "legend-lines";
+  legend.append(...timelineLegend(requests, toolCalls, categoryColours));
+  legendPlace(body).replaceChildren(legend);
   const rows = ganttRows(tree);
   const bars = ganttBars(tree, requests, toolCalls, categoryColours).map(placedInRow);
   const chart = ganttChart(Plot, body, rows, bars);
-  body.append(pointerFrame(chart, bars, rows.length), ...timelineLegend(requests, toolCalls, categoryColours));
+  body.append(pointerFrame(chart, bars, rows.length));
 }
 
 /** The Gantt chart of `bars` over `rows`: row 0 at the top, each bar in its band of its row. */
@@ -53,6 +55,7 @@ function ganttChart(Plot, body, rows, bars) {
   const width = viewChartWidth(body);
   const height = Math.min(MAX_HEIGHT, MARGINS.marginTop + MARGINS.marginBottom + ROW_HEIGHT * rows.length);
   const maxElapsed = Math.max(...bars.map((bar) => bar.x2));
+  const axis = elapsedAxis(maxElapsed, width);
   return Plot.plot({
     ...chartFrame(body),
     ...MARGINS,
@@ -66,10 +69,7 @@ function ganttChart(Plot, body, rows, bars) {
       Plot.gridX(GRID_STYLE),
       // The tooltip and the click come from `pointerFrame`, which finds a bar by its span rather than its middle.
       Plot.rect(bars, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: "colour", fillOpacity: "opacity" }),
-      Plot.axisX({
-        ...AXIS_STYLE, ticks: elapsedTicks(maxElapsed, tickCount(width)), tickFormat: formatElapsed,
-        label: "Time since the session's first request",
-      }),
+      Plot.axisX({ ...AXIS_STYLE, ...axis }),
       Plot.axisY({
         ...AXIS_STYLE, ticks: rows.map((row, index) => index + 0.5), tickFormat: (tick) => rows[Math.floor(tick)].label,
         tickSize: 0, label: null,
@@ -78,7 +78,8 @@ function ganttChart(Plot, body, rows, bars) {
   });
 }
 
-function timelineCaption(tree, requests, toolCalls) {
+// The line of rows behind the Definition control: the requests, tool calls and agents drawn, and what is not drawn.
+function timelineRows(tree, requests, toolCalls) {
   const counts = [
     formatQuantity(requests.length, "request", "requests"),
     formatQuantity(toolCalls.length, "tool call", "tool calls"),
@@ -93,7 +94,7 @@ function timelineCaption(tree, requests, toolCalls) {
     const overlapping = formatQuantity(undrawn.waits, "request", "requests");
     notes.push(`${overlapping} that started before the previous one ended show no wait.`);
   }
-  return [TOOL_START_NOTE, `${counts.join(" · ")}.`, ...notes].join(" ");
+  return [`${counts.join(" · ")}.`, ...notes].join(" ");
 }
 
 /** The legend's lines: a request's parts, the waits this session has, and the categories of its tool calls. */

@@ -25,7 +25,7 @@ function factValues(tree, requests) {
 test("a session's subagents and their requests are given apart from the top-level session's", () => {
   const values = factValues([TOP_LEVEL, SUBAGENT], [{ model: "model-x" }]);
   assert.deepEqual(values["Requests"], ["30", "+ 40 in subagents"]);
-  assert.deepEqual(values["Subagents"], ["3", "at every depth"]);
+  assert.deepEqual(values["Subagents"], ["3", ""]);
   assert.deepEqual(values["Tool calls"], ["25", "+ 7 in subagents"]);
   assert.deepEqual(values["Turns"], ["4", "+ 1 in subagents"]);
 });
@@ -52,14 +52,17 @@ test("a session with no cache-reporting input has no cached share", () => {
 test("the start is the UTC minute and the models carry their requests", () => {
   const requests = [{ model: "model-y" }, { model: "model-x" }, { model: "model-y" }];
   const values = factValues([TOP_LEVEL], requests);
-  assert.deepEqual(values["Started"], ["2026-08-09 14:03", "UTC"]);
-  assert.deepEqual(values["Harness"], ["claude-code", "the agent program"]);
-  assert.deepEqual(values["Models"], ["2", "model-y · 2, model-x · 1"]);
+  assert.deepEqual(values["Started"], ["2026-08-09", "14:03 UTC"]);
+  assert.deepEqual(values["Harness"], ["claude-code", ""]);
+  assert.deepEqual(values["Models"], ["2", "model-y 2\nmodel-x 1"]);
 });
 
-test("the Harness tile's detail says what a harness is, not what the Duration tile's says", () => {
-  const values = factValues([TOP_LEVEL], [{ model: "model-x" }]);
-  assert.notEqual(values["Harness"][1], values["Duration"][1]);
+test("no tile's detail restates its label, and the Models tile alone is wide", () => {
+  const facts = sessionFacts([TOP_LEVEL], [{ model: "model-x" }]);
+  for (const label of ["Harness", "Duration", "Subagents", "Input tokens", "Output tokens"]) {
+    assert.equal(facts.find((fact) => fact.label === label).detail, "", label);
+  }
+  assert.deepEqual(facts.filter((fact) => fact.isWide).map((fact) => fact.label), ["Models"]);
 });
 
 test("models with as many requests are in name order", () => {

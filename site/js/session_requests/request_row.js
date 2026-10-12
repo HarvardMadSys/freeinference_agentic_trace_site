@@ -19,11 +19,11 @@ export function rowLabel(request) {
   return request.step_trigger === "user" ? `Turn ${request.turn}` : `↳ step ${request.step}`;
 }
 
-/** The request's start and end as time since `originMs`: "+MM:SS–MM:SS", each with hours from an hour on. */
+/** The request's start and end as time since `originMs`, as the charts' axes write it: "0:07–0:12", "1:02:03–1:02:10". */
 export function elapsedRange(request, originMs) {
   const start = formatElapsed(elapsedSeconds(request.start_ms, originMs));
   const end = formatElapsed(elapsedSeconds(request.end_ms, originMs));
-  return `${start}–${end.replace("+", "")}`;
+  return `${start}–${end}`;
 }
 
 /**
@@ -74,7 +74,7 @@ export function requestRow(request, calls, layout) {
   row.setAttribute("aria-expanded", "false");
   row.append(
     textSpan("request-label", rowLabel(request)),
-    textSpan("request-elapsed mono", elapsedRange(request, layout.originMs)),
+    textSpan("request-elapsed", elapsedRange(request, layout.originMs)),
     tokenBar(request, layout.largestTokens),
     toolChips(calls, layout.categoryColours),
   );

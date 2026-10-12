@@ -7,26 +7,36 @@
  * `session/session_requests`.
  */
 
-import { cachedShare, formatCount, formatOptionalShare, formatSeconds, formatTokens, utcMinute } from "../shared/format.js";
+import {
+  cachedShare, formatCount, formatOptionalShare, formatSeconds, formatTokens, utcMinute,
+} from "../shared/format.js";
 
-/** The tiles of the stat strip, in order, as `statStrip` draws them: `[{ label, value, detail }]`, every field a string. */
+// The characters of a UTC minute, "YYYY-MM-DD HH:MM", that make its date; its time follows a space.
+const DATE_LENGTH = "YYYY-MM-DD".length;
+
+/**
+ * The tiles of the stat strip, in order, as `statStrip` draws them: `[{ label, value, detail, isWide }]`, the first
+ * three strings; a tile's detail line adds a number or names a part, and is empty where it would restate the label.
+ * The Models tile is wide, so eleven tiles fill whole rows of four or of two.
+ */
 export function sessionFacts(tree, requests) {
   const topLevel = tree.find((session) => session.depth === 0);
   const totals = treeTotals(tree);
   const subagentTurns = totals.turns - topLevel.user_steps;
   const subagentToolCalls = totals.toolCalls - topLevel.tool_calls;
+  const started = utcMinute(topLevel.first_start_ms);
   return [
-    { label: "Harness", value: topLevel.harness, detail: "the agent program" },
+    { label: "Harness", value: topLevel.harness, detail: "" },
     modelsFact(requests),
-    { label: "Started", value: utcMinute(topLevel.first_start_ms), detail: "UTC" },
-    { label: "Duration", value: formatSeconds(topLevel.duration_s), detail: "of the top-level session" },
+    { label: "Started", value: started.slice(0, DATE_LENGTH), detail: `${started.slice(DATE_LENGTH + 1)} UTC` },
+    { label: "Duration", value: formatSeconds(topLevel.duration_s), detail: "" },
     { label: "Turns", value: formatCount(topLevel.user_steps), detail: inSubagents(subagentTurns) },
     { label: "Requests", value: formatCount(topLevel.requests), detail: inSubagents(topLevel.subagent_requests) },
-    { label: "Subagents", value: formatCount(topLevel.subagents), detail: "at every depth" },
+    { label: "Subagents", value: formatCount(topLevel.subagents), detail: "" },
     { label: "Tool calls", value: formatCount(topLevel.tool_calls), detail: inSubagents(subagentToolCalls) },
-    { label: "Input tokens", value: formatTokens(totals.inputTokens), detail: "every agent" },
+    { label: "Input tokens", value: formatTokens(totals.inputTokens), detail: "" },
     { label: "Cached share", value: treeCachedShare(totals), detail: `${formatTokens(totals.cachedTokens)} cached tokens` },
-    { label: "Output tokens", value: formatTokens(totals.outputTokens), detail: "every agent" },
+    { label: "Output tokens", value: formatTokens(totals.outputTokens), detail: "" },
   ];
 }
 
@@ -41,10 +51,11 @@ export function requestsPerModel(requests) {
   return models.map((model) => ({ model, requests: counts.get(model) }));
 }
 
+// The Models tile: how many models, and one line per model with its requests, "glm-5.3-flash 4,073".
 function modelsFact(requests) {
   const models = requestsPerModel(requests);
-  const counted = models.map((entry) => `${entry.model} · ${formatCount(entry.requests)}`);
-  return { label: "Models", value: formatCount(models.length), detail: counted.join(", ") };
+  const counted = models.map((entry) => `${entry.model} ${formatCount(entry.requests)}`);
+  return { label: "Models", value: formatCount(models.length), detail: counted.join("\n"), isWide: true };
 }
 
 function treeTotals(tree) {

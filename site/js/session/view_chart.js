@@ -1,17 +1,16 @@
 /**
- * What the Context and Timeline views' charts share: time since the session's first request on the x axis, a width
- * that scrolls rather than shrinks on a narrow screen, drawing once Plot has loaded, and a click that opens a request.
+ * What the Context and Timeline views' charts share: time since the session's first request on the x axis, its ticks
+ * and their format, drawing at the card's width once Plot has loaded, and a click that opens a request.
  */
 
 import { showError, showLoading } from "../shared/charts.js";
+import { MAX_TICKS } from "../axes/ticks.js";
+import { elapsedTickFormat } from "../shared/format.js";
 
 /** The event a view sends up from its chart when a click names a request; its `detail` is `{ sessionId, step }`. */
 export const OPEN_REQUEST_EVENT = "open-request";
 
-// The narrowest chart drawn, in pixels: a narrower view scrolls it sideways rather than shrinking its text.
-const MIN_CHART_WIDTH = 480;
-
-// The pixels an x axis gives each tick label, such as "+1:23:20".
+// The pixels an x axis gives each tick label, such as "12:30".
 const TICK_SPACING_PX = 90;
 
 // The steps an elapsed-time axis ticks by, in seconds: round seconds, minutes, hours and days.
@@ -32,14 +31,23 @@ export function elapsedTicks(maxSeconds, maxTicks) {
   return ticks;
 }
 
-/** The most ticks an axis `width` pixels wide holds without its labels touching, at least two. */
+/** The most ticks an axis `width` pixels wide holds without its labels touching: at least two, at most `MAX_TICKS`. */
 export function tickCount(width) {
-  return Math.max(2, Math.floor(width / TICK_SPACING_PX));
+  return Math.min(MAX_TICKS, Math.max(2, Math.floor(width / TICK_SPACING_PX)));
 }
 
-/** The width to draw a chart in `body`: the body's width, but never under the narrowest chart drawn. */
+/**
+ * The elapsed-time x axis of a chart `width` pixels wide reaching `maxSeconds`: `{ ticks, tickFormat, label }`, its
+ * ticks in h:mm from an hour on, else m:ss, its title naming which.
+ */
+export function elapsedAxis(maxSeconds, width) {
+  const { format, unit } = elapsedTickFormat(maxSeconds);
+  return { ticks: elapsedTicks(maxSeconds, tickCount(width)), tickFormat: format, label: `Time since first request (${unit})` };
+}
+
+/** The width to draw a chart in `body`: the card's, so the chart never runs past it on a phone. */
 export function viewChartWidth(body) {
-  return Math.max(body.clientWidth, MIN_CHART_WIDTH);
+  return body.clientWidth;
 }
 
 /**

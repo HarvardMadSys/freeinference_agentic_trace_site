@@ -14,9 +14,9 @@ function calls(...categories) {
 test("the token legend names the three parts, and no cache report only when a request has none", () => {
   const colours = assignColours([]);
   const reported = legendEntries([{ cache_read_tokens: 5 }], [], colours);
-  assert.deepEqual(reported.tokens.map((entry) => entry.name), ["cached input", "uncached input", "output"]);
+  assert.deepEqual(reported.tokens.map((entry) => entry.name), ["Cached input", "Uncached input", "Output"]);
   const unreported = legendEntries([{ cache_read_tokens: 5 }, { cache_read_tokens: null }], [], colours);
-  assert.equal(unreported.tokens.at(-1).name, "input, no cache report");
+  assert.equal(unreported.tokens.at(-1).name, "Input, no cache report");
   assert.equal(unreported.tokens.at(-1).colour, "var(--series-other)");
 });
 

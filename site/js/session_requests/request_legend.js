@@ -10,12 +10,12 @@ import { OTHER_SERIES, TOKEN_PART_COLOURS } from "../theme/colours.js";
  */
 export function legendEntries(requests, toolCalls, categoryColours) {
   const tokens = [
-    { name: "cached input", colour: TOKEN_PART_COLOURS.cached },
-    { name: "uncached input", colour: TOKEN_PART_COLOURS.uncached },
-    { name: "output", colour: TOKEN_PART_COLOURS.output },
+    { name: "Cached input", colour: TOKEN_PART_COLOURS.cached },
+    { name: "Uncached input", colour: TOKEN_PART_COLOURS.uncached },
+    { name: "Output", colour: TOKEN_PART_COLOURS.output },
   ];
   if (requests.some((request) => request.cache_read_tokens === null)) {
-    tokens.push({ name: "input, no cache report", colour: OTHER_SERIES });
+    tokens.push({ name: "Input, no cache report", colour: OTHER_SERIES });
   }
   return { tokens, categories: categoryEntries(toolCalls, categoryColours) };
 }
