@@ -86,6 +86,7 @@ const PROMPT_AXIS = Object.freeze({
 export const TURN_DURATION_BY_SCOPE = Object.freeze({
   name: "turn_duration_by_scope",
   title: "Turn duration",
+  insight: "Benchmark turns run longer and never pause.",
   definition: "Share of turns (a user step and the tool steps after it, first start to last end) of top-level sessions lasting at most each duration, human-driven and benchmark, each median marked.",
   caption: "How long a turn lasts, human-driven and benchmark.",
   drawsLines: true,
@@ -101,6 +102,7 @@ export const TURN_DURATION_BY_SCOPE = Object.freeze({
 export const SESSION_DURATION_BY_SCOPE = Object.freeze({
   name: "session_duration_by_scope",
   title: "Session duration",
+  insight: "Human sessions last far longer, in turns with idle time between.",
   definition: "Share of top-level sessions (first request's start to last request's end) lasting at most each duration, of the paper's harnesses and of the benchmark's, each median marked.",
   caption: "How long a session lasts, human-driven and benchmark.",
   drawsLines: true,
@@ -116,6 +118,7 @@ export const SESSION_DURATION_BY_SCOPE = Object.freeze({
 export const INPUT_PER_REQUEST_BY_SCOPE = Object.freeze({
   name: "input_per_request_by_scope",
   title: "Input per request",
+  insight: "Human requests carry far larger contexts.",
   definition: "Share of requests of top-level sessions with at most each number of input tokens, of the paper's harnesses and of the benchmark's, over requests whose input is reported, each median marked.",
   caption: "Input tokens of each request, human-driven and benchmark.",
   drawsLines: true,
@@ -132,6 +135,7 @@ export const INPUT_PER_REQUEST_BY_SCOPE = Object.freeze({
 export const USER_PROMPT_TOKENS_BY_SCOPE = Object.freeze({
   name: "user_prompt_tokens_by_scope",
   title: "User prompt size",
+  insight: "People write short, varied prompts; the benchmark writes long ones.",
   definition: "Share of new user prompts (a user step's rise in user tokens over the step before, all of them at a session's first) with at most each number of tokens, human-driven and benchmark, each median marked.",
   caption: "Tokens of each new user prompt, human-driven and benchmark.",
   drawsLines: true,

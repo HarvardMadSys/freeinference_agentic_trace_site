@@ -60,6 +60,7 @@ export const GAP_FIGURES = Object.freeze({
   hitRatioByGapBin: Object.freeze({
     name: "hit_ratio_cdf_by_gap_bin",
     title: "Hit ratio by gap before the request",
+    insight: "Reuse survives a minute and fades by an hour.",
     definition: "Share of requests with at most each hit ratio (cached over input tokens), in each of six bins of the gap before them, the wait since their session's previous request ended, shortest gap lightest.",
     caption: "Hit ratio of each request, by its gap since the previous one.",
     drawsLines: true,
@@ -72,6 +73,7 @@ export const GAP_FIGURES = Object.freeze({
   gapByCause: Object.freeze({
     name: "gap_cdf_by_cause",
     title: "Gap before a request by cause",
+    insight: "Tool gaps last seconds; user idle lasts minutes.",
     definition: "Share of gaps before a request, the wait since its session's previous request ended, at most each length, by what the gap waited for; a gap under 0.1 s is drawn at 0.1 s.",
     caption: "Gap before each request, by what it waited for.",
     drawsLines: true,
@@ -84,6 +86,7 @@ export const GAP_FIGURES = Object.freeze({
   meanHitRatioByCause: Object.freeze({
     name: "mean_hit_ratio_by_cause",
     title: "Mean hit ratio by cause",
+    insight: "Misses follow user waits, not tool loops.",
     definition: "Mean hit ratio (cached over input tokens) of requests by what the gap before them waited for, each bar drawn from 0% with its value written beside it.",
     caption: "Mean hit ratio of requests, by what the gap before waited for.",
     query: "figures/mean_hit_ratio_by_cause",
@@ -93,6 +96,7 @@ export const GAP_FIGURES = Object.freeze({
   mutationsByCause: Object.freeze({
     name: "mutations_by_cause",
     title: "Context mutations by cause",
+    insight: "Mutations are rare per step, common per session, costly.",
     definition: "Per transition and mutation cause, over top-level requests after their session's first, model and provider switches left out: its share of steps, of sessions having one (for appends, having no mutation), and of simulated tokens missed with no TTL.",
     caption: "How often each kind of context change happens, and its prefill.",
     query: "figures/mutations_by_cause",
@@ -104,6 +108,7 @@ export const GAP_FIGURES = Object.freeze({
   hitRatioByTransition: Object.freeze({
     name: "hit_ratio_cdf_by_transition",
     title: "Hit ratio after a context change",
+    insight: "A context mutation throws the prefix away.",
     definition: "Share of requests with at most each hit ratio (cached over input tokens), of those that append to the context before them and of those that rewrite it (a mutation); a switch of model or provider is not drawn.",
     caption: "Hit ratio of requests that append to the context or rewrite it.",
     drawsLines: true,
@@ -233,13 +238,8 @@ async function drawGapByCause(rows, body, colours) {
   const xDomain = [MIN_GAP_DRAWN_S, MAX_GAP_DRAWN_S];
   const ticks = durationTicks(xDomain);
   await drawCdf(body, series, {
-    yLabel: "Share of gaps",
-    logX: true,
-    xDomain,
-    xTicks: fewerOnNarrow(ticks, chartFrame(body).width),
-    xTickFormat: formatDurationTick,
-    format: formatSeconds,
-    colours: colours.series,
+    yLabel: "Share of gaps", logX: true, xDomain, xTicks: fewerOnNarrow(ticks, chartFrame(body).width),
+    xTickFormat: formatDurationTick, format: formatSeconds, colours: colours.series,
   });
 }
 

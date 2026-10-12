@@ -30,6 +30,7 @@ const SHARE_DOMAIN = Object.freeze([0, 1]); // the y axis spans a whole share, w
 export const COST_SHARE_BY_SESSION = Object.freeze({
   name: "cost_share_by_session",
   title: "Cost share by session",
+  insight: "Cache reads are most of the API bill.",
   definition: "Each top-level session's cost at the pipeline's prices (cached 1, uncached 10, output 50 per token), over requests reporting cache reads, split by token kind, sessions ranked by cached share and each rank bin's mean shares stacked.",
   caption: "Each session's cost by token kind, sessions ranked by cached share.",
   query: "figures/cost_share_by_session",
@@ -43,6 +44,7 @@ export const COST_SHARE_BY_SESSION = Object.freeze({
 export const SESSION_TIME_BY_PART = Object.freeze({
   name: "session_time_by_part",
   title: "Session time by part",
+  insight: "Half a session is user thinking; tools take most of the rest.",
   definition: "Each top-level session's time as prefill, decode, tool waits (for a tool or subagent) and user idle (waits for the user or an ask-user tool), sessions ranked by user-idle share, each rank bin's mean shares stacked.",
   caption: "Each session's time in prefill, decode, tool wait and user idle.",
   query: "figures/session_time_by_part",

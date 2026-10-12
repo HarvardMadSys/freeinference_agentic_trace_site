@@ -35,6 +35,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "requests_per_session_cdf",
     title: "Requests and steps per session",
+    insight: "A few prompts drive tens of model requests.",
     definition: "Share of top-level sessions with at most each number of requests, user steps and tool steps; a session with no tool step is drawn at one.",
     caption: "Requests, user steps and tool steps of each top-level session.",
     drawsLines: true,
@@ -48,6 +49,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "duration_cdf",
     title: "Turn and session duration",
+    insight: "Sessions are mostly idle time between turns.",
     definition: "Share of turns, and of top-level sessions, that last at most each duration; a turn is a user step and the tool steps after it, from first start to last end.",
     caption: "Duration of each turn and of each top-level session.",
     drawsLines: true,
@@ -61,6 +63,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "subagents_per_session",
     title: "Subagents per session",
+    insight: "Subagents are rare, and usually one at a time.",
     definition: "Subagent sessions each top-level session spawned, at any depth, on a log scale; a session that spawned none is counted in the rows, the median and the 95th percentile, but not drawn.",
     caption: "Subagents per session; most spawn none, those that do are drawn.",
     query: "explore/subagents_per_session_bins",

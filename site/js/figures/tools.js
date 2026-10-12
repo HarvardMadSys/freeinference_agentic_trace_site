@@ -58,6 +58,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "latency_by_category",
     title: "Tool latency by category",
+    insight: "Local tools are fast; builds and waits are slow, with long tails.",
     definition: "The 5th, 25th, 50th, 75th and 95th percentiles of a tool call's latency, the wait after its request until the session's next, per category, over calls alone in their request; * marks a shell command's purpose.",
     caption: "Tool call latency per category, box p25–p75, whiskers p5–p95.",
     query: "figures/latency_by_category",
@@ -67,6 +68,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "result_tokens_by_category",
     title: "Tool result size by category",
+    insight: "Reads return the most tokens and drive context growth.",
     definition: "The 5th, 25th, 50th, 75th and 95th percentiles of the tokens of a tool call's result per category, over calls whose result was matched; * marks a shell command's purpose.",
     caption: "Tool result tokens per category, box p25–p75, whiskers p5–p95.",
     query: "figures/result_tokens_by_category",

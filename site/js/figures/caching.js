@@ -38,6 +38,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "hit_ratio_by_idle_gap",
     title: "Hit ratio after an idle gap",
+    insight: "Providers retain prefixes from minutes to an hour, invisibly.",
     definition: "Median hit ratio per idle-gap bin (time since the same user's previous request finished; 26 geometric bins, 10 s to 1 h) for the eight providers with most requests, named by the release's fixed anonymous letters.",
     caption: "Median hit ratio by time since the user's last request, per provider.",
     drawsLines: true,

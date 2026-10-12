@@ -33,6 +33,7 @@ const PANEL_TITLE_RISE = 18; // pixels between a panel's top and its title, whic
 export const TOOL_MIX_BY_TURN_POSITION = Object.freeze({
   name: "tool_mix_by_turn_position",
   title: "Tool mix along a turn",
+  insight: "Benchmark turns explore, then build; human turns mix tools throughout.",
   definition: "Per tenth of a turn, the share of top-level sessions' calls in each of eight tool groups, a *File Ops call split by whether its programs change files, only read, or neither; one panel per scope, human-driven and benchmark.",
   caption: "Share of calls per tool group along a turn, human-driven and benchmark.",
   isWide: true,

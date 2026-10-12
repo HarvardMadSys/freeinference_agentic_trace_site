@@ -71,11 +71,9 @@ test("every figure has a caption of one short sentence, at most twelve words", a
   }
 });
 
-test("every insight a figure has is one short sentence, at most twelve words", async () => {
+test("every figure has an insight of one short sentence, at most twelve words", async () => {
   for (const figure of await everyFigure()) {
-    if (figure.insight === undefined) {
-      continue;
-    }
+    assert.equal(typeof figure.insight, "string", `${figure.name} has an insight`);
     assert.ok(figure.insight.endsWith("."), figure.name);
     assert.ok(isOneSentence(figure.insight), `${figure.name}: one sentence`);
     const words = wordCount(figure.insight);

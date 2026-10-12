@@ -44,6 +44,7 @@ const BAR_LABEL_GAP = 4; // pixels between a bar's end and its label
 export const TTFT_CDF_BY_MODEL = Object.freeze({
   name: "ttft_cdf_by_model",
   title: "Time to first token by model",
+  insight: "Time to first token is overhead, not prefill.",
   definition: "Share of requests whose time to first token is at most each value, per model, over requests whose TTFT is trusted (positive and under 95% of the latency), for the five busiest models.",
   caption: "Time to first token of each request, for the five busiest models.",
   drawsLines: true,
@@ -59,6 +60,7 @@ export const TTFT_CDF_BY_MODEL = Object.freeze({
 export const DECODE_CDF_BY_MODEL = Object.freeze({
   name: "decode_cdf_by_model",
   title: "Decode time by model",
+  insight: "Decode is short because outputs are short.",
   definition: "Share of requests whose decode time (latency minus time to first token) is at most each value, per model, over requests whose TTFT is trusted, for the same five models.",
   caption: "Latency minus time to first token, for the same five models.",
   drawsLines: true,
@@ -74,6 +76,7 @@ export const DECODE_CDF_BY_MODEL = Object.freeze({
 export const SPEEDUP_IF_TWICE_AS_FAST = Object.freeze({
   name: "speedup_if_twice_as_fast",
   title: "Speed-up if twice as fast",
+  insight: "Faster tools buy more than faster prefill or decode.",
   definition: "The top-level sessions' machine time (prefill, decode and tool time) over the same with one part alone halved, prefill being the time to first token where trusted and a tool wait counting for at most 15 minutes.",
   caption: "Machine-time speed-up if prefill, decode or tools ran twice as fast.",
   query: "figures/speedup_if_twice_as_fast",

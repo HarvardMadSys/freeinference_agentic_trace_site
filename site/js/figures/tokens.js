@@ -59,6 +59,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "tokens_per_request_cdf",
     title: "Tokens per request",
+    insight: "Each request adds little to a large context.",
     definition: "Share of requests with at most each number of input tokens, uncached input tokens (where the provider reports cache reads) and output tokens (where there are more than one).",
     caption: "Input, uncached input and output tokens of each request.",
     drawsLines: true,
@@ -72,6 +73,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "token_split_by_week",
     title: "Token split by week",
+    insight: "Cached input is almost all of the tokens, every week.",
     definition: "Per week, the share of cached input, uncached input and output in the tokens of requests whose provider reports cache reads, each token counted once whatever its price.",
     caption: "Share of cached input, uncached input and output tokens, each week.",
     query: "figures/token_split_by_week",
@@ -83,6 +85,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "token_growth_by_messages",
     title: "Token growth with the context",
+    insight: "The cached prefix grows all session; new tokens stay small.",
     definition: "Median cached, uncached and output tokens per request, by the number of messages in the request, in fixed power-of-two bins of messages.",
     caption: "Median tokens per request, by messages in the request.",
     drawsLines: true,
@@ -94,6 +97,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "context_share_by_role",
     title: "Context share by role",
+    insight: "Tool results fill mid-session contexts; assistant history fills the longest.",
     definition: "Share of the input held by system, user, assistant and tool messages and tool definitions, the tokens of every request pooled per power-of-two bin of input tokens (4k is 4,096).",
     caption: "Share of the input held by each role, by input size.",
     query: "figures/context_share_by_role",
@@ -105,6 +109,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "cached_fraction_per_request",
     title: "Cached share per request",
+    insight: "Most requests reuse nearly all of their prefix.",
     definition: "Cached over input tokens of each top-level request whose provider reports cache reads, in bins of 5%, the requests of each bin counted on a log axis.",
     caption: "Cached over input tokens, where the provider reports cache reads.",
     query: "explore/cached_fraction_bins",

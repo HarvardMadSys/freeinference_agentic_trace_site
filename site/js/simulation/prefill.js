@@ -56,6 +56,7 @@ const MARKER_RADIUS = 3; // pixels; the small marker of each TTL's point
 export const PREFILL_AGAINST_STORAGE = Object.freeze({
   name: "prefill_against_storage",
   title: "Prefill against storage",
+  insight: "Fifteen minutes' retention catches most reuse; a day costs far more storage.",
   definition: "In the prefix-cache simulation of every week it covers, normalised prefill (tokens missed over those missed with no TTL) against mean retained tokens (token-seconds kept over the week's span), one point per TTL, human-driven and benchmark simulated apart.",
   caption: "Missed tokens against tokens kept, per cache TTL, human-driven and benchmark.",
   isWide: true,

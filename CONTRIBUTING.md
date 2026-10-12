@@ -213,7 +213,7 @@ control that opens on the definition and the line of rows), reads its query's
 answer, hides its thin bins, writes its line of rows and calls `draw`:
 
 - `name`: the figure's id, also the id of its card on the page.
-- `title`: the card's heading, at most five words.
+- `title`: the card's heading.
 - `insight`: the card's point, under its title: one sentence of at most
   twelve words saying what the chart means, not what it draws ("Sessions are
   mostly idle time between turns."); a number appears only where the number

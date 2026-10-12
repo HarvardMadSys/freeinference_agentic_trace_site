@@ -16,7 +16,8 @@ CHARTS_MODULE = SITE_FOLDER / "js" / "shared" / "charts.js"  # declares `MIN_ROW
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # declares `SERIES_SLOTS`, the eight series colours
 # The folders of every figure entry: the section modules and theirs, the cache simulation's and the scope comparisons'.
 FIGURE_FOLDERS = [SITE_FOLDER / "js" / folder for folder in ("figures", "simulation", "comparison")]
-FIGURE_TITLE_AND_DEFINITION = re.compile(r'title: "([^"]+)",\s*definition: "([^"]+)"')
+# A figure entry's title, then its insight, then its definition, in that order.
+FIGURE_TITLE_AND_DEFINITION = re.compile(r'title: "([^"]+)",\s*insight: "[^"]+",\s*definition: "([^"]+)"')
 FIGURE_ENTRY_QUERY = re.compile(r'query: "(?:figures|explore)/\w+"')  # one per figure entry, a chart's or a histogram's
 # The phrase a figure's definition may use that names the paper: the population, not a difference from the paper.
 PAPER_POPULATION = "the paper's harnesses"

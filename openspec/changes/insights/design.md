@@ -73,7 +73,7 @@ Takeaway: Serving overheads shape time to first token, tools dominate active tim
 |---|---|
 | ttft_cdf_by_model | Time to first token is overhead, not prefill. |
 | decode_cdf_by_model | Decode is short because outputs are short. |
-| session_time_by_part | Half of a session is the user thinking; tools take most of the rest. |
+| session_time_by_part | Half a session is user thinking; tools take most of the rest. |
 | speedup_if_twice_as_fast | Faster tools buy more than faster prefill or decode. |
 
 ### 04 Tools
@@ -98,7 +98,7 @@ Takeaway: Reuse is high inside model and tool loops and breaks on user waits and
 | mean_hit_ratio_by_cause | Misses follow user waits, not tool loops. |
 | hit_ratio_cdf_by_transition | A context mutation throws the prefix away. |
 | mutations_by_cause | Mutations are rare per step, common per session, costly. |
-| prefill_against_storage | Fifteen minutes of retention catches most reuse; a day costs far more storage. |
+| prefill_against_storage | Fifteen minutes' retention catches most reuse; a day costs far more storage. |
 | api_cost_by_ttl | API cost flattens after thirty minutes of retention. |
 | infrastructure_cost_by_ttl | Infrastructure cost bottoms at fifteen minutes. |
 

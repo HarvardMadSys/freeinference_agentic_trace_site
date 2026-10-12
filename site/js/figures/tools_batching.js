@@ -38,6 +38,7 @@ const ONE_CALL = 1; // every bar and the width axis start at one call, the fewes
 export const CALLS_PER_REQUEST_BY_CATEGORY = Object.freeze({
   name: "calls_per_request_by_category",
   title: "Calls per request by category",
+  insight: "Most requests issue one call; reads and subagents get batched.",
   definition: "The mean number of calls of the top-level requests whose first call is of each category, Ask User left out, each request counted once.",
   caption: "Mean calls per request, by the category of the request's first call.",
   query: "figures/calls_per_request_by_category",
@@ -49,6 +50,7 @@ export const CALLS_PER_REQUEST_BY_CATEGORY = Object.freeze({
 export const LATENCY_BY_BATCH_WIDTH = Object.freeze({
   name: "latency_by_batch_width",
   title: "Tool latency by batch width",
+  insight: "Batching keeps latency flat as the batch grows.",
   definition: "Percentiles (10th–90th) of the tool wait (the gap until the session's next request, when it waited for tool calls) of top-level requests without Ask User, by calls made (8+ together), against calls × (one-call median wait + median latency).",
   caption: "Tool wait of batched calls, against the same calls one by one.",
   drawsLines: true,

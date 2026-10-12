@@ -39,6 +39,7 @@ const CALLOUT_HALO = 4; // pixels of the card's colour around the callout's text
 export const API_COST_BY_TTL = Object.freeze({
   name: "api_cost_by_ttl",
   title: "API cost by TTL",
+  insight: "API cost flattens after thirty minutes of retention.",
   definition: "Each TTL's simulated API cost for the paper's harnesses in every simulated week, at the pipeline's prices (cached 1, uncached 10, output 50), stacked by part, over the one-minute total; the shortest TTL within 5% of the lowest is marked.",
   caption: "An API customer's cost at each cache TTL, against a one-minute TTL.",
   query: "figures/api_cost_by_ttl",
@@ -56,6 +57,7 @@ export const API_COST_BY_TTL = Object.freeze({
 export const INFRASTRUCTURE_COST_BY_TTL = Object.freeze({
   name: "infrastructure_cost_by_ttl",
   title: "Infrastructure cost by TTL",
+  insight: "Infrastructure cost bottoms at fifteen minutes.",
   definition: "Each TTL's simulated serving cost for the paper's harnesses in every simulated week: prefilling missed tokens at $1 per million plus keeping reusable and dead tokens at $30 per million a day, over the one-minute total.",
   caption: "Serving cost at each TTL: recomputing misses against storing tokens.",
   query: "figures/infrastructure_cost_by_ttl",
