@@ -29,8 +29,8 @@ measurement goes into `design.md`.
 - [x] 3.2 `api_cost_by_ttl` and `infrastructure_cost_by_ttl`: stacked multiples of the one-minute total with the knee and the minimum marked; the prices mirrored and tested; parity test against the paper's knee and minimum.
 - [x] 3.3 `tool_mix_by_turn_position` (both scopes): the group rule and program sets mirrored and tested; stacked shares per tenth of a turn; parity against the paper's shares where it quotes them.
 - [x] 3.4 `calls_per_request_by_category` and `latency_by_batch_width` with the serial line; parity against the paper's numbers.
-- [ ] 3.5 `speedup_if_twice_as_fast`: three bars from the session-time parts; parity test.
-- [ ] 3.6 The four human-driven against benchmark CDFs (turn duration, session duration, input per request, user prompt tokens), each with both medians and their ratio; parity tests.
+- [x] 3.5 `speedup_if_twice_as_fast`: three bars from the session-time parts; parity test.
+- [x] 3.6 The four human-driven against benchmark CDFs (turn duration, session duration, input per request, user prompt tokens), each with both medians and their ratio; parity tests.
 - [x] 3.7 `mutations_by_cause`: a table card of shares of steps, sessions and infinite-retention prefill per transition and cause; parity test.
 
 ## 4. Session page
