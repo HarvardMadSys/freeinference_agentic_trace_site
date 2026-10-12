@@ -37,7 +37,9 @@ optionally with `&step=<step>` and `&view=requests|context|timeline`
 The Requests view SHALL list the requests in start order, one row per
 request. Each row SHALL show:
 - a label: "Turn N" for a user step, "↳ step S" for a tool step;
-- the elapsed time since the session's first request, as `+MM:SS–MM:SS`;
+- the elapsed time since the session's first request, from the request's
+  start to its end, in minutes and seconds (`0:07–0:12`), and in hours,
+  minutes and seconds from an hour on (`1:00–1:02:04`);
 - a horizontal bar of the request's input split into cached and uncached,
   then its output, in three fixed colours, scaled to the largest request in
   the session;
