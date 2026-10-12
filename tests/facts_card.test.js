@@ -33,8 +33,15 @@ test("a session's subagents and their requests are given apart from the top-leve
 test("token totals and the cached share cover every agent", () => {
   const values = factValues([TOP_LEVEL, SUBAGENT], [{ model: "model-x" }]);
   assert.equal(values["Input tokens"][0], "10k");
-  assert.deepEqual(values["Cached share"], ["60%", "6k cached"]);
+  assert.deepEqual(values["Cached share (reported)"], ["60%", "6k cached"]);
   assert.equal(values["Output tokens"][0], "600");
+});
+
+test("the cached share alone carries its definition: over the input of cache-reporting requests", () => {
+  const facts = sessionFacts([TOP_LEVEL], [{ model: "model-x" }]);
+  const defined = facts.filter((fact) => fact.definition !== undefined);
+  assert.deepEqual(defined.map((fact) => fact.label), ["Cached share (reported)"]);
+  assert.match(defined[0].definition, /requests whose provider reports cache reads/);
 });
 
 test("a session without subagents gives no subagent detail", () => {
@@ -46,7 +53,7 @@ test("a session without subagents gives no subagent detail", () => {
 
 test("a session with no cache-reporting input has no cached share", () => {
   const values = factValues([{ ...TOP_LEVEL, reported_input_tokens: 0 }], [{ model: "model-x" }]);
-  assert.equal(values["Cached share"][0], "—");
+  assert.equal(values["Cached share (reported)"][0], "—");
 });
 
 test("the start is the UTC minute and the models are lines, each with its requests", () => {
@@ -61,7 +68,7 @@ test("the card lists the eleven fields in order, and no detail restates its labe
   const facts = sessionFacts([TOP_LEVEL], [{ model: "model-x" }]);
   assert.deepEqual(facts.map((fact) => fact.label), [
     "Harness", "Models", "Started", "Duration", "Turns", "Requests", "Subagents", "Tool calls", "Input tokens",
-    "Cached share", "Output tokens",
+    "Cached share (reported)", "Output tokens",
   ]);
   for (const label of ["Harness", "Duration", "Subagents", "Input tokens", "Output tokens"]) {
     assert.equal(facts.find((fact) => fact.label === label).detail, "", label);

@@ -15,7 +15,7 @@ export const KEY_STEP_SHARE = 0.01;
 // Each handle, the end of the range it moves, and what a screen reader calls it.
 const HANDLE_NAMES = Object.freeze({ start: "Start of the time range", end: "End of the time range" });
 
-// The keys that move a focused handle, each with the direction it moves it: earlier or later.
+// The arrow keys that move a focused handle one step, each with the direction it moves it: earlier or later.
 const KEY_DIRECTIONS = Object.freeze({ ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 });
 
 /** The narrowest range, in seconds, a session `totalSeconds` long allows. */
@@ -52,6 +52,38 @@ export function steppedRange(range, handle, direction, totalSeconds) {
   return movedRange(range, handle, seconds, totalSeconds);
 }
 
+/**
+ * The range after `key` is pressed on the focused `handle`: an arrow key moves it one step, Home as early and End as
+ * late as it may go; null for any other key.
+ */
+export function keyedRange(range, handle, key, totalSeconds) {
+  if (key === "Home") {
+    return movedRange(range, handle, 0, totalSeconds);
+  }
+  if (key === "End") {
+    return movedRange(range, handle, totalSeconds, totalSeconds);
+  }
+  const direction = KEY_DIRECTIONS[key];
+  return direction === undefined ? null : steppedRange(range, handle, direction, totalSeconds);
+}
+
+/**
+ * `{ min, max }`, the seconds `handle` may move between with the other end where it is: the start from 0 to the
+ * minimum range before the end, the end from the minimum range after the start to the session's end.
+ */
+export function handleBounds(range, handle, totalSeconds) {
+  const minimum = minimumRange(totalSeconds);
+  if (handle === "start") {
+    return { min: 0, max: range.end - minimum };
+  }
+  return { min: range.start + minimum, max: totalSeconds };
+}
+
+/** Whether the ranges `first` and `second` start and end at the same seconds. */
+export function isSameRange(first, second) {
+  return first.start === second.start && first.end === second.end;
+}
+
 /** "1:00:00–2:00:00 of 6:36:12": the range and the session's length, as the elapsed times are written. */
 export function rangeText(range, totalSeconds) {
   return `${formatElapsed(range.start)}–${formatElapsed(range.end)} of ${formatElapsed(totalSeconds)}`;
@@ -59,15 +91,16 @@ export function rangeText(range, totalSeconds) {
 
 /**
  * The slider over a session `totalSeconds` long, at first spanning all of it. A handle moves as it is dragged, and
- * `onChange(range)` is called when it is let go, or each time an arrow key moves it.
+ * `onChange(range)` is called when it is let go somewhere new, or each time a key moves it.
  */
 export function rangeSlider(totalSeconds, onChange) {
-  const slider = { totalSeconds, onChange, range: { start: 0, end: totalSeconds }, parts: sliderParts() };
+  const whole = { start: 0, end: totalSeconds };
+  const slider = { totalSeconds, onChange, range: whole, rangeAtGrab: whole, parts: sliderParts() };
   for (const [handle, element] of Object.entries(slider.parts.handles)) {
-    element.addEventListener("pointerdown", (event) => element.setPointerCapture(event.pointerId));
+    element.addEventListener("pointerdown", (event) => grabHandle(slider, element, event));
     element.addEventListener("pointermove", (event) => dragHandle(slider, handle, event));
-    element.addEventListener("lostpointercapture", () => onChange(slider.range));
-    element.addEventListener("keydown", (event) => stepHandle(slider, handle, event));
+    element.addEventListener("lostpointercapture", () => letGoOfHandle(slider));
+    element.addEventListener("keydown", (event) => keyHandle(slider, handle, event));
   }
   placeHandles(slider);
   return slider.parts.element;
@@ -96,8 +129,20 @@ function handleElement(handle) {
   element.tabIndex = 0;
   element.setAttribute("role", "slider");
   element.setAttribute("aria-label", HANDLE_NAMES[handle]);
-  element.setAttribute("aria-valuemin", "0");
   return element;
+}
+
+// A handle takes the pointer, and the slider keeps the range it had, to tell on letting go whether it moved.
+function grabHandle(slider, element, event) {
+  element.setPointerCapture(event.pointerId);
+  slider.rangeAtGrab = slider.range;
+}
+
+// A handle let go where it was grabbed, a click without a drag, leaves the chart as it is.
+function letGoOfHandle(slider) {
+  if (!isSameRange(slider.range, slider.rangeAtGrab)) {
+    slider.onChange(slider.range);
+  }
 }
 
 // While a handle holds the pointer, move it to the pointer's place on the bar.
@@ -111,15 +156,18 @@ function dragHandle(slider, handle, event) {
   placeHandles(slider);
 }
 
-function stepHandle(slider, handle, event) {
-  const direction = KEY_DIRECTIONS[event.key];
-  if (direction === undefined) {
+function keyHandle(slider, handle, event) {
+  const range = keyedRange(slider.range, handle, event.key, slider.totalSeconds);
+  if (range === null) {
     return;
   }
   event.preventDefault();
-  slider.range = steppedRange(slider.range, handle, direction, slider.totalSeconds);
+  if (isSameRange(range, slider.range)) {
+    return;
+  }
+  slider.range = range;
   placeHandles(slider);
-  slider.onChange(slider.range);
+  slider.onChange(range);
 }
 
 // Put the handles, the marked range and the readout where the slider's range says.
@@ -130,10 +178,12 @@ function placeHandles({ range, totalSeconds, parts }) {
   parts.handles.end.style.left = `${end}%`;
   parts.selection.style.left = `${start}%`;
   parts.selection.style.width = `${end - start}%`;
-  for (const handle of Object.keys(parts.handles)) {
-    parts.handles[handle].setAttribute("aria-valuemax", String(totalSeconds));
-    parts.handles[handle].setAttribute("aria-valuenow", String(range[handle]));
-    parts.handles[handle].setAttribute("aria-valuetext", formatElapsed(range[handle]));
+  for (const [handle, element] of Object.entries(parts.handles)) {
+    const bounds = handleBounds(range, handle, totalSeconds);
+    element.setAttribute("aria-valuemin", String(Math.round(bounds.min)));
+    element.setAttribute("aria-valuemax", String(Math.round(bounds.max)));
+    element.setAttribute("aria-valuenow", String(Math.round(range[handle])));
+    element.setAttribute("aria-valuetext", formatElapsed(range[handle]));
   }
   parts.readout.textContent = `Time range ${rangeText(range, totalSeconds)}`;
 }

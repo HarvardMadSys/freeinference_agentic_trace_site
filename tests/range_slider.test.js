@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  KEY_STEP_SHARE, MIN_RANGE_SHARE, minimumRange, movedRange, offsetPercent, rangeText, secondsAtOffset, steppedRange,
+  handleBounds, isSameRange, KEY_STEP_SHARE, keyedRange, MIN_RANGE_SHARE, minimumRange, movedRange, offsetPercent,
+  rangeText, secondsAtOffset, steppedRange,
 } from "../site/js/session_charts/range_slider.js";
 
 const DAY = 86_400; // seconds: a day-long session
@@ -50,4 +51,25 @@ test("an arrow key moves a handle one step of the session, and stops at the sess
 
 test("the readout gives the range and the session's length as elapsed times", () => {
   assert.equal(rangeText({ start: 3_600, end: 7_200 }, 23_772), "1:00:00–2:00:00 of 6:36:12");
+});
+
+test("Home and End move a handle as far as it may go; an arrow key one step; any other key nothing", () => {
+  const hour = { start: 3_600, end: 7_200 };
+  assert.deepEqual(keyedRange(hour, "start", "Home", DAY), { start: 0, end: 7_200 });
+  assert.deepEqual(keyedRange(hour, "start", "End", DAY), { start: 7_200 - minimumRange(DAY), end: 7_200 });
+  assert.deepEqual(keyedRange(hour, "end", "Home", DAY), { start: 3_600, end: 3_600 + minimumRange(DAY) });
+  assert.deepEqual(keyedRange(hour, "end", "End", DAY), { start: 3_600, end: DAY });
+  assert.deepEqual(keyedRange(hour, "end", "ArrowUp", DAY), steppedRange(hour, "end", 1, DAY));
+  assert.equal(keyedRange(hour, "end", "Enter", DAY), null);
+});
+
+test("each handle's bounds keep the minimum range from the other end", () => {
+  const hour = { start: 3_600, end: 7_200 };
+  assert.deepEqual(handleBounds(hour, "start", DAY), { min: 0, max: 7_200 - minimumRange(DAY) });
+  assert.deepEqual(handleBounds(hour, "end", DAY), { min: 3_600 + minimumRange(DAY), max: DAY });
+});
+
+test("a range let go where it was grabbed is the same range", () => {
+  assert.equal(isSameRange(WHOLE_DAY, { start: 0, end: DAY }), true);
+  assert.equal(isSameRange(WHOLE_DAY, { start: 1, end: DAY }), false);
 });

@@ -12,9 +12,14 @@ import {
   cachedShare, formatCount, formatOptionalShare, formatSeconds, formatTokens, utcMinute,
 } from "../shared/format.js";
 
+// The cached share's hover text: its definition, which differs from the drawn parts', where unreported input is
+// uncached.
+const CACHED_SHARE_DEFINITION = "cached tokens over the input of requests whose provider reports cache reads";
+
 /**
- * The card's fields, in order: `[{ label, value, detail }]`. `value` is a string, or for the models a list of lines
- * `[{ text, note }]`, a model's name and its requests; `detail` adds a number in a smaller type, or is empty.
+ * The card's fields, in order: `[{ label, value, detail, definition }]`. `value` is a string, or for the models a list
+ * of lines `[{ text, note }]`, a model's name and its requests; `detail` adds a number in a smaller type, or is empty;
+ * `definition`, on the cached share alone, is the field's hover text.
  */
 export function sessionFacts(tree, requests) {
   const topLevel = tree.find((session) => session.depth === 0);
@@ -31,7 +36,12 @@ export function sessionFacts(tree, requests) {
     { label: "Subagents", value: formatCount(topLevel.subagents), detail: "" },
     { label: "Tool calls", value: formatCount(topLevel.tool_calls), detail: inSubagents(subagentToolCalls) },
     { label: "Input tokens", value: formatTokens(totals.inputTokens), detail: "" },
-    { label: "Cached share", value: treeCachedShare(totals), detail: `${formatTokens(totals.cachedTokens)} cached` },
+    {
+      label: "Cached share (reported)",
+      value: treeCachedShare(totals),
+      detail: `${formatTokens(totals.cachedTokens)} cached`,
+      definition: CACHED_SHARE_DEFINITION,
+    },
     { label: "Output tokens", value: formatTokens(totals.outputTokens), detail: "" },
   ];
 }
@@ -60,10 +70,13 @@ export function factsList(facts) {
   return list;
 }
 
-// A field: its label, then its value, a line per entry when it has several, and its detail.
-function factField({ label, value, detail }) {
+// A field: its label, then its value, a line per entry when it has several, and its detail; its definition on hover.
+function factField({ label, value, detail, definition }) {
   const field = document.createElement("div");
   field.className = "fact";
+  if (definition !== undefined) {
+    field.title = definition;
+  }
   const term = document.createElement("dt");
   term.textContent = label;
   const description = document.createElement("dd");

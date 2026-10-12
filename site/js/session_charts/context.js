@@ -7,7 +7,7 @@
 
 import {
   AGENT_LINE_COLOURS, AREA_SPLITS, areaParts, areaRows, MARK_COLOURS, markEntries, pointTip, requestPoints,
-  trajectoryPoints, transitionMarks, turnStarts,
+  stepsWithin, trajectoryPoints, transitionMarks, turnStarts,
 } from "./context_series.js";
 import { alignToChart, rangeSlider } from "./range_slider.js";
 import { legendLine } from "../session/legend.js";
@@ -103,8 +103,8 @@ function chooseSplit(group, chosenButton, drawSplit, split) {
 
 /**
  * Draw `chart.view`, the area split by `split` over the time `range`, into `chart.chartBox`, its legend into
- * `chart.legend`, and line the slider up with it. The areas and lines are clipped at the range's edges; the points,
- * dots and turn rules are those within it.
+ * `chart.legend`, and line the slider up with it. The areas and lines are cut at the range's edges, so nothing is
+ * drawn past them into the axis's inset; the points, dots and turn rules are those within it.
  */
 function drawChart({ Plot, tree, requests, body, chartBox, legend, slider, view }) {
   const { split, range } = view;
@@ -120,14 +120,13 @@ function drawChart({ Plot, tree, requests, body, chartBox, legend, slider, view 
     color: colourScale(new Map(parts.map((part) => [part.name, part.colour])), parts.map((part) => part.name)),
     marks: [
       Plot.gridY(GRID_STYLE),
-      Plot.areaY(areaRows(tree, requests, split), {
+      Plot.areaY(stepsWithin(areaRows(tree, requests, split), "part", range), {
         x: "elapsed", y: "tokens", fill: "part", z: "part", order: parts.map((part) => part.name), curve: "step-after",
-        clip: true,
       }),
       Plot.ruleX(turnStarts(tree, requests).filter((start) => isWithin(start, range)), {
         ...AXIS_STYLE, strokeDasharray: TURN_DASH,
       }),
-      agentLines(Plot, trajectoryPoints(tree, requests)),
+      agentLines(Plot, stepsWithin(trajectoryPoints(tree, requests), "sessionId", range)),
       transitionDots(Plot, marks),
       Plot.axisX({ ...AXIS_STYLE, ...elapsedAxis([range.start, range.end], width) }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatTokens, label: "Input tokens" }),
@@ -146,9 +145,7 @@ function isWithin(seconds, range) {
 
 /** One line per agent, stepping at each request: the top-level session's first, then the subagents', lighter. */
 function agentLines(Plot, trajectories) {
-  const lineOptions = {
-    x: "elapsed", y: "inputTokens", z: "sessionId", curve: "step-after", strokeWidth: LINE_WIDTH, clip: true,
-  };
+  const lineOptions = { x: "elapsed", y: "inputTokens", z: "sessionId", curve: "step-after", strokeWidth: LINE_WIDTH };
   return [
     Plot.line(trajectories.filter((point) => !point.isTopLevel), {
       ...lineOptions, stroke: AGENT_LINE_COLOURS.subagents, strokeOpacity: SUBAGENT_LINE_OPACITY,

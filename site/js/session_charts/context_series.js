@@ -124,6 +124,26 @@ export function areaRows(tree, requests, split) {
   return rows;
 }
 
+/**
+ * The points of step-after series cut to the time `range`, `{ start, end }`: for each series (the points sharing
+ * `point[seriesKey]`, in time order), its points inside the range, a point at the range's start holding the value it
+ * had there, and one at the range's end holding the value it had just before; a series wholly outside has none.
+ */
+export function stepsWithin(points, seriesKey, range) {
+  const series = new Map();
+  for (const point of points) {
+    if (!series.has(point[seriesKey])) {
+      series.set(point[seriesKey], []);
+    }
+    series.get(point[seriesKey]).push(point);
+  }
+  const cut = [];
+  for (const seriesPoints of series.values()) {
+    cut.push(...seriesWithin(seriesPoints, range));
+  }
+  return cut;
+}
+
 /** The elapsed seconds at the first request of each turn of the top-level session. */
 export function turnStarts(tree, requests) {
   const topLevel = topLevelOf(tree);
@@ -171,6 +191,23 @@ export function pointTip(point) {
 
 function isMarked(transition) {
   return transition !== null && Object.hasOwn(MARK_COLOURS, transition);
+}
+
+// One series's points, in time order, cut to `range` as `stepsWithin` says.
+function seriesWithin(points, range) {
+  if (points.at(-1).elapsed <= range.start || points[0].elapsed >= range.end) {
+    return [];
+  }
+  const cut = [];
+  const atStart = points.filter((point) => point.elapsed <= range.start).at(-1);
+  if (atStart !== undefined) {
+    cut.push({ ...atStart, elapsed: range.start });
+  }
+  cut.push(...points.filter((point) => point.elapsed > range.start && point.elapsed < range.end));
+  if (points.at(-1).elapsed >= range.end) {
+    cut.push({ ...points.filter((point) => point.elapsed < range.end).at(-1), elapsed: range.end });
+  }
+  return cut;
 }
 
 function partRows(elapsed, tokens, parts) {

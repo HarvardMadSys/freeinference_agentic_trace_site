@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  AGENT_LINE_COLOURS, areaParts, areaRows, markEntries, pointTip, requestPoints, trajectoryPoints, transitionMarks,
-  turnStarts,
+  AGENT_LINE_COLOURS, areaParts, areaRows, markEntries, pointTip, requestPoints, stepsWithin, trajectoryPoints,
+  transitionMarks, turnStarts,
 } from "../site/js/session_charts/context_series.js";
 
 // The fixture's `mutation` session: step 1 rewrites its context by compaction, step 3 starts a second turn.
@@ -108,4 +108,31 @@ test("a mutation's dot takes the mutation colour every chart gives it, and a swi
     { name: "switch", colour: "var(--color-text)" },
   ]);
   assert.deepEqual(markEntries(transitionMarks(requestPoints(TREE, REQUESTS))).map((entry) => entry.name), ["mutation"]);
+});
+
+test("over a time range, each step series is cut at the range's edges, holding its value there", () => {
+  const points = [
+    { sessionId: "a", elapsed: 0, inputTokens: 10 },
+    { sessionId: "a", elapsed: 50, inputTokens: 20 },
+    { sessionId: "a", elapsed: 150, inputTokens: 30 },
+    { sessionId: "a", elapsed: 250, inputTokens: 30 },
+    { sessionId: "before", elapsed: 10, inputTokens: 5 },
+    { sessionId: "before", elapsed: 90, inputTokens: 5 },
+    { sessionId: "inside", elapsed: 120, inputTokens: 7 },
+    { sessionId: "inside", elapsed: 130, inputTokens: 7 },
+  ];
+  const cut = stepsWithin(points, "sessionId", { start: 100, end: 200 });
+  assert.deepEqual(cut.map((point) => [point.sessionId, point.elapsed, point.inputTokens]), [
+    ["a", 100, 20], ["a", 150, 30], ["a", 200, 30], ["inside", 120, 7], ["inside", 130, 7],
+  ]);
+});
+
+test("over the whole session, each part of the area keeps its rows", () => {
+  const rows = areaRows(TREE, REQUESTS, "tokens");
+  const whole = stepsWithin(rows, "part", { start: 0, end: 310 });
+  for (const part of ["Cached input", "Uncached input"]) {
+    const before = rows.filter((row) => row.part === part).map((row) => [row.elapsed, row.tokens]);
+    const after = whole.filter((row) => row.part === part).map((row) => [row.elapsed, row.tokens]);
+    assert.deepEqual(after, before, part);
+  }
 });

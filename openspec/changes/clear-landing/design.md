@@ -100,8 +100,11 @@ request counts, started, duration, turns, requests, subagents, tool
 calls, input tokens, cached share, output tokens). Below it the view tabs
 and the view. The token parts everywhere on the page are cached input,
 uncached input and output; a request whose provider reports no cache
-reads counts its whole input as uncached, which is what the pipeline's
-hit ratio does for it, and the "no cache report" series and label go.
+reads counts its whole input as uncached, and the "no cache report"
+series and label go. The drawn parts count unreported input as uncached,
+while the facts card's "Cached share (reported)" stays the pipeline's and
+the Explore list's ratio: cached tokens over the input of requests whose
+provider reports cache reads.
 
 The Context and Timeline views get a range slider under the chart: two
 handles over the session's elapsed time, drawn as a small brush strip;

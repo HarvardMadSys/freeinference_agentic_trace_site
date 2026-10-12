@@ -167,17 +167,12 @@ export function weekTickFormat(weeks) {
   return (week) => (labelled.includes(week) ? shortMonth(week) : "");
 }
 
-/** The ticks of an elapsed-time axis from 0 to `maxSeconds`, as `elapsedRangeTicks` gives them. */
-export function elapsedTicks(maxSeconds, maxTicks) {
-  return elapsedRangeTicks([0, maxSeconds], maxTicks);
-}
-
 /**
  * The ticks of an elapsed-time axis over `[start, end]`, in seconds: every multiple within it of the smallest round
  * step that gives at most `maxTicks` intervals over the range, or of a whole number of seconds when even a week is too
  * fine.
  */
-export function elapsedRangeTicks([start, end], maxTicks) {
+export function elapsedTicks([start, end], maxTicks) {
   const span = end - start;
   const step = TICK_STEPS_S.find((seconds) => span / seconds <= maxTicks) ?? Math.ceil(span / maxTicks);
   const ticks = [];
@@ -198,7 +193,7 @@ export function tickCount(width) {
  * naming which.
  */
 export function elapsedAxis([start, end], width) {
-  const ticks = elapsedRangeTicks([start, end], tickCount(width));
+  const ticks = elapsedTicks([start, end], tickCount(width));
   const { format, unit } = elapsedTickFormat(end);
   // Past an hour, ticks a few seconds apart would all read as the same minute in h:mm.
   if (unit === "h:mm" && ticks.some((tick) => tick % SECONDS_PER_MINUTE !== 0)) {

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  atMost, axisWithTicks, fewerOnNarrow, tickCountFor, decadeDomain, decadeTicks, durationTicks, elapsedAxis, elapsedRangeTicks, elapsedTicks, everyOther, firstWeekOfEachMonth,
+  atMost, axisWithTicks, fewerOnNarrow, tickCountFor, decadeDomain, decadeTicks, durationTicks, elapsedAxis, elapsedTicks, everyOther, firstWeekOfEachMonth,
   isNarrowChart, logAxisTicks, MAX_TICKS, maxTicksFor, NARROW_MAX_TICKS, sparseTickFormat, tickCount, weekTickFormat,
 } from "../site/js/axes/ticks.js";
 
@@ -56,21 +56,20 @@ test("an axis given its ticks writes each as its text, so a log axis blanks none
 });
 
 test("an elapsed axis ticks by the smallest round step that fits", () => {
-  assert.deepEqual(elapsedTicks(50, 5), [0, 10, 20, 30, 40, 50]);
-  assert.deepEqual(elapsedTicks(3000, 4), [0, 900, 1800, 2700]);
-  assert.deepEqual(elapsedTicks(4 * 3600, 4), [0, 3600, 7200, 10800, 14400]);
+  assert.deepEqual(elapsedTicks([0, 50], 5), [0, 10, 20, 30, 40, 50]);
+  assert.deepEqual(elapsedTicks([0, 3000], 4), [0, 900, 1800, 2700]);
+  assert.deepEqual(elapsedTicks([0, 4 * 3600], 4), [0, 3600, 7200, 10800, 14400]);
 });
 
 test("an axis longer than a week of ticks steps by whole seconds", () => {
-  const ticks = elapsedTicks(10 * 604800, 2);
+  const ticks = elapsedTicks([0, 10 * 604800], 2);
   assert.deepEqual(ticks, [0, 3024000, 6048000]);
 });
 
 test("an elapsed axis over a range ticks the round steps within it, by the range's span", () => {
-  assert.deepEqual(elapsedRangeTicks([3600, 7200], 4), [3600, 4500, 5400, 6300, 7200]);
-  assert.deepEqual(elapsedRangeTicks([100, 160], 6), [100, 110, 120, 130, 140, 150, 160]);
-  assert.deepEqual(elapsedRangeTicks([95, 155], 6), [100, 110, 120, 130, 140, 150]);
-  assert.deepEqual(elapsedRangeTicks([0, 3000], 4), elapsedTicks(3000, 4));
+  assert.deepEqual(elapsedTicks([3600, 7200], 4), [3600, 4500, 5400, 6300, 7200]);
+  assert.deepEqual(elapsedTicks([100, 160], 6), [100, 110, 120, 130, 140, 150, 160]);
+  assert.deepEqual(elapsedTicks([95, 155], 6), [100, 110, 120, 130, 140, 150]);
 });
 
 test("past an hour, an axis whose ticks fall between whole minutes writes their seconds", () => {
@@ -83,7 +82,7 @@ test("past an hour, an axis whose ticks fall between whole minutes writes their 
 });
 
 test("a session of no time has the one tick at zero", () => {
-  assert.deepEqual(elapsedTicks(0, 5), [0]);
+  assert.deepEqual(elapsedTicks([0, 0], 5), [0]);
 });
 
 test("an axis holds a tick per 90 pixels, at least two and at most six", () => {
