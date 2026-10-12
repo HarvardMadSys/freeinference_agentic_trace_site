@@ -1,4 +1,4 @@
-"""The Benchmark-against-production figures' queries: the CDFs of the two scopes and the tool mix along a turn on the
+"""The Human-driven-against-benchmark figures' queries: the CDFs of the two scopes and the tool mix along a turn on the
 fixture data, counted by hand; each scope CDF's human-driven half against the Sessions CDF of the same quantity, so a
 turn's or a session's duration and a request's input are defined once; and the tool mix's group of a call against the
 pipeline's on single calls."""

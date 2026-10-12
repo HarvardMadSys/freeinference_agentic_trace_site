@@ -12,7 +12,7 @@
 import {
   AXIS_STYLE, chartFrame, colourScale, distinct, drawBars, drawCdf, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
 } from "../shared/charts.js";
-import { decadeDomain, decadeTicks, sparseTickFormat, weekTickFormat } from "../axes/ticks.js";
+import { axisWithTicks, decadeDomain, decadeTicks, sparseTickFormat, weekTickFormat } from "../axes/ticks.js";
 import { assignColours, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import {
   formatBinaryThousands, formatCompactCount, formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare,
@@ -110,6 +110,7 @@ export const FIGURES = Object.freeze([
     title: "Token split by week",
     definition: "Per week, the share of cached input, uncached input and output in the tokens of requests whose provider reports cache reads: plain token shares, where the paper weights them by price and ranks sessions.",
     caption: "Share of cached input, uncached input and output tokens, each week.",
+    isWide: true,
     query: "figures/token_split_by_week",
     binColumn: "week",
     seriesColumn: "part",
@@ -253,8 +254,10 @@ async function drawTokenGrowth(rows, body, colours, hidden) {
     // Only the powers of ten are ruled and labelled: a log axis's own ticks would draw a mesh of minor lines.
     Plot.gridX(decadeTicks(xDomain), GRID_STYLE),
     Plot.gridY(decadeTicks(yDomain), GRID_STYLE),
-    Plot.axisX(decadeTicks(xDomain), { ...AXIS_STYLE, label: "Messages in the request", text: formatCompactCount }),
-    Plot.axisY(decadeTicks(yDomain), { ...AXIS_STYLE, label: "Median tokens", text: formatTokens }),
+    axisWithTicks(Plot.axisX, decadeTicks(xDomain), {
+      ...AXIS_STYLE, label: "Messages in the request", tickFormat: formatCompactCount,
+    }),
+    axisWithTicks(Plot.axisY, decadeTicks(yDomain), { ...AXIS_STYLE, label: "Median tokens", tickFormat: formatTokens }),
     Plot.line(points, { x: "messages", y: "tokens", stroke: "part", strokeWidth: LINE_WIDTH }),
     Plot.dot(points, { x: "messages", y: "tokens", fill: "part", r: MARKER_RADIUS }),
     Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "messages", y: "tokens", title: growthTipText })),

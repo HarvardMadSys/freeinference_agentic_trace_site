@@ -2,17 +2,19 @@
  * The Prefix-caching section of the Explore page's figures: how much of a request's input the provider served from
  * cache, after a gap of each length and cause, after an idle gap and after each kind of context change, and what the
  * cache simulation says each TTL prefills, keeps and costs. The figures of the gap or change before a request are drawn in
- * `caching_gaps.js`, those of the simulation in `caching_retention.js`.
+ * `caching_gaps.js`, those of the simulation in `simulation/prefill.js` and `simulation/costs.js`.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. A figure of more than one series colours each
  * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE, X_INSET } from "../shared/charts.js";
+import { axisWithTicks } from "../axes/ticks.js";
 import { slottedColours } from "../theme/colours.js";
 import { formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare } from "../shared/format.js";
 import { GAP_FIGURES } from "./caching_gaps.js";
-import { API_COST_BY_TTL, INFRASTRUCTURE_COST_BY_TTL, PREFILL_AGAINST_STORAGE } from "./caching_retention.js";
+import { API_COST_BY_TTL, INFRASTRUCTURE_COST_BY_TTL } from "../simulation/costs.js";
+import { PREFILL_AGAINST_STORAGE } from "../simulation/prefill.js";
 import { seriesLegend } from "./figure_rows.js";
 
 // The idle-gap bins mirror the pipeline's `gaps.IDLE_GAP_EDGES_S`: 26 bins between 27 geometric edges from 10 s to
@@ -99,8 +101,9 @@ async function drawIdleGapRetention(rows, body, colours) {
     marks: [
       Plot.gridX(IDLE_GAP_TICK_SECONDS, GRID_STYLE),
       Plot.gridY(GRID_STYLE),
-      // The labels are given as text: a log axis's own tick format would leave out every tick but 10 s, 5 min and 1 h.
-      Plot.axisX(IDLE_GAP_TICK_SECONDS, { ...AXIS_STYLE, label: "Idle gap", text: formatDurationTick }),
+      axisWithTicks(Plot.axisX, IDLE_GAP_TICK_SECONDS, {
+        ...AXIS_STYLE, label: "Idle gap", tickFormat: formatDurationTick,
+      }),
       Plot.axisY({ ...AXIS_STYLE, label: "Median hit ratio", tickFormat: formatPercent }),
       Plot.line(points, { x: "seconds", y: "hitRatio", stroke: "provider", strokeWidth: LINE_WIDTH }),
       Plot.dot(points, { x: "seconds", y: "hitRatio", fill: "provider", r: MARKER_RADIUS }),

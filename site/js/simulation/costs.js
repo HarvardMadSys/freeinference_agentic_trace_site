@@ -1,51 +1,22 @@
 /**
- * The Prefix-caching section's figures of the cache simulation: what each TTL of the TTL-only policy prefills against
- * what it keeps, for the paper's harnesses and for the benchmark replay, and what it costs an API customer and an
- * inference provider, for the paper's harnesses. The simulation names these two populations `Agentic` and
- * `SWE-Bench`, its scopes; each was replayed on its own, and a figure draws them whatever harnesses are selected.
+ * The Prefix-caching section's figures of what the cache simulation's TTL-only policy costs at each TTL, for the
+ * paper's harnesses: an API customer at the pipeline's prices, and an inference provider recomputing against storing,
+ * each stacked by part as a multiple of a one-minute TTL, with the knee or the lowest total called out.
  *
- * Each figure is a figure entry, whose fields CONTRIBUTING.md defines; `caching.js` lists them with the others.
+ * Their figure entries, whose fields CONTRIBUTING.md defines, are listed in `figures/caching.js` with the others.
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
-import { logAxisTicks, TICK_COUNT } from "../axes/ticks.js";
+import { axisWithTicks, TICK_COUNT } from "../axes/ticks.js";
 import { SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
-import { formatMultiple, formatTokens, formatTtlName } from "../shared/format.js";
-import { seriesLegend } from "./figure_rows.js";
-import { SCOPE_LABELS, scopeLegend } from "../comparison/scopes.js";
-
-// tests/test_pipeline_mirrors_caching.py checks the TTL names and the labelled TTLs below against the pipeline.
-const NO_TTL = "none"; // the TTL of a cache that keeps every block for the week
-const NO_TTL_LABEL = "∞"; // how a figure writes the TTL `none`, as the paper does
-
-// The TTLs whose points carry their name, per scope, as the paper labels them when it draws both curves, each with
-// where its name sits: above and to the right of the point, or to its left, clear of the curve. Every point names its
-// TTL in its tooltip.
-const LABELLED_TTLS = Object.freeze({
-  Agentic: Object.freeze({
-    "1s": "right", "10s": "right", "1m": "right", "15m": "right", "1d": "right", [NO_TTL]: "right",
-  }),
-  "SWE-Bench": Object.freeze({ "1s": "right", "10s": "left", "1m": "left", "5m": "right" }),
-});
-// How a TTL's name is set beside its point, by where it sits: pixels across and up from the point, and the end of the
-// name that is nearest it.
-const LABEL_PLACEMENTS = Object.freeze({
-  right: Object.freeze({ textAnchor: "start", dx: 6, dy: -9 }),
-  left: Object.freeze({ textAnchor: "end", dx: -6, dy: 0 }),
-});
-
-// The prefill axis runs from just under the no-TTL floor to above the shortest TTL's prefill, as the paper's does, and
-// marks these multiples of the floor.
-const PREFILL_DOMAIN = Object.freeze([0.9, 60]);
-const PREFILL_TICKS = Object.freeze([1, 2, 5, 10, 20, 50]);
-// The retained-tokens axis runs from half the fewest retained tokens to three times the most, as the paper's does.
-const RETAINED_LOW_DIVISOR = 2;
-const RETAINED_HIGH_FACTOR = 3;
-const RETAINED_TICKS = 4; // the most ticks on the retained-tokens axis, every other power of ten on a wide range
+import { formatMultiple } from "../shared/format.js";
+import { seriesLegend } from "../figures/figure_rows.js";
+import { MULTIPLE_DECIMALS, multipleTick, ttlLabel } from "./prefill.js";
 
 // The parts of what an API customer pays, bottom up in the stack as the paper stacks them, each with its name, and of
 // what an inference provider pays.
 const API_PARTS = Object.freeze({ output: "Output", cache_read: "Cached input", input: "Uncached input" });
+const API_LEGEND_ORDER = Object.freeze(["cache_read", "input", "output"]); // as every legend lists the token parts
 const INFRASTRUCTURE_PARTS = Object.freeze({ recompute: "Recompute", storage: "Storage" });
 // Each cost part's colour: the API's parts in the colours of the tokens they price, recomputing in the uncached
 // input's, as it prefills the missed tokens again, and storage in the yellow the paper gives it.
@@ -55,27 +26,9 @@ const COST_PART_COLOURS = Object.freeze({
 });
 const COST_AXIS_TTLS = Object.freeze(["1s", "1m", "1h", "1d"]); // the TTLs a cost figure's axis names, room between
 const COST_AXIS_HEADROOM = 1.1; // a cost axis ends a tenth above the highest stack, as the paper's does
-const MULTIPLE_DECIMALS = 2; // a multiple in a tooltip or a callout: 0.65×
-
-const MARKER_RADIUS = 3; // pixels; the small marker of each TTL's point
 const CALLOUT_RADIUS = 5; // pixels; the hollow marker on the TTL a cost figure calls out
 const CALLOUT_RISE_SHARE = 0.45; // its text sits this share of the cost axis above it, as the paper's does
 const CALLOUT_HALO = 3; // pixels of the card's colour around the callout's text
-
-/** The figure of prefill against storage: one curve per scope, one labelled point per TTL. */
-export const PREFILL_AGAINST_STORAGE = Object.freeze({
-  name: "prefill_against_storage",
-  title: "Prefill against storage",
-  definition: "In the prefix-cache simulation of the TTL-only policy, the normalised prefill (missed tokens over those missed with no TTL) against the mean retained tokens (reusable and dead token-seconds over the span from the week's first request to its last), one point per TTL from 1 s to a day and ∞ (no TTL), some named as in the paper, for the paper's harnesses (human-driven) and for the benchmark replay, each simulated on its own and drawn whatever harnesses are selected, both axes logarithmic.",
-  caption: "What each cache TTL prefills against the tokens it keeps, human-driven and benchmark.",
-  drawsLines: true,
-  query: "figures/prefill_against_storage",
-  binColumn: "scope",
-  seriesColumn: "scope",
-  isSimulation: true,
-  legend: scopeLegend,
-  draw: drawPrefillAgainstStorage,
-});
 
 /** The figure of what an API customer pays per TTL, stacked by part, the knee called out. */
 export const API_COST_BY_TTL = Object.freeze({
@@ -88,7 +41,7 @@ export const API_COST_BY_TTL = Object.freeze({
   seriesColumn: "part",
   seriesOverSameRows: true,
   isSimulation: true,
-  legend: (rows, colours, seriesColumn) => costLegend(rows, seriesColumn, API_PARTS),
+  legend: (rows, colours, seriesColumn) => costLegend(rows, seriesColumn, API_PARTS, API_LEGEND_ORDER),
   draw: (rows, body, colours) => drawCostByTtl(rows, body, colours, {
     labels: API_PARTS, flag: "is_knee", word: "Knee",
   }),
@@ -111,44 +64,13 @@ export const INFRASTRUCTURE_COST_BY_TTL = Object.freeze({
   }),
 });
 
-/** How a figure writes a TTL's name, as every duration is written: "1m" → "1 min"; "∞" for no TTL. */
-export function ttlLabel(ttl) {
-  return ttl === NO_TTL ? NO_TTL_LABEL : formatTtlName(ttl);
-}
-
 /**
- * One point per row of the prefill query, in its order: `{ scope, ttl, label, retained, prefill, placement }`, the
- * TTL's name written as `ttlLabel` writes it, and `placement` where that name is drawn beside the point, `right` or
- * `left`, or null for a TTL whose name is not drawn.
+ * The legend of a cost figure: the parts of `labels` (part to name) the rows hold, in the order of `order` (the stack's,
+ * bottom up, unless given), each in its cost part colour.
  */
-export function prefillPoints(rows) {
-  const points = [];
-  for (const row of rows) {
-    points.push({
-      scope: row.scope,
-      ttl: row.ttl,
-      label: ttlLabel(row.ttl),
-      retained: row.mean_retained_tokens,
-      prefill: row.normalised_prefill,
-      placement: LABELLED_TTLS[row.scope][row.ttl] ?? null,
-    });
-  }
-  return points;
-}
-
-/** The retained-tokens axis's `[low, high]` for `points`: half their fewest retained tokens to three times the most. */
-export function retainedDomain(points) {
-  const retained = points.map((point) => point.retained);
-  return [Math.min(...retained) / RETAINED_LOW_DIVISOR, Math.max(...retained) * RETAINED_HIGH_FACTOR];
-}
-
-/**
- * The legend of a cost figure: the parts of `labels` (part to name) the rows hold, bottom up in the stack, each in its
- * cost part colour.
- */
-export function costLegend(rows, seriesColumn, labels) {
+export function costLegend(rows, seriesColumn, labels, order = Object.keys(labels)) {
   const colours = new Map();
-  for (const part of Object.keys(labels)) {
+  for (const part of order) {
     colours.set(part, COST_PART_COLOURS[part]);
   }
   return seriesLegend(rows, seriesColumn, colours, labels);
@@ -198,51 +120,6 @@ export function calloutPoint(rows, stacks, flag, word) {
   return { seconds: stack.seconds, top: stack.top, text };
 }
 
-/** Draw one line per scope through its TTLs' points, normalised prefill against mean retained tokens, on log axes. */
-async function drawPrefillAgainstStorage(rows, body, colours) {
-  // Plot is loaded here, not at the top, so node can test the section's figure list.
-  const { Plot } = await import("../shared/libraries.js");
-  const points = prefillPoints(rows);
-  const scopes = [...colours.series.keys()].filter((scope) => points.some((point) => point.scope === scope));
-  const domain = retainedDomain(points);
-  const chart = Plot.plot({
-    ...chartFrame(body),
-    x: { type: "log", domain },
-    y: { type: "log", domain: PREFILL_DOMAIN },
-    color: colourScale(colours.series, scopes),
-    marks: [
-      Plot.gridX(logAxisTicks(domain, RETAINED_TICKS), GRID_STYLE),
-      Plot.gridY(PREFILL_TICKS, GRID_STYLE),
-      // The tick labels are given as text: a log axis's own tick format would leave out those it thinks crowded.
-      Plot.axisX(logAxisTicks(domain, RETAINED_TICKS), {
-        ...AXIS_STYLE, label: "Mean retained tokens", text: formatTokens,
-      }),
-      Plot.axisY(PREFILL_TICKS, { ...AXIS_STYLE, label: "Normalised prefill", text: multipleTick }),
-      Plot.line(points, { x: "retained", y: "prefill", stroke: "scope", strokeWidth: LINE_WIDTH }),
-      Plot.dot(points, { x: "retained", y: "prefill", fill: "scope", r: MARKER_RADIUS }),
-      ...ttlNameMarks(Plot, points),
-      Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "retained", y: "prefill", title: prefillTipText })),
-    ],
-  });
-  body.replaceChildren(chart);
-}
-
-/** One text mark per placement, naming the TTL of each point placed there. */
-function ttlNameMarks(Plot, points) {
-  const marks = [];
-  for (const [placement, options] of Object.entries(LABEL_PLACEMENTS)) {
-    const placed = points.filter((point) => point.placement === placement);
-    const ink = { fill: "var(--chart-label)" };
-    marks.push(Plot.text(placed, { x: "retained", y: "prefill", text: "label", ...ink, ...options }));
-  }
-  return marks;
-}
-
-function prefillTipText(point) {
-  const prefill = `prefill ${formatMultiple(point.prefill, MULTIPLE_DECIMALS)} the no-TTL floor`;
-  return `${SCOPE_LABELS[point.scope]}\nTTL ${point.label}\n${prefill}\n${formatTokens(point.retained)} tokens retained`;
-}
-
 /**
  * Draw a cost query's rows into `body` as an area per part of `labels` (part to name) the rows hold, stacked bottom up
  * in that order over the TTLs on a log axis, a dashed line at the one-minute total, and the TTL marked in the column
@@ -255,16 +132,21 @@ async function drawCostByTtl(rows, body, colours, { labels, flag, word }) {
   const stacks = costStacks(rows, labels);
   const callout = calloutPoint(rows, stacks, flag, word);
   const highestCost = Math.max(...stacks.map((stack) => stack.top)) * COST_AXIS_HEADROOM;
-  const ticks = stacks.filter((stack) => COST_AXIS_TTLS.includes(stack.ttl));
+  const ttlLabels = new Map();
+  for (const stack of stacks.filter((one) => COST_AXIS_TTLS.includes(one.ttl))) {
+    ttlLabels.set(stack.seconds, ttlLabel(stack.ttl));
+  }
   const chart = Plot.plot({
     ...chartFrame(body),
     x: { type: "log", domain: [stacks[0].seconds, stacks[stacks.length - 1].seconds] },
     y: { domain: [0, highestCost] },
     color: colourScale(colours.series, parts),
     marks: [
-      Plot.gridX(ticks, { ...GRID_STYLE, x: "seconds" }),
+      Plot.gridX([...ttlLabels.keys()], GRID_STYLE),
       Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT }),
-      Plot.axisX(ticks, { ...AXIS_STYLE, x: "seconds", label: null, text: (stack) => ttlLabel(stack.ttl) }),
+      axisWithTicks(Plot.axisX, [...ttlLabels.keys()], {
+        ...AXIS_STYLE, label: null, tickFormat: (seconds) => ttlLabels.get(seconds),
+      }),
       Plot.axisY({ ...AXIS_STYLE, label: null, ticks: TICK_COUNT, tickFormat: multipleTick }),
       Plot.areaY(rows, { x: "ttl_seconds", y: "cost_multiple", fill: "part", order: parts }),
       Plot.ruleY([1], { ...AXIS_STYLE, strokeDasharray: DASH }),
@@ -291,9 +173,4 @@ function calloutMarks(Plot, callout, highestCost) {
     Plot.dot(placed, { x: "seconds", y: "top", r: CALLOUT_RADIUS, strokeWidth: LINE_WIDTH, ...ink }),
     Plot.text(placed, { x: "seconds", y: "textAt", text: "text", lineAnchor: "bottom", ...halo }),
   ];
-}
-
-// A multiple as an axis writes it, as it is; Plot also passes a tick's index, which is no number of decimals.
-function multipleTick(multiple) {
-  return formatMultiple(multiple);
 }

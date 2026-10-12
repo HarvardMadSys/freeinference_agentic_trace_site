@@ -1,5 +1,5 @@
 /**
- * The figure sections of the Explore page: the Sessions, Tools, Prefix-caching and Benchmark-against-production
+ * The figure sections of the Explore page: the Sessions, Tools, Prefix-caching and Human-driven-against-benchmark
  * figures, each a card in its section's grid, drawn for the selected weeks and harnesses, its thin bins hidden and its
  * line of rows written behind its Definition control.
  *
@@ -244,7 +244,7 @@ async function placeCards() {
     const grid = document.querySelector(`${section.selector} .card-grid`);
     for (const figure of FIGURES) {
       const card = document.createElement("article");
-      card.className = "card";
+      card.className = figure.isWide === true ? "card is-wide" : "card";
       card.id = figure.name;
       grid.append(card);
       cards.push({ figure, card });

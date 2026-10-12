@@ -22,7 +22,8 @@ CAUSE_QUERY = SITE_FOLDER / "queries" / "figures" / "mean_hit_ratio_by_cause.sql
 CACHING_GAPS_MODULE = SITE_FOLDER / "js" / "figures" / "caching_gaps.js"  # the bins' labels, the causes' names
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the causes' colours
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the causes a wait bar names
-RETENTION_MODULE = SITE_FOLDER / "js" / "figures" / "caching_retention.js"  # the scopes' names, the labelled TTLs
+RETENTION_MODULE = SITE_FOLDER / "js" / "simulation" / "prefill.js"  # the scopes' names, the labelled TTLs
+COSTS_MODULE = SITE_FOLDER / "js" / "simulation" / "costs.js"  # how high a cost figure's callout rises
 PREFILL_QUERY = SITE_FOLDER / "queries" / "figures" / "prefill_against_storage.sql"  # orders the TTLs
 API_COST_QUERY = SITE_FOLDER / "queries" / "figures" / "api_cost_by_ttl.sql"  # the API's prices, the knee
 INFRASTRUCTURE_COST_QUERY = SITE_FOLDER / "queries" / "figures" / "infrastructure_cost_by_ttl.sql"  # the provider's
@@ -110,7 +111,7 @@ def javascript_string(path: pathlib.Path, constant: str) -> str:
 
 
 def labelled_ttls(scope: str) -> list[str]:
-    """The TTLs `LABELLED_TTLS` of caching_retention.js places a name beside for `scope`, in order, `[NO_TTL]` read as
+    """The TTLs `LABELLED_TTLS` of simulation/prefill.js places a name beside for `scope`, in order, `[NO_TTL]` read as
     the TTL it names."""
     body = test_pipeline_mirrors.declaration(RETENTION_MODULE, rf'"?{scope}"?: Object\.freeze\(\{{(.*?)\}}\)').group(1)
     no_ttl = javascript_string(RETENTION_MODULE, "NO_TTL")
@@ -140,7 +141,7 @@ def test_a_cost_is_counted_per_million_tokens_and_normalised_at_the_pipeline_s_t
 
 
 def test_a_cost_figure_s_callout_rises_as_the_paper_s() -> None:
-    rise = test_pipeline_mirrors.javascript_number(RETENTION_MODULE, "CALLOUT_RISE_SHARE")
+    rise = test_pipeline_mirrors.javascript_number(COSTS_MODULE, "CALLOUT_RISE_SHARE")
     assert rise == cache_retention.CALLOUT_RISE_SHARE
 
 

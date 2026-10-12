@@ -10,7 +10,8 @@ import {
   ganttBars, ganttRows, placedInRow, requestPartEntries, undrawnCounts, waitEntries,
 } from "./timeline_bars.js";
 import { pointerFrame } from "./timeline_pointer.js";
-import { elapsedAxis, startChartView, viewChartWidth } from "../session/view_chart.js";
+import { startChartView, viewChartWidth } from "../session/view_chart.js";
+import { elapsedAxis } from "../axes/ticks.js";
 import { AXIS_STYLE, chartFrame, GRID_STYLE, legendPlace, renderFigure } from "../shared/charts.js";
 import { formatQuantity } from "../shared/format.js";
 

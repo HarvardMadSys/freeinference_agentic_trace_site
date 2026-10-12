@@ -7,7 +7,7 @@
  */
 
 import { AXIS_STYLE, categoryRowsFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
-import { decadeTicks } from "../axes/ticks.js";
+import { axisWithTicks, decadeTicks } from "../axes/ticks.js";
 import { formatCount, formatSeconds, formatTokens, MILLISECONDS_PER_SECOND } from "../shared/format.js";
 import { CALLS_PER_REQUEST_BY_CATEGORY, LATENCY_BY_BATCH_WIDTH } from "./tools_batching.js";
 
@@ -92,10 +92,11 @@ async function drawQuantileRanges(rows, body, categoryColours, range) {
     y: { type: "band", domain: categories },
     color: colourScale(categoryColours, categories),
     marks: [
-      // Only the powers of ten are ruled and labelled: a log axis's own ticks would draw a mesh of minor lines, and its
-      // tick format would leave all but one power of ten bare on a narrow chart.
+      // Only the powers of ten are ruled and labelled: a log axis's own ticks would draw a mesh of minor lines.
       Plot.gridX(powersOfTen(ranges), GRID_STYLE),
-      Plot.axisX(powersOfTen(ranges), { ...AXIS_STYLE, label: range.xLabel, text: range.tickFormat }),
+      axisWithTicks(Plot.axisX, powersOfTen(ranges), {
+        ...AXIS_STYLE, label: range.xLabel, tickFormat: range.tickFormat,
+      }),
       Plot.axisY({ ...AXIS_STYLE, label: null }),
       Plot.ruleY(ranges, { y: "category", x1: "p5", x2: "p95", stroke: "category", strokeWidth: WHISKER_WIDTH }),
       Plot.ruleY(ranges, { y: "category", x1: "p25", x2: "p75", stroke: "category", strokeWidth: BOX_WIDTH }),

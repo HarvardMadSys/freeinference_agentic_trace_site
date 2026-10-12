@@ -348,6 +348,11 @@ code,
   display: contents;
 }
 
+/* A figure that needs the room, or would be left alone in its row, takes the whole width of its section. */
+.card-grid > .card.is-wide {
+  grid-column: 1 / -1;
+}
+
 .figure-section {
   display: flex;
   flex-direction: column;

@@ -1,4 +1,4 @@
-"""The site's Benchmark-against-production figures give the paper's numbers: each scope CDF's two medians and their
+"""The site's Human-driven-against-benchmark figures give the paper's numbers: each scope CDF's two medians and their
 ratio equal the paper's, and each share of a tool group in the first and the last tenth of a turn that `numbers.json`
 quotes, human-driven and benchmark, equals the tool mix's.
 

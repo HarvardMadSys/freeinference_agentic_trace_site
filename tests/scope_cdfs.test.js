@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { FIGURES } from "../site/js/comparison/comparison.js";
-import { medianRatioText, scopeMedians } from "../site/js/comparison/scope_cdfs.js";
+import { medianRatioText, medianSummary, scopeMedians } from "../site/js/comparison/scope_cdfs.js";
 import { scopeLegend, SCOPES } from "../site/js/comparison/scopes.js";
 import { SCOPE_COLOURS } from "../site/js/theme/colours.js";
 
@@ -47,4 +47,10 @@ test("every scope CDF counts each scope's rows under its own noun", () => {
     assert.deepEqual(Object.keys(figure.seriesNouns), [...SCOPES], figure.name);
   }
   assert.equal(FIGURES.filter((one) => one.legend === scopeLegend).length, 4);
+});
+
+test("the legend sums the medians up, human-driven against benchmark, with their ratio, or says nothing without both", () => {
+  const seconds = (value) => `${value} s`;
+  assert.equal(medianSummary(ROWS, seconds), "median 0.5 s vs 188.3 s · 376.6×");
+  assert.equal(medianSummary(ROWS.filter((row) => row.series === "SWE-Bench"), seconds), "");
 });

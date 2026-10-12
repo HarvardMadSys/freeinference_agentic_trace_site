@@ -11,7 +11,7 @@
  */
 
 import { AXIS_STYLE, cdfPoints, chartFrame, colourScale, drawCdf, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
-import { durationTicks, extent } from "../axes/ticks.js";
+import { durationTicks, extent, isNarrowChart, maxTicksFor, NARROW_MAX_TICKS } from "../axes/ticks.js";
 import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
 import { CAUSE_COLOURS, REQUEST_PART_COLOURS, slottedColours } from "../theme/colours.js";
 import { cdfSeries, seriesLegend } from "./figure_rows.js";
@@ -118,8 +118,9 @@ export function drawnModelRows(rows, colours) {
 async function drawModelCdf(rows, body, colours) {
   const series = cdfSeries(rows, [...colours.series.keys()]);
   const seconds = cdfPoints(series).map((point) => point.x);
+  const xTicks = durationTicks(extent(seconds), maxTicksFor(chartFrame(body).width));
   await drawCdf(body, series, {
-    logX: true, xTicks: durationTicks(extent(seconds)), xTickFormat: formatDurationTick, format: formatSeconds,
+    logX: true, xTicks, xTickFormat: formatDurationTick, format: formatSeconds,
     colours: colours.series,
   });
 }
@@ -130,15 +131,17 @@ async function drawSpeedups(rows, body) {
   const { Plot } = await import("../shared/libraries.js");
   const bars = speedupBars(rows);
   const sessions = rows.length > 0 ? rows[0].rows : 0;
+  const frame = chartFrame(body);
+  const ticks = isNarrowChart(frame.width) ? NARROW_MAX_TICKS : SPEEDUP_TICKS;
   const chart = Plot.plot({
-    ...chartFrame(body),
+    ...frame,
     marginLeft: PART_LABEL_MARGIN,
     x: { domain: [NO_SPEEDUP, speedupAxisEnd(bars)] },
     y: { domain: bars.map((bar) => bar.label) },
     color: colourScale(SPEEDUP_COLOURS, bars.map((bar) => bar.part)),
     marks: [
-      Plot.gridX({ ...GRID_STYLE, ticks: SPEEDUP_TICKS }),
-      Plot.axisX({ ...AXIS_STYLE, ticks: SPEEDUP_TICKS, tickFormat: speedupTick, label: null }),
+      Plot.gridX({ ...GRID_STYLE, ticks }),
+      Plot.axisX({ ...AXIS_STYLE, ticks, tickFormat: speedupTick, label: null }),
       Plot.axisY({ ...AXIS_STYLE, tickSize: 0, label: null }),
       Plot.barX(bars, {
         x1: NO_SPEEDUP,

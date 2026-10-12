@@ -10,7 +10,8 @@ import {
   trajectoryPoints, transitionMarks, turnStarts,
 } from "./context_series.js";
 import { legendLine } from "../session/legend.js";
-import { elapsedAxis, listenForRequestClick, startChartView, viewChartWidth } from "../session/view_chart.js";
+import { listenForRequestClick, startChartView, viewChartWidth } from "../session/view_chart.js";
+import { elapsedAxis } from "../axes/ticks.js";
 import {
   AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, renderFigure, TIP_STYLE, X_INSET,
 } from "../shared/charts.js";

@@ -10,6 +10,7 @@
 import {
   AXIS_STYLE, categoryRowsFrame, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
 } from "../shared/charts.js";
+import { isNarrowChart, NARROW_MAX_TICKS } from "../axes/ticks.js";
 import { BATCH_COLOURS } from "../theme/colours.js";
 import { formatCount, formatDurationTick, formatSeconds } from "../shared/format.js";
 import { partsLegend } from "./figure_rows.js";
@@ -83,14 +84,16 @@ async function drawCallsPerRequest(rows, body, colours) {
   const { Plot } = await import("../shared/libraries.js");
   const categories = rows.map((row) => row.category); // the query's order: most calls first
   const highest = Math.max(...rows.map((row) => row.mean_calls));
+  const frame = categoryRowsFrame(body, categories.length);
+  const ticks = isNarrowChart(frame.width) ? NARROW_MAX_TICKS : CALLS_TICKS;
   const chart = Plot.plot({
-    ...categoryRowsFrame(body, categories.length),
+    ...frame,
     x: { domain: [ONE_CALL, Math.max(MIN_CALLS_AXIS_END, highest * MEAN_CALLS_HEADROOM)] },
     y: { type: "band", domain: categories },
     color: colourScale(colours.categories, categories),
     marks: [
-      Plot.gridX({ ...GRID_STYLE, ticks: CALLS_TICKS }),
-      Plot.axisX({ ...AXIS_STYLE, ticks: CALLS_TICKS, label: "Calls" }),
+      Plot.gridX({ ...GRID_STYLE, ticks }),
+      Plot.axisX({ ...AXIS_STYLE, ticks, label: "Calls" }),
       Plot.axisY({ ...AXIS_STYLE, label: null }),
       Plot.barX(rows, { y: "category", x1: ONE_CALL, x2: "mean_calls", fill: "category" }),
       Plot.tip(rows, Plot.pointerY({ ...TIP_STYLE, y: "category", x: "mean_calls", title: callsTipText })),

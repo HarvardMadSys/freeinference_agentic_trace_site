@@ -8,6 +8,7 @@
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
+import { isNarrowChart } from "../axes/ticks.js";
 import { TOOL_GROUP_COLOURS } from "../theme/colours.js";
 import { formatPercent, formatShare } from "../shared/format.js";
 import { seriesLegend } from "../figures/figure_rows.js";
@@ -22,7 +23,6 @@ const PERCENT_PER_TENTH = WHOLE_TURN_PERCENT / TENTHS;
 // does not run into the first label of the second, nor the first into the share axis; two on a narrow chart.
 const TURN_TICKS = Object.freeze([25, 50, 75]);
 const NARROW_TURN_TICKS = Object.freeze([25, 75]);
-const NARROW_CHART_WIDTH = 480; // pixels; a chart narrower than this has room for two labels per panel
 const SHARE_DOMAIN = Object.freeze([0, 1]); // the y axis spans a whole share, whatever groups are hidden
 
 /** The tool mix figure entry, whose fields CONTRIBUTING.md defines. */
@@ -31,6 +31,7 @@ export const TOOL_MIX_BY_TURN_POSITION = Object.freeze({
   title: "Tool mix along a turn",
   definition: "Per tenth of a turn (a user step and the tool steps after it, whose requests that made a call are numbered k = 0 to n − 1 and fall in the tenth ⌊10 (k + 0.5) / n⌋), the share of the calls of the top-level sessions in each of eight groups of their category, a *File Ops call being Write/Edit when a program it ran changes files, else Read when one only looks, else Other; one panel for the selected harnesses but the benchmark's, one for the benchmark's.",
   caption: "The share of calls in each tool group at each tenth of a turn, human-driven and benchmark.",
+  isWide: true,
   query: "figures/tool_mix_by_turn_position",
   binColumn: "scope",
   seriesNouns: Object.freeze({ Agentic: "human-driven calls", "SWE-Bench": "benchmark calls" }),
@@ -116,7 +117,7 @@ async function drawToolMix(rows, body, colours) {
 
 /** The ticks of each panel's axis on a chart `width` pixels wide, in percent of the turn. */
 export function turnTicks(width) {
-  return width < NARROW_CHART_WIDTH ? NARROW_TURN_TICKS : TURN_TICKS;
+  return isNarrowChart(width) ? NARROW_TURN_TICKS : TURN_TICKS;
 }
 
 /** The scopes the rows hold, in the order their panels are drawn. */

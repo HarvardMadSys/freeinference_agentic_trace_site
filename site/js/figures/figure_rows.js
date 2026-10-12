@@ -1,7 +1,7 @@
 /**
  * What the Explore page does to a figure's rows before drawing them: the rows it draws, thin bins hidden, its line of
- * rows (the rows it rests on, the weeks not simulated and the bins hidden), the series its legend lists, a CDF query's
- * points grouped into series, and the labels of a crowded band axis or a week axis.
+ * rows (the rows it rests on, the weeks not simulated and the bins hidden), the series its legend lists, and a CDF
+ * query's points grouped into series.
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
  * a CDF series), or, when `binColumn` is null, each row alone. Every row of a bin carries the bin's count, the number

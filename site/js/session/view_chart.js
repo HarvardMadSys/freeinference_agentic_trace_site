@@ -1,49 +1,12 @@
 /**
- * What the Context and Timeline views' charts share: time since the session's first request on the x axis, its ticks
- * and their format, drawing at the card's width once Plot has loaded, and a click that opens a request.
+ * What the Context and Timeline views' charts share: drawing at the card's width once Plot has loaded, and a click
+ * that opens a request. Their time axis, time since the session's first request, is `elapsedAxis` of `axes/ticks.js`.
  */
 
 import { showError, showLoading } from "../shared/charts.js";
-import { MAX_TICKS } from "../axes/ticks.js";
-import { elapsedTickFormat } from "../shared/format.js";
 
 /** The event a view sends up from its chart when a click names a request; its `detail` is `{ sessionId, step }`. */
 export const OPEN_REQUEST_EVENT = "open-request";
-
-// The pixels an x axis gives each tick label, such as "12:30".
-const TICK_SPACING_PX = 90;
-
-// The steps an elapsed-time axis ticks by, in seconds: round seconds, minutes, hours and days.
-const TICK_STEPS_S = Object.freeze([
-  1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400, 172800, 604800,
-]);
-
-/**
- * The ticks of an elapsed-time axis from 0 to `maxSeconds`: every multiple of the smallest round step that gives at
- * most `maxTicks` intervals, or of a whole number of seconds when even a week is too fine.
- */
-export function elapsedTicks(maxSeconds, maxTicks) {
-  const step = TICK_STEPS_S.find((seconds) => maxSeconds / seconds <= maxTicks) ?? Math.ceil(maxSeconds / maxTicks);
-  const ticks = [];
-  for (let tick = 0; tick <= maxSeconds; tick += step) {
-    ticks.push(tick);
-  }
-  return ticks;
-}
-
-/** The most ticks an axis `width` pixels wide holds without its labels touching: at least two, at most `MAX_TICKS`. */
-export function tickCount(width) {
-  return Math.min(MAX_TICKS, Math.max(2, Math.floor(width / TICK_SPACING_PX)));
-}
-
-/**
- * The elapsed-time x axis of a chart `width` pixels wide reaching `maxSeconds`: `{ ticks, tickFormat, label }`, its
- * ticks in h:mm from an hour on, else m:ss, its title naming which.
- */
-export function elapsedAxis(maxSeconds, width) {
-  const { format, unit } = elapsedTickFormat(maxSeconds);
-  return { ticks: elapsedTicks(maxSeconds, tickCount(width)), tickFormat: format, label: `Time since first request (${unit})` };
-}
 
 /** The width to draw a chart in `body`: the card's, so the chart never runs past it on a phone. */
 export function viewChartWidth(body) {
@@ -64,7 +27,10 @@ export function startChartView(container, draw) {
   return () => controller.abort();
 }
 
-/** A box holding `chart` that scrolls it sideways when it is wider than the screen. */
+/**
+ * A box holding `chart` that would scroll it sideways were it wider than its card; a chart is drawn at the card's width,
+ * but the Timeline's row labels keep their size, and the box is what its tooltip is placed against.
+ */
 export function scrollBox(chart) {
   const box = document.createElement("div");
   box.className = "chart-scroll";

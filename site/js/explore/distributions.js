@@ -50,7 +50,7 @@ const CARDS = Object.freeze([
   }),
   Object.freeze({
     name: "subagents_per_session", title: "Subagents per session", countLabel: "Sessions", format: formatWholeCount,
-    logScale: true, ticks: () => SUBAGENT_TICKS,
+    logScale: true, ticks: subagentTicks,
     caption: "Subagent sessions each top-level session spawned, at any depth.",
     definition: `Subagent sessions each top-level session spawned, at any depth, on a log scale. ${ZERO_NOTE}`,
   }),
@@ -67,6 +67,11 @@ const CARDS = Object.freeze([
     definition: "Cached over input tokens of each top-level request whose provider reports cache reads, at most 1.",
   }),
 ]);
+
+/** The subagents axis's ticks within `[low, high]`, the range its bins span. */
+export function subagentTicks([low, high]) {
+  return SUBAGENT_TICKS.filter((tick) => tick >= low && tick <= high);
+}
 
 /** Fill `container` with one place per card, each loading; return the places in the cards' order. */
 export function layoutDistributions(container) {

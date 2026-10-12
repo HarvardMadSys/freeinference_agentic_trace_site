@@ -1,7 +1,7 @@
 /**
- * The Benchmark-against-production CDFs of turn duration, session duration, input per request and user prompt tokens:
- * each a CDF per scope, human-driven and benchmark, each median marked with its value, a dotted line between the two
- * medians and their ratio, the larger over the smaller, as the paper draws them.
+ * The Human-driven-against-benchmark CDFs of turn duration, session duration, input per request and user prompt tokens:
+ * each a CDF per scope, human-driven and benchmark, each median marked with its value and a dotted line between the two
+ * medians, as the paper draws them; the legend gives both medians and their ratio, the larger over the smaller.
  *
  * Every row of their queries is one CDF point of one scope: `series` (the scope, by the pipeline's name of it), `x` and
  * `share`; the same on every row of a scope, `rows` (what the scope's CDF is over) and `median`; and the same on every
@@ -9,7 +9,10 @@
  * is drawn.
  */
 
-import { AXIS_STYLE, cdfPoints, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
+import {
+  AXIS_STYLE, cdfPoints, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, TIP_STYLE, X_INSET,
+} from "../shared/charts.js";
+import { axisWithTicks, isNarrowChart } from "../axes/ticks.js";
 import {
   formatDurationTick, formatMultiple, formatPercent, formatSeconds, formatShare, formatTokens,
 } from "../shared/format.js";
@@ -23,7 +26,6 @@ const MIN_PROMPT_DRAWN = 1; // comparison.MIN_PROMPT_DRAWN: the user prompt axis
 const MEDIAN_SHARE = 0.5; // the share at which a CDF crosses its median
 const MEDIAN_RADIUS = 3; // pixels; the dot on each median
 const MEDIAN_LABEL_OFFSET = 8; // pixels from a median's dot to its label, along each axis
-const RATIO_INSET = 8; // pixels from the lower right corner of the frame to the ratio
 const RATIO_DECIMALS = 1; // the ratio of the medians as the paper writes it: 3.1×
 const MEDIAN_LINK_DASH = "1 3"; // the dotted line between the medians
 // A median's label: in the chart's ink, ringed in the card's colour so that a line it crosses does not cut its text.
@@ -31,8 +33,9 @@ const MEDIAN_LABEL_STYLE = Object.freeze({
   fill: "currentColor", stroke: "var(--color-surface)", strokeWidth: 3, paintOrder: "stroke",
 });
 
-// Each figure's x axis, from the pipeline's floor to the paper's end, its ticks (at most six), how they are written,
-// how a value is written in a median's label and the tooltip, and what the CDF counts.
+// Each figure's x axis, from the pipeline's floor to the paper's end, its ticks (at most six) and, where they differ, its
+// ticks on a narrow chart, how they are written, how a value is written in a median's label, the legend and the
+// tooltip, and what the CDF counts.
 const TURN_DURATION_AXIS = Object.freeze({
   floor: MIN_DURATION_DRAWN_S,
   end: 86400, // a day
@@ -45,6 +48,7 @@ const SESSION_DURATION_AXIS = Object.freeze({
   floor: MIN_DURATION_DRAWN_S,
   end: 604800, // a week
   ticks: Object.freeze([1, 60, 3600, 86400, 604800]),
+  narrowTicks: Object.freeze([1, 60, 3600, 86400]), // on a phone "1 d" and "7 d" would touch
   tickFormat: formatDurationTick,
   valueFormat: formatSeconds,
   noun: "sessions",
@@ -61,6 +65,7 @@ const PROMPT_AXIS = Object.freeze({
   floor: MIN_PROMPT_DRAWN,
   end: 1e5,
   ticks: Object.freeze([1, 10, 100, 1e3, 1e4, 1e5]),
+  narrowTicks: Object.freeze([1, 100, 1e4]), // on a phone six labels would touch
   tickFormat: formatTokens,
   valueFormat: formatTokens,
   noun: "prompts",
@@ -145,6 +150,20 @@ export function scopeMedians(rows, floor) {
 }
 
 /**
+ * The legend's summary of the medians, human-driven against benchmark, each as `format` writes it, and their ratio:
+ * "median 61 s vs 3.1 min · 3.1×"; "" unless the rows hold both scopes and a ratio.
+ */
+export function medianSummary(rows, format) {
+  const ratio = medianRatioText(rows);
+  if (ratio === null) {
+    return "";
+  }
+  const medians = new Map(rows.map((row) => [row.series, row.median]));
+  const values = SCOPES.map((series) => format(medians.get(series)));
+  return `median ${values.join(" vs ")} · ${ratio}`;
+}
+
+/**
  * The ratio of the medians as it is written, "3.1×", when the rows hold both scopes and a finite ratio (the query has
  * none when the smaller median is zero); else null.
  */
@@ -185,16 +204,18 @@ async function drawScopeCdf(rows, body, colours, axis) {
   const { Plot } = await import("../shared/libraries.js");
   const series = cdfSeries(rows, SCOPES, { labels: SCOPE_LABELS, floor: axis.floor });
   const points = cdfPoints(series);
+  const frame = chartFrame(body);
+  const ticks = isNarrowChart(frame.width) ? (axis.narrowTicks ?? axis.ticks) : axis.ticks;
+  showMedianSummary(body, medianSummary(rows, axis.valueFormat));
   const chart = Plot.plot({
-    ...chartFrame(body),
-    x: { type: "log", domain: [axis.floor, axis.end] },
+    ...frame,
+    x: { type: "log", domain: [axis.floor, axis.end], inset: X_INSET },
     y: { domain: [0, 1] },
     color: colourScale(colours.series, series.map((one) => one.name)),
     marks: [
-      Plot.gridX({ ...GRID_STYLE, ticks: axis.ticks }),
+      Plot.gridX(ticks, GRID_STYLE),
       Plot.gridY(GRID_STYLE),
-      // The ticks are given as text: a log axis's own tick format leaves out every tick that is not a power's 1, 2 or 5.
-      Plot.axisX(axis.ticks, { ...AXIS_STYLE, text: axis.tickFormat, label: null }),
+      axisWithTicks(Plot.axisX, ticks, { ...AXIS_STYLE, tickFormat: axis.tickFormat, label: null }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: `Share of ${axis.noun}` }),
       Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH, clip: true }),
       ...medianMarks(Plot, rows, axis),
@@ -206,7 +227,7 @@ async function drawScopeCdf(rows, body, colours, axis) {
 
 /**
  * The marks of the medians: a dot on each, the smaller's value above it to the left and the larger's below it to the
- * right, as the paper places them; with both scopes, the dotted line between them and their ratio in the lower right.
+ * right, as the paper places them; with both scopes, the dotted line between them, whose ratio the legend gives.
  */
 function medianMarks(Plot, rows, axis) {
   const medians = scopeMedians(rows, axis.floor);
@@ -221,14 +242,24 @@ function medianMarks(Plot, rows, axis) {
       textAnchor: "start", dx: MEDIAN_LABEL_OFFSET, dy: MEDIAN_LABEL_OFFSET,
     }),
   ];
-  const ratio = medianRatioText(rows);
-  if (ratio !== null) {
+  if (medianRatioText(rows) !== null) {
     marks.push(
       Plot.ruleY([MEDIAN_SHARE], { ...AXIS_STYLE, x1: medians[0].x, x2: medians[1].x, strokeDasharray: MEDIAN_LINK_DASH }),
-      Plot.text([ratio], { text: Plot.identity, frameAnchor: "bottom-right", dx: -RATIO_INSET, dy: -RATIO_INSET }),
     );
   }
   return marks;
+}
+
+/** Write `text` as the last item of the legend above `body`, in place of the one an earlier drawing wrote. */
+function showMedianSummary(body, text) {
+  const legend = legendPlace(body);
+  legend.querySelector(".legend-note")?.remove();
+  if (text !== "") {
+    const note = document.createElement("span");
+    note.className = "legend-item legend-note";
+    note.textContent = text;
+    legend.append(note);
+  }
 }
 
 function tipText(point, axis) {

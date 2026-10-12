@@ -1,16 +1,26 @@
 /**
- * The ticks of a chart's axes: how many a linear axis asks for, where a log axis of counts or of seconds ticks, which
- * ticks of a week axis or a crowded band axis carry a label, and an axis mark that labels each tick it is given. These
- * are plain functions, tested with `node --test`; the drawing modules give what they return to Plot.
+ * The ticks of a chart's axes: how many a linear axis asks for, where a log axis of counts or of seconds ticks and how
+ * many fewer a narrow chart takes, which ticks of a week axis or a crowded band axis carry a label, an elapsed-time
+ * axis, and an axis mark that labels each tick it is given. These are plain functions, tested with `node --test`; the
+ * drawing modules give what they return to Plot.
  */
 
-import { shortMonth } from "../shared/format.js";
+import { elapsedTickFormat, shortMonth } from "../shared/format.js";
 
 // The characters of a week's Sunday that name its month: "YYYY-MM".
 const MONTH_LENGTH = "YYYY-MM".length;
 
 /** The most ticks an axis labels: at the smallest type size, more would run into one another on a phone. */
 export const MAX_TICKS = 6;
+/** The most ticks a narrow chart's axis labels, so its labels keep a gap between them. */
+export const NARROW_MAX_TICKS = 3;
+// A chart narrower than this, in pixels, is narrow: a phone's, or a third of a desktop page.
+const NARROW_CHART_WIDTH = 480;
+// A week axis labels a month's first week only when the next labelled week is at least this many weeks later, so a
+// month the data begin late in, such as May 17 before June 7, does not crowd the next.
+const MIN_WEEKS_BETWEEN_LABELS = 4;
+const DAYS_PER_WEEK = 7;
+const MILLISECONDS_PER_DAY = 86400000;
 /**
  * The tick count a linear axis asks Plot for: Plot rounds a count to steps of 1, 2 or 5, which gives up to about
  * twice as many ticks, so asking for four gives at most `MAX_TICKS` or seven.
@@ -20,6 +30,13 @@ export const TICK_COUNT = 4;
 // a day and a week. Not ten seconds nor a hundredth: "10 s" and "1 min", or "0.01 s" and "0.1 s", are too close to
 // share a phone's axis.
 const DURATION_TICKS_S = Object.freeze([0.1, 1, 60, 3600, 86400, 604800]);
+// The pixels an x axis gives each tick label, such as "12:30".
+const TICK_SPACING_PX = 90;
+
+// The steps an elapsed-time axis ticks by, in seconds: round seconds, minutes, hours and days.
+const TICK_STEPS_S = Object.freeze([
+  1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400, 172800, 604800,
+]);
 
 /**
  * The ticks of a log axis over `[low, high]`: its powers of ten, every second, third or more of them when there are
@@ -36,14 +53,26 @@ export function logAxisTicks([low, high], maxTicks = MAX_TICKS) {
 
 /**
  * The ticks of a log axis of seconds over `[low, high]`: the durations of `DURATION_TICKS_S` within it, every second one
- * when there are more than `MAX_TICKS`.
+ * when there are more than `maxTicks`.
  */
-export function durationTicks([low, high]) {
+export function durationTicks([low, high], maxTicks = MAX_TICKS) {
   const ticks = DURATION_TICKS_S.filter((seconds) => seconds >= low && seconds <= high);
-  if (ticks.length <= MAX_TICKS) {
-    return ticks;
-  }
-  return ticks.filter((seconds, index) => index % 2 === 0);
+  return ticks.length <= maxTicks ? ticks : everyOther(ticks);
+}
+
+/** Whether a chart `width` pixels wide is narrow, so its axes take at most `NARROW_MAX_TICKS` ticks. */
+export function isNarrowChart(width) {
+  return width < NARROW_CHART_WIDTH;
+}
+
+/** The most ticks an axis of a chart `width` pixels wide labels: `NARROW_MAX_TICKS` on a narrow one, else `MAX_TICKS`. */
+export function maxTicksFor(width) {
+  return isNarrowChart(width) ? NARROW_MAX_TICKS : MAX_TICKS;
+}
+
+/** The first, third, fifth… of `ticks`: half as many, from the first. */
+export function everyOther(ticks) {
+  return ticks.filter((tick, index) => index % 2 === 0);
 }
 
 /** The `[low, high]` of a log axis over `values`: the power of ten at or below the smallest, and at or above the largest. */
@@ -92,13 +121,23 @@ export function sparseTickFormat(values, format, maxLabels) {
   return (value) => (labelled.has(value) ? format(value) : "");
 }
 
-/** The weeks (Sundays, in order) whose tick a week axis labels: the first of each month, so ticks never crowd. */
+/**
+ * The weeks (Sundays, in order) whose tick a week axis labels: the first of each month, but one fewer than
+ * `MIN_WEEKS_BETWEEN_LABELS` weeks before the next such week, so labels never crowd.
+ */
 export function firstWeekOfEachMonth(weeks) {
-  const labelled = [];
+  const firsts = [];
   for (let index = 0; index < weeks.length; index += 1) {
     const month = weeks[index].slice(0, MONTH_LENGTH);
     if (index === 0 || weeks[index - 1].slice(0, MONTH_LENGTH) !== month) {
-      labelled.push(weeks[index]);
+      firsts.push(weeks[index]);
+    }
+  }
+  const labelled = [];
+  for (let index = 0; index < firsts.length; index += 1) {
+    const isLast = index === firsts.length - 1;
+    if (isLast || weeksBetween(firsts[index], firsts[index + 1]) >= MIN_WEEKS_BETWEEN_LABELS) {
+      labelled.push(firsts[index]);
     }
   }
   return labelled;
@@ -111,4 +150,37 @@ export function firstWeekOfEachMonth(weeks) {
 export function weekTickFormat(weeks) {
   const labelled = firstWeekOfEachMonth(weeks);
   return (week) => (labelled.includes(week) ? shortMonth(week) : "");
+}
+
+/**
+ * The ticks of an elapsed-time axis from 0 to `maxSeconds`: every multiple of the smallest round step that gives at
+ * most `maxTicks` intervals, or of a whole number of seconds when even a week is too fine.
+ */
+export function elapsedTicks(maxSeconds, maxTicks) {
+  const step = TICK_STEPS_S.find((seconds) => maxSeconds / seconds <= maxTicks) ?? Math.ceil(maxSeconds / maxTicks);
+  const ticks = [];
+  for (let tick = 0; tick <= maxSeconds; tick += step) {
+    ticks.push(tick);
+  }
+  return ticks;
+}
+
+/** The most ticks an axis `width` pixels wide holds without its labels touching: at least two, at most `MAX_TICKS`. */
+export function tickCount(width) {
+  return Math.min(MAX_TICKS, Math.max(2, Math.floor(width / TICK_SPACING_PX)));
+}
+
+/**
+ * The elapsed-time x axis of a chart `width` pixels wide reaching `maxSeconds`: `{ ticks, tickFormat, label }`, its
+ * ticks in h:mm from an hour on, else m:ss, its title naming which.
+ */
+export function elapsedAxis(maxSeconds, width) {
+  const { format, unit } = elapsedTickFormat(maxSeconds);
+  return { ticks: elapsedTicks(maxSeconds, tickCount(width)), tickFormat: format, label: `Time since first request (${unit})` };
+}
+
+// The whole weeks from the Sunday `first` to the Sunday `last`.
+function weeksBetween(first, last) {
+  const days = (Date.parse(`${last}T00:00:00Z`) - Date.parse(`${first}T00:00:00Z`)) / MILLISECONDS_PER_DAY;
+  return days / DAYS_PER_WEEK;
 }

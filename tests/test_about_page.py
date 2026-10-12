@@ -21,9 +21,9 @@ ABOUT_PAGE = SITE_FOLDER / "about.html"
 CHARTS_MODULE = SITE_FOLDER / "js" / "shared" / "charts.js"  # declares `MIN_ROWS_PER_BIN`
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # declares `SERIES_SLOTS`, the eight series colours
 IDLE_GAP_TITLE = "Hit ratio after an idle gap"
-# The folders of every figure entry, one `query: "figures/<name>"` each: the first three sections', and the
-# Benchmark-against-production section's.
-FIGURE_FOLDERS = [SITE_FOLDER / "js" / "figures", SITE_FOLDER / "js" / "comparison"]
+# The folders of every figure entry, one `query: "figures/<name>"` each: the first three sections', the cache
+# simulation's, and the Human-driven-against-benchmark section's.
+FIGURE_FOLDERS = [SITE_FOLDER / "js" / folder for folder in ("figures", "simulation", "comparison")]
 FIGURE_ENTRY_QUERY = re.compile(r'query: "figures/\w+"')
 FIGURE_TITLE_AND_DEFINITION = re.compile(r'title: "([^"]+)",\s*definition: "([^"]+)"')
 # Phrases of a figure's definition that name the paper without stating a difference from it.

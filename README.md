@@ -125,6 +125,7 @@ site/              exactly the files that are deployed
   js/engine/       DuckDB in the page: duckdb_start (starting it), duckdb_views (its views and setup),
                    duckdb_files (the weeks' files and their streaming in)
   js/theme/        the site's colours as the style tokens give them
+  js/axes/         ticks, the ticks of every chart's axes
   js/pages/        one module per page
   js/explore/      the Explore page's sections, one module each: selection_pickers, trends, headline,
                    distributions, figure_sections (the figure runner), sessions_table; and legend, the legend
@@ -132,7 +133,8 @@ site/              exactly the files that are deployed
   js/figures/      one module per figure section (sessions, tools, caching), the modules they take figures from
                    (sessions_latency, sessions_ranked, tools_batching, caching_gaps), and figure_rows, the row rules
                    every figure shares
-  js/comparison/   the Benchmark-against-production figure section: its module, comparison, the modules of its
+  js/simulation/   the Prefix-caching section's figures of the cache simulation: prefill and costs
+  js/comparison/   the Human-driven-against-benchmark figure section: its module, comparison, the modules of its
                    figures (scope_cdfs, tool_mix), and scopes, the two scopes they compare
   js/session/      the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
   js/session_requests/  the Requests view: a row per request, its details, brackets and legend

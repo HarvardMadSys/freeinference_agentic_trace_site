@@ -86,11 +86,15 @@ page (html)  →  js/pages/<page>.js  →  section modules and js/shared/  →  
 js/pages/             one module per page
 js/shared/            what every page uses: the database, the selection, formatting, charts, the table, the stat strip
 js/theme/             the site's colours as the style tokens give them
+js/axes/              the ticks of every chart's axes: how many, where a log, duration or elapsed-time axis ticks, which
+                      week a week axis labels, and an axis mark that labels each tick it is given
 js/engine/            DuckDB in the page: starting it, its views and setup, the weeks' files and their streaming in
 js/explore/           the Explore page's sections, the figure runner (figure_sections.js) and the legend of buttons
 js/figures/           the Explore page's figures: one module per section, listing its figure entries, the modules a
                       section takes entries from, and the row rules every figure shares (figure_rows.js)
-js/comparison/        the Explore page's Benchmark-against-production figures: the section's module, listing its
+js/simulation/        the Prefix-caching section's figures of the cache simulation: prefill against storage, and the
+                      two costs by TTL
+js/comparison/        the Explore page's Human-driven-against-benchmark figures: the section's module, listing its
                       figure entries, the modules that draw them, and the two scopes the figures compare (scopes.js)
 js/session/           the Session page's address, agent tree, facts, legends, overlap grouping and chart frame
 js/session_requests/  the Session page's Requests view
@@ -195,6 +199,8 @@ thin bins, writes its line of rows and calls `draw`:
   the line of rows names the selected weeks the simulation does not cover.
 - `drawsLines` (optional): true for a figure that draws its series as lines,
   whose legend then shows a short line per series instead of a square.
+- `isWide` (optional): true for a figure whose card takes its section's whole
+  width: one that needs the room, or that would otherwise sit alone in a row.
 - `legend` (a figure of more than one series): `legend(rows, colours, seriesColumn)`
   returns the series its legend lists and their colours, `{ series, colours }`,
   each series `{ name, label }`. The page draws the legend as buttons that
