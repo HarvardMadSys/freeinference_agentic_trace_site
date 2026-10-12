@@ -10,7 +10,8 @@
  * `rows`, the sessions it rests on.
  */
 
-import { AXIS_STYLE, cdfPoints, chartFrame, colourScale, drawCdf, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
+import { cdfPoints, drawCdf } from "../shared/cdf.js";
 import { durationTicks, extent, fewerOnNarrow, tickCountFor } from "../axes/ticks.js";
 import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
 import { slottedColours, TIME_PART_COLOURS } from "../theme/colours.js";
@@ -41,7 +42,7 @@ const BAR_LABEL_GAP = 4; // pixels between a bar's end and its label
 export const TTFT_CDF_BY_MODEL = Object.freeze({
   name: "ttft_cdf_by_model",
   title: "Time to first token by model",
-  definition: "CDF of the time to first token per model over requests whose TTFT is trusted (positive and under 95% of the latency), for the five busiest models, where the paper draws two fixed models.",
+  definition: "Share of requests whose time to first token is at most each value, per model, over requests whose TTFT is trusted (positive and under 95% of the latency), for the five busiest models.",
   caption: "Time to first token of each request, for the five busiest models.",
   drawsLines: true,
   query: "figures/ttft_cdf_by_model",
@@ -56,7 +57,7 @@ export const TTFT_CDF_BY_MODEL = Object.freeze({
 export const DECODE_CDF_BY_MODEL = Object.freeze({
   name: "decode_cdf_by_model",
   title: "Decode time by model",
-  definition: "CDF of the decode time (latency minus time to first token) per model over requests whose TTFT is trusted, for the same five models, where the paper draws two fixed models and a queueing estimate.",
+  definition: "Share of requests whose decode time (latency minus time to first token) is at most each value, per model, over requests whose TTFT is trusted, for the same five models.",
   caption: "Latency minus time to first token, for the same five models.",
   drawsLines: true,
   query: "figures/decode_cdf_by_model",

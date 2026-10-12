@@ -16,7 +16,8 @@ import { MULTIPLE_DECIMALS, multipleTick, ttlLabel } from "./prefill.js";
 // The parts of what an API customer pays, bottom up in the stack as the paper stacks them, each with its name, and of
 // what an inference provider pays.
 const API_PARTS = Object.freeze({ output: "Output", cache_read: "Cached input", input: "Uncached input" });
-const API_LEGEND_ORDER = Object.freeze(["cache_read", "input", "output"]); // as every legend lists the token parts
+// The API legend lists the token parts as every legend does, but output, a stack too thin to see; its tooltip names it.
+const API_LEGEND_ORDER = Object.freeze(["cache_read", "input"]);
 const INFRASTRUCTURE_PARTS = Object.freeze({ recompute: "Recompute", storage: "Storage" });
 // Each cost part's colour: the API's parts in the colours of the tokens they price, recomputing in the uncached
 // input's, as it prefills the missed tokens again, and storage in the yellow the paper gives it.
@@ -28,13 +29,13 @@ const COST_AXIS_TTLS = Object.freeze(["1s", "1m", "1h", "1d"]); // the TTLs a co
 const COST_AXIS_HEADROOM = 1.1; // a cost axis ends a tenth above the highest stack, as the paper's does
 const CALLOUT_RADIUS = 5; // pixels; the hollow marker on the TTL a cost figure calls out
 const CALLOUT_RISE_SHARE = 0.45; // its text sits this share of the cost axis above it, as the paper's does
-const CALLOUT_HALO = 3; // pixels of the card's colour around the callout's text
+const CALLOUT_HALO = 4; // pixels of the card's colour around the callout's text, so no area crosses it
 
 /** The figure of what an API customer pays per TTL, stacked by part, the knee called out. */
 export const API_COST_BY_TTL = Object.freeze({
   name: "api_cost_by_ttl",
   title: "API cost by TTL",
-  definition: "Each TTL's simulated API cost for the paper's harnesses at the pipeline's prices (cached 1, uncached 10, output 50), missed input, cache reads and output stacked, over the one-minute total, the knee (shortest TTL within 5% of the lowest) marked.",
+  definition: "Each TTL's simulated API cost for the paper's harnesses in every simulated week, at the pipeline's prices (cached 1, uncached 10, output 50), stacked by part, over the one-minute total; the shortest TTL within 5% of the lowest is marked.",
   caption: "An API customer's cost at each cache TTL, against a one-minute TTL.",
   query: "figures/api_cost_by_ttl",
   binColumn: "part",
@@ -43,7 +44,7 @@ export const API_COST_BY_TTL = Object.freeze({
   isSimulation: true,
   legend: (rows, colours, seriesColumn) => costLegend(rows, seriesColumn, API_PARTS, API_LEGEND_ORDER),
   draw: (rows, body, colours) => drawCostByTtl(rows, body, colours, {
-    labels: API_PARTS, flag: "is_knee", word: "Knee",
+    labels: API_PARTS, flag: "is_knee", describe: kneeText,
   }),
 });
 
@@ -51,8 +52,8 @@ export const API_COST_BY_TTL = Object.freeze({
 export const INFRASTRUCTURE_COST_BY_TTL = Object.freeze({
   name: "infrastructure_cost_by_ttl",
   title: "Infrastructure cost by TTL",
-  definition: "Each TTL's simulated serving cost for the paper's harnesses: prefilling missed tokens at $1 per million plus keeping reusable and dead tokens at $30 per million a day, stacked, over the one-minute total, the lowest marked.",
-  caption: "What serving costs at each cache TTL, recomputing misses against storing tokens.",
+  definition: "Each TTL's simulated serving cost for the paper's harnesses in every simulated week: prefilling missed tokens at $1 per million plus keeping reusable and dead tokens at $30 per million a day, over the one-minute total.",
+  caption: "Serving cost at each TTL: recomputing misses against storing tokens.",
   query: "figures/infrastructure_cost_by_ttl",
   binColumn: "part",
   seriesColumn: "part",
@@ -60,7 +61,7 @@ export const INFRASTRUCTURE_COST_BY_TTL = Object.freeze({
   isSimulation: true,
   legend: (rows, colours, seriesColumn) => costLegend(rows, seriesColumn, INFRASTRUCTURE_PARTS),
   draw: (rows, body, colours) => drawCostByTtl(rows, body, colours, {
-    labels: INFRASTRUCTURE_PARTS, flag: "is_lowest", word: "Lowest",
+    labels: INFRASTRUCTURE_PARTS, flag: "is_lowest", describe: lowestText,
   }),
 });
 
@@ -107,30 +108,43 @@ export function costStacks(rows, labels) {
 }
 
 /**
- * The TTL a cost figure calls out, the one whose rows are marked in the column `flag`: `{ seconds, top, text }`, at
- * the top of its stack, its text `word`, its total and its TTL ("Knee 0.65× at 30m"); null when no drawn TTL is marked.
+ * The API cost's callout, on two lines so that it fits a phone's chart: the knee's total and TTL, and that it is near
+ * the lowest, "0.65× at 30 min,\nnear the lowest".
  */
-export function calloutPoint(rows, stacks, flag, word) {
+export function kneeText(total, ttl) {
+  return `${total} at ${ttl},\nnear the lowest`;
+}
+
+/** The infrastructure cost's callout, on two lines: the lowest total and its TTL, "Lowest 0.42×\nat 15 min". */
+export function lowestText(total, ttl) {
+  return `Lowest ${total}\nat ${ttl}`;
+}
+
+/**
+ * The TTL a cost figure calls out, the one whose rows are marked in the column `flag`: `{ seconds, top, text }`, at
+ * the top of its stack, its text written by `describe(total, ttl)`; null when no drawn TTL is marked.
+ */
+export function calloutPoint(rows, stacks, flag, describe) {
   const marked = rows.find((row) => row[flag]);
   if (marked === undefined) {
     return null;
   }
   const stack = stacks.find((one) => one.ttl === marked.ttl);
-  const text = `${word} ${formatMultiple(marked.total_multiple, MULTIPLE_DECIMALS)} at ${ttlLabel(marked.ttl)}`;
+  const text = describe(formatMultiple(marked.total_multiple, MULTIPLE_DECIMALS), ttlLabel(marked.ttl));
   return { seconds: stack.seconds, top: stack.top, text };
 }
 
 /**
  * Draw a cost query's rows into `body` as an area per part of `labels` (part to name) the rows hold, stacked bottom up
  * in that order over the TTLs on a log axis, a dashed line at the one-minute total, and the TTL marked in the column
- * `flag` called out with `word`.
+ * `flag` called out with the text `describe` writes.
  */
-async function drawCostByTtl(rows, body, colours, { labels, flag, word }) {
+async function drawCostByTtl(rows, body, colours, { labels, flag, describe }) {
   // Plot is loaded here, not at the top, so node can test the section's figure list.
   const { Plot } = await import("../shared/libraries.js");
   const parts = Object.keys(labels).filter((part) => rows.some((row) => row.part === part));
   const stacks = costStacks(rows, labels);
-  const callout = calloutPoint(rows, stacks, flag, word);
+  const callout = calloutPoint(rows, stacks, flag, describe);
   const highestCost = Math.max(...stacks.map((stack) => stack.top)) * COST_AXIS_HEADROOM;
   const ttlLabels = new Map();
   for (const stack of stacks.filter((one) => COST_AXIS_TTLS.includes(one.ttl))) {
@@ -140,12 +154,13 @@ async function drawCostByTtl(rows, body, colours, { labels, flag, word }) {
     ...chartFrame(body),
     x: { type: "log", domain: [stacks[0].seconds, stacks[stacks.length - 1].seconds], inset: X_INSET },
     y: { domain: [0, highestCost] },
-    color: colourScale(colours.series, parts),
+    // Every part in its cost colour, output too, which the API legend leaves out.
+    color: colourScale(new Map(Object.entries(COST_PART_COLOURS)), parts),
     marks: [
       Plot.gridX([...ttlLabels.keys()], GRID_STYLE),
       Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT }),
       axisWithTicks(Plot.axisX, [...ttlLabels.keys()], {
-        ...AXIS_STYLE, label: null, tickFormat: (seconds) => ttlLabels.get(seconds),
+        ...AXIS_STYLE, label: "Cache TTL", tickFormat: (seconds) => ttlLabels.get(seconds),
       }),
       Plot.axisY({ ...AXIS_STYLE, label: null, ticks: TICK_COUNT, tickFormat: multipleTick }),
       Plot.areaY(rows, { x: "ttl_seconds", y: "cost_multiple", fill: "part", order: parts }),
@@ -159,7 +174,7 @@ async function drawCostByTtl(rows, body, colours, { labels, flag, word }) {
 
 /**
  * A cost figure's callout marks, none without one: a hollow marker on the top of its stack, and a straight leader up
- * from it to its text, a share of the axis's `highestCost` higher.
+ * from it to its text, a share of the axis's `highestCost` higher, on a halo of the card's colour.
  */
 function calloutMarks(Plot, callout, highestCost) {
   if (callout === null) {
@@ -167,7 +182,9 @@ function calloutMarks(Plot, callout, highestCost) {
   }
   const placed = [{ ...callout, textAt: callout.top + CALLOUT_RISE_SHARE * highestCost }];
   const ink = { stroke: "var(--chart-label)", fill: "var(--color-surface)" };
-  const halo = { fill: "var(--chart-label)", stroke: "var(--color-surface)", strokeWidth: CALLOUT_HALO };
+  const halo = {
+    fill: "var(--chart-label)", stroke: "var(--color-surface)", strokeWidth: CALLOUT_HALO, paintOrder: "stroke",
+  };
   return [
     Plot.ruleX(placed, { x: "seconds", y1: "top", y2: "textAt", stroke: "var(--chart-label)" }),
     Plot.dot(placed, { x: "seconds", y: "top", r: CALLOUT_RADIUS, strokeWidth: LINE_WIDTH, ...ink }),

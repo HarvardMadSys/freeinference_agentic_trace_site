@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { FIGURES } from "../site/js/figures/sessions.js";
 import { formatSeconds, formatTokens } from "../site/js/shared/format.js";
 import {
-  binsFromRows, cardTicks, drawableBins, histogramCard, maximumText, percentileEntries, rowsText,
+  binsFromRows, cardTicks, countAxis, drawableBins, histogramCard, rowsText, summaryText,
 } from "../site/js/shared/histogram.js";
 
 // A card of token counts on a log axis, drawn but for its bins.
@@ -20,25 +20,29 @@ const TOKENS_CARD = {
   countLabel: "Requests",
 };
 
-test("the legend gives each percentile and the maximum in the card's format", () => {
-  assert.deepEqual(percentileEntries(TOKENS_CARD).map((entry) => entry.text), [
-    "p50 129.1k", "p75 260k", "p90 512.3k", "p95 801k",
-  ]);
-  assert.equal(maximumText(TOKENS_CARD), "max 2M");
+test("the summary gives the median and the 95th percentile in the card's format, and the maximum where asked", () => {
+  assert.equal(summaryText(TOKENS_CARD), "median 129.1k · p95 801.0k");
+  assert.equal(summaryText({ ...TOKENS_CARD, showsMaximum: true }), "median 129.1k · p95 801.0k · max 2.0M");
 });
 
-test("a duration card's legend writes its values as durations", () => {
+test("a duration card's summary writes its values as durations", () => {
   const durationCard = { ...TOKENS_CARD, percentiles: { p50: 724, p75: 1800, p90: 3780, p95: 5400 }, max: 42.5,
     format: formatSeconds };
-  assert.equal(percentileEntries(durationCard)[0].text, "p50 12.1 min");
-  assert.equal(maximumText(durationCard), "max 42.5 s");
+  assert.equal(summaryText(durationCard), "median 12.1 min · p95 90.0 min");
 });
 
-test("a card with no rows has an empty legend, and its line of rows says 0", () => {
+test("a card with no rows has an empty summary, and its line of rows says 0", () => {
   const emptyCard = { ...TOKENS_CARD, percentiles: { p50: null, p75: null, p90: null, p95: null }, count: 0, max: null };
-  assert.deepEqual(percentileEntries(emptyCard), []);
-  assert.equal(maximumText(emptyCard), "");
+  assert.equal(summaryText(emptyCard), "");
   assert.equal(rowsText(emptyCard), "0 requests");
+});
+
+test("a card of counts over many powers of ten draws them on a log axis from a power of ten, else on a linear one from 0", () => {
+  const bins = [{ x0: 0, x1: 0.5, count: 700 }, { x0: 0.5, x1: 1, count: 986922 }];
+  assert.deepEqual(countAxis({ ...TOKENS_CARD, bins, logScale: false, logCounts: true }), {
+    type: "log", domain: [100, 1e6], base: 100, ticks: [100, 1000, 10000, 100000, 1e6],
+  });
+  assert.equal(countAxis({ ...TOKENS_CARD, bins }).type, "linear");
 });
 
 test("the line of rows counts the card's rows in its own noun", () => {

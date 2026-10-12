@@ -9,7 +9,7 @@
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
 import { axisWithTicks, isNarrowChart, logAxisTicks, maxTicksFor } from "../axes/ticks.js";
-import { formatMultiple, formatTokens, formatTtlName } from "../shared/format.js";
+import { formatCountTick, formatMultiple, formatTokens, formatTtlName } from "../shared/format.js";
 import { SCOPE_LABELS, scopeLegend } from "../comparison/scopes.js";
 
 // tests/test_pipeline_mirrors_caching.py checks the TTL names and the labelled TTLs below against the pipeline.
@@ -17,25 +17,28 @@ const NO_TTL = "none"; // the TTL of a cache that keeps every block for the week
 const NO_TTL_LABEL = "∞"; // how a figure writes the TTL `none`, as the paper does
 
 // The TTLs whose points carry their name, per scope, as the paper labels them when it draws both curves, each with
-// where its name sits: above and to the right of the point, or to its left, clear of the curve. Every point names its
-// TTL in its tooltip.
+// where its name sits: above and to the right of the point for the human-driven curve; for the benchmark's, below and
+// to the left under its falling curve, then level and to the left, then above and to the right where it is flat, so
+// no name sits on the other curve. Every point names its TTL in its tooltip.
 const LABELLED_TTLS = Object.freeze({
   Agentic: Object.freeze({
     "1s": "right", "10s": "right", "1m": "right", "15m": "right", "1d": "right", [NO_TTL]: "right",
   }),
-  "SWE-Bench": Object.freeze({ "1s": "right", "10s": "left", "1m": "left", "5m": "right" }),
+  "SWE-Bench": Object.freeze({ "1s": "below", "10s": "below", "1m": "left", "5m": "right" }),
 });
 // The fewer TTLs named on a narrow chart, each to the right of its point; the tooltip still names every point.
 const NARROW_LABELLED_TTLS = Object.freeze({
   Agentic: Object.freeze({ "1s": "right", "1m": "right", "15m": "right", [NO_TTL]: "right" }),
-  "SWE-Bench": Object.freeze({ "1s": "right", "1m": "right" }),
+  "SWE-Bench": Object.freeze({ "1s": "below", "1m": "left" }),
 });
 // How a TTL's name is set beside its point, by where it sits: pixels across and up from the point, and the end of the
 // name that is nearest it.
 const LABEL_PLACEMENTS = Object.freeze({
   right: Object.freeze({ textAnchor: "start", dx: 6, dy: -9 }),
+  below: Object.freeze({ textAnchor: "end", dx: -6, dy: 12 }),
   left: Object.freeze({ textAnchor: "end", dx: -6, dy: 0 }),
 });
+const LABEL_HALO = 4; // pixels of the card's colour around a TTL's name, so no curve crosses it
 
 // The prefill axis runs from just under the no-TTL floor to above the shortest TTL's prefill, as the paper's does, and
 // marks these multiples of the floor.
@@ -52,7 +55,7 @@ const MARKER_RADIUS = 3; // pixels; the small marker of each TTL's point
 export const PREFILL_AGAINST_STORAGE = Object.freeze({
   name: "prefill_against_storage",
   title: "Prefill against storage",
-  definition: "In the prefix-cache simulation, normalised prefill (tokens missed over those missed with no TTL) against mean retained tokens (reusable and dead token-seconds over the week's span), one point per TTL, human-driven and benchmark simulated apart.",
+  definition: "In the prefix-cache simulation of every week it covers, normalised prefill (tokens missed over those missed with no TTL) against mean retained tokens (token-seconds kept over the week's span), one point per TTL, human-driven and benchmark simulated apart.",
   caption: "Missed tokens against tokens kept, per cache TTL, human-driven and benchmark.",
   isWide: true,
   drawsLines: true,
@@ -72,7 +75,8 @@ export function ttlLabel(ttl) {
 /**
  * One point per row of the prefill query, in its order: `{ scope, ttl, label, retained, prefill, placement }`, the
  * TTL's name written as `ttlLabel` writes it, and `placement` where `labelled` (by scope, each named TTL's place; the
- * paper's unless given) draws that name beside the point, `right` or `left`, or null for a TTL whose name is not drawn.
+ * paper's unless given) draws that name beside the point, `right`, `below` or `left`, or null for a TTL whose name is not
+ * drawn.
  */
 export function prefillPoints(rows, labelled = LABELLED_TTLS) {
   const points = [];
@@ -113,7 +117,7 @@ async function drawPrefillAgainstStorage(rows, body, colours) {
       Plot.gridX(retainedTicks, GRID_STYLE),
       Plot.gridY(PREFILL_TICKS, GRID_STYLE),
       axisWithTicks(Plot.axisX, retainedTicks, {
-        ...AXIS_STYLE, label: "Mean retained tokens", tickFormat: formatTokens,
+        ...AXIS_STYLE, label: "Mean retained tokens", tickFormat: formatCountTick,
       }),
       axisWithTicks(Plot.axisY, PREFILL_TICKS, { ...AXIS_STYLE, label: "Normalised prefill", tickFormat: multipleTick }),
       Plot.line(points, { x: "retained", y: "prefill", stroke: "scope", strokeWidth: LINE_WIDTH }),
@@ -130,7 +134,9 @@ function ttlNameMarks(Plot, points) {
   const marks = [];
   for (const [placement, options] of Object.entries(LABEL_PLACEMENTS)) {
     const placed = points.filter((point) => point.placement === placement);
-    const ink = { fill: "var(--chart-label)" };
+    const ink = {
+      fill: "var(--chart-label)", stroke: "var(--color-surface)", strokeWidth: LABEL_HALO, paintOrder: "stroke",
+    };
     marks.push(Plot.text(placed, { x: "retained", y: "prefill", text: "label", ...ink, ...options }));
   }
   return marks;

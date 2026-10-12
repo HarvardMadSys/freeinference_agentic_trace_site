@@ -5,7 +5,7 @@ import { drawnProviderRows, idleGapEdgeSeconds, idleGapLegend } from "../site/js
 import {
   causeLegend, GAP_FIGURES, gapBinColours, gapBinLegend, meanHitRatioBars, mutationTableLines, transitionLegend,
 } from "../site/js/figures/caching_gaps.js";
-import { calloutPoint, costLegend, costStacks } from "../site/js/simulation/costs.js";
+import { calloutPoint, costLegend, costStacks, kneeText, lowestText } from "../site/js/simulation/costs.js";
 import { prefillPoints, retainedDomain, ttlLabel } from "../site/js/simulation/prefill.js";
 import { scopeLegend } from "../site/js/comparison/scopes.js";
 import { decadeTicks } from "../site/js/axes/ticks.js";
@@ -42,14 +42,14 @@ test("the cause legend names the causes as the paper does, in its order, each in
   assert.deepEqual([...causeColours().keys()], ["tool", "ask_user_tool", "user", "subagent"]);
 });
 
-test("the mean-hit-ratio bars come in the paper's order, a mean below the axis ending at its low end", () => {
+test("the mean-hit-ratio bars come in the paper's order, each with its mean", () => {
   const bars = meanHitRatioBars([
     { waited_for: "user", rows: 60, mean_hit_ratio: 0.5 },
     { waited_for: "tool", rows: 900, mean_hit_ratio: 0.97 },
   ]);
   assert.deepEqual(bars, [
-    { cause: "tool", name: "Tool wait", end: 0.97, mean: 0.97, rows: 900 },
-    { cause: "user", name: "User idle", end: 0.7, mean: 0.5, rows: 60 },
+    { cause: "tool", name: "Tool wait", mean: 0.97, rows: 900 },
+    { cause: "user", name: "User idle", mean: 0.5, rows: 60 },
   ]);
 });
 
@@ -92,8 +92,8 @@ test("a prefill point per row, in the query's order, its TTL named, and placed w
   assert.deepEqual(prefillPoints(PREFILL_ROWS), [
     { scope: "Agentic", ttl: "1m", label: "1 min", retained: 415_000, prefill: 6.2, placement: "right" },
     { scope: "Agentic", ttl: "none", label: "∞", retained: 102_000_000, prefill: 1, placement: "right" },
-    { scope: "SWE-Bench", ttl: "1s", label: "1 s", retained: 3_900, prefill: 17.4, placement: "right" },
-    { scope: "SWE-Bench", ttl: "10s", label: "10 s", retained: 7_300, prefill: 3.2, placement: "left" },
+    { scope: "SWE-Bench", ttl: "1s", label: "1 s", retained: 3_900, prefill: 17.4, placement: "below" },
+    { scope: "SWE-Bench", ttl: "10s", label: "10 s", retained: 7_300, prefill: 3.2, placement: "below" },
     { scope: "SWE-Bench", ttl: "15m", label: "15 min", retained: 42_000, prefill: 1.02, placement: null },
   ]);
   assert.equal(ttlLabel("1d"), "1 d");
@@ -151,23 +151,24 @@ test("a cost stack per TTL tops at the sum of its shown parts, its tooltip readi
 
 test("the callout sits on the marked TTL's stack and names its total, or is absent when none is marked", () => {
   const stacks = costStacks(API_ROWS, API_LABELS);
-  const callout = calloutPoint(API_ROWS, stacks, "is_knee", "Knee");
+  const callout = calloutPoint(API_ROWS, stacks, "is_knee", kneeText);
   assert.equal(callout.seconds, 1800);
-  assert.equal(callout.text, "Knee 0.65× at 30 min");
+  assert.equal(callout.text, "0.65× at 30 min,\nnear the lowest");
+  assert.equal(lowestText("0.42×", "15 min"), "Lowest 0.42×\nat 15 min");
   const unmarked = API_ROWS.map((row) => ({ ...row, is_knee: false }));
-  assert.equal(calloutPoint(unmarked, stacks, "is_knee", "Knee"), null);
+  assert.equal(calloutPoint(unmarked, stacks, "is_knee", kneeText), null);
 });
 
-test("the mutation table's lines come in the paper's order, causes after transitions, shares as percentages of two decimals", () => {
+test("the mutation table's lines come in the paper's order, causes after transitions, shares with one decimal", () => {
   const rows = [
     { table_row: "compaction", steps_share: 0.000416, sessions_share: 0.0368, prefill_share: 0.0056, rows: 900 },
     { table_row: "append", steps_share: 0.96, sessions_share: 0.4359, prefill_share: 0.3752, rows: 900 },
     { table_row: "mutation", steps_share: 0.04, sessions_share: 0.5641, prefill_share: null, rows: 900 },
   ];
   assert.deepEqual(mutationTableLines(rows), [
-    { name: "append", isCause: false, cells: ["Append", "96.00", "43.59", "37.52"] },
-    { name: "mutation", isCause: false, cells: ["Mutation", "4.00", "56.41", "—"] },
-    { name: "compaction", isCause: true, cells: ["Compaction", "0.04", "3.68", "0.56"] },
+    { name: "append", isCause: false, cells: ["Append", "96.0%", "43.6%", "37.5%"] },
+    { name: "mutation", isCause: false, cells: ["Mutation", "4.0%", "56.4%", "—"] },
+    { name: "compaction", isCause: true, cells: ["Compaction", "<0.1%", "3.7%", "0.6%"] },
   ]);
 });
 

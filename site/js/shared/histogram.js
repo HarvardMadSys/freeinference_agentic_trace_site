@@ -1,17 +1,19 @@
 /**
- * A histogram figure: the bins a query computed, with dashed lines at the exact percentiles a second query computed,
- * whose legend gives their values and the maximum.
+ * A histogram figure: the bins a query computed, and above them one line of the exact median, 95th percentile and,
+ * where the card asks, the maximum, which a second query computed.
  *
  * The module runs no query. A histogram figure's entry names its bins query in `query` and its stats query in
  * `statsQuery`; `histogramCard` joins their answers into a card, `{ ...entry, bins, percentiles, count, max }`, which
- * `drawHistogram` draws. Of the entry's fields, `countLabel` names what a bin counts, `format` writes a value in the
- * legend and the tooltip, `tickFormat` (else `format`) on the axis, `logScale` says whether the axis is a log one, and
- * `ticks(domain, maxTicks)`, when given, picks at most `maxTicks` of a log axis's ticks over its `[low, high]`.
+ * `drawHistogram` draws. Of the entry's fields, `countLabel` names what a bin counts, `xLabel` (optional) titles the
+ * value axis, `format` writes a value in the summary and the tooltip, `tickFormat` (else `format`) on the axis,
+ * `logScale` says whether the value axis is a log one, `logCounts` whether the count axis is, `showsMaximum` whether
+ * the summary ends with the maximum, and `ticks(domain, maxTicks)`, when given, picks at most `maxTicks` of a log
+ * axis's ticks over its `[low, high]`.
  */
 
-import { AXIS_STYLE, chartFrame, DASH, GRID_STYLE, legendPlace, TIP_STYLE, X_INSET } from "./charts.js";
+import { AXIS_STYLE, chartFrame, GRID_STYLE, legendPlace, TIP_STYLE, X_INSET } from "./charts.js";
 import { axisWithTicks, extent, logAxisTicks, MAX_TICKS, maxTicksFor, TICK_COUNT } from "../axes/ticks.js";
-import { formatCompactCount, formatCount } from "./format.js";
+import { formatCount, formatCountTick } from "./format.js";
 
 // The columns of a bins query's rows: where a bin starts, where it ends, and how many rows (requests or
 // sessions, as the card counts) fall in it.
@@ -19,38 +21,24 @@ const BIN_START_COLUMN = "bin_start";
 const BIN_END_COLUMN = "bin_end";
 const BIN_COUNT_COLUMN = "rows";
 
-// The percentiles drawn as dashed lines, each in the colour it has on every card.
-const PERCENTILE_LINES = [
-  { percentile: "p50", colour: "var(--series-1)" },
-  { percentile: "p75", colour: "var(--series-3)" },
-  { percentile: "p90", colour: "var(--series-4)" },
-  { percentile: "p95", colour: "var(--series-8)" },
-];
-
 // A card's chart differs from the shared frame in one margin: room left of it for a compact count, less than a share.
 const CARD_FRAME = Object.freeze({ marginLeft: 64 });
 const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars
-const PERCENTILE_HALO_WIDTH = 4; // a surface-coloured line under each dashed line, so it shows over a bar of its own colour
-const PERCENTILE_LINE_WIDTH = 2; // pixels; thin lines, as every chart draws them
 const DEFAULT_COUNT_LABEL = "Rows"; // the y axis label when the card does not name what it counts
 
 /**
- * The legend's entries: `[{ colour, text }]`, each percentile's dashed line as "p50 129.1k" in the card's format,
- * none for a card with no rows.
+ * The line above the chart: the median and the 95th percentile in the card's format, then the maximum where the card
+ * shows it: "median 0 · p95 1 · max 40"; "" for a card with no rows.
  */
-export function percentileEntries(card) {
+export function summaryText(card) {
   if (card.count === 0) {
-    return [];
+    return "";
   }
-  return PERCENTILE_LINES.map((line) => ({
-    colour: line.colour,
-    text: `${line.percentile} ${card.format(card.percentiles[line.percentile])}`,
-  }));
-}
-
-/** The legend's last entry, the card's maximum: "max 1.8M"; "" for a card with no rows. */
-export function maximumText(card) {
-  return card.count === 0 ? "" : `max ${card.format(card.max)}`;
+  const parts = [`median ${card.format(card.percentiles.p50)}`, `p95 ${card.format(card.percentiles.p95)}`];
+  if (card.showsMaximum) {
+    parts.push(`max ${card.format(card.max)}`);
+  }
+  return parts.join(" · ");
 }
 
 /** The card's line of rows, shown with its definition: "1,125,604 requests". */
@@ -102,15 +90,18 @@ export function drawableBins(card) {
 }
 
 /**
- * Draw the histogram `card` into a figure's `body`, replacing what it held, its percentiles' legend in the figure's
- * legend place above it.
+ * Draw the histogram `card` into a figure's `body`, replacing what it held, its summary line in the figure's legend
+ * place above it.
  */
 export async function drawHistogram(body, card) {
   if (card.count === 0) {
     body.replaceChildren(emptyNote());
     return;
   }
-  legendPlace(body).replaceChildren(...percentileLegendItems(card));
+  const summary = document.createElement("span");
+  summary.className = "legend-item";
+  summary.textContent = summaryText(card);
+  legendPlace(body).replaceChildren(summary);
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("./libraries.js");
   body.replaceChildren(histogramChart(Plot, card, body));
@@ -120,17 +111,22 @@ function histogramChart(Plot, card, body) {
   const countLabel = card.countLabel ?? DEFAULT_COUNT_LABEL;
   const frame = chartFrame(body);
   const ticks = cardTicks(card, maxTicksFor(frame.width));
+  const counts = countAxis(card);
   return Plot.plot({
     ...frame,
     ...CARD_FRAME,
     x: { type: card.logScale ? "log" : "linear", inset: X_INSET },
+    y: { type: counts.type, domain: counts.domain },
     marks: [
-      Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT }),
-      axisWithTicks(Plot.axisX, ticks, { ...AXIS_STYLE, tickFormat: card.tickFormat ?? card.format, label: null }),
-      Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: formatCompactCount, label: countLabel }),
-      Plot.rectY(drawableBins(card), { x1: "x0", x2: "x1", y: "count", fill: "var(--series-1)", inset: BAR_INSET }),
-      Plot.ruleY([0], AXIS_STYLE),
-      ...percentileMarks(Plot, card),
+      Plot.gridY({ ...GRID_STYLE, ticks: counts.ticks }),
+      axisWithTicks(Plot.axisX, ticks, {
+        ...AXIS_STYLE, tickFormat: card.tickFormat ?? card.format, label: card.xLabel ?? null,
+      }),
+      Plot.axisY({ ...AXIS_STYLE, ticks: counts.ticks, tickFormat: formatCountTick, label: countLabel }),
+      Plot.rectY(drawableBins(card), {
+        x1: "x0", x2: "x1", y1: counts.base, y2: "count", fill: "var(--series-1)", inset: BAR_INSET,
+      }),
+      Plot.ruleY([counts.base], AXIS_STYLE),
       Plot.tip(drawableBins(card), Plot.pointerX({
         ...TIP_STYLE, x1: "x0", x2: "x1", y: "count", title: (bin) => binDescription(card, bin, countLabel),
       })),
@@ -138,37 +134,23 @@ function histogramChart(Plot, card, body) {
   });
 }
 
-function percentileMarks(Plot, card) {
-  const marks = [];
-  for (const line of PERCENTILE_LINES) {
-    const position = [card.percentiles[line.percentile]];
-    marks.push(Plot.ruleX(position, { stroke: "var(--color-surface)", strokeWidth: PERCENTILE_HALO_WIDTH }));
-    marks.push(Plot.ruleX(position, { stroke: line.colour, strokeWidth: PERCENTILE_LINE_WIDTH, strokeDasharray: DASH }));
+/**
+ * The count axis of `card`: `{ type, domain, base, ticks }`, linear from 0 with about `TICK_COUNT` ticks, or, where the
+ * card's counts span many powers of ten, a log axis from the power of ten below its smallest bin to the one above its
+ * largest, ticked at its powers of ten, so a bin of a thousand rows beside one of a million still shows.
+ */
+export function countAxis(card) {
+  if (!card.logCounts) {
+    return { type: "linear", domain: undefined, base: 0, ticks: TICK_COUNT };
   }
-  return marks;
+  const counts = drawableBins(card).map((bin) => bin.count);
+  const base = 10 ** Math.floor(Math.log10(Math.min(...counts)));
+  const top = 10 ** Math.ceil(Math.log10(Math.max(...counts)));
+  return { type: "log", domain: [base, top], base, ticks: logAxisTicks([base, top]) };
 }
 
 function binDescription(card, bin, countLabel) {
   return `${card.format(bin.x0)} – ${card.format(bin.x1)}\n${countLabel}: ${formatCount(bin.count)}`;
-}
-
-// The legend's items: a dashed line and its value per percentile, then the maximum.
-function percentileLegendItems(card) {
-  const items = [];
-  for (const entry of percentileEntries(card)) {
-    const item = document.createElement("span");
-    item.className = "legend-item";
-    item.innerHTML = `<svg class="legend-dash" viewBox="0 0 18 8" aria-hidden="true">
-      <line x1="0" y1="4" x2="18" y2="4" stroke="${entry.colour}" stroke-width="2" stroke-dasharray="${DASH}" />
-    </svg>`;
-    item.append(entry.text);
-    items.push(item);
-  }
-  const maximum = document.createElement("span");
-  maximum.className = "legend-item";
-  maximum.textContent = maximumText(card);
-  items.push(maximum);
-  return items;
 }
 
 function emptyNote() {

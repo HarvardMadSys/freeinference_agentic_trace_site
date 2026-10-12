@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  TENTHS, TOOL_MIX_BY_TURN_POSITION, toolGroupLegend, toolMixPoints, toolMixTips, turnTicks,
+  stepPoints, TENTHS, TOOL_MIX_BY_TURN_POSITION, toolGroupLegend, toolMixPoints, toolMixTips, turnTicks,
 } from "../site/js/comparison/tool_mix.js";
 import { dropThinGroups, restingCountText } from "../site/js/figures/figure_rows.js";
 import { TOOL_GROUP_COLOURS } from "../site/js/theme/colours.js";
@@ -20,13 +20,13 @@ test("every scope has a point per tenth and group, a missing one a share of zero
   const points = toolMixPoints(ROWS, ["Read", "Search"]);
   assert.equal(points.length, 2 * TENTHS * 2);
   assert.deepEqual(points.slice(0, 2), [
-    { scope: "Agentic", tenth: 0, turnPercent: 10, group: "Read", share: 0 },
-    { scope: "Agentic", tenth: 0, turnPercent: 10, group: "Search", share: 1 },
+    { scope: "Agentic", tenth: 0, turnPercent: 5, group: "Read", share: 0 },
+    { scope: "Agentic", tenth: 0, turnPercent: 5, group: "Search", share: 1 },
   ]);
   const benchmarkLast = points.filter((point) => point.scope === "SWE-Bench" && point.tenth === 9);
   assert.deepEqual(benchmarkLast.map((point) => [point.turnPercent, point.group, point.share]), [
-    [100, "Read", 0.125],
-    [100, "Search", 0],
+    [95, "Read", 0.125],
+    [95, "Search", 0],
   ]);
 });
 
@@ -39,9 +39,9 @@ test("a hidden group has no points, and the shown groups keep their shares", () 
 test("a tenth's tooltip points at the top of its stack and lists its groups top first", () => {
   const tips = toolMixTips(toolMixPoints(ROWS, ["Read", "Search"]));
   assert.equal(tips.length, 2 * TENTHS);
-  const benchmarkFirst = tips.find((tip) => tip.scope === "SWE-Bench" && tip.turnPercent === 10);
+  const benchmarkFirst = tips.find((tip) => tip.scope === "SWE-Bench" && tip.turnPercent === 5);
   assert.equal(benchmarkFirst.top, 0.875);
-  assert.equal(benchmarkFirst.text, "Benchmark, 0–10% of the turn\nSearch: 12.5%\nRead: 75%");
+  assert.equal(benchmarkFirst.text, "Benchmark, 0–10% of the turn\nSearch: 12.5%\nRead: 75.0%");
 });
 
 test("the legend lists the rows' groups in the pipeline's order, each in its own colour", () => {
@@ -51,8 +51,8 @@ test("the legend lists the rows' groups in the pipeline's order, each in its own
 });
 
 test("a narrow chart labels two ticks per panel, a wide one three", () => {
-  assert.deepEqual(turnTicks(300), [25, 75]);
-  assert.deepEqual(turnTicks(900), [25, 50, 75]);
+  assert.deepEqual(turnTicks(300), [0, 100]);
+  assert.deepEqual(turnTicks(900), [0, 50, 100]);
 });
 
 test("each scope is a bin of its calls, hidden whole when thin, and the caption counts each scope's calls", () => {
@@ -60,4 +60,10 @@ test("each scope is a bin of its calls, hidden whole when thin, and the caption 
   assert.equal(hidden, 1);
   assert.deepEqual([...new Set(rows.map((row) => row.scope))], ["Agentic"]);
   assert.equal(restingCountText(ROWS, TOOL_MIX_BY_TURN_POSITION), "60 human-driven calls · 40 benchmark calls");
+});
+
+test("each tenth's share is drawn from the tenth's start, the last one again at the turn's end", () => {
+  const steps = stepPoints(toolMixPoints(ROWS, ["Read"]).filter((point) => point.scope === "SWE-Bench"));
+  assert.deepEqual(steps.slice(0, 2).map((point) => point.turnPercent), [0, 10]);
+  assert.deepEqual(steps.slice(-2).map((point) => [point.tenth, point.turnPercent]), [[9, 90], [9, 100]]);
 });

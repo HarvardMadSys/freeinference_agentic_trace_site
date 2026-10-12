@@ -88,7 +88,7 @@ test("one slice of the whole turn is drawn as the whole ring, two circles of two
 test("each legend entry names its slice and its share of every slice", () => {
   const slices = [{ name: "glm", count: 3 }, { name: "Other", count: 1 }];
   assert.deepEqual(legendSeries(slices), [
-    { name: "glm", label: "glm 75%" },
-    { name: "Other", label: "Other 25%" },
+    { name: "glm", label: "glm 75.0%" },
+    { name: "Other", label: "Other 25.0%" },
   ]);
 });

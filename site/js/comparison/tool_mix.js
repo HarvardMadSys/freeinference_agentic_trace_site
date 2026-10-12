@@ -14,18 +14,19 @@ import { formatPercent, formatShare } from "../shared/format.js";
 import { seriesLegend } from "../figures/figure_rows.js";
 import { SCOPE_LABELS, SCOPES } from "./scopes.js";
 
-/** The tenths a turn is cut into; a tenth's area is drawn at its end, from 10% to 100% of the turn. */
+/** The tenths a turn is cut into; each tenth's share is drawn flat across it, from 0% to 100% of the turn. */
 export const TENTHS = 10;
 const WHOLE_TURN_PERCENT = 100;
 const PERCENT_PER_TENTH = WHOLE_TURN_PERCENT / TENTHS;
 
-// The ticks of a panel's axis, in percent of the turn: none at either end, so that the last label of the first panel
-// does not run into the first label of the second, nor the first into the share axis; two on a narrow chart.
-const TURN_TICKS = Object.freeze([25, 50, 75]);
-const NARROW_TURN_TICKS = Object.freeze([25, 75]);
+// The ticks of a panel's axis, in percent of the turn: its start, middle and end, the start and end alone on a narrow
+// chart; the panels stand far enough apart that one's "100%" and the next one's "0%" do not meet.
+const TURN_TICKS = Object.freeze([0, 50, 100]);
+const NARROW_TURN_TICKS = Object.freeze([0, 100]);
+const PANEL_GAP = 0.18; // the share of a panel's width left between the two panels
 const SHARE_DOMAIN = Object.freeze([0, 1]); // the y axis spans a whole share, whatever groups are hidden
 const PANEL_TITLE_MARGIN = 44; // pixels above the panels: room for their titles clear of the share axis's "100%"
-const PANEL_TITLE_PADDING = 18; // pixels between a panel's top and its title
+const PANEL_TITLE_RISE = 18; // pixels between a panel's top and its title, which starts at the panel's left edge
 
 /** The tool mix figure entry, whose fields CONTRIBUTING.md defines. */
 export const TOOL_MIX_BY_TURN_POSITION = Object.freeze({
@@ -49,7 +50,7 @@ export function toolGroupLegend(rows, colours, seriesColumn) {
 
 /**
  * The points of the stacked areas: one `{ scope, tenth, turnPercent, group, share }` per scope of the rows, tenth and
- * group of `groups`, in that order; a share of zero where the rows hold none. `turnPercent` is the tenth's end.
+ * group of `groups`, in that order; a share of zero where the rows hold none. `turnPercent` is the tenth's middle.
  */
 export function toolMixPoints(rows, groups) {
   const shares = new Map(rows.map((row) => [shareKey(row.scope, row.tenth, row.tool_group), row.share]));
@@ -58,7 +59,7 @@ export function toolMixPoints(rows, groups) {
     for (let tenth = 0; tenth < TENTHS; tenth += 1) {
       for (const group of groups) {
         const share = shares.get(shareKey(scope, tenth, group)) ?? 0;
-        points.push({ scope, tenth, turnPercent: (tenth + 1) * PERCENT_PER_TENTH, group, share });
+        points.push({ scope, tenth, turnPercent: (tenth + 0.5) * PERCENT_PER_TENTH, group, share });
       }
     }
   }
@@ -74,7 +75,7 @@ export function toolMixTips(points) {
   for (const point of points) {
     const key = tenthKey(point.scope, point.tenth);
     if (!tips.has(key)) {
-      const heading = `${SCOPE_LABELS[point.scope]}, ${tenthText(point.turnPercent)} of the turn`;
+      const heading = `${SCOPE_LABELS[point.scope]}, ${tenthText(point.tenth)} of the turn`;
       tips.set(key, { scope: point.scope, turnPercent: point.turnPercent, top: 0, lines: [heading] });
     }
     const tip = tips.get(key);
@@ -98,25 +99,45 @@ async function drawToolMix(rows, body, colours) {
   const frame = { ...chartFrame(body), marginTop: PANEL_TITLE_MARGIN };
   const chart = Plot.plot({
     ...frame,
-    fx: { domain: scopesOf(rows) },
-    x: { domain: [PERCENT_PER_TENTH, WHOLE_TURN_PERCENT] }, // from the first tenth's end
+    fx: { domain: scopesOf(rows), axis: null, padding: PANEL_GAP },
+    x: { domain: [0, WHOLE_TURN_PERCENT] },
     y: { domain: SHARE_DOMAIN },
     color: colourScale(colours.series, groups),
     marks: [
-      // Each panel's title, lifted clear of the share axis's top label.
-      Plot.axisFx({ tickFormat: scopeLabel, label: null, tickSize: 0, tickPadding: PANEL_TITLE_PADDING }),
+      // Each panel's title at its own left edge, lifted clear of the share axis's top label.
+      Plot.text(scopesOf(rows), {
+        fx: (scope) => scope, text: scopeLabel, frameAnchor: "top-left", textAnchor: "start", dy: -PANEL_TITLE_RISE,
+        fill: "var(--chart-label)",
+      }),
       Plot.gridY(GRID_STYLE),
       Plot.axisX({
         ...AXIS_STYLE, ticks: turnTicks(frame.width), tickFormat: percentTick, label: "Position in the turn",
       }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: null }), // the caption says these are shares of calls
-      Plot.areaY(points, { fx: "scope", x: "turnPercent", y: "share", fill: "group", order: groups }),
+      Plot.areaY(stepPoints(points), {
+        fx: "scope", x: "turnPercent", y: "share", fill: "group", order: groups, curve: "step-after",
+      }),
       Plot.tip(toolMixTips(points), Plot.pointerX({
         ...TIP_STYLE, fx: "scope", x: "turnPercent", y: "top", title: "text",
       })),
     ],
   });
   body.replaceChildren(chart);
+}
+
+/**
+ * The points a stepped area draws for `points`: each tenth's share from the tenth's start, and the last tenth's again at
+ * the turn's end, so that each share spans its whole tenth.
+ */
+export function stepPoints(points) {
+  const steps = [];
+  for (const point of points) {
+    steps.push({ ...point, turnPercent: point.tenth * PERCENT_PER_TENTH });
+    if (point.tenth === TENTHS - 1) {
+      steps.push({ ...point, turnPercent: WHOLE_TURN_PERCENT });
+    }
+  }
+  return steps;
 }
 
 /** The ticks of each panel's axis on a chart `width` pixels wide, in percent of the turn. */
@@ -146,6 +167,6 @@ function percentTick(percent) {
   return `${percent}%`;
 }
 
-function tenthText(turnPercent) {
-  return `${turnPercent - PERCENT_PER_TENTH}–${turnPercent}%`;
+function tenthText(tenth) {
+  return `${tenth * PERCENT_PER_TENTH}–${(tenth + 1) * PERCENT_PER_TENTH}%`;
 }

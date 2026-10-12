@@ -7,9 +7,13 @@
  * category, its count in `rows`, so a thin one is hidden whole.
  */
 
-import { AXIS_STYLE, categoryRowsFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
+import {
+  AXIS_STYLE, categoryRowsFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, TIP_STYLE,
+} from "../shared/charts.js";
 import { axisWithTicks, decadeTicks } from "../axes/ticks.js";
-import { formatCount, formatSeconds, formatTokens, MILLISECONDS_PER_SECOND } from "../shared/format.js";
+import {
+  formatCount, formatCountTick, formatSeconds, formatTokens, MILLISECONDS_PER_SECOND,
+} from "../shared/format.js";
 import { CALLS_PER_REQUEST_BY_CATEGORY, LATENCY_BY_BATCH_WIDTH } from "./tools_batching.js";
 import { TOOL_MIX_BY_TURN_POSITION } from "../comparison/tool_mix.js";
 
@@ -37,19 +41,21 @@ const RESULT_TOKENS_RANGE = Object.freeze({
   scale: 1,
   floor: 1, // an empty result is drawn at one token, below the shortest messages
   format: formatTokens,
-  tickFormat: formatTokens,
+  tickFormat: formatCountTick,
 });
 
 const WHISKER_WIDTH = 1; // pixels; the thin rule from the 5th to the 95th percentile
 const BOX_WIDTH = 8; // pixels; the thick bar from the 25th to the 75th percentile
 const MEDIAN_TICK_INSET = 4; // pixels taken off the top and bottom of a category's row by the median's tick
+// The note over a quantile-range chart: what the asterisk before a category's name means.
+const ASTERISK_NOTE = "* a shell command, by its purpose";
 
 /** The figures of the Tools section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
   Object.freeze({
     name: "latency_by_category",
     title: "Tool latency by category",
-    definition: "Percentiles (5th to 95th) of a tool call's latency, the wait after its request until the session's next, per category, over calls alone in their request, where the paper also marks the mean; * marks a shell command's purpose.",
+    definition: "The 5th, 25th, 50th, 75th and 95th percentiles of a tool call's latency, the wait after its request until the session's next, per category, over calls alone in their request; * marks a shell command's purpose.",
     caption: "Tool call latency per category, box p25–p75, whiskers p5–p95.",
     query: "figures/latency_by_category",
     binColumn: "category",
@@ -58,7 +64,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "result_tokens_by_category",
     title: "Tool result size by category",
-    definition: "The 5th, 25th, 50th, 75th and 95th percentile of the tokens of a tool call's result per category, over calls whose result was matched, where the paper also marks the mean; a category marked * is a shell command's purpose.",
+    definition: "The 5th, 25th, 50th, 75th and 95th percentiles of the tokens of a tool call's result per category, over calls whose result was matched; * marks a shell command's purpose.",
     caption: "Tool result tokens per category, box p25–p75, whiskers p5–p95.",
     query: "figures/result_tokens_by_category",
     binColumn: "category",
@@ -80,8 +86,9 @@ async function drawResultTokens(rows, body, colours) {
 }
 
 /**
- * Draw one row per category, in the order of `categoryColours` (the global category order) and in its colour: a
- * thin rule from the 5th to the 95th percentile, a thick bar from the 25th to the 75th, and a tick at the median.
+ * Draw one row per category, in the order of `categoryColours` (the global category order, Other last) and in its
+ * tool group's colour: a thin rule from the 5th to the 95th percentile, a thick bar from the 25th to the 75th, and a
+ * tick at the median; above it, the note on the asterisk.
  */
 async function drawQuantileRanges(rows, body, categoryColours, range) {
   // Plot is loaded here, not at the top, so node can test the section's figure list.
@@ -89,6 +96,10 @@ async function drawQuantileRanges(rows, body, categoryColours, range) {
   const present = new Set(rows.map((row) => row.category));
   const categories = [...categoryColours.keys()].filter((category) => present.has(category));
   const ranges = rows.map((row) => drawnRange(row, range));
+  const note = document.createElement("span");
+  note.className = "legend-item";
+  note.textContent = ASTERISK_NOTE;
+  legendPlace(body).replaceChildren(note);
   const chart = Plot.plot({
     ...categoryRowsFrame(body, categories.length),
     x: { type: "log" },

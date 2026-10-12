@@ -7,10 +7,10 @@
  * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
  */
 
-import { drawCdf } from "../shared/charts.js";
+import { drawCdf } from "../shared/cdf.js";
 import { atMost } from "../axes/ticks.js";
 import { assignColours } from "../theme/colours.js";
-import { formatCompactCount, formatCount, formatDurationTick, formatSeconds, formatWholeCount } from "../shared/format.js";
+import { formatCount, formatCountTick, formatDurationTick, formatSeconds, formatWholeCount } from "../shared/format.js";
 import { cdfSeries, seriesLegend } from "./figure_rows.js";
 import { USER_PROMPT_TOKENS_BY_SCOPE } from "../comparison/scope_cdfs.js";
 
@@ -32,7 +32,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "requests_per_session_cdf",
     title: "Requests and steps per session",
-    definition: "CDF over top-level sessions of their requests, user steps and tool steps; a session with no tool step is drawn at one.",
+    definition: "Share of top-level sessions with at most each number of requests, user steps and tool steps; a session with no tool step is drawn at one.",
     caption: "Requests, user steps and tool steps of each top-level session.",
     drawsLines: true,
     query: "figures/requests_per_session_cdf",
@@ -45,7 +45,7 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "duration_cdf",
     title: "Turn and session duration",
-    definition: "CDF of each turn's duration (a user step and the tool steps after it, first start to last end) and of each session's, in seconds.",
+    definition: "Share of turns, and of top-level sessions, that last at most each duration; a turn is a user step and the tool steps after it, from first start to last end.",
     caption: "Duration of each turn and of each top-level session.",
     drawsLines: true,
     query: "figures/duration_cdf",
@@ -58,13 +58,15 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "subagents_per_session",
     title: "Subagents per session",
-    definition: "Subagent sessions each top-level session spawned, at any depth, on a log scale, where a session that spawned none is counted in the rows and the percentiles but not drawn.",
-    caption: "Subagent sessions each top-level session spawned, at any depth.",
+    definition: "Subagent sessions each top-level session spawned, at any depth, on a log scale; a session that spawned none is counted in the rows, the median and the 95th percentile, but not drawn.",
+    caption: "Subagents per session; most spawn none, those that do are drawn.",
     query: "explore/subagents_per_session_bins",
     statsQuery: "explore/subagents_per_session_stats",
     countLabel: "Sessions",
+    xLabel: "Subagents",
     format: formatWholeCount,
     logScale: true,
+    showsMaximum: true,
     ticks: subagentTicks,
   }),
   USER_PROMPT_TOKENS_BY_SCOPE,
@@ -89,7 +91,7 @@ function durationLegend(rows, colours, seriesColumn) {
 async function drawRequestsPerSession(rows, body, colours) {
   const series = cdfSeries(rows, Object.keys(SESSION_COUNT_SERIES), { labels: SESSION_COUNT_SERIES, floor: MIN_COUNT_DRAWN });
   await drawCdf(body, series, {
-    xLabel: "Count", yLabel: "Share of sessions", logX: true, format: formatCount, xTickFormat: formatCompactCount,
+    xLabel: "Requests or steps", yLabel: "Share of sessions", logX: true, format: formatCount, xTickFormat: formatCountTick,
     colours: colours.series,
   });
 }
@@ -98,6 +100,6 @@ async function drawRequestsPerSession(rows, body, colours) {
 async function drawDurations(rows, body, colours) {
   const series = cdfSeries(rows, Object.keys(DURATION_SERIES), { labels: DURATION_SERIES, floor: MIN_SECONDS_DRAWN });
   await drawCdf(body, series, {
-    logX: true, xTicks: DURATION_TICKS_S, xTickFormat: formatDurationTick, format: formatSeconds, colours: colours.series,
+    yLabel: "Share of turns or sessions", logX: true, xTicks: DURATION_TICKS_S, xTickFormat: formatDurationTick, format: formatSeconds, colours: colours.series,
   });
 }

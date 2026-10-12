@@ -61,7 +61,7 @@ test("a request splits at its time to first token into two bars", () => {
     [0, 2, "var(--request-ttft)"],
     [2, 10, "var(--request-rest)"],
   ]);
-  assert.match(first[0].tip, /^main · step 0 · turn 1\ntime to first token 2 s\nrest 8 s$/);
+  assert.match(first[0].tip, /^main · step 0 · turn 1\ntime to first token 2.0 s\nrest 8.0 s$/);
 });
 
 test("a request without a time to first token is one bar", () => {
@@ -72,7 +72,7 @@ test("a request without a time to first token is one bar", () => {
 test("a tool call runs from its request's end for its latency, in the tool band, coloured by category", () => {
   const tools = barsOf((bar) => bar.band === "tool");
   assert.deepEqual(tools.map((bar) => [bar.step, bar.x1, bar.x2, bar.colour]), [[1, 30, 50, "var(--series-2)"]]);
-  assert.match(tools[0].tip, /^Task · Subagent\nlatency 20 s/);
+  assert.match(tools[0].tip, /^Task · Subagent\nlatency 20.0 s/);
 });
 
 test("a wait ends at its request's start, lasts its wait, is lighter and coloured by what it waited for", () => {
@@ -81,7 +81,7 @@ test("a wait ends at its request's start, lasts its wait, is lighter and coloure
     [1, 10, 20, "var(--cause-tool)"],
     [2, 30, 100, "var(--cause-subagent)"],
   ]);
-  assert.equal(waits[1].tip, "waited 70 s for subagents\nbefore main step 2");
+  assert.equal(waits[1].tip, "waited 1.2 min for subagents\nbefore main step 2");
 });
 
 test("a long user wait is a user wait whose tooltip gives its duration", () => {
@@ -91,7 +91,7 @@ test("a long user wait is a user wait whose tooltip gives its duration", () => {
   ];
   const wait = ganttBars(TREE, waited, [], COLOURS).find((bar) => bar.opacity === WAIT_OPACITY);
   assert.deepEqual([wait.x1, wait.x2, wait.colour], [10, 1_210, "var(--cause-user)"]);
-  assert.match(wait.tip, /^waited 20 min for the user/);
+  assert.match(wait.tip, /^waited 20.0 min for the user/);
 });
 
 test("tool calls without a positive latency and waits under zero are counted as undrawn", () => {

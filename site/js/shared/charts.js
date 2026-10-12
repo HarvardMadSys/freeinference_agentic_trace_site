@@ -1,12 +1,12 @@
 /**
- * What every chart shares: its frame and ink, its log-axis ticks, folding series past the eighth into "Other", loading
- * and error states, the figure card, and the CDF and bar drawings. The colours a chart draws in come from `theme/colours.js`.
- * The drawing functions load Plot themselves; the rest is plain functions, tested with `node --test`.
+ * What every chart shares: its frame and ink, folding series past the eighth into "Other", loading and error states,
+ * the figure card, and the bar drawing; the CDF drawing is in `cdf.js`. The colours a chart draws in come from
+ * `theme/colours.js`. The drawing functions load Plot themselves; the rest is plain functions, tested with `node --test`.
  */
 
 import { OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
-import { formatCount, formatPercent, formatShare } from "./format.js";
-import { axisWithTicks, extent, logAxisTicks, TICK_COUNT } from "../axes/ticks.js";
+import { formatCount } from "./format.js";
+import { TICK_COUNT } from "../axes/ticks.js";
 
 /** A bin, category or model with fewer rows than this is not drawn: too few rows to show a shape. */
 export const MIN_ROWS_PER_BIN = 50;
@@ -14,7 +14,10 @@ export const MIN_ROWS_PER_BIN = 50;
 // Joins a bar's x value and series name into one key when summing folded rows.
 const KEY_SEPARATOR = "\u0000";
 
-const CHART_HEIGHT = 240; // every chart has the same height, so a grid of figures lines up
+/** Every chart's height, so a grid of figures lines up. */
+export const CHART_HEIGHT = 240;
+/** The height of a chart beside a tall neighbour, a long table or a chart of many categories, so its row has no gap. */
+export const TALL_CHART_HEIGHT = 400;
 const FALLBACK_WIDTH = 480; // the width drawn when the body has not been laid out yet
 const CATEGORY_ROW_HEIGHT = 22; // pixels per category, so sixteen categories keep readable labels
 const CATEGORY_MARGIN_LEFT = 116; // pixels; room for the longest category name, "*Interpreter"
@@ -25,7 +28,6 @@ export const LINE_WIDTH = 2;
 const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars and segments
 /** The dash and gap lengths of every dashed line, in pixels: a CDF's median, a percentile, a reference line. */
 export const DASH = "4 3";
-const MEDIAN_SHARE = 0.5; // the share of rows at which a CDF crosses its median
 /** Pixels between the y axis and an x axis's first value, so its label and the y axis's lowest keep a gap. */
 export const X_INSET = 16;
 
@@ -40,6 +42,10 @@ const UNTITLED_MARGIN_TOP = 12; // pixels above a chart whose y axis has no titl
 export const GRID_STYLE = Object.freeze({ stroke: "var(--chart-grid)", strokeOpacity: 1 });
 /** The options of every chart's axes and reference rules: the axis ink, and an axis title with no arrow. */
 export const AXIS_STYLE = Object.freeze({ stroke: "var(--chart-axis)", labelArrow: "none" });
+/** A label written on a chart: in the label ink, on a halo of the card's colour so a line under it does not cross it. */
+export const LINE_LABEL_STYLE = Object.freeze({
+  fill: "var(--chart-label)", stroke: "var(--color-surface)", strokeWidth: 4, paintOrder: "stroke",
+});
 /** The options of every chart's tooltip: Plot's white box would be unreadable in dark mode, so it takes the surface colour. */
 export const TIP_STYLE = Object.freeze({ fill: "var(--color-surface)" });
 
@@ -142,40 +148,6 @@ export function legendPlace(body) {
 }
 
 /**
- * Draw into `body` one line per series of `series`, `[{ name, label, points: [{ x, share }] }]`, with share running
- * 0 to 1, each in its colour from `colours` (a map from series name to colour, as `assignColours` gives); the tooltip
- * names a series by its label. `format` writes an x value in the tooltip, `xTickFormat` (if given) on the axis;
- * `xDomain`, when given, is the x axis's `[low, high]`, the lines cut at its ends; `xTicks`, when given, are the x
- * axis's ticks, else a log axis ticks its powers of ten (`logAxisTicks`); `xLabel` and `yLabel` title the axes, none
- * when null.
- */
-export async function drawCdf(body, series, options) {
-  const { xLabel = null, yLabel = "Share", logX = false, format = String, xTickFormat, colours, xDomain } = options;
-  // Plot is loaded here, not at the top, so node can test this module's pure functions.
-  const { Plot } = await import("./libraries.js");
-  const points = cdfPoints(series);
-  const names = series.map((one) => one.name);
-  const xTicks = options.xTicks ?? (logX ? logAxisTicks(xDomain ?? extent(points.map((point) => point.x))) : undefined);
-  const chart = Plot.plot({
-    ...chartFrame(body),
-    x: { type: logX ? "log" : "linear", domain: xDomain, inset: X_INSET },
-    y: { domain: [0, 1] },
-    clip: xDomain !== undefined,
-    color: colourScale(colours, names),
-    marks: [
-      xTicks === undefined ? Plot.gridX(GRID_STYLE) : Plot.gridX(xTicks, GRID_STYLE),
-      Plot.gridY(GRID_STYLE),
-      Plot.ruleY([MEDIAN_SHARE], { ...AXIS_STYLE, strokeDasharray: DASH }),
-      axisWithTicks(Plot.axisX, xTicks, { ...AXIS_STYLE, label: xLabel, tickFormat: xTickFormat }),
-      Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: yLabel }),
-      Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH }),
-      Plot.tip(points, Plot.pointerX({ ...TIP_STYLE, x: "x", y: "share", title: (point) => cdfTipText(point, format) })),
-    ],
-  });
-  body.replaceChildren(chart);
-}
-
-/**
  * Draw into `body` one bar per row of `rows`: `row[x]` along the axis, `row[y]` its height, coloured by `row[fill]`
  * in its colour from `colours`, a Map from each fill value (and "Other") to its colour, in the order the series stack.
  * Series past the eighth of `order` (a fixed order of fill values, largest first) or of the rows' order fold into
@@ -258,21 +230,6 @@ function barHeight(y, stacked) {
     return { y };
   }
   return { y2: y };
-}
-
-/** The points of CDF series `[{ name, label, points: [{ x, share }] }]` as one list: `[{ name, label, x, share }]`. */
-export function cdfPoints(series) {
-  const points = [];
-  for (const one of series) {
-    for (const point of one.points) {
-      points.push({ name: one.name, label: one.label, x: point.x, share: point.share });
-    }
-  }
-  return points;
-}
-
-function cdfTipText(point, format) {
-  return `${point.label}\n${format(point.x)}\n${formatShare(point.share)} at or below`;
 }
 
 function barTipText(row, { x, y, fill, yLabel, format }) {

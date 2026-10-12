@@ -52,8 +52,9 @@ test("every scope CDF counts each scope's rows under its own noun", () => {
   }
 });
 
-test("the legend sums the medians up, human-driven against benchmark, with their ratio, or says nothing without both", () => {
-  const seconds = (value) => `${value} s`;
-  assert.equal(medianSummary(ROWS, seconds), "median 0.5 s vs 188.3 s · 376.6×");
-  assert.equal(medianSummary(ROWS.filter((row) => row.series === "SWE-Bench"), seconds), "");
+test("the legend names the scope whose median is the larger and by how much, or says nothing without both", () => {
+  assert.equal(medianSummary(ROWS, "longer"), "benchmark 376.6× longer");
+  const reversed = ROWS.map((row) => ({ ...row, median: row.series === "SWE-Bench" ? 0.1 : row.median }));
+  assert.equal(medianSummary(reversed, "more"), "human-driven 376.6× more");
+  assert.equal(medianSummary(ROWS.filter((row) => row.series === "SWE-Bench"), "longer"), "");
 });

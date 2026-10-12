@@ -1,21 +1,24 @@
 /**
- * Numbers and names as every page shows them: counts, compact counts and token totals, durations and duration ticks,
- * elapsed time and its ticks, shares and whole percentages, multiples, a session's short id, a UTC minute, a week's month
- * and day and a span of days; and the two definitions they rest on, elapsed seconds and the cached share.
+ * Numbers and names as every page shows them, a value with one decimal kept and an axis's tick with none it does not
+ * need: counts, compact counts and their ticks, token totals, durations and duration ticks, elapsed time and its
+ * ticks, shares and whole percentages, multiples, a session's short id, a UTC minute, a week's month and day and a
+ * span of days; and the two definitions they rest on, elapsed seconds and the cached share.
  */
 
 // A compact count is shown in the largest of these units it reaches.
+const BILLION = 1e9;
+const SMALL_BILLIONS = 10 * BILLION; // under ten billion, a count keeps two decimals, so it shows three figures
 const COMPACT_UNITS = [
-  [1e9, "B"],
+  [BILLION, "B"],
   [1e6, "M"],
   [1e3, "k"],
 ];
 
-// A duration's text is in the first unit it is below the bound of: seconds under 100 s, minutes under 100 minutes,
+// A duration's text is in the first unit it is below the bound of: seconds under a minute, minutes under 100 minutes,
 // hours under two days, else days, so a value keeps two or three figures.
 const SECONDS_PER_DAY = 86400;
 const DURATION_TEXT_UNITS = Object.freeze([
-  Object.freeze({ below: 100, size: 1, unit: "s" }),
+  Object.freeze({ below: 60, size: 1, unit: "s" }),
   Object.freeze({ below: 6000, size: 60, unit: "min" }),
   Object.freeze({ below: 2 * SECONDS_PER_DAY, size: 3600, unit: "h" }),
 ]);
@@ -67,8 +70,22 @@ export function formatQuantity(count, singular, plural) {
   return `${formatCount(count)} ${count === 1 ? singular : plural}`;
 }
 
-/** A count in B, M or k with one decimal: 129087 → "129.1k", 1000 → "1k"; under a thousand, the count itself. */
+/**
+ * A count in B, M or k with one decimal kept, and three figures at least in billions: 129087 → "129.1k", 1000 →
+ * "1.0k", 2036000000 → "2.04B"; under a thousand, the count itself.
+ */
 export function formatCompactCount(count) {
+  for (const [size, suffix] of COMPACT_UNITS) {
+    if (count >= size) {
+      const decimals = size === BILLION && count < SMALL_BILLIONS ? 2 : 1;
+      return `${(count / size).toFixed(decimals)}${suffix}`;
+    }
+  }
+  return formatCount(count);
+}
+
+/** A count as an axis writes it, in B, M or k with one decimal at most: 129087 → "129.1k", 1000 → "1k". */
+export function formatCountTick(count) {
   for (const [size, suffix] of COMPACT_UNITS) {
     if (count >= size) {
       return withoutTrailingZero((count / size).toFixed(1)) + suffix;
@@ -88,8 +105,8 @@ export function formatTokens(tokens) {
 }
 
 /**
- * A duration in the words an axis uses, with one decimal at most: "4.3 s" and "61 s" under 100 s, "3.1 min" under 100
- * minutes, "1.8 h" under two days, then "3.8 d"; a duration under a tenth of a second keeps two decimals, "0.04 s".
+ * A duration with one decimal kept: "4.3 s" and "42.0 s" under a minute, "1.0 min" and "63.0 min" under 100 minutes,
+ * "1.8 h" under two days, then "3.8 d"; a duration under a tenth of a second keeps two decimals, "0.04 s".
  */
 export function formatSeconds(seconds) {
   for (const { below, size, unit } of DURATION_TEXT_UNITS) {
@@ -143,9 +160,9 @@ export function formatPercent(share) {
   return `${Math.round(share * 100)}%`;
 }
 
-/** A share of one as a percentage with one decimal at most: 0.632 → "63.2%", 1 → "100%". */
+/** A share of one as a percentage with one decimal kept: 0.632 → "63.2%", 0.94 → "94.0%", 1 → "100.0%". */
 export function formatShare(share) {
-  return `${withoutTrailingZero((share * 100).toFixed(1))}%`;
+  return `${(share * 100).toFixed(1)}%`;
 }
 
 /** A multiple and a times sign, with `decimals` decimals when given, else as it is: (1.3757, 2) → "1.38×"; 2 → "2×". */
@@ -230,7 +247,7 @@ function padded(number) {
 
 function oneDecimal(value) {
   const decimals = value > 0 && value < TWO_DECIMALS_BELOW ? 2 : 1;
-  return withoutTrailingZero(value.toFixed(decimals));
+  return value.toFixed(decimals);
 }
 
 function withoutTrailingZero(text) {

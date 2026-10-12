@@ -14,7 +14,7 @@ import {
 import { weekTickFormat } from "../axes/ticks.js";
 import { barColours, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { seriesLegend } from "../figures/figure_rows.js";
-import { formatCompactCount, formatQuantity, formatTokens } from "../shared/format.js";
+import { formatCountTick, formatQuantity, formatTokens } from "../shared/format.js";
 import { drawWithLegend, shownRows } from "./legend.js";
 
 // A trend names as many series as the donut above it, the harnesses or models that hold the eight series colours, and
@@ -172,7 +172,7 @@ function weekBarOptions(context) {
     yAxisLabel: null, // the card's title names what the bars count
     xTickFormat: weekTickFormat(context.weeks.map((entry) => entry.week)),
     xDomain: context.weeks.map((entry) => entry.week),
-    yTickFormat: formatCompactCount,
+    yTickFormat: formatCountTick,
     fillOpacity: (row) => barOpacity(row, context.selection.weeks),
   };
 }

@@ -16,8 +16,8 @@ const ROWS = [
 test("the legend lists the batched calls and the serial line, each in its own colour", () => {
   const { series, colours } = batchLegend();
   assert.deepEqual(series, [
-    { name: "batched", label: "Batched calls" },
-    { name: "serial", label: "One call per request" },
+    { name: "batched", label: "Batched calls: median, p25–p75, p10–p90" },
+    { name: "serial", label: "Same calls one by one" },
   ]);
   assert.equal(colours.get("batched"), BATCH_COLOURS.batched);
   assert.equal(colours.get("serial"), BATCH_COLOURS.serial);

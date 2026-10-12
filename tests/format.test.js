@@ -5,7 +5,7 @@ import {
   cachedShare, elapsedSeconds, formatCount, formatDurationTick, formatElapsed, formatMultiple, formatOptionalShare,
   formatQuantity, formatSeconds, formatShare, formatTokens, monthName, shortSessionId, utcMinute,
   elapsedTickFormat, formatBinaryThousands, formatCompactCount, formatPercent, formatTtlName, monthAndDay,
-  dateSpanText, shortMinute, shortMonth, formatWholeCount,
+  dateSpanText, formatCountTick, shortMinute, shortMonth, formatWholeCount,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -16,18 +16,20 @@ test("a token total is shown in its largest unit", () => {
   assert.equal(formatTokens(512), "512");
   assert.equal(formatTokens(129087), "129.1k");
   assert.equal(formatTokens(1_200_000), "1.2M");
-  assert.equal(formatTokens(209_000_000_000), "209B");
+  assert.equal(formatTokens(209_000_000_000), "209.0B");
+  assert.equal(formatTokens(2_036_000_000), "2.04B");
 });
 
-test("a duration is written in the axes' words with one decimal at most", () => {
+test("a duration keeps one decimal, in seconds only under a minute", () => {
   assert.equal(formatSeconds(4.25), "4.3 s");
-  assert.equal(formatSeconds(61), "61 s");
+  assert.equal(formatSeconds(42), "42.0 s");
+  assert.equal(formatSeconds(61), "1.0 min");
   assert.equal(formatSeconds(724), "12.1 min");
-  assert.equal(formatSeconds(119.6), "2 min");
+  assert.equal(formatSeconds(3780), "63.0 min");
   assert.equal(formatSeconds(6480), "1.8 h");
   assert.equal(formatSeconds(328000), "3.8 d");
   assert.equal(formatSeconds(0.04), "0.04 s");
-  assert.equal(formatSeconds(0), "0 s");
+  assert.equal(formatSeconds(0), "0.0 s");
 });
 
 test("a duration tick is in the largest unit it reaches, to one decimal at most", () => {
@@ -57,9 +59,10 @@ test("elapsed time is minutes and seconds, with hours when needed", () => {
   assert.equal(formatElapsed(3661), "1:01:01");
 });
 
-test("a share is a percentage with one decimal at most, a whole one with none", () => {
+test("a share is a percentage with one decimal kept", () => {
   assert.equal(formatShare(0.632), "63.2%");
-  assert.equal(formatShare(1), "100%");
+  assert.equal(formatShare(0.94), "94.0%");
+  assert.equal(formatShare(1), "100.0%");
 });
 
 test("a percentile of counts is written as a whole count", () => {
@@ -69,7 +72,7 @@ test("a percentile of counts is written as a whole count", () => {
 
 test("an optional share is a percentage, or a dash when it is missing", () => {
   assert.equal(formatOptionalShare(0.632), "63.2%");
-  assert.equal(formatOptionalShare(0), "0%");
+  assert.equal(formatOptionalShare(0), "0.0%");
   assert.equal(formatOptionalShare(null), "—");
 });
 
@@ -105,11 +108,18 @@ test("a month is written as its name and year", () => {
   assert.equal(monthName("2026-07"), "July 2026");
 });
 
-test("a compact count is in its largest unit, lower-case k, a round one with no decimal", () => {
-  assert.equal(formatCompactCount(300000), "300k");
-  assert.equal(formatCompactCount(1000), "1k");
+test("a compact count is in its largest unit, lower-case k, one decimal kept", () => {
+  assert.equal(formatCompactCount(300000), "300.0k");
+  assert.equal(formatCompactCount(1000), "1.0k");
   assert.equal(formatCompactCount(1_800_000), "1.8M");
+  assert.equal(formatCompactCount(2_000_000_000), "2.00B");
   assert.equal(formatCompactCount(250), "250");
+});
+
+test("a count on an axis has no decimal it does not need", () => {
+  assert.equal(formatCountTick(300000), "300k");
+  assert.equal(formatCountTick(1500), "1.5k");
+  assert.equal(formatCountTick(250), "250");
 });
 
 test("a power-of-two token count is written in units of 1,024", () => {

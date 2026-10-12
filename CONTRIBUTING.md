@@ -212,9 +212,10 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
 - `title`: the card's heading.
 - `caption`: the card's one short line, a sentence of at most twelve words, with
   nothing the axes and legend already say.
-- `definition`: one sentence of at most forty words saying what is drawn,
-  and where the site draws more simply than the paper, how (the details go
-  to `docs/differences.md`); shown behind the Definition control.
+- `definition`: one sentence of at most forty words saying what is drawn, in
+  plain words ("share of requests at or below each …", not "CDF");
+  where the site draws more simply than the paper, `docs/differences.md`
+  says how, not the definition; shown behind the Definition control.
 - `query`: the query whose answer it draws, as `runQuery` names it
   (`"figures/<name>"`).
 - `binColumn`: the column naming the bin or series each row belongs to, every
@@ -261,17 +262,19 @@ A **histogram figure** has no `binColumn` and no `draw`: its `query` is a
 bins query, `explore/<prefix>_bins` (each row a bin's `bin_start`, `bin_end`
 and `rows`), and its `statsQuery` the matching `explore/<prefix>_stats` (one
 row of `count`, `max` and the 50th, 75th, 90th and 95th percentiles). The page
-draws it with `shared/histogram.js`, every bin shown, dashed lines at the
-percentiles and its count as its line of rows, from the fields
-`countLabel` (what a bin counts), `format` (a value in the legend and the
-tooltip), `tickFormat` (optional, a value on the axis), `logScale` and
+draws it with `shared/histogram.js`, every bin shown, one line above it of
+the median, the 95th percentile and, with `showsMaximum`, the maximum, and
+its count as its line of rows, from the fields `countLabel` (what a bin
+counts), `xLabel` (optional, the value axis's title), `format` (a value in the
+summary and the tooltip), `tickFormat` (optional, a value on the axis),
+`logScale`, `logCounts` (optional, a log count axis) and
 `ticks(domain, maxTicks)` (optional, a log axis's ticks).
 
 ```js
 Object.freeze({
   name: "tokens_per_request_cdf",
   title: "Tokens per request",
-  definition: "CDF over requests of input tokens, uncached input tokens (where the provider reports cache reads) and output tokens (where there are more than one, as in the paper).",
+  definition: "Share of requests with at most each number of input tokens, uncached input tokens (where the provider reports cache reads) and output tokens (where there are more than one).",
   caption: "Input, uncached input and output tokens of each request.",
   drawsLines: true,
   query: "figures/tokens_per_request_cdf",
@@ -329,8 +332,8 @@ words, and their tests. Nothing about it runs in the browser.
    queries above, in `README.md`, in `CLAUDE.md` and in `RESTATING_QUERIES`
    of `tests/test_pipeline_mirrors.py`, which checks the three agree.
 7. **The differences.** Where the figure is drawn more simply than the paper,
-   its definition says how, and so does an item of `docs/differences.md`,
-   which `tests/test_differences.py` checks.
+   an item of `docs/differences.md` says how, which `tests/test_differences.py`
+   checks; the definition says what is drawn and leaves the paper out.
 
 ## JavaScript style
 
@@ -394,15 +397,20 @@ which is plain HTML.
   `--chart-label`. Text is never coloured by series.
 - **One axis.** Two measures of different scale are two charts.
 - **The card.** A figure shows its title and a one-line caption, its legend
-  above the chart, and a Definition control that opens on its full
-  definition and the rows it rests on. The harnesses and weeks every figure
-  draws are said once, under the page's title. Where the site draws more
-  simply than the paper, the definition says so.
+  above the chart (none, and no room kept for one, where it has a single
+  series), and a Definition control that opens on its full definition and
+  the rows it rests on. A legend names only what is drawn, and everything
+  drawn has an entry or a label on the chart.
 - **Axis text.** At most six ticks per axis (`axes/ticks.js`), no minor
   gridlines on a log axis, no arrow on an axis title, and no title that the
-  card's title or legend already gives. One format per quantity: durations as
-  "1 s", "1 min", "1 h", "1 d"; percentages without decimals; counts and
-  tokens as "1k", "1M".
+  card's title or legend already gives; a y-axis title says what is counted
+  ("Share of requests"), and an x axis whose ticks carry no unit has a title
+  ("Tokens"). One format per quantity: an axis's ticks as "1 s", "1 min",
+  "1 h", "1 d", percentages without decimals and counts as "1k", "1M"
+  (`formatDurationTick`, `formatPercent`, `formatCountTick`); a value in a
+  legend, a tooltip, a table or a card with one decimal kept ("63.0 min",
+  "94.0%", "129.1k", and three figures in billions, "2.04B"), in seconds only
+  under a minute (`formatSeconds`, `formatShare`, `formatCompactCount`).
 
 ## Verifying a change
 

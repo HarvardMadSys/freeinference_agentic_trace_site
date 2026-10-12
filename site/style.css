@@ -1689,9 +1689,8 @@ button.is-primary {
   background: var(--color-highlight);
 }
 
-/* The mutation table is not sorted: its headers take no click. A transition's row is bold, and a cause of a mutation
-   is set under the transitions, indented. Its cells are narrower and its names wrap, so its four columns fit a
-   phone's width. */
+/* The mutation table is not sorted: its headers take no click. The causes of a mutation are set under a muted "of
+   which" line, indented. Its cells are narrower and its names wrap, so its four columns fit a phone's width. */
 .mutation-table th {
   cursor: default;
 }
@@ -1705,8 +1704,19 @@ button.is-primary {
   white-space: normal;
 }
 
-.mutation-table .is-transition td {
-  font-weight: 600;
+.mutation-table .is-of-which td {
+  padding-block: 0.25rem 0;
+  border-bottom: none;
+  font-size: var(--font-size-smallest);
+  font-style: italic;
+  color: var(--color-text-faint);
+}
+
+/* On a phone the table's text is a step smaller, so its four columns, percentages and all, fit the card. */
+@media (max-width: 40rem) {
+  .mutation-table {
+    font-size: var(--font-size-smallest);
+  }
 }
 
 .mutation-table .is-cause td:first-child {

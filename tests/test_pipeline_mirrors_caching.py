@@ -82,7 +82,7 @@ def test_the_timeline_names_the_causes_in_the_pipeline_s_order() -> None:
 
 
 def test_the_gap_figures_axis_limits_are_the_paper_s() -> None:
-    for constant in ["MIN_GAP_DRAWN_S", "MAX_GAP_DRAWN_S", "MEAN_HIT_RATIO_AXIS_LOW"]:
+    for constant in ["MIN_GAP_DRAWN_S", "MAX_GAP_DRAWN_S"]:
         browser_value = test_pipeline_mirrors.javascript_number(CACHING_GAPS_MODULE, constant)
         assert browser_value == getattr(reuse, constant), constant
 

@@ -16,7 +16,7 @@ import { elapsedAxis } from "../axes/ticks.js";
 import {
   AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, renderFigure, TIP_STYLE, X_INSET,
 } from "../shared/charts.js";
-import { formatQuantity, formatTokens } from "../shared/format.js";
+import { formatCountTick, formatQuantity } from "../shared/format.js";
 
 // Subagents' lines are drawn a little lighter, so the top-level session's line reads above them where they cross.
 const SUBAGENT_LINE_OPACITY = 0.8;
@@ -129,7 +129,7 @@ function drawChart({ Plot, tree, requests, body, chartBox, legend, slider, view 
       agentLines(Plot, stepsWithin(trajectoryPoints(tree, requests), "sessionId", range)),
       transitionDots(Plot, marks),
       Plot.axisX({ ...AXIS_STYLE, ...elapsedAxis([range.start, range.end], width) }),
-      Plot.axisY({ ...AXIS_STYLE, tickFormat: formatTokens, label: "Input tokens" }),
+      Plot.axisY({ ...AXIS_STYLE, tickFormat: formatCountTick, label: "Input tokens" }),
       Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "elapsed", y: "inputTokens", title: pointTip })),
     ],
   });

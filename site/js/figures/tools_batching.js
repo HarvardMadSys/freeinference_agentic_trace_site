@@ -8,9 +8,9 @@
  */
 
 import {
-  AXIS_STYLE, categoryRowsFrame, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
+  AXIS_STYLE, categoryRowsFrame, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TALL_CHART_HEIGHT, TIP_STYLE,
 } from "../shared/charts.js";
-import { tickCountFor } from "../axes/ticks.js";
+import { TICK_COUNT, tickCountFor } from "../axes/ticks.js";
 import { BATCH_COLOURS } from "../theme/colours.js";
 import { formatCount, formatDurationTick, formatSeconds } from "../shared/format.js";
 import { partsLegend } from "./figure_rows.js";
@@ -19,8 +19,12 @@ import { partsLegend } from "./figure_rows.js";
 export const WIDEST_DRAWN = 8;
 const WIDTH_TICKS = Object.freeze([1, 2, 4, 6, WIDEST_DRAWN]); // at most six labelled widths
 
-// The lines of the batch-width figure, by their name in its legend, with the label each is drawn under.
-const BATCH_LINES = Object.freeze({ batched: "Batched calls", serial: "One call per request" });
+// The lines of the batch-width figure, by their name in its legend, with the label each is drawn under: the batched
+// calls' median line and its two bands, and the same calls made one by one.
+const BATCH_LINES = Object.freeze({
+  batched: "Batched calls: median, p25–p75, p10–p90",
+  serial: "Same calls one by one",
+});
 
 const OUTER_BAND_OPACITY = 0.15; // the band from the 10th to the 90th percentile of the tool wait
 const INNER_BAND_OPACITY = 0.35; // the band from the 25th to the 75th
@@ -46,7 +50,7 @@ export const LATENCY_BY_BATCH_WIDTH = Object.freeze({
   name: "latency_by_batch_width",
   title: "Tool latency by batch width",
   definition: "Percentiles (10th–90th) of the tool wait (the gap until the session's next request, when it waited for tool calls) of top-level requests without Ask User, by calls made (8+ together), against calls × (one-call median wait + median latency).",
-  caption: "Tool wait by calls a request made at once, against serial calls.",
+  caption: "Tool wait of batched calls, against the same calls one by one.",
   drawsLines: true,
   query: "figures/latency_by_batch_width",
   binColumn: "width",
@@ -111,7 +115,7 @@ async function drawLatencyByWidth(rows, body, colours, hidden) {
   const { Plot } = await import("../shared/libraries.js");
   const shown = new Set(Object.keys(BATCH_LINES).filter((line) => !hidden.has(line)));
   const batched = colours.series.get("batched");
-  const marks = [Plot.gridY(GRID_STYLE)];
+  const marks = [Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT })];
   if (shown.has("batched")) {
     marks.push(
       Plot.areaY(rows, { x: "width", y1: "p10", y2: "p90", fill: batched, fillOpacity: OUTER_BAND_OPACITY }),
@@ -127,11 +131,12 @@ async function drawLatencyByWidth(rows, body, colours, hidden) {
   }
   marks.push(
     Plot.axisX({ ...AXIS_STYLE, ticks: WIDTH_TICKS, tickFormat: widthLabel, label: "Calls in the request" }),
-    Plot.axisY({ ...AXIS_STYLE, tickFormat: formatDurationTick, label: null }),
+    Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: formatDurationTick, label: null }),
     Plot.tip(rows, Plot.pointerX({ ...TIP_STYLE, x: "width", y: "p50", title: widthTipText })),
   );
   const chart = Plot.plot({
     ...chartFrame(body),
+    height: TALL_CHART_HEIGHT, // as tall as the calls-per-request chart beside it
     x: { domain: [ONE_CALL, WIDEST_DRAWN] },
     y: { domain: [0, waitAxisEnd(rows, shown)] },
     marks,
@@ -149,6 +154,6 @@ function widthTipText(row) {
     `median ${formatSeconds(row.p50)}`,
     `25th to 75th: ${formatSeconds(row.p25)} to ${formatSeconds(row.p75)}`,
     `10th to 90th: ${formatSeconds(row.p10)} to ${formatSeconds(row.p90)}`,
-    `one call per request: ${formatSeconds(row.serial_s)}`,
+    `same calls one by one: ${formatSeconds(row.serial_s)}`,
   ].join("\n");
 }

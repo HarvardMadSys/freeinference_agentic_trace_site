@@ -34,7 +34,7 @@ test("a bin's tooltip points at the top of the shown parts and names each with i
   const [first] = rankTips(BIN_ROWS, ["cached", "output"], LABELS);
   assert.equal(first.percentile, 25);
   assert.equal(first.top, 0.75);
-  assert.equal(first.text, "Percentile 25.0\nCached input: 50%\nOutput: 25%\n55 sessions");
+  assert.equal(first.text, "Percentile 25.0\nCached input: 50.0%\nOutput: 25.0%\n55 sessions");
 });
 
 test("the session time's legend lists the paper's four parts bottom up, each in its part colour", () => {
@@ -49,7 +49,7 @@ test("the session time's tooltip names the four parts with their shares", () => 
   const labels = Object.fromEntries(SESSION_TIME_BY_PART.legend().series.map((one) => [one.name, one.label]));
   const [tip] = rankTips([row], ["prefill", "decode", "tool", "user"], labels);
   assert.equal(tip.top, 1);
-  assert.equal(tip.text, "Percentile 50.0\nPrefill: 12.5%\nDecode: 12.5%\nTools: 25%\nUser idle: 50%\n10 sessions");
+  assert.equal(tip.text, "Percentile 50.0\nPrefill: 12.5%\nDecode: 12.5%\nTools: 25.0%\nUser idle: 50.0%\n10 sessions");
 });
 
 test("the cost share's legend draws each token part in its token colour", () => {

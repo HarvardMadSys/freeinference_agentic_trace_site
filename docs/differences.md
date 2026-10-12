@@ -1,9 +1,9 @@
 # Where the site draws more simply than the paper
 
-Each figure's Definition on the Explore page says where it differs from the
-paper; this is every difference in one place. `tests/test_differences.py`
-checks that every figure whose definition states a difference is listed here,
-and that the numbers below are the queries' and the pipeline's.
+Each figure's Definition on the Explore page says what the site draws; this
+is every place where that differs from the paper. `tests/test_differences.py`
+checks that every figure whose definition names the paper is listed here, and
+that the numbers below are the queries' and the pipeline's.
 
 - **Every figure**: a bin with fewer than 50 rows is hidden, and the figure
   says how many were; the paper also drops thin size bins, but merges an
@@ -25,6 +25,8 @@ and that the numbers below are the queries' and the pipeline's.
   estimate.
 - **Tool latency by category** and **Tool result size by category**:
   percentiles per category, where the paper also marks the mean.
+- **Mean hit ratio by cause**: each bar from 0%, where the paper starts its
+  bars at 70% so that their differences show.
 - **Hit ratio after an idle gap**: the pipeline's fixed idle-gap bins, each
   drawn at its middle, a line for each of the eight providers with most
   requests, where the paper merges a thin bin into the next, draws each bin at

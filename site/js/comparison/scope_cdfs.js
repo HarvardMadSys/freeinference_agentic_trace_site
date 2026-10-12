@@ -1,7 +1,7 @@
 /**
  * The Human-driven-against-benchmark CDFs of turn duration, session duration, input per request and user prompt tokens:
  * each a CDF per scope, human-driven and benchmark, each median marked with its value and a dotted line between the two
- * medians, as the paper draws them; the legend gives both medians and their ratio, the larger over the smaller. The
+ * medians, as the paper draws them; the legend says which scope's median is the larger and by how much. The
  * first three are listed in `comparison.js`, the user prompt size in the Sessions section (`figures/sessions.js`).
  *
  * Every row of their queries is one CDF point of one scope: `series` (the scope, by the pipeline's name of it), `x` and
@@ -11,11 +11,12 @@
  */
 
 import {
-  AXIS_STYLE, cdfPoints, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, TIP_STYLE, X_INSET,
+  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, TIP_STYLE, X_INSET,
 } from "../shared/charts.js";
+import { cdfPoints } from "../shared/cdf.js";
 import { axisWithTicks, isNarrowChart } from "../axes/ticks.js";
 import {
-  formatDurationTick, formatMultiple, formatPercent, formatSeconds, formatShare, formatTokens,
+  formatCountTick, formatDurationTick, formatMultiple, formatPercent, formatSeconds, formatShare, formatTokens,
 } from "../shared/format.js";
 import { cdfSeries } from "../figures/figure_rows.js";
 import { SCOPE_LABELS, scopeLegend, SCOPES } from "./scopes.js";
@@ -35,15 +36,17 @@ const MEDIAN_LABEL_STYLE = Object.freeze({
 });
 
 // Each figure's x axis, from the pipeline's floor to the paper's end, its ticks (at most six) and, where they differ, its
-// ticks on a narrow chart, how they are written, how a value is written in a median's label, the legend and the
-// tooltip, and what the CDF counts.
+// ticks on a narrow chart, how they are written, its title where its ticks carry no unit, how a value is written in a
+// median's label and the tooltip, what the CDF counts, and the word the legend compares the medians by.
 const TURN_DURATION_AXIS = Object.freeze({
   floor: MIN_DURATION_DRAWN_S,
   end: 86400, // a day
   ticks: Object.freeze([1, 60, 3600, 86400]),
   tickFormat: formatDurationTick,
+  xLabel: null,
   valueFormat: formatSeconds,
   noun: "turns",
+  comparative: "longer",
 });
 const SESSION_DURATION_AXIS = Object.freeze({
   floor: MIN_DURATION_DRAWN_S,
@@ -51,32 +54,38 @@ const SESSION_DURATION_AXIS = Object.freeze({
   ticks: Object.freeze([1, 60, 3600, 86400, 604800]),
   narrowTicks: Object.freeze([1, 60, 3600, 86400]), // on a phone "1 d" and "7 d" would touch
   tickFormat: formatDurationTick,
+  xLabel: null,
   valueFormat: formatSeconds,
   noun: "sessions",
+  comparative: "longer",
 });
 const INPUT_AXIS = Object.freeze({
   floor: MIN_INPUT_DRAWN,
   end: 1e6,
   ticks: Object.freeze([1e3, 1e4, 1e5, 1e6]),
-  tickFormat: formatTokens,
+  tickFormat: formatCountTick,
+  xLabel: "Input tokens",
   valueFormat: formatTokens,
   noun: "requests",
+  comparative: "more",
 });
 const PROMPT_AXIS = Object.freeze({
   floor: MIN_PROMPT_DRAWN,
   end: 1e5,
   ticks: Object.freeze([1, 10, 100, 1e3, 1e4, 1e5]),
   narrowTicks: Object.freeze([1, 100, 1e4]), // on a phone six labels would touch
-  tickFormat: formatTokens,
+  tickFormat: formatCountTick,
+  xLabel: "Tokens",
   valueFormat: formatTokens,
   noun: "prompts",
+  comparative: "longer",
 });
 
 /** The turn duration figure entry, whose fields CONTRIBUTING.md defines. */
 export const TURN_DURATION_BY_SCOPE = Object.freeze({
   name: "turn_duration_by_scope",
   title: "Turn duration",
-  definition: "CDF of each turn's duration (a user step and the tool steps after it, first start to last end) in top-level sessions, human-driven and benchmark, each median marked with the ratio of the two.",
+  definition: "Share of turns (a user step and the tool steps after it, first start to last end) of top-level sessions lasting at most each duration, human-driven and benchmark, each median marked.",
   caption: "How long a turn lasts, human-driven and benchmark.",
   drawsLines: true,
   query: "figures/turn_duration_by_scope",
@@ -91,7 +100,7 @@ export const TURN_DURATION_BY_SCOPE = Object.freeze({
 export const SESSION_DURATION_BY_SCOPE = Object.freeze({
   name: "session_duration_by_scope",
   title: "Session duration",
-  definition: "CDF of the duration of a top-level session (its first request's start to its last request's end) of the paper's harnesses and of the benchmark's, each median marked and their ratio written, the larger over the smaller.",
+  definition: "Share of top-level sessions (first request's start to last request's end) lasting at most each duration, of the paper's harnesses and of the benchmark's, each median marked.",
   caption: "How long a session lasts, human-driven and benchmark.",
   drawsLines: true,
   query: "figures/session_duration_by_scope",
@@ -106,7 +115,7 @@ export const SESSION_DURATION_BY_SCOPE = Object.freeze({
 export const INPUT_PER_REQUEST_BY_SCOPE = Object.freeze({
   name: "input_per_request_by_scope",
   title: "Input per request",
-  definition: "CDF of the input tokens of a request of the top-level sessions of the paper's harnesses and of the benchmark's, over the requests whose input is reported, each median marked and their ratio written, the larger over the smaller.",
+  definition: "Share of requests of top-level sessions with at most each number of input tokens, of the paper's harnesses and of the benchmark's, over requests whose input is reported, each median marked.",
   caption: "Input tokens of each request, human-driven and benchmark.",
   drawsLines: true,
   isWide: true,
@@ -122,7 +131,7 @@ export const INPUT_PER_REQUEST_BY_SCOPE = Object.freeze({
 export const USER_PROMPT_TOKENS_BY_SCOPE = Object.freeze({
   name: "user_prompt_tokens_by_scope",
   title: "User prompt size",
-  definition: "CDF of the tokens of each new user prompt (a user step's rise in user tokens over the step before, all of them at a session's first) in top-level sessions, human-driven and benchmark, medians marked with their ratio.",
+  definition: "Share of new user prompts (a user step's rise in user tokens over the step before, all of them at a session's first) with at most each number of tokens, human-driven and benchmark, each median marked.",
   caption: "Tokens of each new user prompt, human-driven and benchmark.",
   drawsLines: true,
   query: "figures/user_prompt_tokens_by_scope",
@@ -152,17 +161,16 @@ export function scopeMedians(rows, floor) {
 }
 
 /**
- * The legend's summary of the medians, human-driven against benchmark, each as `format` writes it, and their ratio:
- * "median 61 s vs 3.1 min · 3.1×"; "" unless the rows hold both scopes and a ratio.
+ * The legend's comparison of the medians, which the chart labels: the scope whose median is the larger, the ratio and
+ * `comparative`, "benchmark 3.1× longer"; "" unless the rows hold both scopes and a ratio.
  */
-export function medianSummary(rows, format) {
+export function medianSummary(rows, comparative) {
   const ratio = medianRatioText(rows);
   if (ratio === null) {
     return "";
   }
-  const medians = new Map(rows.map((row) => [row.series, row.median]));
-  const values = SCOPES.map((series) => format(medians.get(series)));
-  return `median ${values.join(" vs ")} · ${ratio}`;
+  const larger = scopeMedians(rows, 0).at(-1).series;
+  return `${SCOPE_LABELS[larger].toLowerCase()} ${ratio} ${comparative}`;
 }
 
 /**
@@ -208,7 +216,7 @@ async function drawScopeCdf(rows, body, colours, axis) {
   const points = cdfPoints(series);
   const frame = chartFrame(body);
   const ticks = isNarrowChart(frame.width) ? (axis.narrowTicks ?? axis.ticks) : axis.ticks;
-  showMedianSummary(body, medianSummary(rows, axis.valueFormat));
+  showMedianSummary(body, medianSummary(rows, axis.comparative));
   const chart = Plot.plot({
     ...frame,
     x: { type: "log", domain: [axis.floor, axis.end], inset: X_INSET },
@@ -217,7 +225,7 @@ async function drawScopeCdf(rows, body, colours, axis) {
     marks: [
       Plot.gridX(ticks, GRID_STYLE),
       Plot.gridY(GRID_STYLE),
-      axisWithTicks(Plot.axisX, ticks, { ...AXIS_STYLE, tickFormat: axis.tickFormat, label: null }),
+      axisWithTicks(Plot.axisX, ticks, { ...AXIS_STYLE, tickFormat: axis.tickFormat, label: axis.xLabel }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: `Share of ${axis.noun}` }),
       Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH, clip: true }),
       ...medianMarks(Plot, rows, axis),

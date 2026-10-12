@@ -133,11 +133,15 @@ async function drawRankedShares(body, rows, { labels, colours, hidden, xLabel, y
     color: colourScale(colours, shown),
     marks: [
       Plot.gridY(GRID_STYLE),
-      Plot.axisX({ ...AXIS_STYLE, label: xLabel }),
+      Plot.axisX({ ...AXIS_STYLE, label: xLabel, tickFormat: percentileTick }), // "0%" to "100%", as the y axis
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: yLabel }),
       Plot.areaY(stackedSharePoints(rows, shown), { x: "percentile", y: "share", fill: "part", order: shown }),
       Plot.tip(tips, Plot.pointerX({ ...TIP_STYLE, x: "percentile", y: "top", title: "text" })),
     ],
   });
   body.replaceChildren(chart);
+}
+
+function percentileTick(percentile) {
+  return `${percentile}%`;
 }

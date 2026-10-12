@@ -32,8 +32,8 @@ test("a session's subagents and their requests are given apart from the top-leve
 
 test("token totals and the cached share cover every agent", () => {
   const values = factValues([TOP_LEVEL, SUBAGENT], [{ model: "model-x" }]);
-  assert.equal(values["Input tokens"][0], "10k");
-  assert.deepEqual(values["Cached share (reported)"], ["60%", "6k cached"]);
+  assert.equal(values["Input tokens"][0], "10.0k");
+  assert.deepEqual(values["Cached share (reported)"], ["60.0%", "6.0k cached"]);
   assert.equal(values["Output tokens"][0], "600");
 });
 
