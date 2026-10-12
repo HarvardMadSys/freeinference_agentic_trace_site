@@ -3,8 +3,8 @@
  *
  * Every colour is a CSS variable from `style.css`, so a chart follows the page into dark mode with no JavaScript.
  * Names get colours from one fixed order, so the same model, category or provider has the same colour in
- * every chart, and a token part, a wait cause, a transition, a gap bin and a simulated population always take their
- * own tokens. These are plain constants and functions, tested with `node --test`.
+ * every chart, and a token part, a part of a session's time, a wait cause, a transition, a gap bin and a simulated
+ * population always take their own tokens. These are plain constants and functions, tested with `node --test`.
  */
 
 /** The eight series colours, in order. A chart assigns them in order and never cycles: a ninth series is "Other". */
@@ -30,6 +30,14 @@ export const TOKEN_PART_COLOURS = Object.freeze({
   cached: "var(--token-cached)",
   uncached: "var(--token-uncached)",
   output: "var(--token-output)",
+});
+
+/** The colour of each part of a session's time as the paper colours it: prefill, decode, tool and user idle. */
+export const TIME_PART_COLOURS = Object.freeze({
+  prefill: "var(--part-prefill)",
+  decode: "var(--part-decode)",
+  tool: "var(--part-tool)",
+  user: "var(--part-user)",
 });
 
 /**

@@ -344,14 +344,21 @@ which is plain HTML.
   same colour in every chart: a wait cause, a transition and a gap bin always
   take `--cause-*`, `--transition-*` and `--gap-bin-1` to `--gap-bin-6`, read
   through `CAUSE_COLOURS`, `TRANSITION_COLOURS` and `GAP_BIN_SLOTS` in
-  `theme/colours.js`. The eight series slots were validated for
-  colour-vision deficiency in both modes, with a dark green in the sixth. The
-  olive that replaced it (#6b8e23, #9ab83a), the gap-bin blues, the request greys
-  (`--request-ttft`, `--request-rest`) and the lavender of a wait for the user
-  (`--cause-user`) were chosen by contrast on the card and have not been run
-  through that validator. Three light-mode slots sit under 3:1 contrast on
-  white, so every chart ships a legend and a hover tooltip, and tables stay
-  available where values matter.
+  `theme/colours.js`; the parts of a session's time take `--part-prefill`,
+  `--part-decode`, `--part-tool` and `--part-user`, blue, orange, green and
+  red as the paper draws them, read through `TIME_PART_COLOURS`. The palette
+  is Open Data's tokens (paper, surfaces, inks, rule and crimson) in light and
+  the same inks turned over in dark, with our eight series slots: eight OKLCH
+  hues no two closer than 30°, each the same hue in both schemes.
+  `tests/palette_contrast.test.js` is the validation: it reads both schemes
+  from `style.css` and checks every series, part, cause, token, transition,
+  tool-group and gap-bin colour at 3:1 on its scheme's card, every text colour
+  at 4.5:1 on the paper and on a card, each slot's hue across the schemes,
+  the hues' spread, and the parts' hues against the paper's. A new colour
+  token is named there as text, a mark or a tint, or the test fails. The
+  slots have not been run through a colour-vision simulator, so no series is
+  told by its colour alone: every chart ships a legend and a hover tooltip,
+  and tables stay available where values matter.
 - **Marks.** Thin lines (2px), small markers, a 2px gap between stacked
   segments, grid and axes in `--chart-grid` and `--chart-axis`, labels in
   `--chart-label`. Text is never coloured by series.
