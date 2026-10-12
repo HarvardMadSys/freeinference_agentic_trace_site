@@ -11,7 +11,7 @@ import {
   AXIS_STYLE, categoryRowsFrame, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
 } from "../shared/charts.js";
 import { BATCH_COLOURS } from "../theme/colours.js";
-import { formatCount, formatSeconds } from "../shared/format.js";
+import { formatCount, formatDurationTick, formatSeconds } from "../shared/format.js";
 import { partsLegend } from "./figure_rows.js";
 
 /** The widest width the batch-width query draws on its own; requests of more calls are drawn with it. */
@@ -28,7 +28,6 @@ const MEAN_CALLS_HEADROOM = 1.08; // the calls axis reaches this far past the hi
 const MIN_CALLS_AXIS_END = 1.5; // the calls axis reaches at least this far, so a short bar still reads as short
 const CALLS_TICKS = 5; // about this many ticks on the calls axis
 const ONE_CALL = 1; // every bar and the width axis start at one call, the fewest a request with a call makes
-const SECONDS_PER_MINUTE = 60;
 
 /** The calls-per-request figure: the mean calls of the requests whose first call is of each category. */
 export const CALLS_PER_REQUEST_BY_CATEGORY = Object.freeze({
@@ -61,14 +60,6 @@ export function batchLegend() {
 /** A width as its axis and tooltip write it: "3", or "8+" for the widest, which holds every wider request too. */
 export function widthLabel(width) {
   return width === WIDEST_DRAWN ? `${width}+` : String(width);
-}
-
-/** A duration as an axis writes it: "30 s" under a minute, "2 min" or "1.3 min" (one decimal at most) from one. */
-export function durationTick(seconds) {
-  if (seconds < SECONDS_PER_MINUTE) {
-    return `${seconds} s`;
-  }
-  return `${Number((seconds / SECONDS_PER_MINUTE).toFixed(1))} min`;
 }
 
 /** The top of the wait axis: past the highest point of the lines in `shown`, the 90th percentile or the serial line. */
@@ -132,7 +123,7 @@ async function drawLatencyByWidth(rows, body, colours, hidden) {
   }
   marks.push(
     Plot.axisX({ ...AXIS_STYLE, ticks: WIDTH_TICKS, tickFormat: widthLabel, label: "Calls in the request" }),
-    Plot.axisY({ ...AXIS_STYLE, tickFormat: durationTick, label: null }),
+    Plot.axisY({ ...AXIS_STYLE, tickFormat: formatDurationTick, label: null }),
     Plot.tip(rows, Plot.pointerX({ ...TIP_STYLE, x: "width", y: "p50", title: widthTipText })),
   );
   const chart = Plot.plot({

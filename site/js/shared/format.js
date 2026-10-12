@@ -1,6 +1,6 @@
 /**
- * Numbers and names as every page shows them: counts, token totals, durations, elapsed time, shares, a session's
- * short id, a UTC minute and a week's month and day; and the two definitions they rest on, elapsed seconds and the
+ * Numbers and names as every page shows them: counts, token totals, durations and duration ticks, elapsed time, shares,
+ * multiples, a session's short id, a UTC minute and a week's month and day; and the two definitions they rest on, elapsed seconds and the
  * cached share.
  */
 
@@ -9,6 +9,13 @@ const TOKEN_UNITS = [
   [1e9, "B"],
   [1e6, "M"],
   [1e3, "k"],
+];
+
+// A duration tick is written in the largest of these units it reaches, else in seconds.
+const DURATION_TICK_UNITS = [
+  [86400, "d"],
+  [3600, "h"],
+  [60, "min"],
 ];
 
 /** The text of a value that has none, such as a share of nothing or a median over no rows. */
@@ -59,6 +66,16 @@ export function formatSeconds(seconds) {
   return `${Math.floor(minutes / 60)}h ${padded(minutes % 60)}m`;
 }
 
+/** A duration as an axis writes it: "30 s" under a minute, then "2 min", "1.3 min", "1 h" or "7 d", one decimal at most. */
+export function formatDurationTick(seconds) {
+  for (const [size, unit] of DURATION_TICK_UNITS) {
+    if (seconds >= size) {
+      return `${Number((seconds / size).toFixed(1))} ${unit}`;
+    }
+  }
+  return `${seconds} s`;
+}
+
 /** Time since a session's start, as "+MM:SS", or "+H:MM:SS" from an hour on. */
 export function formatElapsed(seconds) {
   const wholeSeconds = Math.floor(seconds);
@@ -74,6 +91,11 @@ export function formatElapsed(seconds) {
 /** A share of one as a percentage with one decimal: 0.632 → "63.2%". */
 export function formatShare(share) {
   return `${(share * 100).toFixed(1)}%`;
+}
+
+/** A multiple with `decimals` decimals and a times sign: (1.3757, 2) → "1.38×". */
+export function formatMultiple(multiple, decimals) {
+  return `${multiple.toFixed(decimals)}×`;
 }
 
 /** A share as `formatShare` writes it, or "—" for a missing share (null), such as a share of nothing. */

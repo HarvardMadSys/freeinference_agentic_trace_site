@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  cachedShare, elapsedSeconds, formatCount, formatElapsed, formatOptionalShare, formatQuantity, formatSeconds,
-  formatShare, formatTokens, monthName, shortSessionId, utcMinute,
+  cachedShare, elapsedSeconds, formatCount, formatDurationTick, formatElapsed, formatMultiple, formatOptionalShare,
+  formatQuantity, formatSeconds, formatShare, formatTokens, monthName, shortSessionId, utcMinute,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -22,6 +22,25 @@ test("a duration is shown in seconds, minutes or hours", () => {
   assert.equal(formatSeconds(724), "12m 04s");
   assert.equal(formatSeconds(119.6), "2m 00s");
   assert.equal(formatSeconds(3780), "1h 03m");
+});
+
+test("a duration tick is in the largest unit it reaches, to one decimal at most", () => {
+  assert.equal(formatDurationTick(0), "0 s");
+  assert.equal(formatDurationTick(0.1), "0.1 s");
+  assert.equal(formatDurationTick(50), "50 s");
+  assert.equal(formatDurationTick(60), "1 min");
+  assert.equal(formatDurationTick(80), "1.3 min");
+  assert.equal(formatDurationTick(90), "1.5 min");
+  assert.equal(formatDurationTick(120), "2 min");
+  assert.equal(formatDurationTick(3600), "1 h");
+  assert.equal(formatDurationTick(86400), "1 d");
+  assert.equal(formatDurationTick(604800), "7 d");
+});
+
+test("a multiple has the decimals asked for and a times sign", () => {
+  assert.equal(formatMultiple(1.3757185, 2), "1.38×");
+  assert.equal(formatMultiple(3.1066, 1), "3.1×");
+  assert.equal(formatMultiple(1, 2), "1.00×");
 });
 
 test("elapsed time is minutes and seconds, with hours when needed", () => {

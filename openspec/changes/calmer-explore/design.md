@@ -59,9 +59,12 @@ Each is one query over the site data and one chart, answered at
   requests whose first call is of the category.
 - **latency by batch width**: the quantile band of the tool wait of
   requests by how many calls they made, and the serial line.
-- **speed-up if twice as fast**: from the same per-session time parts as
-  the session-time figure, the session-time speed-up when prefill, decode
-  or tool time alone is halved.
+- **speed-up if twice as fast**: from per-session time parts like the
+  session-time figure's, with model time split into prefill and decode (a
+  request without a trusted TTFT shared out by its session's prefill ratio)
+  and each tool wait capped at the pipeline's 15 minutes, the speed-up of
+  the sessions' machine time when prefill, decode or tool time alone is
+  halved.
 - **human-driven against benchmark**: four CDF pairs, turn duration,
   session duration, input per request and user prompt tokens, each with
   both medians and their ratio. User prompt tokens is a per-request column

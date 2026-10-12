@@ -9,6 +9,7 @@ import re
 
 import pytest
 
+import paper.sessions.latency
 from paper.metrics import binning, gaps, latency, prices, tools, trajectories
 from release import population, schema
 
@@ -19,6 +20,9 @@ FIGURE_QUERIES = SITE_FOLDER / "queries" / "figures"  # the figure queries
 COST_SHARE_QUERY = FIGURE_QUERIES / "cost_share_by_session.sql"  # the prices
 SESSION_TIME_QUERY = FIGURE_QUERIES / "session_time_by_part.sql"  # which waits are tool time and which a person's
 RANK_BIN_QUERIES = [COST_SHARE_QUERY, SESSION_TIME_QUERY]  # each cuts sessions into the pipeline's rank bins
+SPEEDUP_QUERY = FIGURE_QUERIES / "speedup_if_twice_as_fast.sql"  # which waits are tool time, and their cap
+TOOL_TIME_QUERIES = [SESSION_TIME_QUERY, SPEEDUP_QUERY]  # each counts a session's waits for a tool as its tool time
+SESSIONS_LATENCY_MODULE = SITE_FOLDER / "js" / "figures" / "sessions_latency.js"  # the speed-up axis's headroom
 TOOL_MIX_QUERY = FIGURE_QUERIES / "tool_mix_by_turn_position.sql"  # the tenths, the tool groups and the program sets
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the tool groups, each with its colour
 TOOL_MIX_MODULE = SITE_FOLDER / "js" / "comparison" / "tool_mix.js"  # the tenths
@@ -126,9 +130,19 @@ def test_the_rank_bins_are_the_pipeline_s(path: pathlib.Path) -> None:
     assert sql_number(path, "sessions_per_rank_bin") == binning.SESSIONS_PER_RANK_BIN
 
 
-def test_the_session_time_s_waits_are_the_pipeline_s() -> None:
-    assert sql_strings(SESSION_TIME_QUERY, "tool_waits") == list(latency.TOOL_WAITS)
+@pytest.mark.parametrize("path", TOOL_TIME_QUERIES, ids=lambda path: path.stem)
+def test_the_tool_waits_are_the_pipeline_s(path: pathlib.Path) -> None:
+    assert sql_strings(path, "tool_waits") == list(latency.TOOL_WAITS)
+
+
+def test_the_session_time_s_human_waits_are_the_pipeline_s() -> None:
     assert sql_strings(SESSION_TIME_QUERY, "human_waits") == list(latency.HUMAN_WAITS)
+
+
+def test_the_speedup_s_tool_wait_cap_and_axis_headroom_are_the_pipeline_s() -> None:
+    assert sql_number(SPEEDUP_QUERY, "tool_gap_cap_s") == latency.TOOL_GAP_CAP_S
+    assert javascript_number(SESSIONS_LATENCY_MODULE, "SPEEDUP_AXIS_HEADROOM") == \
+        paper.sessions.latency.SPEEDUP_AXIS_HEADROOM
 
 
 def test_the_tool_mix_s_tenths_are_the_pipeline_s() -> None:

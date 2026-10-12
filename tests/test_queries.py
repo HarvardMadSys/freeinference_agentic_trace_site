@@ -60,6 +60,7 @@ EXPECTED_COLUMNS = {
     "figures/decode_median_by_model": ["model", "rows", "median_decode_s"],
     "figures/session_time_by_part": ["percentile", "model", "tool", "human", "bin_sessions", "ranked_bin", "rows",
                                      "mean_tool_share", "mean_human_share"],
+    "figures/speedup_if_twice_as_fast": ["part", "speedup", "rows"],
     "figures/latency_by_category": PERCENTILE_RANGE_COLUMNS,
     "figures/result_tokens_by_category": PERCENTILE_RANGE_COLUMNS,
     "figures/calls_per_request_by_category": ["category", "rows", "mean_calls"],

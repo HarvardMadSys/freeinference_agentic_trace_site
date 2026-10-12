@@ -16,10 +16,11 @@ The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
   selection tables, never from assembled strings.
 - Every definition comes from the pipeline. Where a query restates one in
   SQL (the cost share's prices, the rank bins, the wait classes, what a tool
-  wait is, the tool groups, the cache simulation's TTLs and costs, the
-  mutation table), a mirror test ties each copied constant to the pipeline's
-  and a parity test ties the number to the paper's:
-  `figures/cost_share_by_session.sql`, `figures/session_time_by_part.sql`,
+  wait is and how long it counts for, the tool groups, the cache simulation's
+  TTLs and costs, the mutation table), a mirror test ties each copied
+  constant to the pipeline's and a parity test ties the number to the
+  paper's: `figures/cost_share_by_session.sql`,
+  `figures/session_time_by_part.sql`, `figures/speedup_if_twice_as_fast.sql`,
   `figures/calls_per_request_by_category.sql`,
   `figures/latency_by_batch_width.sql`, `figures/tool_mix_by_turn_position.sql`,
   `figures/prefill_against_storage.sql`, `figures/api_cost_by_ttl.sql`,

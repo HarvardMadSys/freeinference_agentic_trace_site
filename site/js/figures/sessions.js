@@ -5,7 +5,8 @@
  * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
  *
  * Two modules hold some of the section's entries, listed here in the section's order: `sessions_ranked.js` the
- * figures that rank sessions by a share, and `sessions_latency.js` the per-model CDFs of TTFT and decode time.
+ * figures that rank sessions by a share, and `sessions_latency.js` the per-model CDFs of TTFT and decode time and the
+ * speed-up if one part of a session's machine time ran twice as fast.
  */
 
 import {
@@ -14,7 +15,7 @@ import {
 import { assignColours, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { formatCount, formatSeconds, formatShare, formatTokens, monthAndDay } from "../shared/format.js";
 import { cdfSeries, seriesLegend, sparseTickFormat } from "./figure_rows.js";
-import { DECODE_CDF_BY_MODEL, TTFT_CDF_BY_MODEL } from "./sessions_latency.js";
+import { DECODE_CDF_BY_MODEL, SPEEDUP_IF_TWICE_AS_FAST, TTFT_CDF_BY_MODEL } from "./sessions_latency.js";
 import { COST_SHARE_BY_SESSION, SESSION_TIME_BY_PART } from "./sessions_ranked.js";
 
 // The series of the requests-per-session CDF, by their name in the query, with the name each is drawn under.
@@ -125,6 +126,7 @@ export const FIGURES = Object.freeze([
   TTFT_CDF_BY_MODEL,
   DECODE_CDF_BY_MODEL,
   SESSION_TIME_BY_PART,
+  SPEEDUP_IF_TWICE_AS_FAST,
 ]);
 
 /** The requests-per-session CDF's legend: requests, user steps and tool steps, in that order. */

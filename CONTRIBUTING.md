@@ -46,12 +46,14 @@ binding, and `make test` checks the countable ones.
   a file registered under its name is what the stream can swap for its bytes.
 - **Every definition comes from the pipeline.** Where a query restates one
   in SQL (the cost share's prices, the rank bins, the wait classes, what a
-  tool wait is, the tool groups, the cache simulation's TTLs and costs, the
-  mutation table), a mirror test ties each copied constant to the pipeline's
-  and a parity test ties the number to the paper's. Nine queries do:
-  `figures/cost_share_by_session.sql` (the prices and the rank bins) and
-  `figures/session_time_by_part.sql` (the rank bins and which waits are tool
-  time and which a person's), checked by `tests/test_pipeline_mirrors.py` and
+  tool wait is and how long it counts for, the tool groups, the cache
+  simulation's TTLs and costs, the mutation table), a mirror test ties each
+  copied constant to the pipeline's and a parity test ties the number to the
+  paper's. Ten queries do: `figures/cost_share_by_session.sql` (the prices
+  and the rank bins), `figures/session_time_by_part.sql` (the rank bins and
+  which waits are tool time and which a person's) and
+  `figures/speedup_if_twice_as_fast.sql` (which waits are tool time and their
+  cap), checked by `tests/test_pipeline_mirrors.py` and
   `tests/test_paper_parity_sessions.py`;
   `figures/calls_per_request_by_category.sql` (the Ask User category) and
   `figures/latency_by_batch_width.sql` (what a tool wait is, the Ask User

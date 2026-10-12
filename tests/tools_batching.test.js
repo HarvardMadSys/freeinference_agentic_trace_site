@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  batchLegend, durationTick, LATENCY_BY_BATCH_WIDTH, waitAxisEnd, widthLabel, WIDEST_DRAWN,
+  batchLegend, LATENCY_BY_BATCH_WIDTH, waitAxisEnd, widthLabel, WIDEST_DRAWN,
 } from "../site/js/figures/tools_batching.js";
 import { dropThinGroups } from "../site/js/figures/figure_rows.js";
 import { BATCH_COLOURS } from "../site/js/theme/colours.js";
@@ -26,14 +26,6 @@ test("the legend lists the batched calls and the serial line, each in its own co
 test("the widest width reads as that many calls or more", () => {
   assert.equal(widthLabel(1), "1");
   assert.equal(widthLabel(WIDEST_DRAWN), "8+");
-});
-
-test("a duration tick is in seconds under a minute and in minutes from one, to one decimal at most", () => {
-  assert.equal(durationTick(0), "0 s");
-  assert.equal(durationTick(50), "50 s");
-  assert.equal(durationTick(120), "2 min");
-  assert.equal(durationTick(80), "1.3 min");
-  assert.equal(durationTick(90), "1.5 min");
 });
 
 test("the wait axis reaches past the highest line shown, and no further", () => {

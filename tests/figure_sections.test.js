@@ -20,6 +20,7 @@ const SECTION_FIGURES = {
     "ttft_cdf_by_model",
     "decode_cdf_by_model",
     "session_time_by_part",
+    "speedup_if_twice_as_fast",
   ],
   "../site/js/figures/tools.js": [
     "latency_by_category",

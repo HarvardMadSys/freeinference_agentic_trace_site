@@ -40,6 +40,7 @@ ORDER BY session_id, step
 PAPER_SCOPES = {
     ("sessions", "cost_share_by_session"): "Agentic",
     ("sessions", "session_time_breakdown"): "Agentic",
+    ("sessions", "speedup_if_twice_as_fast"): "Agentic",
 }
 
 
@@ -116,3 +117,12 @@ def test_the_session_time_bins_are_the_pipeline_s_rank_bins(agentic: duckdb.Duck
     pipeline_bins = binning.rank_bins(latency.time_shares(selected_requests(agentic)), ["human", "tool"])
     pipeline_bins["model"] = pipeline_bins.prefill + pipeline_bins.decode
     assert_bins_match(site_rows, pipeline_bins, TIME_PARTS)
+
+
+def test_the_speedup_if_twice_as_fast(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+    # `figures/speedup_if_twice_as_fast`'s `speedup` of each part against
+    # `sessions.speedup_if_twice_as_fast.prefill_speedup`, `.decode_speedup` and `.tool_speedup`.
+    speedups = site_database.run_query(agentic, "figures/speedup_if_twice_as_fast").set_index("part").speedup
+    assert_match(paper_numbers, [
+        Comparison("sessions", "speedup_if_twice_as_fast", f"{part}_speedup", float(speedups[part]), RELATIVE_TOLERANCE)
+        for part in ["prefill", "decode", "tool"]])

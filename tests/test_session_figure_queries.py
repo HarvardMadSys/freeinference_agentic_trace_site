@@ -1,4 +1,6 @@
-"""The Sessions figures that rank sessions or split latency, on the fixture data: each figure's rows by hand.
+"""The Sessions figures that rank sessions or split latency, on the fixture data: each figure's rows by hand; and the
+speed-up's rules the fixture does not hold (a capped tool wait, a session or a harness with no trusted TTFT), against
+the pipeline's own speed-ups over a few rows.
 
 Every request of `fixture_release.REQUESTS` writes 100 output tokens. The paper's harnesses have four top-level
 sessions over both weeks, `tree-root`, `idle-week-1`, `mutation` and `idle-week-2`; fewer than ten sessions make one
@@ -7,7 +9,11 @@ of sessions ranked; `bin_sessions` is its own bin's.
 """
 
 import duckdb
+import pandas
+import pyarrow
 import pytest
+
+from paper.metrics import latency, turns
 
 import fixture_release
 import site_database
@@ -142,3 +148,74 @@ def test_the_session_time_of_four_sessions_is_one_bin_of_their_mean_shares(conne
 def test_the_session_time_of_no_weeks_has_no_rows(connection: duckdb.DuckDBPyConnection) -> None:
     site_database.select_weeks(connection, [], fixture_release.EVERY_HARNESS)
     assert site_database.run_query(connection, "figures/session_time_by_part").empty
+
+
+# The machine time of the top-level sessions of the paper's harnesses in seconds, summed: prefill, decode and tool time.
+# A request of 10 s with the default trusted TTFT of 1 s is 1 s of prefill and 9 s of decode. `tree-root` has 4 s of
+# prefill and 26 s of decode split, and 20 s unsplit (a TTFT of 9.9 s is not under 95% of 10 s; another has none),
+# shared by its own ratio 4/30: 4 + 20·4/30 = 20/3 and 26 + 20·26/30 = 130/3. `idle-week-1` 3 and 172 (one request of
+# 155 s), `mutation` 3 and 27, `idle-week-2` 2 and 18. Tool time: `tree-root` 10 + 70 + 10 + 170, `idle-week-1` 20 + 5,
+# `mutation` 10 + 170; `idle-week-2` waits only for the user, which is not machine time.
+AGENTIC_MACHINE_TIME = {"prefill": 20 / 3 + 3 + 3 + 2, "decode": 130 / 3 + 172 + 27 + 18, "tool": 260 + 25 + 180}
+SPEEDUP = "figures/speedup_if_twice_as_fast"
+
+
+def test_the_speedup_of_each_part_is_the_machine_time_over_it_with_that_part_halved(
+        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+    site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
+    rows = site_database.run_query(connection, SPEEDUP)
+    total = sum(AGENTIC_MACHINE_TIME.values())
+    assert rows.part.tolist() == ["prefill", "decode", "tool"]
+    for part, seconds in AGENTIC_MACHINE_TIME.items():
+        assert rows.set_index("part").speedup[part] == pytest.approx(total / (total - seconds / 2)), part
+    assert rows.rows.tolist() == [len(AGENTIC_SESSION_TIMES)] * len(AGENTIC_MACHINE_TIME)
+
+
+def test_the_speedup_of_no_weeks_has_no_rows(connection: duckdb.DuckDBPyConnection) -> None:
+    site_database.select_weeks(connection, [], fixture_release.EVERY_HARNESS)
+    assert site_database.run_query(connection, SPEEDUP).empty
+
+
+RULES_WEEK = "2026-06-07"  # the week of the rows below
+# Requests, (session, harness, step, start s, end s, TTFT ms, waited for), each case of a rule the fixture lacks:
+# `capped` waits 1000 s for a tool, more than the cap; `untrusted` has no trusted TTFT, so it takes its harness's
+# ratio; `lone` is the only session of its harness and has none either, so it takes the ratio over all sessions;
+# `overlapping` starts its second request before its first ends, a negative wait; `person` waits for the user.
+RULE_REQUESTS = [
+    ("capped", "pi", 0, 0, 10, 1_000, None),
+    ("capped", "pi", 1, 1_010, 1_020, 3_000, "tool"),
+    ("untrusted", "pi", 0, 0, 10, None, None),
+    ("lone", "codex", 0, 0, 20, 19_500, None),
+    ("overlapping", "claude-code", 0, 0, 10, 2_000, None),
+    ("overlapping", "claude-code", 1, 5, 15, 1_000, "subagent"),
+    ("person", "claude-code", 0, 0, 10, 1_000, None),
+    ("person", "claude-code", 1, 100, 110, 1_000, "user"),
+]
+MILLISECONDS_PER_SECOND = 1000
+
+
+def rule_requests() -> pandas.DataFrame:
+    """The rule cases as the site's requests: in session and step order, with the pipeline's waits and trusted TTFTs."""
+    requests = pandas.DataFrame(RULE_REQUESTS, columns=["session_id", "harness", "step", "start_s", "end_s", "ttft_ms",
+                                                        "waited_for"])
+    requests = requests.sort_values(["session_id", "step"], ignore_index=True)
+    requests["start_ms"] = requests.start_s * MILLISECONDS_PER_SECOND
+    requests["end_ms"] = requests.end_s * MILLISECONDS_PER_SECOND
+    requests["ttft_ms"] = requests.ttft_ms.astype("Int64")
+    requests["wait_s"] = turns.waits(requests)
+    requests["is_trusted_ttft"] = latency.is_trusted_ttft(requests)
+    requests["week"] = RULES_WEEK
+    requests["is_top_level"] = True
+    return requests.drop(columns=["start_s", "end_s"])
+
+
+def test_the_speedup_caps_tool_waits_and_shares_unsplit_time_as_the_pipeline_does() -> None:
+    requests = rule_requests()
+    connection = site_database.database_of_rows(pyarrow.Table.from_pandas(requests, preserve_index=False),
+                                                pyarrow.table({"week": [RULES_WEEK]}))
+    site_database.select_weeks(connection, [RULES_WEEK], sorted(set(requests.harness)))
+    rows = site_database.run_query(connection, SPEEDUP).set_index("part")
+    connection.close()
+    pipeline = latency.speedups(latency.time_breakdown(requests, cap_tool_waits=True))
+    assert rows.speedup.to_dict() == pytest.approx(pipeline)
+    assert rows.rows.unique().tolist() == [requests.session_id.nunique()]

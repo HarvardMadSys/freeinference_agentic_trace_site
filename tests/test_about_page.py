@@ -35,6 +35,7 @@ NUMBER_WORDS = ("zero", "one", "two", "three", "four", "five", "six", "seven", "
 RESTATING_QUERIES = {
     "cost_share_by_session": "Cost share by session",
     "session_time_by_part": "Session time by part",
+    "speedup_if_twice_as_fast": "Speed-up if twice as fast",
     "calls_per_request_by_category": "Calls per request by category",
     "latency_by_batch_width": "Tool latency by batch width",
     "tool_mix_by_turn_position": "Tool mix along a turn",
@@ -190,6 +191,11 @@ def test_the_about_page_states_the_paper_s_price_weights() -> None:
 
 def test_the_about_page_s_trusted_ttft_share_is_the_pipeline_s() -> None:
     assert f"under {latency.TRUSTED_TTFT_SHARE:.0%} of the request's latency" in definition("ttft")
+
+
+def test_the_speedup_states_the_pipeline_s_tool_wait_cap() -> None:
+    minutes = latency.TOOL_GAP_CAP_S / 60  # seconds to the minute
+    assert f"a tool wait counts for at most {minutes:g} minutes" in figure_definition("Speed-up if twice as fast")
 
 
 def test_the_about_page_s_release_lists_are_the_release_s() -> None:
