@@ -13,9 +13,9 @@ measurement goes into `design.md`.
 
 ## 1. Site data
 
-- [ ] 1.1 Tool calls keep `programs` and `arguments_skeleton` from the release; the fixture gives some calls programs and every call a skeleton; the fixture test checks a shell call's list, a native call's null and a skeleton. Measure the tool-call files' size before and after.
-- [ ] 1.2 Simulation rows hold both scopes (`scope`: the pipeline's Agentic and benchmark names) under the TTL-only policy only, without `policy`, with the week's `span_seconds`; the fixture tests and the view statement follow.
-- [ ] 1.3 Requests gain `user_prompt_tokens` (the pipeline's function) and `missed_tokens_no_ttl` (joined from the simulation's per-request misses; null for a week without a simulation); fixture tests.
+- [x] 1.1 Tool calls keep `programs` and `arguments_skeleton` from the release; the fixture gives some calls programs and every call a skeleton; the fixture test checks a shell call's list, a native call's null and a skeleton. Measure the tool-call files' size before and after.
+- [x] 1.2 Simulation rows hold both scopes (`scope`: the pipeline's Agentic and benchmark names) under the TTL-only policy only, without `policy`, with the week's `span_seconds`; the fixture tests and the view statement follow.
+- [x] 1.3 Requests gain `user_prompt_tokens` (the pipeline's function) and `missed_tokens_no_ttl` (joined from the simulation's per-request misses; null for a week without a simulation); fixture tests.
 - [ ] 1.4 The sessions-table answer holds every harness's sessions with `benchmark` marked; `answers.py` fills the selection tables once with every week and the paper's harnesses and nothing in the browser depends on them.
 
 ## 2. Explore: frozen figures, the table's filter
