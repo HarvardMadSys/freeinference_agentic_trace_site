@@ -135,9 +135,10 @@ run live with the default selection.
 - **THEN** `make test` SHALL fail on that query
 
 ### Requirement: Deployment
-`make deploy` SHALL publish `site/`, including its generated data, to a
-static host that answers HTTP range requests: the Cloudflare Worker that
-`wrangler.jsonc` names, which serves `site/` as static assets. A push to
+`make deploy` SHALL publish `site/`, including its generated data, to the
+Cloudflare Worker that `wrangler.jsonc` names, which serves `site/` as
+static assets. The host answers a range request with the whole file; the
+Session page SHALL work on such a host, reading its week's files whole. A push to
 `main` SHALL deploy the same way through the repository's deploy workflow.
 
 #### Scenario: Deploying a new week

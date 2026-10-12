@@ -1,4 +1,4 @@
-"""serve.py answers a byte range with status 206 and exactly those bytes, as the deployed host does and as DuckDB needs."""
+"""serve.py answers a byte range with status 206 and exactly those bytes, so DuckDB reads only what a query touches locally."""
 
 import http.client
 import http.server

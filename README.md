@@ -130,13 +130,14 @@ token made from the dashboard's "Edit Cloudflare Workers" template) and
 `CLOUDFLARE_ACCOUNT_SUBDOMAIN` and the workflow also checks the deployed
 site. `make deploy` does the same from a machine with `npm install` done and
 the token in `CLOUDFLARE_API_TOKEN`. Static assets allow 20,000 files of
-25 MiB each; the site is a few hundred files, the largest under 10 MB. After
-a deploy, check that the host answers a range request with 206, as DuckDB
-needs:
+25 MiB each; the site is a few hundred files, the largest under 10 MB.
 
-```bash
-curl -sI -r 0-99 https://<the site>/data/weeks.json | head -1    # HTTP/2 206
-```
+Two things the host does differently from `make serve`. It answers a range
+request with the whole file (200, not 206): the Session page reads its
+week's files whole anyway, and DuckDB accepts a whole file where it asked
+for a range, so the pages work; the browser then serves DuckDB's later
+range reads from its own cache. And it redirects `page.html` to `page`, so
+`session.html?week=…` lands on `/session?week=…` with its query kept.
 
 ## Layout
 
