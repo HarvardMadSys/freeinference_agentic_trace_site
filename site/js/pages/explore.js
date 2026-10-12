@@ -1,9 +1,9 @@
 /**
- * The Explore page: weekly trends, headline numbers, distribution cards, the paper's figures in four sections, and
- * the sessions table.
+ * The Explore page: the hero with its stats strip, weekly trends, distribution cards, the paper's figures in four
+ * sections, and the sessions table.
  *
- * The page draws its header, figure cards and every section's loading state from `weeks.json` and `harnesses.json`,
- * then gives the database the selection and runs every section.
+ * The page draws its header, hero, figure cards and every section's loading state from `weeks.json` and
+ * `harnesses.json`, then gives the database the selection and runs every section.
  *
  * Behind the switch, with `FIGURES_ARE_FROZEN` false, the page also mounts the pickers and writes the URL's selection
  * back in its shortest form; it runs every section from the precomputed answers for the default selection and in
@@ -12,8 +12,7 @@
  * weeks' rows in, and the picker's note counts the weeks streamed.
  *
  * While `FIGURES_ARE_FROZEN`, the page shows the default selection whatever the URL says: it mounts no picker, hides
- * the selection's card, states the population every figure draws once under the page's title (`populationText`),
- * answers every section from its precomputed file, draws every figure at once, takes no click
+ * the selection's card, answers every section from its precomputed file, draws every figure at once, takes no click
  * on a trend bar, and starts neither DuckDB nor the stream. The URL's `months` and `harnesses` then filter the sessions
  * table alone, which reads them, and the older `weeks`, `month` and `scope`, and rewrites them in its own keys.
  *
@@ -38,17 +37,18 @@ import { showError, showNote } from "../shared/charts.js";
 import { fetchHarnesses, fetchWeeks, openDatabase, STREAM_ROWS_AFTER_DRAW } from "../shared/database.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
 import {
-  defaultSelection, populationText, readSelection, selectionQuery, writeSelection,
+  defaultSelection, readSelection, selectionQuery, writeSelection,
 } from "../shared/selection.js";
 import { layoutDistributions, runDistributions } from "../explore/distributions.js";
 import {
   layoutFigures, mountFigureSections, runFigures, showErrorInFigureSections, showErrorInFigures, showNoteInFigures,
 } from "../explore/figure_sections.js";
-import { layoutHeadline, runHeadline } from "../explore/headline.js";
 import { mountSelection, showStreamedWeeks } from "../explore/selection_pickers.js";
 import { layoutSessionsTable, runSessionsTable } from "../explore/sessions_table.js";
 import { withFirstPage } from "../explore/sessions_table_state.js";
 import { layoutTrends, runTrends } from "../explore/trends.js";
+import { renderHero } from "../landing/hero.js";
+import { layoutStats, runStats } from "../landing/stats.js";
 
 // Whether every section and figure is frozen on its precomputed answer for every week and the paper's harnesses:
 // true mounts no picker and starts neither DuckDB nor the stream; false lets the visitor pick weeks and harnesses, and
@@ -64,8 +64,8 @@ const NO_HARNESS_NOTE = "Pick at least one harness to see its numbers.";
 
 // Each section: the id of its place in index.html, the function that draws its loading state, and the one that runs it.
 const SECTIONS = Object.freeze([
+  Object.freeze({ id: "stats", layout: layoutStats, run: runStats }),
   Object.freeze({ id: "trends", layout: layoutTrends, run: runTrends }),
-  Object.freeze({ id: "headline", layout: layoutHeadline, run: runHeadline }),
   Object.freeze({ id: "distributions", layout: layoutDistributions, run: runDistributions }),
   Object.freeze({ id: "sessions-table", layout: layoutSessionsTable, run: runSessionsTable }),
 ]);
@@ -77,19 +77,19 @@ async function start() {
   renderFooter(document.querySelector("#site-footer"), PAGE_FILE, new URLSearchParams());
   // Frozen, the selection's card is hidden; with the pickers, it shows the selection the figures draw instead.
   document.querySelector("#selection").hidden = FIGURES_ARE_FROZEN;
-  document.querySelector("#population").hidden = !FIGURES_ARE_FROZEN;
   let weeks;
   let harnesses;
   try {
     [weeks, harnesses] = await Promise.all([fetchWeeks(), fetchHarnesses()]);
   } catch (error) {
     renderHeader(document.querySelector("#site-header"), PAGE_FILE, new URLSearchParams());
+    renderHero(document.querySelector("#hero"), null);
     // Every section shows the error in its own place; the hidden card shows nothing.
     showErrorInEverySection(error);
     showErrorInFigureSections(error);
     return;
   }
-  document.querySelector("#population").textContent = populationText(weeks, harnesses);
+  renderHero(document.querySelector("#hero"), weeks.length);
   const params = new URLSearchParams(window.location.search);
   const selection = FIGURES_ARE_FROZEN ? defaultSelection(weeks, harnesses) : readSelection(params, weeks, harnesses);
   const dataUrl = new URL("data/", window.location.href).href;

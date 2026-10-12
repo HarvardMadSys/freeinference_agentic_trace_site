@@ -605,6 +605,150 @@ section[id] {
   }
 }
 
+/* ---------- Hero ---------- */
+
+/* The page's opening: the title, lede and buttons on the left, the stats strip on the right. */
+.hero {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(1rem, 4vw, 3rem) 0 clamp(1rem, 3vw, 2rem);
+}
+
+/* A soft crimson wash behind the stats strip, so the opening reads warmer than the page. It fades out before the
+   hero's sides, so it shows no edge where the page is narrower than the screen. */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -6rem 0 0;
+  z-index: -1;
+  background: radial-gradient(30% 75% at 75% 10%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(21rem, 0.85fr); /* the copy wide enough for the four buttons in a row */
+  align-items: center;
+  gap: clamp(2rem, 5vw, 4.5rem);
+}
+
+/* The eyebrow's crimson square, as the brand's mark. */
+.eyebrow-mark {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.55rem;
+  border-radius: 2px;
+  background: var(--color-accent);
+}
+
+.hero h1 {
+  margin-top: 1rem;
+  font-size: clamp(2rem, 1.25rem + 2.7vw, 3.25rem);
+  letter-spacing: -0.035em;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--color-accent);
+}
+
+/* On a phone the title runs on as one sentence; wider, its accent phrase takes a line of its own. */
+.hero h1 br {
+  display: none;
+}
+
+@media (min-width: 34rem) {
+  .hero h1 br {
+    display: inline;
+  }
+}
+
+.hero-lede {
+  max-width: 40rem;
+  margin: 1.25rem 0 0;
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  color: var(--color-text-muted);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.75rem;
+}
+
+/* The stats strip: a white card of six numbers in a grid of hairlines, the line of dates under them. */
+.stats-card {
+  padding: clamp(1.25rem, 3vw, 1.65rem);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: var(--color-surface);
+  box-shadow: 0 2px 3px rgb(28 25 23 / 0.04), 0 24px 60px -36px color-mix(in srgb, var(--color-accent) 36%, transparent);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: 0.55rem;
+  background: var(--color-border);
+}
+
+.stats-grid li {
+  min-width: 0;
+  padding: 0.75rem 0.8rem;
+  background: var(--color-background);
+}
+
+.stats-grid strong,
+.stats-grid span {
+  display: block;
+}
+
+.stats-grid strong {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  color: var(--color-accent);
+}
+
+.stats-grid span {
+  margin-top: 0.2rem;
+  font-size: var(--font-size-smallest);
+  color: var(--color-text-faint);
+}
+
+.stats-dates {
+  margin: 0.9rem 0 0;
+  font-size: var(--font-size-smallest);
+  color: var(--color-text-muted);
+}
+
+/* The stats strip goes under the copy where the two no longer fit side by side, and keeps two numbers a row on a phone. */
+@media (max-width: 62rem) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stats-card {
+    max-width: 40rem;
+  }
+}
+
+@media (max-width: 30rem) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* ---------- Page layout ---------- */
 
 .page {
@@ -620,13 +764,6 @@ section[id] {
   font-size: 1.0625rem;
   color: var(--color-text-muted);
   max-width: 44rem;
-}
-
-/* The population every figure draws, stated once under the lede rather than on every card. */
-.population {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
 }
 
 .breadcrumb {
@@ -746,59 +883,6 @@ section[id] {
 
 .prose dd {
   margin: 0.125rem 0 0;
-}
-
-/* ---------- Stat tiles ---------- */
-
-/* Four tiles a row, two on a phone, so eight tiles make whole rows; a wide tile takes two, and a later tile may fill a
-   gap it leaves. */
-.stat-strip {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-auto-flow: row dense;
-  gap: 1rem;
-}
-
-.stat {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
-  padding: 1rem 1.25rem;
-}
-
-.stat-label {
-  font-size: var(--font-size-smallest);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-faint);
-}
-
-.stat-value {
-  font-family: var(--font-serif);
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.stat-detail {
-  font-size: var(--font-size-smallest);
-  color: var(--color-text-muted);
-  white-space: pre-line;
-}
-
-.stat.is-wide {
-  grid-column: span 2;
-}
-
-/* A detail of several lines names each thing in the text's ink and mutes its number. */
-.stat-detail-line {
-  color: var(--color-text);
-}
-
-.stat-detail-note {
-  color: var(--color-text-muted);
 }
 
 /* ---------- Figures and cards ---------- */
@@ -1333,15 +1417,6 @@ button.is-primary {
   background: var(--chip-color, var(--series-other));
 }
 
-/* The pill that stands for several models, with no colour of its own. */
-.chip.is-muted {
-  color: var(--color-text-muted);
-}
-
-.chip.is-muted::before {
-  content: none;
-}
-
 /* ---------- Requests view ---------- */
 
 .request-toolbar {
@@ -1634,20 +1709,6 @@ button.is-primary {
 /* ---------- Small screens ---------- */
 
 @media (max-width: 40rem) {
-  .stat-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
-  /* Two tiles share a phone's width: a value such as 1,125,604 or 2026-08-02 must fit one line of a tile. */
-  .stat {
-    padding: 0.75rem;
-  }
-
-  .stat-value {
-    font-size: 1.125rem;
-  }
-
   h1 {
     font-size: 1.75rem;
   }

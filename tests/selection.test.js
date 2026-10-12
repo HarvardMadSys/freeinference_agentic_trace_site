@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  computationNote, defaultHarnesses, defaultSelection, harnessesText, isDefaultSelection, populationText, readSelection,
+  computationNote, defaultHarnesses, defaultSelection, isDefaultSelection, readSelection,
   selectionQuery, streamedWeeksNote, streamedWeeksText, unknownSelectionNote, weeksByMonth, withoutSelection,
   writeSelection,
 } from "../site/js/shared/selection.js";
@@ -227,23 +227,4 @@ test("the default selection, an empty one, or a page that does not stream count 
 test("a streamed Sunday that is not a week of weeks.json is not counted", () => {
   assert.equal(streamedWeeksText(["2026-06-14", "2025-01-05"], WEEKS),
     "The newest 1 of 4 weeks loaded in your browser.");
-});
-
-test("a caption names the paper's harnesses, every harness, the one harness, or how many", () => {
-  assert.equal(harnessesText(PAPER_HARNESSES, HARNESSES), "the paper's harnesses");
-  assert.equal(harnessesText(HARNESSES.map((entry) => entry.harness), HARNESSES), "every harness");
-  assert.equal(harnessesText(["codex"], HARNESSES), "codex");
-  assert.equal(harnessesText(["hermes", "codex"], HARNESSES), "2 harnesses");
-});
-
-test("the population every frozen figure draws names the paper's harnesses, the weeks, their days and the unsimulated", () => {
-  assert.equal(populationText(WEEKS, HARNESSES),
-    "All figures: the paper's harnesses, all 4 weeks (cache simulation: all but 2026-06-14), May 24 to June 20, 2026, "
-      + "and the benchmark replay where a legend names it.");
-  assert.equal(populationText(WEEKS.slice(0, 1), HARNESSES),
-    "All figures: the paper's harnesses, one week, May 24 to May 30, 2026, and the benchmark replay where a legend names it.");
-  assert.equal(populationText(WEEKS.slice(3), HARNESSES),
-    "All figures: the paper's harnesses, one week (no cache simulation), June 14 to June 20, 2026, "
-      + "and the benchmark replay where a legend names it.");
-  assert.equal(populationText([], HARNESSES), "");
 });

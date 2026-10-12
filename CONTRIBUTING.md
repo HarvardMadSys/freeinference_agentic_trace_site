@@ -96,7 +96,9 @@ Session:       session.html  →  js/pages/session.js  →  js/session*/ and js/
 
 ```
 js/pages/             one module per page
-js/shared/            what every page uses: the database, the selection, formatting, charts, the table, the stat strip
+js/shared/            what every page uses: the database, the selection, formatting, charts, the table, the header and
+                      footer
+js/landing/           the Explore page's opening: the hero and the stats strip beside it
 js/theme/             the site's colours as the style tokens give them
 js/axes/              the ticks of every chart's axes: how many, where a log, duration or elapsed-time axis ticks, which
                       week a week axis labels, and an axis mark that labels each tick it is given

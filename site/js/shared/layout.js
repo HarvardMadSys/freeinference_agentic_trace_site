@@ -8,8 +8,8 @@
 
 import { selectionQuery } from "./selection.js";
 
-// Every address outside the site that the header and footer link, each written once.
-const URLS = Object.freeze({
+/** Every address outside the site that a page links, each written once. */
+export const URLS = Object.freeze({
   lab: "https://madsys.seas.harvard.edu/",
   dataset: "https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace",
   paper: "https://data.freeinference.org/pdf/paper/from-requests-to-sessions.pdf",

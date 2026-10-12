@@ -14,13 +14,13 @@ charts. There is no server and no bundler.
 
 | Page | File | What it shows |
 |---|---|---|
-| Explore | `index.html` | Weekly trends, headline numbers, eight distribution cards, 29 of the paper's figures in four sections (`#figures-sessions`, `#figures-tools`, `#figures-caching`, `#figures-comparison`: Sessions, Tools, Prefix caching, Human-driven against benchmark) and the session list (`#sessions`), a table of every top-level session with its own filter |
+| Explore | `index.html` | A hero with the stats strip (weeks, sessions, requests, input tokens, tool calls, harnesses), weekly trends, eight distribution cards, 29 of the paper's figures in four sections (`#figures-sessions`, `#figures-tools`, `#figures-caching`, `#figures-comparison`: Sessions, Tools, Prefix caching, Human-driven against benchmark) and the session list (`#sessions`), a table of every top-level session with its own filter |
 | Session | `session.html` | One session and its subagents: a bar per request with each tool call's programs and the skeleton of its arguments, context over time, and a timeline per agent |
 | About | `about.html` | What the site shows, definitions, where it draws more simply than the paper, how the data were built, and links |
 
 ## Frozen figures
 
-Every number on the Explore page, every trend, headline number,
+Every number on the Explore page, every trend, stat,
 distribution card and figure, is drawn over every week and the paper's
 harnesses (every harness but the benchmark replay `eval:swe-bench`, which
 appears only where a figure's legend names it), from answers precomputed
