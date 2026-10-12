@@ -37,12 +37,13 @@ since (`tests/test_answers.py`), as `make deploy` does through
 The one thing a visitor narrows is the session list. Its answer holds every
 harness's sessions, the benchmark's marked, and the list filters it in the
 browser by month (the weeks whose Sunday falls in it), harness, main model,
-a minimum of requests and a search of the session id. The month and harness
-filter lives in the URL as `months` and `harnesses`
-(`?months=2026-07&harnesses=hermes,codex`), so a filtered list can be shared
-as a link; the default, every month and the paper's harnesses, writes no
-key, and the keys change no figure. Older links' `weeks`, `month`, `scope`
-and `harness` are read as the filter and rewritten.
+a minimum of requests and a search of the session id, newest session first.
+The month and harness drop-downs choose one of each, and the URL holds them
+as `months` and `harnesses` (`?months=2026-07&harnesses=codex`), so a
+filtered list can be shared as a link; the default, every month and every
+harness, writes no key, and the keys change no figure. A key naming several
+keeps its first; older links' `weeks`, `month`, `scope` and `harness` are
+read as the filter and rewritten.
 
 The browser query path stays in the code behind one switch:
 `FIGURES_ARE_FROZEN` in `site/js/pages/explore.js` is `true`. Set to
@@ -158,8 +159,7 @@ site/              exactly the files that are deployed
   js/explore/      the Explore page's sections: trends, distributions, figure_sections (the figure runner),
                    legend (the legend of buttons that hides and shows a series), sessions_table, sessions_table_state
                    (its columns and its state in the URL), sessions_filter (its month and harness filter), and
-                   selection_pickers (the week and harness pickers, mounted only with the switch off; the filter
-                   takes its pills from it)
+                   selection_pickers (the week and harness pickers, mounted only with the switch off)
   js/figures/      one module per figure section (sessions, tools, caching), the modules they take figures from
                    (sessions_latency, sessions_ranked, tools_batching, caching_gaps), and figure_rows, the row rules
                    every figure shares

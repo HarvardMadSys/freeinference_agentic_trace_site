@@ -9,25 +9,23 @@ import {
 } from "../shared/format.js";
 import { filterRows, searchRows, sortRows } from "../shared/table.js";
 
-// The table's sort when the URL names none: most input first.
-const DEFAULT_SORT = Object.freeze({ key: "input_tokens", direction: "descending" });
+// The table's sort when the URL names none: the newest session first.
+const DEFAULT_SORT = Object.freeze({ key: "first_start_ms", direction: "descending" });
 
 // The table's columns: the row key each shows, its title, how its value is written, and whether it is a number. A
-// session's week is not a column: its start gives it, and the month filter chooses by it; nor are its subagents, none
-// in almost every row, which the Session page counts: so the table fits a desktop card.
+// session's week is not a column: its start gives it, and the month filter chooses by it. Its tool calls, peak prompt
+// and subagents are not either: the Session page shows them, and nine columns fit a desktop card.
 // The session column gets its link when the table is drawn, since the link carries the selection.
 export const COLUMNS = Object.freeze([
   Object.freeze({ key: "session_id", title: "Session", format: shortSessionId }),
   Object.freeze({ key: "first_start_ms", title: "Started (UTC)", format: shortMinute }),
   Object.freeze({ key: "harness", title: "Harness", format: harnessText }),
-  Object.freeze({ key: "main_model", title: "Main model", format: textOrMissing }),
+  Object.freeze({ key: "main_model", title: "Model", format: textOrMissing }),
   Object.freeze({ key: "requests", title: "Requests", format: formatCount, isNumber: true }),
   Object.freeze({ key: "turns", title: "Turns", format: formatCount, isNumber: true }),
-  Object.freeze({ key: "tool_calls", title: "Tool calls", format: formatCount, isNumber: true }),
   Object.freeze({ key: "duration_s", title: "Duration", format: formatSeconds, isNumber: true }),
   Object.freeze({ key: "input_tokens", title: "Input tokens", format: formatTokens, isNumber: true }),
   Object.freeze({ key: "cached_share", title: "Cached share", format: formatOptionalShare, isNumber: true }),
-  Object.freeze({ key: "peak_prompt_tokens", title: "Peak prompt", format: formatTokens, isNumber: true }),
 ]);
 
 /** The table's state in `params`: `{ search, harness, model, minRequests, sort: { key, direction }, pageNumber }`. */

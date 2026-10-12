@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { linkedColumns, sessionLink } from "../site/js/explore/sessions_table.js";
 import {
   choices,
+  COLUMNS,
   harnessText,
   nextSort,
   readTableState,
@@ -13,21 +14,23 @@ import {
   withFirstPage,
   writeTableState,
 } from "../site/js/explore/sessions_table_state.js";
+import { selectionParameters } from "../site/js/session/address.js";
+import { selectionQuery } from "../site/js/shared/selection.js";
 
 const DEFAULT_STATE = {
   search: "",
   harness: "",
   model: "",
   minRequests: null,
-  sort: { key: "input_tokens", direction: "descending" },
+  sort: { key: "first_start_ms", direction: "descending" },
   pageNumber: 1,
 };
 
 const SESSIONS = [
-  { session_id: "aaaa1111-x", harness: "codex", main_model: "glm", requests: 150, input_tokens: 10 },
-  { session_id: "bbbb2222-y", harness: "pi", main_model: "glm", requests: 120, input_tokens: 30 },
-  { session_id: "cccc3333-z", harness: "codex", main_model: null, requests: 20, input_tokens: 20 },
-  { session_id: "dddd4444-w", harness: "codex", main_model: "deepseek", requests: 100, input_tokens: 40 },
+  { session_id: "aaaa1111-x", harness: "codex", main_model: "glm", requests: 150, first_start_ms: 1000 },
+  { session_id: "bbbb2222-y", harness: "pi", main_model: "glm", requests: 120, first_start_ms: 3000 },
+  { session_id: "cccc3333-z", harness: "codex", main_model: null, requests: 20, first_start_ms: 2000 },
+  { session_id: "dddd4444-w", harness: "codex", main_model: "deepseek", requests: 100, first_start_ms: 4000 },
 ];
 
 const WEEKS = [
@@ -79,16 +82,30 @@ test("a page or a minimum that is not a number falls back to page 1 and no minim
 
 test("an unknown sort column or direction falls back to the default sort", () => {
   const state = readTableState(new URLSearchParams("sort=secret&direction=sideways"));
-  assert.deepEqual(state.sort, { key: "input_tokens", direction: "descending" });
+  assert.deepEqual(state.sort, { key: "first_start_ms", direction: "descending" });
 });
 
 test("a new selection drops the table's page and keeps its other keys", () => {
   assert.equal(withFirstPage(new URLSearchParams("weeks=all&page=3&harness=pi")).toString(), "weeks=all&harness=pi");
 });
 
-test("the default sort lists the most input first", () => {
+test("the default sort lists the newest session first, and writes no sort key", () => {
   const ids = shownSessions(SESSIONS, DEFAULT_STATE).map((row) => row.session_id);
   assert.deepEqual(ids, ["dddd4444-w", "bbbb2222-y", "cccc3333-z", "aaaa1111-x"]);
+  assert.equal(writeTableState(new URLSearchParams(), DEFAULT_STATE).toString(), "");
+});
+
+test("an explicit sort in the URL is still read", () => {
+  const state = readTableState(new URLSearchParams("sort=input_tokens&direction=ascending"));
+  assert.deepEqual(state.sort, { key: "input_tokens", direction: "ascending" });
+});
+
+test("the columns are the session, its start, harness, model and five numbers", () => {
+  const titles = COLUMNS.map((column) => column.title);
+  const expected = [
+    "Session", "Started (UTC)", "Harness", "Model", "Requests", "Turns", "Duration", "Input tokens", "Cached share",
+  ];
+  assert.deepEqual(titles, expected);
 });
 
 test("a search by an id prefix finds the session", () => {
@@ -155,6 +172,16 @@ test("while the table filters itself, a row's link carries the Explore page's ke
   const exploreParams = new URLSearchParams("months=2026-07&harnesses=codex&sort=requests&page=2");
   const link = sessionLink(row, exploreParams, context);
   assert.equal(link, "session.html?week=2026-07-05&id=aaaa1111-x&months=2026-07&harnesses=codex&sort=requests&page=2");
+});
+
+test("the Session page's link back carries the table's filters, search, sort and page as they were", () => {
+  const row = { week: "2026-07-05", session_id: "aaaa1111-x" };
+  const context = { ...contextOf(["2026-08-09"], ["codex"]), filterInTable: true };
+  const exploreQuery = "months=2026-07&harnesses=eval:swe-bench&search=aa&sort=requests&direction=ascending&page=2";
+  const link = sessionLink(row, new URLSearchParams(exploreQuery), context);
+  const sessionParams = new URLSearchParams(link.slice(link.indexOf("?")));
+  const backQuery = selectionQuery(selectionParameters(sessionParams));
+  assert.equal(backQuery, "?months=2026-07&harnesses=eval%3Aswe-bench&search=aa&sort=requests&direction=ascending&page=2");
 });
 
 test("the benchmark's harness is marked as a benchmark replay", () => {

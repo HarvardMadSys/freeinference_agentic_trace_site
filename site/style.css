@@ -1467,39 +1467,45 @@ section[id] {
   display: none;
 }
 
-/* The sessions table's folded filter: one line in words when closed; the pills and the controls when open. */
-.table-filter {
+/* The sessions table's row of controls: each a field under its name in small monospace capitals, wrapping on a phone. */
+.table-controls {
+  align-items: flex-end;
   margin-bottom: 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-small);
-  background: var(--color-surface);
 }
 
-.table-filter summary {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  overflow-wrap: anywhere;
-}
-
-.table-filter[open] summary {
-  border-bottom: 1px solid var(--color-border);
-}
-
-/* The pills, then the search and the other controls, under the line. */
-.table-filter-pickers {
+.control-field {
   display: flex;
+  flex: 1 1 auto; /* each as wide as its widest choice, then the row shared out */
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.75rem 0.75rem 0;
+  gap: 0.25rem;
+  min-width: 0;
 }
 
-.table-filter > .controls {
-  padding: 0.75rem;
+.control-field-name {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-smallest);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
 }
 
-.table-filter-note .note {
+/* A drop-down and a text box draw at different heights by default; one height lines the row up. */
+.control-field select,
+.control-field input {
+  box-sizing: border-box;
+  height: 2.375rem;
+}
+
+/* A text box starts narrow, so the five fields share one row at desktop width, and fills its field once the row is
+   shared out. */
+.control-field input {
+  width: 8rem;
+  min-width: 100%;
+}
+
+/* The note naming the months and harnesses a link named that the data do not hold. */
+.table-note .note {
   margin: 0 0 0.75rem;
 }
 
@@ -1600,17 +1606,21 @@ button.is-primary {
   font-variant-numeric: tabular-nums;
 }
 
-/* The sessions table keeps each row's link in view while it scrolls sideways on a narrow screen. */
-#sessions-table .data-table th:first-child,
-#sessions-table .data-table td:first-child {
+/* A table in a wrap keeps its header row in view while its rows scroll inside the wrap. Collapsed borders scroll with
+   the rows, so the header's rule is a shadow that stays with it. */
+.table-wrap .data-table th {
   position: sticky;
-  left: 0;
+  top: 0;
+  z-index: 1;
   background: var(--color-surface);
-  box-shadow: inset -1px 0 0 var(--color-border); /* a border that stays with the sticky cell as the table scrolls */
+  border-bottom: none;
+  box-shadow: inset 0 -1px 0 var(--color-border);
 }
 
-#sessions-table .data-table tbody tr:hover td:first-child {
-  background: var(--color-surface-raised);
+/* The session list scrolls inside its card, so a page of 50 rows does not push the pager a screen away. */
+#sessions-table .table-wrap {
+  max-height: 70vh;
+  overflow: auto;
 }
 
 /* The pager under a table: right-aligned, a row's gap below the table. */

@@ -2,8 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  filterWords, harnessesWords, monthsOf, monthsWords, namesFilter, readTableFilter, rowsInFilter, unknownFilterNote,
-  writeTableFilter,
+  harnessChoices, monthChoices, monthsOf, readTableFilter, rowsInFilter, unknownFilterNote, writeTableFilter,
 } from "../site/js/explore/sessions_filter.js";
 import { readTableState, shownSessions } from "../site/js/explore/sessions_table_state.js";
 import { selectionQuery } from "../site/js/shared/selection.js";
@@ -20,12 +19,12 @@ const HARNESSES = [
   { harness: "codex", sessions: 20, benchmark: false },
 ];
 const SESSIONS = [
-  { session_id: "a", week: "2026-06-28", harness: "codex", benchmark: false, requests: 150, input_tokens: 1 },
-  { session_id: "b", week: "2026-07-05", harness: "codex", benchmark: false, requests: 120, input_tokens: 2 },
-  { session_id: "c", week: "2026-07-12", harness: "codex", benchmark: false, requests: 20, input_tokens: 3 },
-  { session_id: "d", week: "2026-07-12", harness: "hermes", benchmark: false, requests: 300, input_tokens: 4 },
-  { session_id: "e", week: "2026-07-05", harness: "eval:swe-bench", benchmark: true, requests: 90, input_tokens: 5 },
-  { session_id: "f", week: "2026-08-02", harness: "hermes", benchmark: false, requests: 10, input_tokens: 6 },
+  { session_id: "a", week: "2026-06-28", harness: "codex", benchmark: false, requests: 150, first_start_ms: 1 },
+  { session_id: "b", week: "2026-07-05", harness: "codex", benchmark: false, requests: 120, first_start_ms: 2 },
+  { session_id: "c", week: "2026-07-12", harness: "codex", benchmark: false, requests: 20, first_start_ms: 3 },
+  { session_id: "d", week: "2026-07-12", harness: "hermes", benchmark: false, requests: 300, first_start_ms: 4 },
+  { session_id: "e", week: "2026-07-05", harness: "eval:swe-bench", benchmark: true, requests: 90, first_start_ms: 5 },
+  { session_id: "f", week: "2026-08-02", harness: "hermes", benchmark: false, requests: 10, first_start_ms: 6 },
 ];
 
 /** The filter a query string names. */
@@ -36,7 +35,7 @@ function filterOf(query) {
 /** The query string the filter a query string names is rewritten as. */
 function rewritten(query) {
   const params = new URLSearchParams(query);
-  return selectionQuery(writeTableFilter(params, readTableFilter(params, WEEKS, HARNESSES), WEEKS, HARNESSES));
+  return selectionQuery(writeTableFilter(params, readTableFilter(params, WEEKS, HARNESSES)));
 }
 
 /** The ids of the sessions the filter a query string names keeps. */
@@ -49,34 +48,39 @@ test("a month is the weeks whose Sunday falls in it", () => {
   assert.deepEqual(keptIds("months=2026-06"), ["a"]);
 });
 
-test("no key is every month and the paper's harnesses, which leaves the benchmark out and writes no key", () => {
-  const everyMonth = ["2026-06", "2026-07", "2026-08"];
-  assert.deepEqual(filterOf(""), { months: everyMonth, harnesses: ["hermes", "codex"], unknown: [] });
-  assert.deepEqual(keptIds(""), ["a", "b", "c", "d", "f"]);
+test("no key is every month and every harness, the benchmark's included, and writes no key", () => {
+  assert.deepEqual(filterOf(""), { month: "", harness: "", unknown: [] });
+  assert.deepEqual(keptIds(""), ["a", "b", "c", "d", "e", "f"]);
   assert.equal(rewritten(""), "");
 });
 
+test("months=2026-07 lists July 2026's sessions of every harness, the benchmark's included", () => {
+  assert.deepEqual(filterOf("months=2026-07"), { month: "2026-07", harness: "", unknown: [] });
+  assert.deepEqual(keptIds("months=2026-07"), ["b", "c", "d", "e"]);
+  assert.equal(rewritten("months=2026-07"), "?months=2026-07");
+});
+
 test("months=2026-07&harnesses=codex keeps July 2026's codex sessions and reads back as it was", () => {
-  const filter = filterOf("months=2026-07&harnesses=codex");
-  assert.deepEqual(filter, { months: ["2026-07"], harnesses: ["codex"], unknown: [] });
+  assert.deepEqual(filterOf("months=2026-07&harnesses=codex"), { month: "2026-07", harness: "codex", unknown: [] });
   assert.deepEqual(keptIds("months=2026-07&harnesses=codex"), ["b", "c"]);
   assert.equal(rewritten("months=2026-07&harnesses=codex"), "?months=2026-07&harnesses=codex");
 });
 
-test("two harnesses of a shared link are both kept, in the order of harnesses.json", () => {
-  assert.deepEqual(filterOf("months=2026-07&harnesses=codex,hermes").harnesses, ["hermes", "codex"]);
-  assert.deepEqual(keptIds("months=2026-07&harnesses=hermes,codex"), ["b", "c", "d"]);
+test("a key naming several harnesses or months keeps its first", () => {
+  assert.equal(rewritten("months=2026-07&harnesses=hermes,codex"), "?months=2026-07&harnesses=hermes");
+  assert.deepEqual(keptIds("months=2026-07&harnesses=hermes,codex"), ["d"]);
+  assert.equal(rewritten("months=2026-08,2026-06"), "?months=2026-08");
 });
 
-test("ticking the benchmark's harness brings its sessions in", () => {
-  assert.deepEqual(keptIds("harnesses=hermes,eval:swe-bench,codex"), ["a", "b", "c", "d", "e", "f"]);
-  assert.equal(rewritten("harnesses=hermes,eval:swe-bench,codex"), "?harnesses=hermes,eval%3Aswe-bench,codex");
+test("the benchmark's harness chosen alone lists its sessions alone", () => {
+  assert.deepEqual(keptIds("harnesses=eval:swe-bench"), ["e"]);
+  assert.equal(rewritten("harnesses=eval:swe-bench"), "?harnesses=eval%3Aswe-bench");
 });
 
-test("a link from an earlier release: weeks are read as their months and rewritten as months", () => {
-  assert.deepEqual(filterOf("weeks=2026-07-05,2026-07-12&scope=All").months, ["2026-07"]);
+test("a link from an earlier release: weeks are read as their month and rewritten as months", () => {
+  assert.equal(filterOf("weeks=2026-07-05,2026-07-12&scope=All").month, "2026-07");
   assert.equal(rewritten("weeks=2026-07-05,2026-07-12&scope=All"), "?months=2026-07");
-  assert.equal(rewritten("weeks=2026-06-28,2026-07-05"), "?months=2026-06,2026-07");
+  assert.equal(rewritten("weeks=2026-06-28,2026-07-05"), "?months=2026-06");
 });
 
 test("a link from the first release: weeks=all and scope are the default and are rewritten away", () => {
@@ -90,16 +94,15 @@ test("an older month or harness key is read as the filter and rewritten in the n
   assert.equal(rewritten("months=2026-08&month=2026-07&weeks=2026-06-28"), "?months=2026-08");
 });
 
-test("an unknown week is left out with a note, and the filter keeps the months of the others", () => {
+test("an unknown week is left out with a note, and the filter keeps the month of the others", () => {
   const filter = filterOf("weeks=2026-07-05,2025-01-05&scope=All");
-  assert.deepEqual(filter.months, ["2026-07"]);
+  assert.equal(filter.month, "2026-07");
   assert.equal(unknownFilterNote(filter), "Not in the data, so not used: week 2025-01-05.");
 });
 
-test("an unknown month or harness is ignored and named; with none known, the default holds", () => {
+test("an unknown month or harness is ignored and named; with none known, every one", () => {
   const filter = filterOf("months=2026-13,2026-13&harnesses=nobody");
-  assert.deepEqual(filter.months, ["2026-06", "2026-07", "2026-08"]);
-  assert.deepEqual(filter.harnesses, ["hermes", "codex"]);
+  assert.deepEqual(filter, { month: "", harness: "", unknown: ["month 2026-13", "harness nobody"] });
   assert.equal(unknownFilterNote(filter), "Not in the data, so not used: month 2026-13, harness nobody.");
   assert.equal(rewritten("months=2026-13,2026-07&harnesses=nobody"), "?months=2026-07");
   assert.equal(unknownFilterNote(filterOf("months=2026-07")), "");
@@ -110,39 +113,26 @@ test("writing the filter keeps the table's other keys, and a filter key already 
   assert.equal(rewritten("harnesses=codex&sort=requests&months=2026-07"), "?harnesses=codex&sort=requests&months=2026-07");
 });
 
-test("every month, or none, writes no months key; every harness writes them all", () => {
-  const everyHarness = { months: [], harnesses: ["hermes", "eval:swe-bench", "codex"], unknown: [] };
-  const params = writeTableFilter(new URLSearchParams(), everyHarness, WEEKS, HARNESSES);
-  assert.equal(selectionQuery(params), "?harnesses=hermes,eval%3Aswe-bench,codex");
+test("the month drop-down offers every month by name after All months", () => {
+  assert.deepEqual(monthChoices(WEEKS), [
+    { value: "", text: "All months" },
+    { value: "2026-06", text: "June 2026" },
+    { value: "2026-07", text: "July 2026" },
+    { value: "2026-08", text: "August 2026" },
+  ]);
 });
 
-test("the filter is open when the URL names it in its own keys", () => {
-  assert.equal(namesFilter(new URLSearchParams("months=2026-07")), true);
-  assert.equal(namesFilter(new URLSearchParams("harnesses=codex")), true);
-  assert.equal(namesFilter(new URLSearchParams("sort=requests")), false);
+test("the harness drop-down offers every harness after All harnesses, the benchmark named as such", () => {
+  assert.deepEqual(harnessChoices(HARNESSES), [
+    { value: "", text: "All harnesses" },
+    { value: "hermes", text: "hermes" },
+    { value: "eval:swe-bench", text: "eval:swe-bench (benchmark replay)" },
+    { value: "codex", text: "codex" },
+  ]);
 });
 
 test("filtering to one harness and a minimum of 100 requests keeps its sessions with at least that many", () => {
   const state = readTableState(new URLSearchParams("min_requests=100"));
   const shown = shownSessions(rowsInFilter(SESSIONS, filterOf("harnesses=codex"), WEEKS), state);
   assert.deepEqual(shown.map((row) => row.session_id), ["b", "a"]);
-});
-
-test("the closed line says the filter in words and how many sessions match out of how many", () => {
-  const state = readTableState(new URLSearchParams());
-  const line = { filter: filterOf(""), state, matching: 5, total: 6, weeks: WEEKS, harnesses: HARNESSES };
-  assert.equal(filterWords(line), "Every month · the paper's harnesses · 5 of 6 sessions");
-  const narrowed = { ...line, filter: filterOf("months=2026-07&harnesses=codex,eval:swe-bench"), matching: 3 };
-  narrowed.state = readTableState(new URLSearchParams("model=glm&min_requests=1000&search=ab12"));
-  const words = "July 2026 · eval:swe-bench, codex · main model glm · at least 1,000 requests · id containing \"ab12\"";
-  assert.equal(filterWords(narrowed), `${words} · 3 of 6 sessions`);
-});
-
-test("months and harnesses in words: every one, none, a few by name, more as a count", () => {
-  assert.equal(monthsWords(["2026-06", "2026-07"], WEEKS), "June 2026, July 2026");
-  assert.equal(monthsWords([], WEEKS), "No month");
-  assert.equal(monthsWords(["2026-01", "2026-02", "2026-03", "2026-04"], WEEKS), "4 months");
-  assert.equal(harnessesWords(["hermes", "eval:swe-bench", "codex"], HARNESSES), "every harness");
-  assert.equal(harnessesWords([], HARNESSES), "no harness");
-  assert.equal(harnessesWords(["codex"], HARNESSES), "codex");
 });

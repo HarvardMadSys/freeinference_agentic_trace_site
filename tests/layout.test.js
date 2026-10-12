@@ -41,7 +41,7 @@ function footerList(heading) {
 }
 
 test("on the Explore page the header links its four sections by anchor alone, none marked", () => {
-  assert.deepEqual(sectionLinks("index.html", "month=2026-07&sort=requests&page=2"), [
+  assert.deepEqual(sectionLinks("index.html", "months=2026-07&harnesses=codex&sort=requests&page=2"), [
     ["Overview", "#overview", false],
     ["Figures", "#figures", false],
     ["Sessions", "#sessions", false],
@@ -50,17 +50,17 @@ test("on the Explore page the header links its four sections by anchor alone, no
 });
 
 test("on the Session page the header's section links carry the URL keys, and Sessions is marked", () => {
-  assert.deepEqual(sectionLinks("session.html", "month=2026-07&sort=requests&page=2"), [
-    ["Overview", "index.html?month=2026-07&sort=requests&page=2#overview", false],
-    ["Figures", "index.html?month=2026-07&sort=requests&page=2#figures", false],
-    ["Sessions", "index.html?month=2026-07&sort=requests&page=2#sessions", true],
-    ["Cite", "index.html?month=2026-07&sort=requests&page=2#cite", false],
+  assert.deepEqual(sectionLinks("session.html", "months=2026-07&harnesses=codex&sort=requests&page=2"), [
+    ["Overview", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#overview", false],
+    ["Figures", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#figures", false],
+    ["Sessions", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#sessions", true],
+    ["Cite", "index.html?months=2026-07&harnesses=codex&sort=requests&page=2#cite", false],
   ]);
 });
 
 test("the brand links the Explore page with the URL keys", () => {
-  const markup = rendered(renderHeader, "session.html", "month=2026-07");
-  assert.match(markup, /<a class="brand" href="index\.html\?month=2026-07">/);
+  const markup = rendered(renderHeader, "session.html", "months=2026-07");
+  assert.match(markup, /<a class="brand" href="index\.html\?months=2026-07">/);
   assert.match(markup, /FreeInference <em>agentic trace<\/em>/);
 });
 
@@ -84,8 +84,8 @@ test("the footer lists the sections on this site and the places elsewhere", () =
 });
 
 test("the footer's section links carry the URL keys from the Session page", () => {
-  const markup = rendered(renderFooter, "session.html", "month=2026-07");
-  assert.match(markup, /<a class="footer-link" href="index\.html\?month=2026-07#sessions">Sessions<\/a>/);
+  const markup = rendered(renderFooter, "session.html", "months=2026-07");
+  assert.match(markup, /<a class="footer-link" href="index\.html\?months=2026-07#sessions">Sessions<\/a>/);
 });
 
 test("the footer holds the brand line, Harvard's copyright and its four policies", () => {

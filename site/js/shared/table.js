@@ -70,17 +70,17 @@ export function cellContent(column, row) {
 }
 
 /**
- * Scroll `wrap`, a table wider than its box, so the column the table is sorted by is in view: when it is hidden, it is
- * brought to start right after the first column, which stays in place as the table scrolls.
+ * Scroll `wrap`, a table wider than its box, so the column the table is sorted by is in view: when its right edge is
+ * hidden, the table scrolls just far enough to show it, keeping as many columns before it in view as fit.
  */
 function showSortedColumn(wrap) {
   const sorted = wrap.querySelector("th.is-sorted");
-  const first = wrap.querySelector("th");
-  if (sorted === null || sorted === first) {
+  if (sorted === null) {
     return;
   }
-  if (sorted.offsetLeft + sorted.offsetWidth > wrap.clientWidth) {
-    wrap.scrollLeft = sorted.offsetLeft - first.offsetWidth;
+  const sortedRightEdge = sorted.offsetLeft + sorted.offsetWidth;
+  if (sortedRightEdge > wrap.clientWidth) {
+    wrap.scrollLeft = sortedRightEdge - wrap.clientWidth;
   }
 }
 
