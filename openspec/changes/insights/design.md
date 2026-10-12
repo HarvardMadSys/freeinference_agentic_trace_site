@@ -5,12 +5,10 @@
 Hero → Overview (`#overview`) → Sessions (`#sessions`) → Insights
 (`#insights`, six topics) → Cite → Team → footer.
 
-| Place | Eyebrow | Heading | Header link |
-|---|---|---|---|
-| Overview | Overview | At a glance | Overview |
-| The list | Browse | Sessions | Sessions |
-| The topics | Findings | Insights | Insights |
-| Cite | Citation | Citation | Cite |
+Four sections, four names, used as the heading and the header link alike,
+with no eyebrow above them: **Overview**, **Session Explorer**,
+**Insights**, **Cite**. The `.section-heading` frame keeps its heading
+and drops its eyebrow line.
 
 Topics keep their numbers: 01 Session structure, 02 Tokens and cost,
 03 Latency, 04 Tools, 05 Prefix caching, 06 Human-driven against benchmark.

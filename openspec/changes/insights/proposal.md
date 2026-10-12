@@ -12,13 +12,17 @@ site more than the paper.
 ## What changes
 - **Order.** Hero, Overview, Sessions, Insights, Cite, Team, footer. The
   session list moves up under the Overview; the six topics follow it.
-- **Names, as nouns.** Section headings are one or two words: Overview
-  "At a glance", the list "Sessions" (eyebrow "Browse"), the topics
-  "Insights" (eyebrow "Findings"), Cite "Citation". The header links read
-  Overview, Sessions, Insights, Cite. The hero's primary button reads
-  "Insights". Topic 01 becomes "Session structure" so the list and the
-  topic do not share a name. Anchors: `#insights`, `#insights-sessions`
-  … `#insights-comparison`; `#sessions` stays.
+- **Four names.** The sections are Overview, Session Explorer, Insights
+  and Cite: one heading each, no eyebrow-and-heading pairs, and the
+  header links read the same four. The hero's primary button reads
+  "Insights". Topic 01 becomes "Session structure". Anchors: `#insights`,
+  `#insights-sessions` … `#insights-comparison`; `#sessions` stays.
+- **The dataset's name, large.** The site is the "FreeInference Agentic
+  Dataset": the hero's title is that name (no small eyebrow above it; the
+  week count moves into the lede), and the brand in the header and footer
+  reads it.
+- **A plain footer.** The brand line, the on-site and elsewhere links;
+  no copyright line and no policy links.
 - **An insight per card.** Every figure card shows, under its title, one
   sentence of at most twelve words that says what the chart means, not
   what it draws: "Sessions are mostly idle time between turns." A number
@@ -30,7 +34,7 @@ site more than the paper.
 ## Impact
 - Specs: `explore-page` (the list's position and name, the figures
   requirement renamed Insights with the insight and takeaway rules, the
-  hero button), `site-repository` (navigation names).
+  hero, the footer), `site-repository` (navigation names, the brand).
 - Code: `site/index.html`, `js/shared/layout.js`, `js/landing/hero.js`,
   `js/shared/charts.js` (the insight line), every figure module's entries
   (an `insight` field), `style.css`, the word-count test; README and
