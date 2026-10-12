@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { barParts, barWidth, elapsedRange, rowLabel } from "../site/js/session_requests/request_row.js";
+import { barParts, barWidth, chipTitle, elapsedRange, rowLabel } from "../site/js/session_requests/request_row.js";
 
 const REQUEST = {
   step: 3, turn: 2, step_trigger: "tool", start_ms: 61_000, end_ms: 75_500,
@@ -41,4 +41,11 @@ test("an empty part is left out", () => {
 test("a part's width is its share of the largest request, in percent", () => {
   assert.equal(barWidth(250, 1_000), "25%");
   assert.equal(barWidth(1_000, 1_000), "100%");
+});
+
+test("a chip's tooltip names the programs after the category when the call has them", () => {
+  const shellCall = { name: "execute_command", category: "Network", programs: ["nc", "echo", "echo"], outcome: "ok" };
+  assert.equal(chipTitle(shellCall), "execute_command · Network · nc, echo, echo · ok");
+  const nativeCall = { name: "apply_diff", category: "Edit", programs: null, outcome: null };
+  assert.equal(chipTitle(nativeCall), "apply_diff · Edit · no outcome");
 });

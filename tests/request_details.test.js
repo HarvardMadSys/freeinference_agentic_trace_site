@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { detailFacts } from "../site/js/session_requests/request_details.js";
+import { detailFacts, programsText, skeletonText } from "../site/js/session_requests/request_details.js";
 
 const REQUEST = {
   model: "model-x", provider: "A", prompt_tokens: 3_000, cache_read_tokens: 2_000, uncached_tokens: 1_000,
@@ -47,4 +47,32 @@ test("an append with no cause names only the transition, and no cache report is 
   const values = factValues({ ...REQUEST, transition: "append", cause: null, cache_read_tokens: null });
   assert.equal(values["Transition"], "append");
   assert.equal(values["Input tokens"], "3,000, no cache report");
+});
+
+const SHELL_CALL = {
+  name: "execute_command", category: "Network", programs: ["nc", "echo", "echo"],
+  arguments_skeleton: '{"command": "nc -z -w <num> <path> <num> && echo <str> || echo <str>"}',
+};
+const NATIVE_CALL = {
+  name: "apply_diff", category: "Edit", programs: null, arguments_skeleton: '{"path": "<path>", "diff": "<path>"}',
+};
+
+test("a shell call's programs are joined by commas, and its line is the command alone", () => {
+  assert.equal(programsText(SHELL_CALL.programs), "nc, echo, echo");
+  assert.equal(skeletonText(SHELL_CALL), "nc -z -w <num> <path> <num> && echo <str> || echo <str>");
+});
+
+test("a native call's programs are blank, and its line gives the argument names and value types", () => {
+  assert.equal(programsText(NATIVE_CALL.programs), "");
+  assert.equal(skeletonText(NATIVE_CALL), "path: <path>, diff: <path>");
+});
+
+test("an interpreter call's line is its code", () => {
+  const call = { programs: ["python"], arguments_skeleton: '{"code": "print(<str>)", "timeout": "<num>"}' };
+  assert.equal(skeletonText(call), "print(<str>)");
+});
+
+test("a skeleton that does not parse is shown as it is, and a missing one as a dash", () => {
+  assert.equal(skeletonText({ ...NATIVE_CALL, arguments_skeleton: "{not json" }), "{not json");
+  assert.equal(skeletonText({ ...NATIVE_CALL, arguments_skeleton: null }), "—");
 });

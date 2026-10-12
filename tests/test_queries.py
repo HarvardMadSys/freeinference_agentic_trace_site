@@ -80,7 +80,8 @@ EXPECTED_COLUMNS = {
         "cause", "waited_for", "wait_s", "n_tool_calls",
     ],
     "session/session_tool_calls": [
-        "session_id", "step", "call_index", "name", "category", "outcome", "result_tokens", "latency_ms",
+        "session_id", "step", "call_index", "name", "category", "programs", "arguments_skeleton", "outcome",
+        "result_tokens", "latency_ms",
     ],
 }
 

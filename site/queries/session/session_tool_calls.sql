@@ -5,6 +5,8 @@ SELECT
   call_index,
   name,
   category,
+  programs,
+  arguments_skeleton,
   outcome,
   result_tokens,
   latency_ms

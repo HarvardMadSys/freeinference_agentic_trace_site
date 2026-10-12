@@ -2,7 +2,9 @@
  * A request's details, opened under its row in the Requests view: its tokens by role, its timing, how it ended, how
  * its context changed and what it waited for, then each tool call it emitted.
  *
- * `request` is a row of `session/session_requests`, `calls` its rows of `session/session_tool_calls`.
+ * `request` is a row of `session/session_requests`, `calls` its rows of `session/session_tool_calls`. A call's
+ * `programs` is a list of strings (an array, or an Arrow vector from DuckDB), null for a call that is not a shell call;
+ * its `arguments_skeleton` is a JSON string of its arguments with every value replaced by its type.
  */
 
 import { formatCount, formatSeconds, MILLISECONDS_PER_SECOND, MISSING_TEXT } from "../shared/format.js";
@@ -20,10 +22,57 @@ const ROLE_COLUMNS = Object.freeze([
 const CALL_HEADINGS = Object.freeze([
   ["Name", false],
   ["Category", false],
+  ["Programs", false],
   ["Outcome", false],
   ["Latency", true],
   ["Result tokens", true],
 ]);
+
+// The keys of a shell call's arguments that hold its command line: a shell's command, an interpreter's code.
+const COMMAND_KEYS = Object.freeze(["command", "code"]);
+
+/** A call's programs in the command's order joined by commas, "nc, echo, echo"; blank for a call with none. */
+export function programsText(programs) {
+  return programs === null ? "" : Array.from(programs).join(", ");
+}
+
+/**
+ * The line under a call in the details: a shell call's command with every value replaced by its type, or any other
+ * call's argument names and value types, "path: <path>, diff: <path>". A skeleton that is not a JSON object is shown
+ * as it is, and a missing one as a dash.
+ */
+export function skeletonText(call) {
+  if (call.arguments_skeleton === null) {
+    return MISSING_TEXT;
+  }
+  const skeleton = skeletonObject(call.arguments_skeleton);
+  if (skeleton === null) {
+    return call.arguments_skeleton;
+  }
+  if (call.programs !== null) {
+    const commandKey = COMMAND_KEYS.find((key) => typeof skeleton[key] === "string");
+    if (commandKey !== undefined) {
+      return skeleton[commandKey];
+    }
+  }
+  const pairs = [];
+  for (const [name, type] of Object.entries(skeleton)) {
+    pairs.push(`${name}: ${typeof type === "string" ? type : JSON.stringify(type)}`);
+  }
+  return pairs.join(", ");
+}
+
+/** The skeleton `text` parsed, when it is a JSON object; null otherwise. */
+function skeletonObject(text) {
+  let skeleton;
+  try {
+    skeleton = JSON.parse(text);
+  } catch {
+    return null;
+  }
+  const isObject = skeleton !== null && typeof skeleton === "object" && !Array.isArray(skeleton);
+  return isObject ? skeleton : null;
+}
 
 /** The request's facts in the order the details show them: `[{ label, value }]`, every value a string. */
 export function detailFacts(request) {
@@ -80,19 +129,29 @@ function callTable(calls) {
   }
   const body = table.createTBody();
   for (const call of calls) {
-    const cells = [call.name, call.category, call.outcome ?? MISSING_TEXT, secondsOrMissing(call.latency_ms),
-      countOrMissing(call.result_tokens)];
-    const row = body.insertRow();
-    for (let index = 0; index < cells.length; index += 1) {
-      const cell = row.insertCell();
-      cell.textContent = cells[index];
-      cell.classList.toggle("is-number", CALL_HEADINGS[index][1]);
-    }
+    appendCallRows(body, call);
   }
   const wrap = document.createElement("div");
   wrap.className = "table-wrap";
   wrap.append(table);
   return wrap;
+}
+
+/** A call's row of cells, then a row spanning every column with its skeleton in monospace. */
+function appendCallRows(body, call) {
+  const cells = [call.name, call.category, programsText(call.programs), call.outcome ?? MISSING_TEXT,
+    secondsOrMissing(call.latency_ms), countOrMissing(call.result_tokens)];
+  const row = body.insertRow();
+  row.className = "call-row";
+  for (let index = 0; index < cells.length; index += 1) {
+    const cell = row.insertCell();
+    cell.textContent = cells[index];
+    cell.classList.toggle("is-number", CALL_HEADINGS[index][1]);
+  }
+  const skeletonCell = body.insertRow().insertCell();
+  skeletonCell.className = "call-skeleton mono";
+  skeletonCell.colSpan = CALL_HEADINGS.length;
+  skeletonCell.textContent = skeletonText(call);
 }
 
 function inputText(request) {

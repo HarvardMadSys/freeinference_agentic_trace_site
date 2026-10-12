@@ -884,6 +884,19 @@ button.is-primary {
   font-size: 0.8125rem;
 }
 
+/* A call's row and the line of its arguments skeleton under it read as one entry. */
+.details .call-row td {
+  border-bottom: none;
+}
+
+/* A command can be long, so the skeleton wraps inside the table instead of widening it. */
+.details .call-skeleton {
+  padding-top: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  color: var(--color-text-muted);
+}
+
 /*
  * Below the width the one-line row needs, a row's label and elapsed time share a line and the bar and chips go
  * below. The bar track narrows to fit a depth-4 row on a 360px screen; max-width only guards a deeper one.

@@ -8,6 +8,7 @@
 
 import { OTHER_SERIES, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { elapsedSeconds, formatCount, formatElapsed } from "../shared/format.js";
+import { programsText } from "./request_details.js";
 
 // A request with more tool calls than this shows the first ones as chips and the rest as one "+ N more" chip; its
 // details list every call. A few requests call thousands of tools, and their chips would bury the list.
@@ -50,6 +51,17 @@ export function barWidth(tokens, largestTokens) {
   return `${(100 * tokens) / largestTokens}%`;
 }
 
+/** A chip's tooltip: the call's name, category, programs when it has them, and outcome, joined by " · ". */
+export function chipTitle(call) {
+  const parts = [call.name, call.category];
+  const programs = programsText(call.programs);
+  if (programs !== "") {
+    parts.push(programs);
+  }
+  parts.push(call.outcome ?? "no outcome");
+  return parts.join(" · ");
+}
+
 /**
  * A row for `request`: a button holding its label, elapsed time, bar and chips.
  * `layout` is `{ originMs, largestTokens, categoryColours }`: the time 0 of the elapsed times, the tokens of a
@@ -89,7 +101,7 @@ function toolChips(calls, categoryColours) {
   for (const call of calls.slice(0, MAX_CHIPS)) {
     const chip = textSpan("chip", call.name);
     chip.style.setProperty("--chip-color", categoryColours.get(call.category));
-    chip.title = `${call.name} · ${call.category} · ${call.outcome ?? "no outcome"}`;
+    chip.title = chipTitle(call);
     chips.append(chip);
   }
   if (calls.length > MAX_CHIPS) {
