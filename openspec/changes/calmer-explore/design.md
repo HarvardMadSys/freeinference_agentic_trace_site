@@ -42,7 +42,7 @@ Each is one query over the site data and one chart, answered at
 
 - **prefill against storage** (both scopes): normalised prefill (missed
   tokens over those with no TTL) against mean retained tokens (reusable
-  and dead token-seconds over the span), one labelled point per TTL under
+  and dead token-seconds over the span), one point per TTL (the TTLs the paper names labelled, every point named in its tooltip) under
   the TTL-only policy, human-driven and benchmark as two curves on log
   axes. The simulation rows gain the benchmark scope and the span.
 - **API cost and infrastructure cost per TTL**: the paper's sums at its
