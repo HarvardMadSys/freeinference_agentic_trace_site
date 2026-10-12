@@ -45,7 +45,7 @@ EXPECTED_COLUMNS = {
     "explore/sessions_per_week_by_harness": ["week", "harness", "sessions"],
     "explore/requests_per_week_by_model": ["week", "model", "requests"],
     "explore/sessions_of_selection": ["week", "session_id", "first_start_ms", "harness", "benchmark", "main_model",
-                                      "requests", "turns", "subagents", "tool_calls", "duration_s", "input_tokens",
+                                      "requests", "turns", "tool_calls", "duration_s", "input_tokens",
                                       "reported_input_tokens", "cached_tokens", "peak_prompt_tokens"],
     "figures/requests_per_session_cdf": ["series", "x", "share", "rows"],
     "figures/duration_cdf": ["series", "x", "share", "rows"],

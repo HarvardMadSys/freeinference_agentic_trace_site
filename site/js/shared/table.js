@@ -69,15 +69,18 @@ export function cellContent(column, row) {
   return { text: format(row[column.key], row), href: column.href ? column.href(row) : null };
 }
 
-/** Scroll `wrap`, a table wider than its box, so the column the table is sorted by is in view, as far left as it can. */
+/**
+ * Scroll `wrap`, a table wider than its box, so the column the table is sorted by is in view: when it is hidden, it is
+ * brought to start right after the first column, which stays in place as the table scrolls.
+ */
 function showSortedColumn(wrap) {
   const sorted = wrap.querySelector("th.is-sorted");
-  if (sorted === null) {
+  const first = wrap.querySelector("th");
+  if (sorted === null || sorted === first) {
     return;
   }
-  const hiddenWidth = sorted.offsetLeft + sorted.offsetWidth - wrap.clientWidth;
-  if (hiddenWidth > 0) {
-    wrap.scrollLeft = hiddenWidth;
+  if (sorted.offsetLeft + sorted.offsetWidth > wrap.clientWidth) {
+    wrap.scrollLeft = sorted.offsetLeft - first.offsetWidth;
   }
 }
 

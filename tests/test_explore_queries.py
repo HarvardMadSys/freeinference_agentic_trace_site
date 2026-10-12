@@ -264,8 +264,7 @@ def test_the_sessions_table_lists_the_selection_s_top_level_sessions_most_input_
         ("swe-bench", 1_800), ("idle-benchmark", 600),
     ]
     tree_root = rows[0]
-    assert (tree_root["week"], tree_root["requests"], tree_root["turns"], tree_root["subagents"]) == \
-        (FIRST_SUNDAY, 5, 1, 3)
+    assert (tree_root["week"], tree_root["requests"], tree_root["turns"]) == (FIRST_SUNDAY, 5, 1)
 
 
 def test_the_sessions_table_marks_the_benchmark_s_sessions(connection: duckdb.DuckDBPyConnection,

@@ -772,18 +772,20 @@ button.is-primary {
 
 .data-table th,
 .data-table td {
-  padding: 0.5rem 0.625rem;
+  padding: 0.5rem;
   text-align: left;
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
 }
 
+/* Headers in sentence case, as every table on the site writes them: shorter than upper case, and calmer. A header of
+   two words may wrap, so a column is as wide as its values. */
 .data-table th {
+  white-space: normal;
+  vertical-align: bottom;
   font-size: var(--font-size-smallest);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-faint);
+  color: var(--color-text-muted);
   cursor: pointer;
   user-select: none;
 }
@@ -808,6 +810,7 @@ button.is-primary {
   position: sticky;
   left: 0;
   background: var(--color-surface);
+  box-shadow: inset -1px 0 0 var(--color-border); /* a border that stays with the sticky cell as the table scrolls */
 }
 
 #sessions-table .data-table tbody tr:hover td:first-child {
@@ -841,8 +844,6 @@ button.is-primary {
    phone's width. */
 .mutation-table th {
   cursor: default;
-  text-transform: none;
-  letter-spacing: 0;
 }
 
 .mutation-table th,
