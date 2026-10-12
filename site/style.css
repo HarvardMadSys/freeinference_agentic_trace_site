@@ -40,8 +40,7 @@
   --radius: 0.9rem;
   --radius-small: 0.375rem;
   --radius-button: 0.65rem;
-  --page-width: 64rem;
-  --header-width: 76rem; /* the header's and footer's width, wider than the page's so the header's links fit one row */
+  --page-width: 76rem; /* Open Data's width: the header's links fit one row in it, and the header, page and footer align */
   --header-height: 4.5rem; /* the sticky header's height on one row, or a little more where its links wrap below */
   --loading-card-height: 26rem; /* about a drawn figure card's height, so a loading card holds the place of one */
   --gutter: clamp(1rem, 4vw, 3.5rem); /* Open Data's gutter, with the phone's 1rem kept so 360 px still fits */
@@ -329,7 +328,7 @@ code,
 }
 
 .header-inner {
-  max-width: var(--header-width);
+  max-width: var(--page-width);
   min-height: var(--header-height);
   margin: 0 auto;
   padding-inline: var(--gutter);
@@ -449,7 +448,7 @@ code,
 
 /* The brand and its line, then two lists of links. */
 .footer-inner {
-  max-width: var(--header-width);
+  max-width: var(--page-width);
   margin: 0 auto;
   padding: clamp(2.25rem, 5vw, 3rem) var(--gutter);
   display: grid;
@@ -500,7 +499,7 @@ code,
 
 /* Harvard's copyright on the left and its policies on the right, under a rule. */
 .footer-legal {
-  max-width: var(--header-width);
+  max-width: var(--page-width);
   margin: 0 auto;
   padding: 1.2rem var(--gutter);
   display: flex;
@@ -550,14 +549,10 @@ code,
 }
 
 /*
- * On a phone the affiliation goes under the brand, set close to it, so the header keeps to about a sixth of the
- * screen; the footer's link lists sit side by side under the brand.
+ * On a narrow screen the header's rows sit closer and the affiliation is smaller, so the header keeps to about a sixth
+ * of the screen; the footer's link lists sit side by side under the brand.
  */
 @media (max-width: 46rem) {
-  :root {
-    --header-height: 9rem;
-  }
-
   .header-inner {
     row-gap: 0;
     padding-top: 0.6rem;
@@ -586,6 +581,13 @@ code,
 
   .footer-legal nav {
     justify-content: flex-start;
+  }
+}
+
+/* On a phone the brand and the links have the header to themselves. */
+@media (max-width: 40rem) {
+  .affiliation {
+    display: none;
   }
 }
 
@@ -640,11 +642,12 @@ section[id] {
   padding: 1.25rem;
 }
 
-/* No gap between rows: a card spans five rows of its grid (see below), and a row gap would open between its parts;
-   a card's own margin parts it from the card below. */
+/* Two figures side by side, one under the other on a narrower screen (below). No gap between rows: a card spans five
+   rows of its grid (see below), and a row gap would open between its parts; a card's own margin parts it from the card
+   below. */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0 1.5rem;
 }
 
@@ -1622,7 +1625,8 @@ button.is-primary {
 /* ---------- Narrower screens ---------- */
 
 @media (max-width: 50rem) {
-  .trend-grid {
+  .trend-grid,
+  .card-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -1654,11 +1658,6 @@ button.is-primary {
 
   .card {
     padding: 1rem;
-  }
-
-  /* One column no wider than the screen: a wide table scrolls inside its card instead of widening the page. */
-  .card-grid {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   /* Nested groups indent less, so a depth-4 subagent still has room for a full bar. */
