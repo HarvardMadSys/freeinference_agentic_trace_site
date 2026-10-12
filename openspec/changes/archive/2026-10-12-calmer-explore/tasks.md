@@ -53,4 +53,6 @@ measurement goes into `design.md`.
 
 ## 8. Deploy
 
-- [ ] 8.1 Once the site has a GitHub repository: `make deploy`, then check on the host that a Parquet range request is answered with 206 and that the deployed Explore and Session pages work end to end.
+- [x] 8.1 Once the site has a GitHub repository: `make deploy`, then check on the host that a Parquet range request is answered with 206 and that the deployed Explore and Session pages work end to end.
+
+Task 8.1 (the deploy checks) is carried into the next change, `clear-landing`, pending a GitHub repository.

@@ -12,12 +12,19 @@ text, so the page shows a session's structure, never its content.
 The Session page SHALL open at `session.html?week=<sunday>&id=<session_id>`,
 optionally with `&step=<step>` and `&view=requests|context|timeline`
 (`requests` by default).
+- Before its queries it SHALL fetch the week's row files whole, one request
+  per file, into DuckDB's memory, so the queries read memory; a file whose
+  fetch fails SHALL be read over HTTP ranges instead.
 - It SHALL read only the rows of that session and of its subagents, at every
   depth, through `selected_session`.
 - An id that is not a top-level session of that week SHALL show "session not
   found in this week".
 - A subagent's id SHALL open its top-level session with the subagent's group
   expanded.
+
+#### Scenario: One request per file
+- **WHEN** a session of week W is opened on a server that answers range requests
+- **THEN** each of W's four row files SHALL be requested once, in full, and no range of them afterwards
 
 #### Scenario: A shared link to a step
 - **WHEN** a visitor opens `session.html?week=2026-08-09&id=S&step=12`
@@ -51,11 +58,15 @@ sort, filters and page the visitor came from.
 The Requests view SHALL list the requests in start order, one row per
 request. Each row SHALL show:
 - a label: "Turn N" for a user step, "↳ step S" for a tool step;
-- the elapsed time since the session's first request, as `+MM:SS–MM:SS`;
+- the elapsed time since the session's first request, from the request's
+  start to its end, in minutes and seconds (`0:07–0:12`), and in hours,
+  minutes and seconds from an hour on (`1:00–1:02:04`);
 - a horizontal bar of the request's input split into cached and uncached,
   then its output, in three fixed colours, scaled to the largest request in
   the session;
-- a chip for each tool call the request emitted, coloured by category.
+- a chip for each tool call the request emitted, coloured by category,
+  whose tooltip gives its name, category, programs when it has them, and
+  outcome.
 
 Subagents:
 - Each subagent session SHALL appear as a collapsed group header under the
@@ -74,8 +85,19 @@ Clicking a row SHALL open its details:
 - finish reason;
 - its transition (append, mutation, switch) and cause;
 - what it waited for and for how long;
-- each tool call with its name, category, outcome, latency and result
-  tokens.
+- each tool call with its name, category, programs (a shell call's, in
+  the command's order, joined by commas; blank for other calls), outcome,
+  latency and result tokens, and under it, in monospace, its arguments
+  skeleton: the command with every value replaced by its type for a shell
+  call, the argument names and value types for any other.
+
+#### Scenario: A shell call's programs
+- **WHEN** the visitor opens the details of a request whose shell call has the programs `nc`, `echo`, `echo` and the command skeleton `nc -z -w <num> <path> <num> && echo <str> || echo <str>`
+- **THEN** that call's Programs cell SHALL read `nc, echo, echo`, and the line under it `nc -z -w <num> <path> <num> && echo <str> || echo <str>`
+
+#### Scenario: A native call's arguments
+- **WHEN** the details show an `apply_diff` call
+- **THEN** its Programs cell SHALL be blank and the line under it SHALL read `path: <path>, diff: <path>`
 
 #### Scenario: Expanding a subagent
 - **WHEN** the visitor clicks the group header under step 5
