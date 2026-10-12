@@ -1,7 +1,8 @@
 /**
  * What the Explore page does to a figure's rows before drawing them: the rows it draws, thin bins hidden, its
  * caption (the rows it rests on, its harnesses and weeks, the weeks not simulated and the bins hidden), the series its
- * legend lists, a CDF query's points grouped into series, and the labels of a crowded axis or a log one.
+ * legend lists, a CDF query's points grouped into series, the labels of a crowded axis or a log one, and how a
+ * multiple is written.
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
  * a CDF series), or, when `binColumn` is null, each row alone. Every row of a bin carries the bin's count, the number
@@ -178,6 +179,20 @@ export function sparseTickFormat(values, format, maxLabels) {
   const step = Math.max(1, Math.ceil(values.length / maxLabels));
   const labelled = new Set(values.filter((value, index) => index % step === 0));
   return (value) => (labelled.has(value) ? format(value) : "");
+}
+
+/** The powers of ten from `low` to `high`, both included where they are powers of ten: a log axis's ticks. */
+export function decadeTicks([low, high]) {
+  const ticks = [];
+  for (let exponent = Math.ceil(Math.log10(low)); 10 ** exponent <= high; exponent += 1) {
+    ticks.push(10 ** exponent);
+  }
+  return ticks;
+}
+
+/** A multiple as an axis writes it: 2 → "2×". */
+export function multipleText(multiple) {
+  return `${multiple}×`;
 }
 
 // Each bin's name and count, `[{ name, count }]`, in the order the bins first appear in the rows.

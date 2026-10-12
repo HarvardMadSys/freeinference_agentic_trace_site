@@ -71,6 +71,9 @@ EXPECTED_COLUMNS = {
     "figures/hit_ratio_cdf_by_transition": ["series", "x", "share", "rows"],
     "figures/tool_mix_by_turn_position": ["scope", "tenth", "tool_group", "calls", "share", "rows"],
     "figures/prefill_against_storage": ["scope", "ttl", "normalised_prefill", "mean_retained_tokens", "rows"],
+    "figures/api_cost_by_ttl": ["ttl", "ttl_seconds", "part", "cost_multiple", "total_multiple", "is_knee", "rows"],
+    "figures/infrastructure_cost_by_ttl": ["ttl", "ttl_seconds", "part", "cost_multiple", "total_multiple", "is_lowest",
+                                           "rows"],
     "session/session_root": ["root_session_id", "week"],
     "session/session_tree": [
         "session_id", "parent_session_id", "spawned_by_step", "depth", "harness", "main_model", "user_id",

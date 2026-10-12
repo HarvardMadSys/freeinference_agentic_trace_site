@@ -2,10 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  assignColours, barColours, CAUSE_COLOURS, causeColours, GAP_BIN_SLOTS, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS,
-  slottedColours, TOOL_GROUP_COLOURS, TRANSITION_COLOURS,
   assignColours, barColours, CAUSE_COLOURS, causeColours, GAP_BIN_SLOTS, OTHER_SERIES, SCOPE_COLOURS, SERIES_SLOTS,
-  TOKEN_PART_COLOURS, slottedColours, TRANSITION_COLOURS,
+  slottedColours, TOKEN_PART_COLOURS, TOOL_GROUP_COLOURS, TRANSITION_COLOURS,
 } from "../site/js/theme/colours.js";
 
 const NINE_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];

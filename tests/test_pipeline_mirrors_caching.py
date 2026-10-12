@@ -8,7 +8,7 @@ import re
 
 import pytest
 
-from paper.metrics import gaps
+from paper.metrics import cache_costs, gaps, prices
 from paper.prefix_caching import cache_retention, reuse
 from release import population
 from simulation import cache
@@ -23,7 +23,10 @@ COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the causes' colo
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the causes a wait bar names
 RETENTION_MODULE = SITE_FOLDER / "js" / "figures" / "caching_retention.js"  # the scopes' names, the labelled TTLs
 PREFILL_QUERY = SITE_FOLDER / "queries" / "figures" / "prefill_against_storage.sql"  # orders the TTLs, names the scopes
-TTL_QUERIES = [PREFILL_QUERY]  # each lists the simulated TTLs with their seconds
+API_COST_QUERY = SITE_FOLDER / "queries" / "figures" / "api_cost_by_ttl.sql"  # the API's prices, the knee
+INFRASTRUCTURE_COST_QUERY = SITE_FOLDER / "queries" / "figures" / "infrastructure_cost_by_ttl.sql"  # the provider's
+COST_QUERIES = [API_COST_QUERY, INFRASTRUCTURE_COST_QUERY]  # each a multiple of its total at the normalising TTL
+TTL_QUERIES = [PREFILL_QUERY, *COST_QUERIES]  # each lists the simulated TTLs with their seconds
 OPEN_ENDED = "'infinity'::DOUBLE"  # how the query writes the last bin's upper bound
 
 # A gap bin of the query: `('<label>', <order>, <lower bound>, <upper bound>)`.
@@ -119,3 +122,29 @@ def labelled_ttls(scope: str) -> list[str]:
     body = test_pipeline_mirrors.declaration(RETENTION_MODULE, rf'"?{scope}"?: Object\.freeze\(\{{(.*?)\}}\)').group(1)
     no_ttl = javascript_string(RETENTION_MODULE, "NO_TTL")
     return [name if name else no_ttl for name in TTL_ENTRY.findall(body)]
+
+
+def test_the_api_cost_s_prices_and_knee_are_the_pipeline_s() -> None:
+    assert test_pipeline_mirrors.sql_number(API_COST_QUERY, "cached_price") == prices.CACHED_PRICE
+    assert test_pipeline_mirrors.sql_number(API_COST_QUERY, "uncached_price") == prices.UNCACHED_PRICE
+    assert test_pipeline_mirrors.sql_number(API_COST_QUERY, "output_price") == prices.OUTPUT_PRICE
+    assert test_pipeline_mirrors.sql_number(API_COST_QUERY, "knee_tolerance") == cache_costs.KNEE_TOLERANCE
+
+
+def test_the_infrastructure_cost_s_prices_are_the_pipeline_s() -> None:
+    assert test_pipeline_mirrors.sql_number(INFRASTRUCTURE_COST_QUERY, "recompute_price") == prices.RECOMPUTE_PRICE
+    storage_price = test_pipeline_mirrors.sql_number(INFRASTRUCTURE_COST_QUERY, "storage_price_per_day")
+    assert storage_price == prices.STORAGE_PRICE_PER_DAY
+    assert test_pipeline_mirrors.sql_number(INFRASTRUCTURE_COST_QUERY, "seconds_per_day") == prices.SECONDS_PER_DAY
+
+
+@pytest.mark.parametrize("path", COST_QUERIES, ids=lambda path: path.stem)
+def test_a_cost_is_counted_per_million_tokens_and_normalised_at_the_pipeline_s_ttl(path: pathlib.Path) -> None:
+    assert test_pipeline_mirrors.sql_number(path, "tokens_per_million") == prices.TOKENS_PER_MILLION
+    assert test_pipeline_mirrors.declaration(path, r"'(\w+)' AS normalising_ttl").group(1) == cache_costs.NORMALISING_TTL
+    assert test_pipeline_mirrors.declaration(path, r"WHERE scope = '([\w-]+)'").group(1) == population.AGENTIC
+
+
+def test_a_cost_figure_s_callout_rises_as_the_paper_s() -> None:
+    rise = test_pipeline_mirrors.javascript_number(RETENTION_MODULE, "CALLOUT_RISE_SHARE")
+    assert rise == cache_retention.CALLOUT_RISE_SHARE

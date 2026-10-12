@@ -34,6 +34,8 @@ const SECTION_FIGURES = {
     "mean_hit_ratio_by_cause",
     "hit_ratio_cdf_by_transition",
     "prefill_against_storage",
+    "api_cost_by_ttl",
+    "infrastructure_cost_by_ttl",
   ],
   "../site/js/comparison/comparison.js": [
     "tool_mix_by_turn_position",

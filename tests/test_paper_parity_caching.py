@@ -19,7 +19,7 @@ import test_paper_parity
 
 SECTION = "prefix_caching"  # the section of `numbers.json` every compared item is in
 COMPARED_ITEMS = ["hit_ratio_by_gap_bin", "gap_by_cause", "mean_hit_ratio_by_cause", "hit_ratio_after_transition",
-                  "prefill_against_storage"]
+                  "prefill_against_storage", "api_cost", "infrastructure_cost"]
 BENCHMARK_SECTION = "benchmark_vs_production"  # the section comparing the benchmark replay with the paper's harnesses
 BENCHMARK_SCOPE = "Agentic and SWE-Bench"  # the scope `numbers.json` records with the benchmark section's items
 TRANSITIONS = ["append", "mutation"]  # the transitions whose median hit ratio the paper reports
@@ -130,3 +130,27 @@ def test_the_benchmark_s_prefill_above_the_floor_beside_the_paper_s_harnesses(ag
         test_paper_parity.Comparison(BENCHMARK_SECTION, "prefill_against_storage", name, float(value),
                                      test_paper_parity.RELATIVE_TOLERANCE)
         for name, value in site_values.items()])
+
+
+def marked_ttl(agentic: duckdb.DuckDBPyConnection, query: str, flag: str) -> tuple[str, float]:
+    """The TTL a cost query marks in its column `flag`, and its total as a multiple of the one-minute total."""
+    rows = site_database.run_query(agentic, query)
+    marked = rows[rows[flag]]
+    assert marked.ttl.nunique() == 1, f"{query} marks {marked.ttl.unique().tolist()}"
+    return str(marked.ttl.iloc[0]), float(marked.total_multiple.iloc[0])
+
+
+def test_the_api_cost_s_knee(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+    # `figures/api_cost_by_ttl`'s TTL marked `is_knee` and its `total_multiple` against
+    # `prefix_caching.api_cost.knee_ttl` and `knee_cost`.
+    ttl, total = marked_ttl(agentic, "figures/api_cost_by_ttl", "is_knee")
+    assert ttl == paper_numbers[SECTION]["api_cost"]["knee_ttl"]
+    test_paper_parity.assert_match(paper_numbers, [comparison("api_cost", "knee_cost", total)])
+
+
+def test_the_infrastructure_cost_s_lowest_ttl(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+    # `figures/infrastructure_cost_by_ttl`'s TTL marked `is_lowest` and its `total_multiple` against
+    # `prefix_caching.infrastructure_cost.lowest_ttl` and `lowest_cost`.
+    ttl, total = marked_ttl(agentic, "figures/infrastructure_cost_by_ttl", "is_lowest")
+    assert ttl == paper_numbers[SECTION]["infrastructure_cost"]["lowest_ttl"]
+    test_paper_parity.assert_match(paper_numbers, [comparison("infrastructure_cost", "lowest_cost", total)])
