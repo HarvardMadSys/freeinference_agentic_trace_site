@@ -9,7 +9,9 @@ column-and-rows shape, the columns those of `queries/buckets/`; and
 `session_buckets/<week>/index.json.gz` from every session id of the week,
 subagents included, to its top-level id. Both SHALL be gzipped with a
 fixed modification time, so that a rebuild of the same rows writes the
-same bytes. A prefix with no session in a week SHALL have no file. The
+same bytes. A prefix only subagents' ids start with SHALL have an empty
+bucket; a prefix no session id of the week starts with SHALL have no
+file. The
 bucket queries SHALL be hashed in `queries.json` as the answers' are. The
 step SHALL print the buckets' count and size.
 

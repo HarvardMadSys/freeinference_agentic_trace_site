@@ -21,8 +21,10 @@ two characters of the top-level session id, holding
 ```
 
 in the answers' column-and-rows shape, with `root_session_id` dropped
-from every row (it is the key). A prefix with no session in that week has
-no file. Beside the buckets, `session_buckets/<week>/index.json.gz` maps
+from every row (it is the key). A prefix only subagents' ids start with
+has an empty bucket `{}`, so a subagent's link finds a file (and no 404)
+before it turns to the index; a prefix no id starts with has no file.
+Beside the buckets, `session_buckets/<week>/index.json.gz` maps
 every session id of the week, subagents included, to its top-level id.
 
 Gzip at a fixed level (9) with a fixed mtime of 0, keys sorted and rows in

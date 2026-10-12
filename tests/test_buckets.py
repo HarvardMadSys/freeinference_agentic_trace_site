@@ -1,5 +1,5 @@
 """The session buckets the data step writes for the fixture: a top-level session's rows are its bucket queries' rows,
-a subagent's id finds its top-level session through the week's index, no bucket is empty, every week has its index,
+a subagent's id finds its top-level session through the week's index, every prefix a session id starts with has a file, every week has its index,
 and a rebuild writes the same bytes."""
 
 import gzip
@@ -109,15 +109,17 @@ def test_the_index_maps_every_session_of_the_week_and_only_them(data_directory: 
         assert list(index) == sorted(index)
 
 
-def test_every_top_level_session_has_one_bucket_entry_and_no_bucket_is_empty(data_directory: pathlib.Path) -> None:
+def test_every_top_level_session_has_one_bucket_entry_and_every_prefix_in_use_a_file(data_directory: pathlib.Path) -> None:
     expected_files = []
     for sunday, folder in [(FIRST_SUNDAY, fixture_release.FIRST_WEEK), (SECOND_SUNDAY, fixture_release.SECOND_WEEK)]:
-        roots = []
+        roots, every_id = [], []
         for session in fixture_release.SESSIONS:
-            if session.week == folder and session.parent_session_id is None:
-                roots.append(session.session_id)
+            if session.week == folder:
+                every_id.append(session.session_id)
+                if session.parent_session_id is None:
+                    roots.append(session.session_id)
         expected_files.append(site_data.paths.bucket_index_file(sunday))
-        for prefix in sorted(set(root[:site_data.buckets.PREFIX_LENGTH] for root in roots)):
+        for prefix in sorted(set(session_id[:site_data.buckets.PREFIX_LENGTH] for session_id in every_id)):
             expected_files.append(site_data.paths.bucket_file(sunday, prefix))
             bucket = bucket_of(data_directory, sunday, prefix)
             assert sorted(bucket) == sorted(root for root in roots if root.startswith(prefix))

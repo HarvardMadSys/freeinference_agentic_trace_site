@@ -9,9 +9,10 @@ groups its rows and is then dropped from every row: it is the key. A top-level s
 
 each part holding its query's columns and the session's rows, each row its values in column order, in the query's
 order. The entries whose top-level ids share their first `PREFIX_LENGTH` characters are written together as
-`session_buckets/<sunday>/<xx>.json.gz`, an object from top-level id to entry; a prefix with no session in the week has
-no file. `session_buckets/<sunday>/index.json.gz` is an object from every session id of the week, subagents included,
-to its top-level id.
+`session_buckets/<sunday>/<xx>.json.gz`, an object from top-level id to entry. A prefix that only subagents' ids
+start with has an empty bucket, so that a subagent's link finds a file before it turns to the index; a prefix no
+session id of the week starts with has no file. `session_buckets/<sunday>/index.json.gz` is an object from every
+session id of the week, subagents included, to its top-level id.
 
 Keys are sorted, rows keep the queries' order, and the gzip header holds no time, so a rebuild of the same rows writes
 the same bytes.
@@ -76,10 +77,11 @@ def write_buckets(data_directory: pathlib.Path) -> WrittenBuckets:
         for entry in weeks.read_weeks_file(data_directory):
             site_database.select_weeks(connection, [entry.week], every_harness)
             parts = week_parts(connection)
-            for prefix, bucket in buckets_by_prefix(sessions_by_root(parts)).items():
+            index = session_index(parts["tree"])
+            for prefix, bucket in buckets_by_prefix(sessions_by_root(parts), index).items():
                 bucket_sizes.append(write_gzipped_json(bucket, data_directory / paths.bucket_file(entry.week, prefix)))
             index_path = data_directory / paths.bucket_index_file(entry.week)
-            index_sizes.append(write_gzipped_json(session_index(parts["tree"]), index_path))
+            index_sizes.append(write_gzipped_json(index, index_path))
     return WrittenBuckets(
         buckets=len(bucket_sizes),
         indexes=len(index_sizes),
@@ -138,10 +140,13 @@ def column_values(query: QueryRows, column: str) -> list:
     return [row[index] for row in query.rows]
 
 
-def buckets_by_prefix(sessions: dict[str, dict]) -> dict[str, dict]:
+def buckets_by_prefix(sessions: dict[str, dict], index: dict[str, str]) -> dict[str, dict]:
     """The entries of `sessions` grouped by the first `PREFIX_LENGTH` characters of their top-level ids, the prefixes
-    sorted and each bucket's ids in the order of `sessions`."""
+    sorted and each bucket's ids in the order of `sessions`; a prefix only a subagent's id in `index` starts with
+    gets an empty bucket."""
     buckets = {}
+    for session_id in index:
+        buckets.setdefault(session_id[:PREFIX_LENGTH], {})
     for root, entry in sessions.items():
         prefix = root[:PREFIX_LENGTH]
         if prefix not in buckets:

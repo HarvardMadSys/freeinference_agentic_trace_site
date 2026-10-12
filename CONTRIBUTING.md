@@ -180,7 +180,9 @@ week, ahead of time, into gzipped JSON buckets (`site_data/buckets.py`):
   `data/session_buckets/<week>/<xx>.json.gz`: an object from top-level id to
   `{ tree, requests, tool_calls }`, each part `{ columns, rows }`, a row its
   values in column order without `root_session_id`, which is the key. A
-  prefix with no top-level session in the week has no file. Beside the
+  prefix only subagents' ids start with has an empty bucket, so a
+  subagent's link finds a file before the index; a prefix no id starts
+  with has no file. Beside the
   buckets, `index.json.gz` maps every session id of the week, subagents
   included, to its top-level id.
 - It gzips each file at a fixed level with no time in its header, and writes
