@@ -25,11 +25,12 @@ const GAP_BIN_TEXT = Object.freeze({
   ">1h": "Over 1 h",
 });
 
-// What a gap waited for, by the release's `waited_for` value, named and ordered as the pipeline's `gaps.CAUSE_NAMES`.
+// What a gap waited for, by the release's `waited_for` value in the order of the pipeline's `gaps.CAUSE_NAMES`, named
+// in sentence case as Session time by part names its parts.
 const CAUSE_NAMES = Object.freeze({
-  tool: "Tool Gap",
-  ask_user_tool: "Ask-User Tool",
-  user: "User Idle",
+  tool: "Tool wait",
+  ask_user_tool: "Ask-user tool",
+  user: "User idle",
   subagent: "Subagent",
 });
 
@@ -51,7 +52,7 @@ const MAX_GAP_DRAWN_S = 86400; // the gap axis ends at a day, as the paper's doe
 const MEAN_HIT_RATIO_AXIS_LOW = 0.7; // the bars start here, as in the paper, so their differences show
 
 const HIT_RATIO_DOMAIN = Object.freeze([0, 1]); // a hit ratio runs from none of the input cached to all of it
-const CAUSE_MARGIN_LEFT = 116; // pixels; room for the longest cause name, "Ask-User Tool"
+const CAUSE_MARGIN_LEFT = 116; // pixels; room for the longest cause name, "Ask-user tool"
 const VALUE_MARGIN_RIGHT = 48; // pixels; room for a value written after a bar that reaches 1, "100%"
 const VALUE_OFFSET = 4; // pixels between a bar's end and its value
 const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars

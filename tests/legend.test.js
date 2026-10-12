@@ -2,16 +2,16 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { categoryEntries } from "../site/js/session/legend.js";
-import { assignColours } from "../site/js/theme/colours.js";
+import { toolCategoryColours } from "../site/js/theme/colours.js";
 
-// A site-wide order of ten categories: the last two fold into the Other colour.
-const SITE_ORDER = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+// A site-wide order of categories: four with a tool group, two without, and the category Other.
+const SITE_ORDER = ["Read", "Other", "*Interpreter", "MCP", "Edit", "Write", "Subagent"];
 
-test("the category entries list the called categories in the site-wide order, the folded ones as one", () => {
-  const calls = [{ category: "I" }, { category: "C" }, { category: "J" }, { category: "A" }];
-  assert.deepEqual(categoryEntries(calls, assignColours(SITE_ORDER)), [
-    { name: "A", colour: "var(--series-1)" },
-    { name: "C", colour: "var(--series-3)" },
-    { name: "Other categories", colour: "var(--series-other)" },
+test("the category entries list the called categories in their group's colour, the grey ones as one Other, last", () => {
+  const calls = [{ category: "Subagent" }, { category: "Edit" }, { category: "Other" }, { category: "Read" }];
+  assert.deepEqual(categoryEntries(calls, toolCategoryColours(SITE_ORDER)), [
+    { name: "Read", colour: "var(--tool-group-read)" },
+    { name: "Edit", colour: "var(--tool-group-write-edit)" },
+    { name: "Other", colour: "var(--series-other)" },
   ]);
 });

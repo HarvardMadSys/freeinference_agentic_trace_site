@@ -11,7 +11,7 @@ import {
   AXIS_STYLE, chartFrame, colourScale, distinct, drawBars, drawCdf, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
 } from "../shared/charts.js";
 import { axisWithTicks, decadeDomain, decadeTicks, sparseTickFormat, weekTickFormat } from "../axes/ticks.js";
-import { assignColours, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
+import { assignColours, ROLE_COLOURS, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import {
   formatBinaryThousands, formatCompactCount, formatCount, formatPercent, formatShare, formatTokens,
 } from "../shared/format.js";
@@ -34,7 +34,7 @@ const GROWTH_COLUMNS = Object.freeze({
   output: "median_output_tokens",
 });
 
-// The parts of a request's input, bottom up in a stacked bar; each takes its series colour in this order.
+// The parts of a request's input, bottom up in a stacked bar; each takes its role's colour.
 const ROLES = Object.freeze(["system", "user", "assistant", "tool", "tool_definitions"]);
 
 // The label each part of a request's input has in the legend.
@@ -135,9 +135,10 @@ function tokenGrowthLegend() {
   return { series, colours: tokenPartColours() };
 }
 
-/** The context share's legend: the roles, in their order. */
+/** The context share's legend: the roles, in their order and colours. */
 function contextShareLegend(rows, colours, seriesColumn) {
-  return seriesLegend(rows, seriesColumn, assignColours(ROLES), ROLE_LABELS);
+  const roleColours = new Map(ROLES.map((role) => [role, ROLE_COLOURS[role]]));
+  return seriesLegend(rows, seriesColumn, roleColours, ROLE_LABELS);
 }
 
 /** Draw the CDFs of input, uncached input and output tokens per request, on a log axis. */

@@ -35,8 +35,11 @@ const TEXT_TOKENS = [
   "--color-accent", "--color-accent-strong", "--chart-label",
 ];
 
-// The families of colours that each stand for something in a chart: a series, a part, a cause, a transition, a bin.
-const MARK_PREFIXES = ["--series-", "--part-", "--token-", "--cause-", "--transition-", "--tool-group-", "--gap-bin-"];
+// The families of colours that each stand for something in a chart: a series, a part, a cause, a role, a transition,
+// a tool group, a bin.
+const MARK_PREFIXES = [
+  "--series-", "--part-", "--token-", "--cause-", "--role-", "--transition-", "--tool-group-", "--gap-bin-",
+];
 
 // A mark colour outside those families: a request's time to first token on the Timeline.
 const OTHER_MARK_TOKENS = ["--request-ttft"];

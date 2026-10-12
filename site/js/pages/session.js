@@ -9,7 +9,7 @@ import { mountRequestsView } from "../session_requests/requests.js";
 import { mountTimelineView } from "../session_charts/timeline.js";
 import { OPEN_REQUEST_EVENT } from "../session/view_chart.js";
 import { showError, showLoading, showNote } from "../shared/charts.js";
-import { assignColours } from "../theme/colours.js";
+import { toolCategoryColours } from "../theme/colours.js";
 import { fetchHarnesses, fetchWeeks, openDatabase } from "../shared/database.js";
 import { shortSessionId } from "../shared/format.js";
 import { renderFooter, renderHeader } from "../shared/layout.js";
@@ -99,7 +99,7 @@ async function loadSession(database, address) {
     database.runQuery("session/session_tool_calls"),
     database.runQuery("setup/category_order"),
   ]);
-  const categoryColours = assignColours(categoryRows.map((row) => row.category));
+  const categoryColours = toolCategoryColours(categoryRows.map((row) => row.category));
   return { tree, requests, toolCalls, categoryColours };
 }
 

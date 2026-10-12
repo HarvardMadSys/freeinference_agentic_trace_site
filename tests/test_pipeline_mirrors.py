@@ -28,7 +28,7 @@ TIME_QUERIES = [SESSION_TIME_QUERY, SPEEDUP_QUERY]  # each reads the breakdown f
 TIME_CONSTANTS = ["tool_waits", "user_waits", "tool_gap_cap_s"]  # the view's copies of the pipeline's constants
 LATENCY_MODULE = SITE_FOLDER / "js" / "figures" / "latency.js"  # the speed-up axis's headroom
 TOOL_MIX_QUERY = FIGURE_QUERIES / "tool_mix_by_turn_position.sql"  # the tenths, the tool groups and the program sets
-COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the tool groups, each with its colour
+COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the tool groups, their colours and categories
 TOOL_MIX_MODULE = SITE_FOLDER / "js" / "comparison" / "tool_mix.js"  # the tenths
 SCOPE_CDFS_MODULE = SITE_FOLDER / "js" / "comparison" / "scope_cdfs.js"  # where each scope CDF's axis starts
 SCOPES_MODULE = SITE_FOLDER / "js" / "comparison" / "scopes.js"  # the scopes' names and labels
@@ -111,6 +111,12 @@ def javascript_quoted_keys(path: pathlib.Path, constant: str) -> list[str]:
     """The quoted keys, in order, of `const <constant> = Object.freeze({ "key": …, … });`."""
     body = declaration(path, rf"const {constant} = Object\.freeze\(\{{(.*?)\}}\);").group(1)
     return re.findall(r'^\s*"([^"]+)"\s*:', body, re.MULTILINE)
+
+
+def javascript_quoted_pairs(path: pathlib.Path, constant: str) -> dict[str, str]:
+    """The entries of `const <constant> = Object.freeze({ "key": "value", … });`, keys and values quoted."""
+    body = declaration(path, rf"const {constant} = Object\.freeze\(\{{(.*?)\}}\);").group(1)
+    return dict(re.findall(r'^\s*"([^"]+)"\s*:\s*"([^"]+)"', body, re.MULTILINE))
 
 
 def sql_percentile_columns(path: pathlib.Path, column: str) -> list[float]:
@@ -200,6 +206,10 @@ def test_the_tool_mix_s_group_rule_is_the_pipeline_s() -> None:
 
 def test_the_tool_groups_coloured_are_the_pipeline_s_in_its_order() -> None:
     assert javascript_quoted_keys(COLOURS_MODULE, "TOOL_GROUP_COLOURS") == list(trajectories.GROUPS)
+
+
+def test_the_group_each_tool_category_is_coloured_by_is_the_pipeline_s() -> None:
+    assert javascript_quoted_pairs(COLOURS_MODULE, "TOOL_GROUP_OF_CATEGORY") == trajectories.GROUP_OF_CATEGORY
 
 
 @pytest.mark.parametrize("path", [CALLS_PER_REQUEST_QUERY, BATCH_WIDTH_QUERY], ids=lambda path: path.stem)

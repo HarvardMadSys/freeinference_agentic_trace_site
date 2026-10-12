@@ -68,8 +68,8 @@ def test_the_browser_s_gap_bin_labels_are_the_pipeline_s_in_its_order() -> None:
     assert re.findall(r'"([^"]+)"', body.group(1)) == [label for _name, label, _lower, _upper in gaps.GAP_BINS]
 
 
-def test_the_cause_names_are_the_pipeline_s_in_its_order() -> None:
-    assert list(javascript_object(CACHING_GAPS_MODULE, "CAUSE_NAMES").items()) == list(gaps.CAUSE_NAMES.items())
+def test_the_causes_named_are_the_pipeline_s_in_its_order() -> None:
+    assert list(javascript_object(CACHING_GAPS_MODULE, "CAUSE_NAMES")) == list(gaps.CAUSE_NAMES)
 
 
 def test_every_cause_has_a_colour_and_the_query_orders_them_as_the_pipeline() -> None:

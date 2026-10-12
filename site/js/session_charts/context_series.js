@@ -9,7 +9,7 @@
 
 import { TOKEN_PART_NAMES, tokenParts } from "../session/token_parts.js";
 import { agentLabel, agentsInStartOrder } from "../session/tree.js";
-import { assignColours, SERIES_SLOTS, TOKEN_PART_COLOURS, TRANSITION_COLOURS } from "../theme/colours.js";
+import { ROLE_COLOURS, SERIES_SLOTS, TOKEN_PART_COLOURS, TRANSITION_COLOURS } from "../theme/colours.js";
 import { elapsedSeconds, formatElapsed, formatTokens } from "../shared/format.js";
 
 /** The two ways the area can split the top-level session's input: into cached and uncached tokens, or by role. */
@@ -28,14 +28,15 @@ export const AGENT_LINE_COLOURS = Object.freeze({ main: SERIES_SLOTS[0], subagen
  */
 export const MARK_COLOURS = Object.freeze({ mutation: TRANSITION_COLOURS.mutation, switch: "var(--color-text)" });
 
-// Each role of the input, in stacking order, with the request column that counts its tokens.
-const ROLE_COLUMNS = Object.freeze({
-  System: "system_tokens",
-  User: "user_tokens",
-  Assistant: "assistant_tokens",
-  "Tool results": "tool_tokens",
-  "Tool definitions": "tool_definition_tokens",
-});
+// Each role of the input, in stacking order: the release's name of it, its name in the legend, and the request column
+// that counts its tokens.
+const ROLE_COLUMNS = Object.freeze([
+  Object.freeze({ role: "system", name: "System", column: "system_tokens" }),
+  Object.freeze({ role: "user", name: "User", column: "user_tokens" }),
+  Object.freeze({ role: "assistant", name: "Assistant", column: "assistant_tokens" }),
+  Object.freeze({ role: "tool", name: "Tool results", column: "tool_tokens" }),
+  Object.freeze({ role: "tool_definitions", name: "Tool definitions", column: "tool_definition_tokens" }),
+]);
 
 /**
  * One point per request of every agent, in agent order and then start order: `{ sessionId, step, turn, label,
@@ -96,8 +97,7 @@ export function trajectoryPoints(tree, requests) {
  */
 export function areaParts(split) {
   if (split === "roles") {
-    const colours = assignColours(Object.keys(ROLE_COLUMNS));
-    return [...colours].map(([name, colour]) => ({ name, colour }));
+    return ROLE_COLUMNS.map((role) => ({ name: role.name, colour: ROLE_COLOURS[role.role] }));
   }
   return [
     { name: TOKEN_PART_NAMES.cached, colour: TOKEN_PART_COLOURS.cached },
@@ -218,8 +218,8 @@ function partRows(elapsed, tokens, parts) {
 function partTokens(request, split) {
   if (split === "roles") {
     const tokens = {};
-    for (const [role, column] of Object.entries(ROLE_COLUMNS)) {
-      tokens[role] = request[column];
+    for (const role of ROLE_COLUMNS) {
+      tokens[role.name] = request[role.column];
     }
     return tokens;
   }

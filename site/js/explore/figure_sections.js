@@ -22,7 +22,7 @@
  */
 
 import { MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote } from "../shared/charts.js";
-import { assignColours } from "../theme/colours.js";
+import { assignColours, toolCategoryColours } from "../theme/colours.js";
 import { isDefaultSelection } from "../shared/selection.js";
 import { drawHistogram, histogramCard, rowsText } from "../shared/histogram.js";
 import { dropThinGroups, figureDrawnRows, figureRowsText, unsimulatedWeeks } from "../figures/figure_rows.js";
@@ -145,7 +145,7 @@ export function noteVisibility(visibleNames, entries) {
 
 /**
  * The colours every figure shares, `{ models, categories, providers }`, each a Map from name to colour, from the colour
- * orders, which do not depend on the selection.
+ * orders, which do not depend on the selection: a tool category in its tool group's colour, the category Other last.
  */
 export async function figureColours(orders) {
   const models = await orders.models;
@@ -153,7 +153,7 @@ export async function figureColours(orders) {
   const providers = await orders.providers;
   return Object.freeze({
     models: assignColours(models.map((row) => row.model)),
-    categories: assignColours(categories.map((row) => row.category)),
+    categories: toolCategoryColours(categories.map((row) => row.category)),
     providers: assignColours(providers.map((row) => row.provider)),
   });
 }

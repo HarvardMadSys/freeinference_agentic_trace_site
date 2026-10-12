@@ -1,14 +1,11 @@
 /** The legends of the Session page's views: a titled line of colour swatches, and the tool categories' entries. */
 
-import { OTHER_SERIES } from "../theme/colours.js";
-
-// The name the legend gives every category past the eighth, which all share the Other colour. It is not the charts'
-// "Other": the data has a tool category of that name, which holds its own colour.
-const OTHER_CATEGORIES = "Other categories";
+import { OTHER_NAME, OTHER_SERIES } from "../theme/colours.js";
 
 /**
  * The legend entries `[{ name, colour }]` of the categories of `toolCalls`, in the site-wide order of
- * `categoryColours` (a map from each category to its colour), the ones folded into the Other colour as one entry.
+ * `categoryColours` (a map from each category to its tool group's colour), the ones in the Other grey, the category
+ * Other among them, as one entry "Other", last.
  */
 export function categoryEntries(toolCalls, categoryColours) {
   const called = new Set(toolCalls.map((call) => call.category));
@@ -25,7 +22,7 @@ export function categoryEntries(toolCalls, categoryColours) {
     }
   }
   if (hasFolded) {
-    categories.push({ name: OTHER_CATEGORIES, colour: OTHER_SERIES });
+    categories.push({ name: OTHER_NAME, colour: OTHER_SERIES });
   }
   return categories;
 }

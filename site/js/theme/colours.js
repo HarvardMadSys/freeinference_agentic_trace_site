@@ -2,8 +2,8 @@
  * The site's colours as the style tokens give them.
  *
  * Every colour is a CSS variable from `style.css`, so a chart follows the page into dark mode with no JavaScript.
- * Names get colours from one fixed order, so the same model, category or provider has the same colour in
- * every chart, and a token part, a part of a session's time, a wait cause, a transition, a gap bin and a simulated
+ * Names get colours from one fixed order, so the same model or provider has the same colour in every chart; a tool
+ * category takes its tool group's colour; and a token part, a part of a session's time, a wait cause, a transition, a gap bin and a simulated
  * population always take their own tokens. These are plain constants and functions, tested with `node --test`.
  */
 
@@ -51,6 +51,18 @@ export const REQUEST_PART_COLOURS = Object.freeze({
   whole: "var(--color-text-faint)",
 });
 
+/**
+ * The colour of each role of a request's input, by the release's name of it, the same in every chart: slots no token
+ * part uses, so that a role is never taken for cached or uncached input.
+ */
+export const ROLE_COLOURS = Object.freeze({
+  system: "var(--role-system)",
+  user: "var(--role-user)",
+  assistant: "var(--role-assistant)",
+  tool: "var(--role-tool-results)",
+  tool_definitions: "var(--role-tool-definitions)",
+});
+
 /** The colour of each wait cause, by the release's `waited_for` value in the paper's order, the same in every chart. */
 export const CAUSE_COLOURS = Object.freeze({
   tool: "var(--cause-tool)",
@@ -87,6 +99,22 @@ export const TOOL_GROUP_COLOURS = Object.freeze({
   "Git/VCS": "var(--tool-group-git-vcs)",
   "Browser/Web": "var(--tool-group-browser-web)",
   "Other": "var(--tool-group-other)",
+});
+
+/**
+ * The tool group of each tool category that has one, as the pipeline groups them for the tool mix along a turn; every
+ * other category is in Other. `*File Ops` has none here: the programs of each call decide its group.
+ */
+export const TOOL_GROUP_OF_CATEGORY = Object.freeze({
+  "Read": "Read",
+  "*Search": "Search",
+  "Edit": "Write/Edit",
+  "Write": "Write/Edit",
+  "*Interpreter": "Execute",
+  "*Build/Test": "Build/Test",
+  "*Git/VCS": "Git/VCS",
+  "Browser": "Browser/Web",
+  "*Network": "Browser/Web",
 });
 
 /**
@@ -140,6 +168,29 @@ export function barColours(names) {
   const colours = assignColours(names.slice(0, SERIES_SLOTS.length));
   colours.set(OTHER_NAME, OTHER_SERIES);
   return colours;
+}
+
+/**
+ * A map from each tool category of `categories`, in their order but with the category Other last, to its tool group's
+ * colour; a category with no group, Other included, takes the grey of a folded series.
+ */
+export function toolCategoryColours(categories) {
+  const colours = new Map();
+  for (const category of categories) {
+    if (category !== OTHER_NAME) {
+      colours.set(category, toolCategoryColour(category));
+    }
+  }
+  if (categories.includes(OTHER_NAME)) {
+    colours.set(OTHER_NAME, OTHER_SERIES);
+  }
+  return colours;
+}
+
+/** The colour of the tool category `category`: its tool group's, or the Other grey when it has none. */
+export function toolCategoryColour(category) {
+  const group = TOOL_GROUP_OF_CATEGORY[category];
+  return group === undefined ? OTHER_SERIES : TOOL_GROUP_COLOURS[group];
 }
 
 /** A map from each wait cause, by its `waited_for` value in the paper's order, to its colour. */

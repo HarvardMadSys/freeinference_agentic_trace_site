@@ -37,7 +37,7 @@ test("the gap bins take the six gap-bin colours, shortest gap first, whichever b
 
 test("the cause legend names the causes as the paper does, in its order, each in its cause colour", () => {
   const legend = causeLegend([{ series: "user" }, { series: "tool" }], FIGURE_COLOURS, "series");
-  assert.deepEqual(legend.series, [{ name: "tool", label: "Tool Gap" }, { name: "user", label: "User Idle" }]);
+  assert.deepEqual(legend.series, [{ name: "tool", label: "Tool wait" }, { name: "user", label: "User idle" }]);
   assert.equal(legend.colours.get("user"), "var(--cause-user)");
   assert.deepEqual([...causeColours().keys()], ["tool", "ask_user_tool", "user", "subagent"]);
 });
@@ -48,8 +48,8 @@ test("the mean-hit-ratio bars come in the paper's order, a mean below the axis e
     { waited_for: "tool", rows: 900, mean_hit_ratio: 0.97 },
   ]);
   assert.deepEqual(bars, [
-    { cause: "tool", name: "Tool Gap", end: 0.97, mean: 0.97, rows: 900 },
-    { cause: "user", name: "User Idle", end: 0.7, mean: 0.5, rows: 60 },
+    { cause: "tool", name: "Tool wait", end: 0.97, mean: 0.97, rows: 900 },
+    { cause: "user", name: "User idle", end: 0.7, mean: 0.5, rows: 60 },
   ]);
 });
 

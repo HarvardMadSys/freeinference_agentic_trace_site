@@ -6,15 +6,17 @@ import {
 } from "../site/js/explore/figure_sections.js";
 import { SERIES_SLOTS } from "../site/js/theme/colours.js";
 
-test("the figures' colours follow the model, category and provider orders, each from the first slot", async () => {
+test("the figures' colours follow the model and provider orders from the first slot, a category its group's", async () => {
   const orders = {
     models: Promise.resolve([{ model: "model-b" }, { model: "model-a" }]),
-    categories: Promise.resolve([{ category: "Read" }, { category: "Edit" }]),
+    categories: Promise.resolve([{ category: "Other" }, { category: "Read" }, { category: "Edit" }]),
     providers: Promise.resolve([{ provider: "B" }, { provider: "A" }]),
   };
   const colours = await figureColours(orders);
   assert.deepEqual([...colours.models], [["model-b", SERIES_SLOTS[0]], ["model-a", SERIES_SLOTS[1]]]);
-  assert.deepEqual([...colours.categories], [["Read", SERIES_SLOTS[0]], ["Edit", SERIES_SLOTS[1]]]);
+  assert.deepEqual([...colours.categories], [
+    ["Read", "var(--tool-group-read)"], ["Edit", "var(--tool-group-write-edit)"], ["Other", "var(--series-other)"],
+  ]);
   assert.deepEqual([...colours.providers], [["B", SERIES_SLOTS[0]], ["A", SERIES_SLOTS[1]]]);
   assert.ok(Object.isFrozen(colours));
 });

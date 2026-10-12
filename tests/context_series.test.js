@@ -57,10 +57,11 @@ test("the area splits each top-level request into cached and uncached input, the
   assert.deepEqual(rows.filter((row) => row.elapsed === 310).map((row) => row.tokens), [0, 1_900]);
 });
 
-test("split by role, the area stacks the five roles in the first five series colours", () => {
+test("split by role, the area stacks the five roles in their role colours", () => {
   const parts = areaParts("roles");
   assert.deepEqual(parts.map((part) => part.name), ["System", "User", "Assistant", "Tool results", "Tool definitions"]);
-  assert.deepEqual(parts.map((part) => part.colour), [1, 2, 3, 4, 5].map((slot) => `var(--series-${slot})`));
+  const roles = ["system", "user", "assistant", "tool-results", "tool-definitions"];
+  assert.deepEqual(parts.map((part) => part.colour), roles.map((role) => `var(--role-${role})`));
   const first = areaRows(TREE, REQUESTS, "roles").filter((row) => row.elapsed === 0).map((row) => row.tokens);
   assert.deepEqual(first, [100, 200, 300, 400, 500]);
 });

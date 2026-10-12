@@ -363,21 +363,25 @@ which is plain HTML.
   `style.css`, assigned in that order to a chart's series and never cycled;
   a ninth series folds into "Other" (`--series-other`). A request's cached,
   uncached and output tokens are always `--token-cached`, `--token-uncached`
-  and `--token-output`. The same model, category, provider or wait cause has the
-  same colour in every chart: a wait cause, a transition and a gap bin always
-  take `--cause-*`, `--transition-*` and `--gap-bin-1` to `--gap-bin-6`, read
-  through `CAUSE_COLOURS`, `TRANSITION_COLOURS` and `GAP_BIN_SLOTS` in
-  `theme/colours.js`; the parts of a session's time take `--part-prefill`,
-  `--part-decode`, `--part-tool` and `--part-user`, blue, orange, green and
-  red as the paper draws them, read through `TIME_PART_COLOURS`. The palette
-  is Open Data's tokens (paper, surfaces, inks, rule and crimson) in light and
-  the same inks turned over in dark, with our eight series slots: eight OKLCH
-  hues no two closer than 30°, each the same hue in both schemes, most at one
-  lightness and amber, blue and teal set apart in lightness so that a
-  red-green colour-blind reader can tell every pair apart.
+  and `--token-output`. The same model, provider or wait cause has the
+  same colour in every chart. A tool category takes its tool group's colour
+  (`toolCategoryColours` in `theme/colours.js`, the one home of category,
+  group and colour), and every category without a group, Other included, the
+  Other grey. A wait cause, a role of the input, a transition and a gap bin
+  always take `--cause-*`, `--role-*`, `--transition-*` and `--gap-bin-1` to
+  `--gap-bin-6`, read through `CAUSE_COLOURS`, `ROLE_COLOURS`,
+  `TRANSITION_COLOURS` and `GAP_BIN_SLOTS` in `theme/colours.js`; the parts of
+  a session's time take `--part-prefill`, `--part-decode`, `--part-tool` and
+  `--part-user`, blue, orange, green and red as the paper draws them, read
+  through `TIME_PART_COLOURS`. The palette is Open Data's tokens (paper,
+  surfaces, inks, rule and crimson) in light and the same inks turned over in
+  dark, with our eight series slots: eight OKLCH hues no two closer than 30°,
+  each the same hue in both schemes, most at one lightness and the rest set
+  apart in lightness so that a red-green colour-blind reader can tell every
+  pair apart.
   `tests/palette_contrast.test.js` is the validation: it reads both schemes
-  from `style.css` and checks every series, part, cause, token, transition,
-  tool-group and gap-bin colour at 3:1 on its scheme's card, every text colour
+  from `style.css` and checks every series, part, cause, role, token,
+  transition, tool-group and gap-bin colour at 3:1 on its scheme's card, every text colour
   at 4.5:1 on the paper and on a card, each slot's hue across the schemes,
   the hues' spread, every pair of slots at an OKLab distance of 5 under a
   deuteranopia simulation, and the parts' hues against the paper's. A new

@@ -56,18 +56,19 @@
    * violet 293° and red 18°. They are not evenly spread, because the paper's four (blue, orange, green and red) are
    * fixed, and its red and orange stand only 26° apart; 30° is the floor between any two, and the other four fill
    * the wheel around them. In light most slots are the lightest colour of their hue that keeps 3.3:1 on the white
-   * card, at the most chroma sRGB holds there (capped at 0.19, short of neon). Three are set apart in lightness so
-   * that a reader with red-green colour blindness can still tell every pair apart: blue and teal deeper (3.8:1), and
-   * amber deeper still (5:1), where it would otherwise merge with orange and green.
+   * card, at the most chroma sRGB holds there (capped at 0.19, short of neon). Five are set apart in lightness so
+   * that a reader with red-green colour blindness can still tell every pair apart: blue, teal, red and amber deeper
+   * (3.8 to 4:1), and green deeper still (4.4:1), where it would otherwise merge with amber and red. Amber leans
+   * towards orange (81°) so that it reads golden rather than olive.
    */
   --series-1: #1a82f2;
   --series-2: #df6d19;
-  --series-3: #28a329;
-  --series-4: #886c11;
+  --series-3: #0a8d12;
+  --series-4: #a67700;
   --series-5: #dd5db9;
   --series-6: #19918e;
   --series-7: #9a76fa;
-  --series-8: #f25767;
+  --series-8: #ed3d57;
   --series-other: #938a86;
 
   /* The four parts of a session's time as the paper colours them: prefill blue, decode orange, tool green, user red. */
@@ -82,24 +83,31 @@
   --token-output: var(--series-1);
 
   /* What a wait before a request waited for, the same everywhere it is drawn: a tool and the user in their parts'
-     colours, a subagent blue. The paper draws an ask-user tool in purple; here it is amber, which stands further from
-     the subagent's blue. */
+     colours, a subagent violet, the slot no part of a session's time uses, and an ask-user tool amber. */
   --cause-tool: var(--part-tool);
   --cause-ask-user: var(--series-4);
   --cause-user: var(--part-user);
-  --cause-subagent: var(--series-1);
+  --cause-subagent: var(--series-7);
 
   /* A request's time on the Session page's Timeline and in the speed-up: time to first token dark, the rest light. */
   --request-ttft: #49423e;
   --request-rest: #c4bcb7;
 
+  /* The roles of a request's input, in slots no token part uses: system violet, user teal, assistant magenta, tool
+     results amber and tool definitions grey. */
+  --role-system: var(--series-7);
+  --role-user: var(--series-6);
+  --role-assistant: var(--series-5);
+  --role-tool-results: var(--series-4);
+  --role-tool-definitions: var(--series-other);
+
   /* How a request's context changed from the one before it: appended to, or rewritten. */
   --transition-append: var(--series-3);
   --transition-mutation: var(--series-8);
 
-  /* The eight tool groups of the tool mix along a turn, in the colours the tool cards give the categories of the same
-     name: Read blue, Search amber (*Search), Execute green (*Interpreter), Git/VCS red (*Git/VCS); and for the groups
-     with no category of their name, Write/Edit violet, Build/Test teal, Browser/Web magenta and Other grey. */
+  /* The eight tool groups of the tool mix along a turn: Read blue, Search amber, Write/Edit violet, Execute green,
+     Build/Test teal, Git/VCS red, Browser/Web magenta and Other grey. Every tool category takes its group's colour
+     (`toolCategoryColours` in theme/colours.js), so a colour names one group on every card. */
   --tool-group-read: var(--series-1);
   --tool-group-search: var(--series-4);
   --tool-group-write-edit: var(--series-7);
@@ -119,7 +127,7 @@
   --gap-bin-6: #043264;
 
   /* A highlighted row, step or bar: a wash of the amber slot's hue, its bright dark-scheme tone, in both schemes. */
-  --color-highlight: rgb(223 180 36 / 0.25);
+  --color-highlight: rgb(233 172 19 / 0.25);
 }
 
 /*
@@ -132,9 +140,9 @@
   :root {
     color-scheme: dark;
 
-    --color-accent: #ee6a7c;
-    --color-accent-strong: #f59aa6;
-    --color-accent-wash: rgb(238 106 124 / 0.14);
+    --color-accent: #f07a9a; /* crimson turned pink, so that it is never taken for the red series */
+    --color-accent-strong: #f6a3bb;
+    --color-accent-wash: rgb(240 122 154 / 0.14);
     --color-on-accent: #1c1917;
 
     --color-text: #f1efec;
@@ -154,7 +162,7 @@
     --series-1: #338ffa;
     --series-2: #f1761c;
     --series-3: #38af38;
-    --series-4: #dfb424;
+    --series-4: #e9ac13;
     --series-5: #eb6ac5;
     --series-6: #1d9e9a;
     --series-7: #a386fa;

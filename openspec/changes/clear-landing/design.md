@@ -97,10 +97,11 @@ The hues are not evenly spread. Four are the paper's (blue, orange, green
 and red), and the paper's red and orange stand only 26° apart in OKLCH;
 the slots keep them at 18° and 50°, so 30° is the floor between any two,
 and amber (90°), teal, violet and magenta fill the wheel around them.
-Equal lightness would make orange, amber and green one colour to a
-red-green colour-blind reader, so lightness varies where it must: amber
-is deeper in light (5:1) and brighter in dark (8:1), blue and teal a step
-deeper in both. The test checks every pair of slots under a deuteranopia
+Equal lightness would make orange, amber, green and red one colour to a
+red-green colour-blind reader, so lightness varies where it must: in light
+green is the deepest (4.4:1), amber (81°, golden rather than olive), red,
+blue and teal a step deeper than the rest (3.8 to 4:1); in dark amber is
+brighter (8:1) and blue and teal a step deeper. The test checks every pair of slots under a deuteranopia
 simulation as well as the contrast and the hue floor.
 
 ## The Session page

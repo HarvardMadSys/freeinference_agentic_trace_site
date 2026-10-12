@@ -3,7 +3,8 @@ import { test } from "node:test";
 
 import {
   assignColours, barColours, CAUSE_COLOURS, causeColours, GAP_BIN_SLOTS, OTHER_SERIES, SCOPE_COLOURS, SERIES_SLOTS,
-  slottedColours, TIME_PART_COLOURS, TOKEN_PART_COLOURS, TOOL_GROUP_COLOURS, TRANSITION_COLOURS,
+  slottedColours, TIME_PART_COLOURS, TOKEN_PART_COLOURS, TOOL_GROUP_COLOURS, TOOL_GROUP_OF_CATEGORY,
+  toolCategoryColours, TRANSITION_COLOURS,
 } from "../site/js/theme/colours.js";
 
 const NINE_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
@@ -96,4 +97,20 @@ test("the parts of a session's time take their part tokens, in the paper's order
     ["user", "var(--part-user)"],
   ]);
   assert.ok(Object.isFrozen(TIME_PART_COLOURS));
+});
+
+test("a tool category takes its tool group's colour, one without a group the Other grey, and Other goes last", () => {
+  const colours = toolCategoryColours(["Read", "Other", "Edit", "Write", "MCP", "*File Ops"]);
+  assert.deepEqual([...colours.keys()], ["Read", "Edit", "Write", "MCP", "*File Ops", "Other"]);
+  assert.equal(colours.get("Read"), TOOL_GROUP_COLOURS.Read);
+  assert.equal(colours.get("Edit"), colours.get("Write"));
+  assert.equal(colours.get("MCP"), OTHER_SERIES);
+  assert.equal(colours.get("*File Ops"), OTHER_SERIES);
+  assert.equal(colours.get("Other"), OTHER_SERIES);
+});
+
+test("every tool group a category names has a colour", () => {
+  for (const group of Object.values(TOOL_GROUP_OF_CATEGORY)) {
+    assert.ok(group in TOOL_GROUP_COLOURS, group);
+  }
 });
