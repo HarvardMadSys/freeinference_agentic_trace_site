@@ -44,8 +44,8 @@ measurement goes into `design.md`.
 
 ## 6. The look
 
-- [ ] 6.1 Apply `design-review.md`: figure cards with a title and one short caption, the definition and row count behind a control, chart text pruned, spacing and sizes made consistent, on every page; the About page's figure list follows the captions. Verify every page at 360 px and desktop, light and dark.
-- [ ] 6.2 The reviewer looks again and writes what remains at the end of `design-review.md`; what remains is fixed or ruled on.
+- [x] 6.1 Apply `design-review.md`: figure cards with a title and one short caption, the definition and row count behind a control, chart text pruned, spacing and sizes made consistent, on every page; the About page's figure list follows the captions. Verify every page at 360 px and desktop, light and dark.
+- [x] 6.2 The reviewer looks again and writes what remains at the end of `design-review.md`; what remains is fixed or ruled on.
 
 ## 7. Data and docs
 
