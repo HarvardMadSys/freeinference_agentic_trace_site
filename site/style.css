@@ -693,6 +693,14 @@ code,
   background: var(--color-surface-raised);
 }
 
+/* A half-chosen pill, such as a month with some of its weeks picked, keeps the chosen ink on a dashed border, since its
+   checkbox, which says so, is not drawn. */
+.pill:has(input:indeterminate) {
+  color: var(--color-text);
+  border-style: dashed;
+  border-color: var(--color-text-faint);
+}
+
 .pill input {
   position: absolute;
   opacity: 0;
