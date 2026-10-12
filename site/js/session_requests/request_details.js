@@ -7,6 +7,7 @@
  * its `arguments_skeleton` is a JSON string of its arguments with every value replaced by its type.
  */
 
+import { tokenParts } from "../session/token_parts.js";
 import { formatCount, formatSeconds, MILLISECONDS_PER_SECOND, MISSING_TEXT } from "../shared/format.js";
 
 // The input token roles, in the order the details list them, with their column in the requests.
@@ -154,14 +155,11 @@ function appendCallRows(body, call) {
   skeletonCell.textContent = skeletonText(call);
 }
 
+// "3,000: 2,000 cached, 1,000 uncached", the input and its parts as `tokenParts` counts them.
 function inputText(request) {
-  const input = formatCount(request.prompt_tokens);
-  if (request.cache_read_tokens === null) {
-    return `${input}, no cache report`;
-  }
-  const cached = formatCount(request.cache_read_tokens);
-  const uncached = formatCount(request.uncached_tokens);
-  return `${input}: ${cached} cached, ${uncached} uncached`;
+  const tokens = tokenParts(request);
+  const parts = `${formatCount(tokens.cached)} cached, ${formatCount(tokens.uncached)} uncached`;
+  return `${formatCount(request.prompt_tokens)}: ${parts}`;
 }
 
 /** "mutation (compaction)", "append", or a dash at a session's first request, which has no transition. */

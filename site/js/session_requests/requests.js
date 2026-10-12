@@ -38,7 +38,7 @@ export function mountRequestsView(container, tree, requests, toolCalls, options)
   bracketNote.className = "figure-caption";
   container.replaceChildren(
     requestToolbar(list, tree.length > 1),
-    requestLegend(requests, toolCalls, categoryColours),
+    requestLegend(toolCalls, categoryColours),
     bracketNote,
     list,
   );

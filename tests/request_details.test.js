@@ -43,10 +43,14 @@ test("a session's first request has no transition and no wait, and a missing TTF
   assert.equal(values["Time to first token"], "—");
 });
 
-test("an append with no cause names only the transition, and no cache report is said", () => {
-  const values = factValues({ ...REQUEST, transition: "append", cause: null, cache_read_tokens: null });
+test("an append with no cause names only the transition", () => {
+  const values = factValues({ ...REQUEST, transition: "append", cause: null });
   assert.equal(values["Transition"], "append");
-  assert.equal(values["Input tokens"], "3,000, no cache report");
+});
+
+test("a request with no cache report counts its whole input as uncached", () => {
+  const values = factValues({ ...REQUEST, cache_read_tokens: null, uncached_tokens: null });
+  assert.equal(values["Input tokens"], "3,000: 0 cached, 3,000 uncached");
 });
 
 const SHELL_CALL = {

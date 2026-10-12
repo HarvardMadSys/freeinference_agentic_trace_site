@@ -42,7 +42,8 @@ function drawContextView(Plot, container, tree, requests) {
     caption: "Input tokens of each request over the session.",
     definition:
       "Input tokens of each request at its start, against time since the session's first request: the top-level " +
-      "session's input as a stacked area, and one line per agent. Dotted rules mark each turn's start; dots mark a " +
+      "session's input as a stacked area, and one line per agent; a request whose provider reported no cache reads " +
+      "counts as uncached. Dotted rules mark each turn's start; dots mark a " +
       "request whose context was rewritten (mutation) or that went to another model or provider (switch). By " +
       "role, the parts are counted with one tokenizer, not the provider's, so they need not add up to the input. " +
       "Click a point to open its request.",
@@ -90,7 +91,7 @@ function chooseSplit(group, chosenButton, drawSplit, split) {
 
 /** Draw the chart for `split` into `boxes.chartBox` and its legend into `boxes.legend`. */
 function drawChart(Plot, boxes, tree, requests, split) {
-  const parts = areaParts(tree, requests, split);
+  const parts = areaParts(split);
   const points = requestPoints(tree, requests);
   const trajectories = trajectoryPoints(tree, requests);
   const marks = transitionMarks(points);

@@ -1,28 +1,20 @@
 /** The legend of the Requests view: the colours of a bar's parts, and of the tool categories of the chips. */
 
 import { categoryEntries, legendLine } from "../session/legend.js";
-import { OTHER_SERIES, TOKEN_PART_COLOURS } from "../theme/colours.js";
+import { tokenPartEntries } from "../session/token_parts.js";
 
 /**
- * The legend's two lines, `{ tokens, categories }`, each `[{ name, colour }]`: the bar parts (with "no cache
- * report" only when a request has no cache reads), then the categories of `toolCalls` in the site-wide order of
- * `categoryColours`, the ones folded into the Other colour as one entry.
+ * The legend's two lines, `{ tokens, categories }`, each `[{ name, colour }]`: the three bar parts, then the
+ * categories of `toolCalls` in the site-wide order of `categoryColours`, the ones folded into the Other colour as one
+ * entry.
  */
-export function legendEntries(requests, toolCalls, categoryColours) {
-  const tokens = [
-    { name: "Cached input", colour: TOKEN_PART_COLOURS.cached },
-    { name: "Uncached input", colour: TOKEN_PART_COLOURS.uncached },
-    { name: "Output", colour: TOKEN_PART_COLOURS.output },
-  ];
-  if (requests.some((request) => request.cache_read_tokens === null)) {
-    tokens.push({ name: "Input, no cache report", colour: OTHER_SERIES });
-  }
-  return { tokens, categories: categoryEntries(toolCalls, categoryColours) };
+export function legendEntries(toolCalls, categoryColours) {
+  return { tokens: tokenPartEntries(), categories: categoryEntries(toolCalls, categoryColours) };
 }
 
-/** The legend for `requests`, their `toolCalls` and the chip colours `categoryColours`, as one element. */
-export function requestLegend(requests, toolCalls, categoryColours) {
-  const { tokens, categories } = legendEntries(requests, toolCalls, categoryColours);
+/** The legend for the chips' `toolCalls` and their colours `categoryColours`, with the bar parts, as one element. */
+export function requestLegend(toolCalls, categoryColours) {
+  const { tokens, categories } = legendEntries(toolCalls, categoryColours);
   const legend = document.createElement("div");
   legend.append(legendLine("Tokens", tokens));
   if (categories.length > 0) {

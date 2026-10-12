@@ -45,25 +45,20 @@ test("each agent's line ends at its last request's end, so an agent of one reque
   assert.deepEqual(helper.map((point) => [point.elapsed, point.inputTokens]), [[25, 700], [40, 700]]);
 });
 
-test("the area splits each top-level request into cached and uncached input, the unreported whole apart", () => {
-  const parts = areaParts(TREE, REQUESTS, "tokens");
-  assert.deepEqual(parts.map((part) => part.name), ["Cached input", "Uncached input", "Input, no cache report"]);
+test("the area splits each top-level request into cached and uncached input, the unreported whole uncached", () => {
+  const parts = areaParts("tokens");
+  assert.deepEqual(parts.map((part) => part.name), ["Cached input", "Uncached input"]);
   assert.equal(parts[0].colour, "var(--token-cached)");
   const rows = areaRows(TREE, REQUESTS, "tokens");
   const atStep2 = rows.filter((row) => row.elapsed === 200).map((row) => row.tokens);
   const atStep3 = rows.filter((row) => row.elapsed === 300).map((row) => row.tokens);
-  assert.deepEqual(atStep2, [1_500, 300, 0]);
-  assert.deepEqual(atStep3, [0, 0, 1_900]);
-  assert.deepEqual(rows.filter((row) => row.elapsed === 310).map((row) => row.tokens), [0, 0, 1_900]);
-});
-
-test("a session whose every request reports its cache reads has no unreported part", () => {
-  const reported = REQUESTS.filter((one) => one.cache_read_tokens !== null);
-  assert.deepEqual(areaParts(TREE, reported, "tokens").map((part) => part.name), ["Cached input", "Uncached input"]);
+  assert.deepEqual(atStep2, [1_500, 300]);
+  assert.deepEqual(atStep3, [0, 1_900]);
+  assert.deepEqual(rows.filter((row) => row.elapsed === 310).map((row) => row.tokens), [0, 1_900]);
 });
 
 test("split by role, the area stacks the five roles in the first five series colours", () => {
-  const parts = areaParts(TREE, REQUESTS, "roles");
+  const parts = areaParts("roles");
   assert.deepEqual(parts.map((part) => part.name), ["System", "User", "Assistant", "Tool results", "Tool definitions"]);
   assert.deepEqual(parts.map((part) => part.colour), [1, 2, 3, 4, 5].map((slot) => `var(--series-${slot})`));
   const first = areaRows(TREE, REQUESTS, "roles").filter((row) => row.elapsed === 0).map((row) => row.tokens);
@@ -71,7 +66,7 @@ test("split by role, the area stacks the five roles in the first five series col
 });
 
 test("only the top-level session's requests make the area", () => {
-  assert.equal(areaRows(TREE, REQUESTS, "tokens").length, 5 * 3);
+  assert.equal(areaRows(TREE, REQUESTS, "tokens").length, 5 * 2);
 });
 
 test("a turn starts at the first request of each turn of the top-level session", () => {
@@ -94,14 +89,14 @@ test("a switch is marked too, and its tooltip names the transition alone", () =>
 test("a tooltip gives the agent, step, turn, time and tokens", () => {
   const points = requestPoints(TREE, REQUESTS);
   assert.equal(pointTip(points[2]), "main · step 2 · turn 1\n3:20\n1.8k input tokens: 1.5k cached, 300 uncached");
-  assert.equal(pointTip(points[3]), "main · step 3 · turn 2\n5:00\n1.9k input tokens, no cache report");
+  assert.equal(pointTip(points[3]), "main · step 3 · turn 2\n5:00\n1.9k input tokens: 0 cached, 1.9k uncached");
 });
 
 test("the top-level line is the first series and subagents' lines a slot neither area split uses", () => {
   assert.equal(AGENT_LINE_COLOURS.main, "var(--series-1)");
   assert.equal(AGENT_LINE_COLOURS.subagents, "var(--series-7)");
   for (const split of ["tokens", "roles"]) {
-    const areaColours = areaParts(TREE, REQUESTS, split).map((part) => part.colour);
+    const areaColours = areaParts(split).map((part) => part.colour);
     assert.ok(!areaColours.includes(AGENT_LINE_COLOURS.subagents), split);
   }
 });

@@ -1,13 +1,15 @@
 /**
  * The Context view's series: each request as a point at its start, time measured from the top-level session's first
- * request; each agent's input over time; the top-level session's input split into cached and uncached tokens or by
- * role; the start of each turn; and the requests whose transition rewrote or switched the context.
+ * request; each agent's input over time; the top-level session's input split into cached and uncached tokens (as
+ * `tokenParts` counts them) or by role; the start of each turn; and the requests whose transition rewrote or switched
+ * the context.
  *
  * `tree` holds rows of `session/session_tree`, `requests` rows of `session/session_requests`.
  */
 
+import { TOKEN_PART_NAMES, tokenParts } from "../session/token_parts.js";
 import { agentLabel, agentsInStartOrder } from "../session/tree.js";
-import { assignColours, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS, TRANSITION_COLOURS } from "../theme/colours.js";
+import { assignColours, SERIES_SLOTS, TOKEN_PART_COLOURS, TRANSITION_COLOURS } from "../theme/colours.js";
 import { elapsedSeconds, formatElapsed, formatTokens } from "../shared/format.js";
 
 /** The two ways the area can split the top-level session's input: into cached and uncached tokens, or by role. */
@@ -35,8 +37,6 @@ const ROLE_COLUMNS = Object.freeze({
   "Tool definitions": "tool_definition_tokens",
 });
 
-const NO_CACHE_REPORT = "Input, no cache report";
-
 /**
  * One point per request of every agent, in agent order and then start order: `{ sessionId, step, turn, label,
  * isTopLevel, elapsed, inputTokens, cachedTokens, uncachedTokens, transition, cause }`, `elapsed` in seconds since
@@ -47,6 +47,7 @@ export function requestPoints(tree, requests) {
   const points = [];
   for (const session of agentsInStartOrder(tree)) {
     for (const request of requestsOf(session, requests)) {
+      const tokens = tokenParts(request);
       points.push({
         sessionId: session.session_id,
         step: request.step,
@@ -55,8 +56,8 @@ export function requestPoints(tree, requests) {
         isTopLevel: session.parent_session_id === null,
         elapsed: elapsedSeconds(request.start_ms, originMs),
         inputTokens: request.prompt_tokens,
-        cachedTokens: request.cache_read_tokens,
-        uncachedTokens: request.uncached_tokens,
+        cachedTokens: tokens.cached,
+        uncachedTokens: tokens.uncached,
         transition: request.transition,
         cause: request.cause,
       });
@@ -91,22 +92,17 @@ export function trajectoryPoints(tree, requests) {
 
 /**
  * The parts the area stacks for `split` (a key of `AREA_SPLITS`), bottom up, as `[{ name, colour }]`: cached and
- * uncached input, plus the whole input of requests with no cache report when the top-level session has one; or the
- * five roles.
+ * uncached input, or the five roles.
  */
-export function areaParts(tree, requests, split) {
+export function areaParts(split) {
   if (split === "roles") {
     const colours = assignColours(Object.keys(ROLE_COLUMNS));
     return [...colours].map(([name, colour]) => ({ name, colour }));
   }
-  const parts = [
-    { name: "Cached input", colour: TOKEN_PART_COLOURS.cached },
-    { name: "Uncached input", colour: TOKEN_PART_COLOURS.uncached },
+  return [
+    { name: TOKEN_PART_NAMES.cached, colour: TOKEN_PART_COLOURS.cached },
+    { name: TOKEN_PART_NAMES.uncached, colour: TOKEN_PART_COLOURS.uncached },
   ];
-  if (requestsOf(topLevelOf(tree), requests).some((request) => request.cache_read_tokens === null)) {
-    parts.push({ name: NO_CACHE_REPORT, colour: OTHER_SERIES });
-  }
-  return parts;
 }
 
 /**
@@ -116,7 +112,7 @@ export function areaParts(tree, requests, split) {
 export function areaRows(tree, requests, split) {
   const topLevel = topLevelOf(tree);
   const ownRequests = requestsOf(topLevel, requests);
-  const parts = areaParts(tree, requests, split);
+  const parts = areaParts(split);
   const rows = [];
   for (const request of ownRequests) {
     const elapsed = elapsedSeconds(request.start_ms, topLevel.first_start_ms);
@@ -160,13 +156,12 @@ export function markEntries(marks) {
 
 /** A point's tooltip: its agent, step and turn, its time, its input tokens and, when marked, its transition. */
 export function pointTip(point) {
-  const lines = [`${point.label} · step ${point.step} · turn ${point.turn}`, formatElapsed(point.elapsed)];
-  if (point.cachedTokens === null) {
-    lines.push(`${formatTokens(point.inputTokens)} input tokens, no cache report`);
-  } else {
-    const split = `${formatTokens(point.cachedTokens)} cached, ${formatTokens(point.uncachedTokens)} uncached`;
-    lines.push(`${formatTokens(point.inputTokens)} input tokens: ${split}`);
-  }
+  const split = `${formatTokens(point.cachedTokens)} cached, ${formatTokens(point.uncachedTokens)} uncached`;
+  const lines = [
+    `${point.label} · step ${point.step} · turn ${point.turn}`,
+    formatElapsed(point.elapsed),
+    `${formatTokens(point.inputTokens)} input tokens: ${split}`,
+  ];
   if (isMarked(point.transition)) {
     const cause = point.cause === null ? "" : `, ${point.cause}`;
     lines.push(`transition: ${point.transition}${cause}`);
@@ -191,10 +186,8 @@ function partTokens(request, split) {
     }
     return tokens;
   }
-  if (request.cache_read_tokens === null) {
-    return { "Cached input": 0, "Uncached input": 0, [NO_CACHE_REPORT]: request.prompt_tokens };
-  }
-  return { "Cached input": request.cache_read_tokens, "Uncached input": request.uncached_tokens, [NO_CACHE_REPORT]: 0 };
+  const tokens = tokenParts(request);
+  return { [TOKEN_PART_NAMES.cached]: tokens.cached, [TOKEN_PART_NAMES.uncached]: tokens.uncached };
 }
 
 function topLevelOf(tree) {

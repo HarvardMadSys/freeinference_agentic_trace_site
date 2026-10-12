@@ -6,7 +6,8 @@
  * `session/session_tool_calls`.
  */
 
-import { OTHER_SERIES, TOKEN_PART_COLOURS } from "../theme/colours.js";
+import { TOKEN_PART_NAMES, tokenParts } from "../session/token_parts.js";
+import { TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { elapsedSeconds, formatCount, formatElapsed } from "../shared/format.js";
 import { programsText } from "./request_details.js";
 
@@ -28,21 +29,15 @@ export function elapsedRange(request, originMs) {
 
 /**
  * The parts of a request's bar in drawing order, `[{ tokens, colour, title }]`, leaving out empty parts: its cached
- * input, uncached input and output; or, when its provider reported no cache reads, its whole input and its output.
+ * input, uncached input and output, as `tokenParts` counts them.
  */
 export function barParts(request) {
+  const tokens = tokenParts(request);
   const parts = [];
-  if (request.cache_read_tokens === null) {
-    const title = `${formatCount(request.prompt_tokens)} input tokens, no cache report`;
-    parts.push({ tokens: request.prompt_tokens, colour: OTHER_SERIES, title });
-  } else {
-    const cachedTitle = `${formatCount(request.cache_read_tokens)} cached input tokens`;
-    const uncachedTitle = `${formatCount(request.uncached_tokens)} uncached input tokens`;
-    parts.push({ tokens: request.cache_read_tokens, colour: TOKEN_PART_COLOURS.cached, title: cachedTitle });
-    parts.push({ tokens: request.uncached_tokens, colour: TOKEN_PART_COLOURS.uncached, title: uncachedTitle });
+  for (const [part, name] of Object.entries(TOKEN_PART_NAMES)) {
+    const title = `${formatCount(tokens[part])} ${name.toLowerCase()} tokens`;
+    parts.push({ tokens: tokens[part], colour: TOKEN_PART_COLOURS[part], title });
   }
-  const outputTitle = `${formatCount(request.completion_tokens)} output tokens`;
-  parts.push({ tokens: request.completion_tokens, colour: TOKEN_PART_COLOURS.output, title: outputTitle });
   return parts.filter((part) => part.tokens > 0);
 }
 
