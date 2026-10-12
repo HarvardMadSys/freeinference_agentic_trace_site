@@ -4,7 +4,7 @@ This is the FreeInference trace site: a static, public visualizer and explorer
 for the agentic trace. Start with `README.md` (what it is and how to run it)
 and `CONTRIBUTING.md` (the rules, the patterns to copy, how to verify a
 change). The specifications are in `openspec/`; the change being built is
-`openspec/changes/ship-the-data/`.
+`openspec/changes/calmer-explore/`.
 
 The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
 
@@ -19,25 +19,30 @@ The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
   wait is and how long it counts for, the tool groups, the cache simulation's
   TTLs and costs, the mutation table), a mirror test ties each copied
   constant to the pipeline's and a parity test ties the number to the
-  paper's: `figures/cost_share_by_session.sql`,
+  paper's; ten queries do: `figures/cost_share_by_session.sql`,
   `figures/session_time_by_part.sql`, `figures/speedup_if_twice_as_fast.sql`,
   `figures/calls_per_request_by_category.sql`,
   `figures/latency_by_batch_width.sql`, `figures/tool_mix_by_turn_position.sql`,
   `figures/prefill_against_storage.sql`, `figures/api_cost_by_ttl.sql`,
   `figures/infrastructure_cost_by_ttl.sql` and `figures/mutations_by_cause.sql`.
-  Otherwise `site_data` calls the pipeline's functions, and the browser only
-  filters, counts, sums and takes quantiles.
+  Otherwise `site_data` calls the pipeline's functions, and the queries only
+  filter, count, sum and take quantiles.
 - Names are words; functions ≤ 50 lines; modules ≤ 300 lines; every module
   has tests.
-- `make data` follows every edit to a query under `site/queries/explore/`,
-  `site/queries/figures/` or a colour order: the default view reads the
-  answer `make data` precomputed, not the query.
+- The Explore page's figures are frozen: it draws every section from the
+  answers `make data` precomputed over every week and the paper's
+  harnesses, and loads no DuckDB and no Parquet file. The browser query path
+  stays behind `FIGURES_ARE_FROZEN` in `site/js/pages/explore.js`.
+- `make data PIPELINE=<the pipeline's checkout>` follows every edit to a
+  query under `site/queries/explore/`, `site/queries/figures/`, a colour
+  order or a column, and `site/data` is committed with it: the Explore page
+  reads the answer, not the query.
 
 ## Verifying a change
 
 ```bash
-make test                 # pytest and node --test; passes at every commit
-make serve                # look at every touched page at 360 px and desktop, light and dark
+make test PIPELINE=<the pipeline's checkout>   # pytest, with paper parity, and node --test; green at every commit
+make serve   # look at every touched page at 360 px and desktop, light and dark
 ```
 
 ## Git

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "freeinference-site"
 version = "0.1.0"
-description = "The FreeInference agentic trace, visualized: a static site that draws the paper's figures for any weeks and opens any session."
+description = "The FreeInference agentic trace, visualized: a static site that draws the paper's figures and opens any session."
 requires-python = ">=3.12"
 dependencies = [
     "agentic-pipeline",  # the release's reader and every definition the site shows; `make setup` installs it from its repository
