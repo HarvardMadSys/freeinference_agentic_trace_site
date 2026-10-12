@@ -36,7 +36,7 @@ measurement goes into `design.md`.
 ## 4. Session page
 
 - [x] 4.1 `database.js`: `loadWeekRows(week)` fetches the week's four files whole and registers each as a buffer, a failed fetch leaving that file on HTTP ranges; the Session page calls it before its queries. Measure the request count and the time to open the largest session before and after.
-- [ ] 4.2 The details table gains a Programs column and a monospace skeleton line under each call; the chip's tooltip names the programs. Node tests of the cell and the line.
+- [x] 4.2 The details table gains a Programs column and a monospace skeleton line under each call; the chip's tooltip names the programs. Node tests of the cell and the line.
 
 ## 5. Type
 
