@@ -49,7 +49,7 @@ measurement goes into `design.md`.
 
 ## 7. Data and docs
 
-- [ ] 7.1 `make data`; commit `site/data`; README (what the page does, the switch, the measurements, the layout), About (figure list, definitions, the frozen population), CONTRIBUTING (adding a figure now ends at the answer), `tests/test_about_page.py` and `tests/test_repository.py` follow.
+- [x] 7.1 `make data`; commit `site/data`; README (what the page does, the switch, the measurements, the layout), About (figure list, definitions, the frozen population), CONTRIBUTING (adding a figure now ends at the answer), `tests/test_about_page.py` and `tests/test_repository.py` follow.
 
 ## 8. Deploy
 
