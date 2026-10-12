@@ -168,7 +168,10 @@ export function costLegend(rows, seriesColumn, labels) {
 export function costStacks(rows, labels) {
   const rowsByTtl = new Map();
   for (const row of rows) {
-    rowsByTtl.set(row.ttl, [...(rowsByTtl.get(row.ttl) ?? []), row]);
+    if (!rowsByTtl.has(row.ttl)) {
+      rowsByTtl.set(row.ttl, []);
+    }
+    rowsByTtl.get(row.ttl).push(row);
   }
   const stacks = [];
   for (const [ttl, ttlRows] of rowsByTtl) {
@@ -206,8 +209,7 @@ async function drawPrefillAgainstStorage(rows, body, colours) {
   // Plot is loaded here, not at the top, so node can test the section's figure list.
   const { Plot } = await import("../shared/libraries.js");
   const points = prefillPoints(rows);
-  const present = new Set(points.map((point) => point.scope));
-  const scopes = [...colours.series.keys()].filter((scope) => present.has(scope));
+  const scopes = [...colours.series.keys()].filter((scope) => points.some((point) => point.scope === scope));
   const domain = retainedDomain(points);
   const chart = Plot.plot({
     ...chartFrame(body),
@@ -255,8 +257,7 @@ function prefillTipText(point) {
 async function drawCostByTtl(rows, body, colours, { labels, flag, word }) {
   // Plot is loaded here, not at the top, so node can test the section's figure list.
   const { Plot } = await import("../shared/libraries.js");
-  const present = new Set(rows.map((row) => row.part));
-  const parts = Object.keys(labels).filter((part) => present.has(part));
+  const parts = Object.keys(labels).filter((part) => rows.some((row) => row.part === part));
   const stacks = costStacks(rows, labels);
   const callout = calloutPoint(rows, stacks, flag, word);
   const highestCost = Math.max(...stacks.map((stack) => stack.top)) * COST_AXIS_HEADROOM;

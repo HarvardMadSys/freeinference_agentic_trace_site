@@ -88,6 +88,7 @@ export const GAP_FIGURES = Object.freeze({
     query: "figures/mutations_by_cause",
     binColumn: null,
     seriesOverSameRows: true,
+    isPartlySimulated: true,
     draw: drawMutationsByCause,
   }),
   hitRatioByTransition: Object.freeze({

@@ -176,11 +176,13 @@ Every definition comes from the pipeline. The ones the site shows (session,
 turn, wait, cached share, idle gap) are computed by the pipeline's own
 functions when `make data` runs. Where a query restates one in SQL (the cost
 share's prices, the rank bins, the wait classes, what a tool wait is, the tool
-groups), a mirror test ties each copied constant to the pipeline's and a parity
-test ties the number to the paper's; five queries do,
-`figures/cost_share_by_session.sql`, `figures/session_time_by_part.sql`,
-`figures/calls_per_request_by_category.sql`, `figures/latency_by_batch_width.sql`
-and `figures/tool_mix_by_turn_position.sql`.
+groups, the cache simulation's TTLs and costs, the mutation table), a mirror
+test ties each copied constant to the pipeline's and a parity test ties the
+number to the paper's; nine queries do, `figures/cost_share_by_session.sql`,
+`figures/session_time_by_part.sql`, `figures/calls_per_request_by_category.sql`,
+`figures/latency_by_batch_width.sql`, `figures/tool_mix_by_turn_position.sql`,
+`figures/prefill_against_storage.sql`, `figures/api_cost_by_ttl.sql`,
+`figures/infrastructure_cost_by_ttl.sql` and `figures/mutations_by_cause.sql`.
 Otherwise the browser, and the answers
 `make data` precomputes with the browser's own queries, only filter, count,
 sum and take quantiles. With the default selection, every number a figure

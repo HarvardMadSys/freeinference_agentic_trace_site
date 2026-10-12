@@ -187,3 +187,12 @@ test("a legend of parts lists each part with its label, in order, with the colou
   ]);
   assert.equal(legend.colours, colours);
 });
+
+test("a figure with a simulated column draws the selection and names the weeks not simulated", () => {
+  const figure = { isPartlySimulated: true, binColumn: null, seriesOverSameRows: true };
+  const selection = { harnesses: ["codex"], weeks: ["2026-08-09", "2026-08-16"] };
+  const drawn = drawnHarnessesAndWeeks(figure, selection, WEEK_ENTRIES, HARNESS_ENTRIES);
+  assert.deepEqual(drawn, { harnesses: "codex", weeks: ["2026-08-09", "2026-08-16"], notSimulated: ["2026-08-16"] });
+  const caption = figureCaption(figure, [{ rows: 900 }], 0, drawn);
+  assert.equal(caption, "900 rows · codex · 2 weeks · not simulated: 2026-08-16");
+});

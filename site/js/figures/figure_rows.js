@@ -86,19 +86,22 @@ export function restingCountText(rows, figure) {
 
 /**
  * `{ harnesses, weeks, notSimulated }`: the text naming the harnesses a figure's rows come from, the weeks (Sundays)
- * they come from, and the selected weeks they leave out because the simulation does not cover them. That is the
- * selection's, by `harnessEntries` (the entries of `harnesses.json`), with no week left out, except for a simulation
- * figure (`isSimulation`), whose rows are those of the harnesses the simulation replays, whatever harnesses are
- * selected, in the selected weeks the simulation covers, by `weekEntries` (the entries of `weeks.json`).
+ * they come from, and the selected weeks the simulation does not cover, by `weekEntries` (the entries of `weeks.json`).
+ * That is the selection's, by `harnessEntries` (the entries of `harnesses.json`), with no week left out, except:
+ * - for a simulation figure (`isSimulation`), whose rows are those of the harnesses the simulation replays, whatever
+ *   harnesses are selected, in the selected weeks the simulation covers;
+ * - for a figure with a column from the simulation (`isPartlySimulated`), drawn from the selection, whose
+ *   unsimulated weeks are named, since that column leaves them out.
  */
 export function drawnHarnessesAndWeeks(figure, selection, weekEntries, harnessEntries) {
-  if (figure.isSimulation !== true) {
-    return { harnesses: harnessesText(selection.harnesses, harnessEntries), weeks: selection.weeks, notSimulated: [] };
-  }
   const simulated = new Set(weekEntries.filter((entry) => entry.simulated).map((entry) => entry.week));
-  const weeks = selection.weeks.filter((week) => simulated.has(week));
   const notSimulated = selection.weeks.filter((week) => !simulated.has(week));
-  return { harnesses: SIMULATED_HARNESSES_TEXT, weeks, notSimulated };
+  if (figure.isSimulation === true) {
+    const weeks = selection.weeks.filter((week) => simulated.has(week));
+    return { harnesses: SIMULATED_HARNESSES_TEXT, weeks, notSimulated };
+  }
+  const harnesses = harnessesText(selection.harnesses, harnessEntries);
+  return { harnesses, weeks: selection.weeks, notSimulated: figure.isPartlySimulated === true ? notSimulated : [] };
 }
 
 /**

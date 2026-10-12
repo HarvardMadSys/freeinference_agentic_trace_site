@@ -31,6 +31,20 @@ SAME_AS_THE_PAPER = ("as in the paper", "the paper's harnesses")
 FIGURE_QUERIES = SITE_FOLDER / "queries" / "figures"
 MODEL_QUERIES = [FIGURE_QUERIES / "ttft_cdf_by_model.sql", FIGURE_QUERIES / "decode_cdf_by_model.sql"]
 NUMBER_WORDS = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten")
+# The figure queries that restate a pipeline definition in SQL, each with its figure's title.
+RESTATING_QUERIES = {
+    "cost_share_by_session": "Cost share by session",
+    "session_time_by_part": "Session time by part",
+    "calls_per_request_by_category": "Calls per request by category",
+    "latency_by_batch_width": "Tool latency by batch width",
+    "tool_mix_by_turn_position": "Tool mix along a turn",
+    "mutations_by_cause": "Context mutations by cause",
+    "prefill_against_storage": "Prefill against storage",
+    "api_cost_by_ttl": "API cost by TTL",
+    "infrastructure_cost_by_ttl": "Infrastructure cost by TTL",
+}
+MIRROR_TESTS = sorted(pathlib.Path(__file__).resolve().parent.glob("test_pipeline_mirrors*.py"))  # read the copies
+RESTATING_SENTENCE = "Where a query restates one in SQL"  # opens each passage naming the restating queries
 
 
 def about_page() -> str:
@@ -223,3 +237,22 @@ def test_the_about_page_s_idle_gap_providers_are_those_the_figure_draws() -> Non
     drawn = f"the {NUMBER_WORDS[series_slot_count()]} providers with most requests"
     assert drawn in figure_definition(IDLE_GAP_TITLE)
     assert f"a line for each of {drawn}" in difference_item(IDLE_GAP_TITLE)
+
+
+def test_the_about_page_names_every_query_restating_a_definition_and_a_mirror_test_reads_each() -> None:
+    mirror_text = "".join(path.read_text() for path in MIRROR_TESTS)
+    passages = [paragraph for paragraph in re.findall(r"<p>(.*?)</p>", about_page(), re.DOTALL)
+                if RESTATING_SENTENCE in paragraph]
+    assert len(passages) == 2
+    for passage in passages:
+        assert f"{NUMBER_WORDS[len(RESTATING_QUERIES)]} queries do" in passage
+        for title in RESTATING_QUERIES.values():
+            assert f"<strong>{title}</strong>" in passage, title
+    for query, title in RESTATING_QUERIES.items():
+        assert f"{query}.sql" in mirror_text, query
+        assert figure_definition(title)
+
+
+def test_the_about_page_defines_nothing_the_simulation_figures_no_longer_draw() -> None:
+    assert "simulated hit ratio" not in about_page()
+    assert "Active token-seconds" not in about_page()

@@ -143,3 +143,54 @@ def test_the_cost_figures_ignore_the_harness_selection_and_skip_weeks_not_simula
         assert site_database.run_query(connection, name).equals(every_paper_harness), name
         site_database.select_weeks(connection, [SECOND_SUNDAY], fixture_release.PAPER_HARNESSES)
         assert site_database.run_query(connection, name).empty, name
+
+
+# Two simulated weeks: the paper's harnesses in both, the benchmark replay in the first only. Every TTL row of a week
+# repeats its scope's span and output tokens, which must be summed once per week and scope, not once per row.
+TWO_WEEKS = ["2026-07-05", "2026-07-12"]
+TWO_WEEK_TALLIES = pandas.DataFrame({
+    "week": [TWO_WEEKS[0]] * 4 + [TWO_WEEKS[1]] * 4 + [TWO_WEEKS[0]] * 4,
+    "scope": ["Agentic"] * 8 + ["SWE-Bench"] * 4,
+    "ttl": ["1m", "5m", "1h", "none"] * 3,
+    "hit_tokens": [50, 60, 80, 90] * 2 + [5, 6, 8, 9],
+    "miss_tokens": [50, 40, 20, 10] * 2 + [5, 4, 2, 1],
+    "reusable_token_seconds": [100.0, 200.0, 300.0, 400.0] + [300.0, 600.0, 900.0, 1_200.0] + [40.0] * 4,
+    "dead_token_seconds": [0.0] * 12,
+    "span_seconds": [100.0] * 4 + [300.0] * 4 + [20.0] * 4,
+    "output_tokens": [10.0] * 4 + [30.0] * 4 + [1.0] * 4,
+})
+# Top-level requests: two of the paper's harnesses in the first week and one in the second; one benchmark request in
+# each week, the second of which the simulation did not replay.
+TWO_WEEK_REQUESTS = pandas.DataFrame({
+    "week": [TWO_WEEKS[0], TWO_WEEKS[0], TWO_WEEKS[1], TWO_WEEKS[0], TWO_WEEKS[1]],
+    "harness": ["pi", "pi", "codex", "eval:swe-bench", "eval:swe-bench"],
+    "is_top_level": [True] * 5,
+})
+
+
+def two_week_simulation() -> duckdb.DuckDBPyConnection:
+    """A database whose `simulation` and `requests` are the two-week cases, both weeks and the paper's harnesses
+    selected, and `eval:swe-bench` the benchmark harness."""
+    database = duckdb.connect()
+    database.register("simulation", TWO_WEEK_TALLIES)
+    database.register("requests", TWO_WEEK_REQUESTS)
+    for name in [*site_database.SELECTION_TABLE_STATEMENTS, site_database.BENCHMARK_TABLE_STATEMENT]:
+        database.execute(site_database.statement_text(name))
+    database.execute(site_database.statement_text("setup/insert_benchmark_harness"), ["eval:swe-bench"])
+    site_database.select_weeks(database, TWO_WEEKS, ["pi", "codex"])
+    return database
+
+
+def test_two_simulated_weeks_sum_each_scope_s_span_and_output_once_per_week() -> None:
+    database = two_week_simulation()
+    prefill = site_database.run_query(database, "figures/prefill_against_storage").set_index(["scope", "ttl"])
+    # Spans 100 + 300 s for the paper's harnesses, 20 s for the benchmark; at 1m, 100 + 300 retained token-seconds.
+    assert prefill.mean_retained_tokens[("Agentic", "1m")] == pytest.approx(400 / 400)
+    assert prefill.mean_retained_tokens[("SWE-Bench", "1m")] == pytest.approx(40 / 20)
+    assert prefill.normalised_prefill[("Agentic", "1m")] == pytest.approx(100 / 20)
+    assert prefill.rows[("Agentic", "1m")] == 3 and prefill.rows[("SWE-Bench", "1m")] == 1
+    api = site_database.run_query(database, "figures/api_cost_by_ttl")
+    output_at_minute = api[(api.part == "output") & (api.ttl == "1m")].cost_multiple.iloc[0]
+    # At 1m: 100 missed tokens at 10, 100 hits at 1, and 10 + 30 output tokens at 50.
+    assert output_at_minute == pytest.approx(40 * 50 / (100 * 10 + 100 * 1 + 40 * 50))
+    database.close()

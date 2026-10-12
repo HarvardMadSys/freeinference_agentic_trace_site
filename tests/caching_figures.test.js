@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { drawnProviderRows, idleGapEdgeSeconds, idleGapLegend } from "../site/js/figures/caching.js";
 import {
-  causeLegend, gapBinColours, gapBinLegend, meanHitRatioBars, mutationTableLines, transitionLegend,
+  causeLegend, GAP_FIGURES, gapBinColours, gapBinLegend, meanHitRatioBars, mutationTableLines, transitionLegend,
 } from "../site/js/figures/caching_gaps.js";
 import {
   calloutPoint, costLegend, costStacks, prefillPoints, retainedDomain, scopeLegend, ttlLabel,
@@ -170,4 +170,9 @@ test("the mutation table's lines come in the paper's order, causes after transit
     { name: "mutation", isCause: false, cells: ["Mutation", "4.00%", "56.4%", "—"] },
     { name: "compaction", isCause: true, cells: ["Compaction", "0.04%", "3.7%", "0.6%"] },
   ]);
+});
+
+test("the mutation table names a week without a simulation, its prefill column being simulated", () => {
+  assert.equal(GAP_FIGURES.mutationsByCause.isPartlySimulated, true);
+  assert.equal(GAP_FIGURES.mutationsByCause.isSimulation, undefined);
 });

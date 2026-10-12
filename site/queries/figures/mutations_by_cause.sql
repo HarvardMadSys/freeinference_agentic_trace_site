@@ -20,6 +20,7 @@ transitions AS (
   SELECT session_id, transition, cause, missed_tokens_no_ttl
   FROM requests
   WHERE is_top_level
+    AND transition IS NOT NULL -- a session's first request follows none, so it is no transition
     AND transition <> 'switch'
     AND week IN (SELECT week FROM selected_weeks)
     AND harness IN (SELECT harness FROM selected_harnesses)

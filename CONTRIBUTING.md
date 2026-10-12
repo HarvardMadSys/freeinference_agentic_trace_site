@@ -46,21 +46,28 @@ binding, and `make test` checks the countable ones.
   a file registered under its name is what the stream can swap for its bytes.
 - **Every definition comes from the pipeline.** Where a query restates one
   in SQL (the cost share's prices, the rank bins, the wait classes, what a
-  tool wait is, the tool groups), a mirror test ties each copied constant to
-  the pipeline's and a parity test ties the number to the paper's. Five
-  queries do, each checked by `tests/test_pipeline_mirrors.py`:
+  tool wait is, the tool groups, the cache simulation's TTLs and costs, the
+  mutation table), a mirror test ties each copied constant to the pipeline's
+  and a parity test ties the number to the paper's. Nine queries do:
   `figures/cost_share_by_session.sql` (the prices and the rank bins) and
   `figures/session_time_by_part.sql` (the rank bins and which waits are tool
-  time and which a person's), with `tests/test_paper_parity_sessions.py`;
+  time and which a person's), checked by `tests/test_pipeline_mirrors.py` and
+  `tests/test_paper_parity_sessions.py`;
   `figures/calls_per_request_by_category.sql` (the Ask User category) and
   `figures/latency_by_batch_width.sql` (what a tool wait is, the Ask User
   category, the widest width and the quantiles), with
-  `tests/test_paper_parity.py`; and `figures/tool_mix_by_turn_position.sql`
+  `tests/test_paper_parity.py`; `figures/tool_mix_by_turn_position.sql`
   (the tenths, each category's tool group and the programs that decide a
-  `*File Ops` call's), with `tests/test_paper_parity_comparison.py`.
-  Otherwise the browser filters, groups, counts, sums and takes quantiles. It
-  never decides what a turn, a wait or a cache hit is; `site_data` computes
-  those by calling the pipeline's functions.
+  `*File Ops` call's), with `tests/test_paper_parity_comparison.py`;
+  `figures/prefill_against_storage.sql` (the TTLs),
+  `figures/api_cost_by_ttl.sql` and `figures/infrastructure_cost_by_ttl.sql`
+  (the TTLs, the prices, the normalising TTL, the knee and the lowest-cost
+  rules) and `figures/mutations_by_cause.sql` (the table's rows and which
+  sessions count as appends), checked by `tests/test_pipeline_mirrors_caching.py`
+  and `tests/test_paper_parity_caching.py`. Otherwise the browser filters,
+  groups, counts, sums and takes quantiles. It never decides what a turn, a
+  wait or a cache hit is; `site_data` computes those by calling the
+  pipeline's functions.
 - **No framework, no bundler, no npm dependency.** Plain HTML, CSS and ES
   modules. Libraries come from a CDN at exact versions, named only in
   `site/js/shared/libraries.js`.
@@ -177,6 +184,9 @@ and calls `draw`:
 - `isSimulation` (optional): true for a figure of the cache simulation, which
   draws the harnesses the simulation replays (the paper's, and on its own the
   benchmark replay) in the simulated weeks only; the caption says so.
+- `isPartlySimulated` (optional): true for a figure drawn from the selection
+  with one column from the cache simulation, as the mutation table's prefill;
+  the caption names the selected weeks the simulation does not cover.
 - `caption` (optional): the card's one short line, a sentence of at most 90
   characters; `definition` keeps the full definition.
 - `legend` (a figure of more than one series): `legend(rows, colours, seriesColumn)`
