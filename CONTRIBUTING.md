@@ -98,7 +98,8 @@ Session:       session.html  →  js/pages/session.js  →  js/session*/ and js/
 js/pages/             one module per page
 js/shared/            what every page uses: the database, the selection, formatting, charts, the table, the header and
                       footer
-js/landing/           the Explore page's opening: the hero, the stats strip beside it, and the model and harness donuts
+js/landing/           the Explore page's own parts: the hero, the stats strip beside it, the model and harness
+                      donuts, the citation's copy button and the team
 js/theme/             the site's colours as the style tokens give them
 js/axes/              the ticks of every chart's axes: how many, where a log, duration or elapsed-time axis ticks, which
                       week a week axis labels, and an axis mark that labels each tick it is given
@@ -308,13 +309,11 @@ words, and their tests. Nothing about it runs in the browser.
    definition or copies a constant (a bin edge, a price, a list of causes): a
    test in `tests/test_pipeline_mirrors*.py` that parses the copy and compares
    it with the pipeline's own; then the query joins the list of restating
-   queries above, in `README.md`, in `CLAUDE.md`, on the About page and in
-   `RESTATING_QUERIES` of `tests/test_about_page.py`.
-7. **The About page.** Its count of figures follows (`tests/test_about_page.py`
-   counts the entries); where the figure is drawn more simply than the paper,
-   its definition says how, and so does an item of the About page's list of
-   differences, which the test checks; a word the figure uses that the
-   Definitions do not hold gets a definition there.
+   queries above, in `README.md`, in `CLAUDE.md` and in `RESTATING_QUERIES`
+   of `tests/test_pipeline_mirrors.py`, which checks the three agree.
+7. **The differences.** Where the figure is drawn more simply than the paper,
+   its definition says how, and so does an item of `docs/differences.md`,
+   which `tests/test_differences.py` checks.
 
 ## JavaScript style
 

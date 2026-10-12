@@ -2,18 +2,17 @@
  * The Overview's two donuts: the model mix, each model's share of the requests (`explore/model_mix`), and the harness
  * mix, each harness's share of the top-level sessions (`explore/sessions_per_week_by_harness`, summed over the weeks).
  * A donut names the series that hold the eight colours of its colour order (`setup/model_order`,
- * `setup/harness_order`), as the trends colour them, and folds the rest into "Other". Its legend hides and shows a
- * slice (`explore/legend.js`), and the shares and the total in the centre follow the slices shown.
+ * `setup/harness_order`), in those colours, as the trends colour them, and folds the rest into "Other"; its slices run
+ * largest first, "Other" last. Its legend hides and shows a slice (`explore/legend.js`); once one is hidden, the shares
+ * and the total in the centre are of the slices shown, and the centre says so.
  *
  * A section's `context` is what the page gives every section; see `pages/explore.js`.
  */
 
-import { renderFigure, showError, showLoading } from "../shared/charts.js";
+import { columnTotal, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { formatCompactCount, formatCount, formatQuantity, formatShare } from "../shared/format.js";
 import { barColours, OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
 import { drawWithLegend } from "../explore/legend.js";
-import { columnTotal } from "../explore/trends.js";
-import { seriesLegend } from "../figures/figure_rows.js";
 import { donutArcs } from "./arcs.js";
 
 // The donut's size in the SVG's own units, which the page scales to the card: the outer and inner radii.
@@ -45,8 +44,8 @@ export async function runMixes(container, context) {
 
 /**
  * The donut's slices `[{ name, count }]` of `rows`: `row[countColumn]` summed by `row[nameColumn]`, a name among the
- * first eight of `order` keeping its own slice and every other name summed into "Other". The named slices come in the
- * order's order, "Other" last; a name with no rows has no slice.
+ * first eight of `order` keeping its own slice and every other name summed into "Other". The named slices come largest
+ * first, "Other" last; a name with no rows has no slice.
  */
 export function donutSlices(rows, nameColumn, countColumn, order) {
   const named = order.slice(0, SERIES_SLOTS.length);
@@ -56,10 +55,14 @@ export function donutSlices(rows, nameColumn, countColumn, order) {
     counts.set(name, (counts.get(name) ?? 0) + row[countColumn]);
   }
   const slices = [];
-  for (const name of [...named, OTHER_NAME]) {
+  for (const name of named) {
     if (counts.has(name)) {
       slices.push({ name, count: counts.get(name) });
     }
+  }
+  slices.sort((first, second) => second.count - first.count);
+  if (counts.has(OTHER_NAME)) {
+    slices.push({ name: OTHER_NAME, count: counts.get(OTHER_NAME) });
   }
   return slices;
 }
@@ -103,14 +106,22 @@ async function drawMix(place, slices, colours, text) {
     definition: text.definition,
     rows: formatQuantity(columnTotal(slices, "count"), text.singular, text.plural),
   });
-  const legend = seriesLegend(slices, "name", colours);
-  const drawShown = (hidden) => drawDonut(body, slices.filter((slice) => !hidden.has(slice.name)), colours, text);
+  // The legend lists the slices in the donut's order, largest first.
+  const legend = { series: slices.map((slice) => ({ name: slice.name, label: slice.name })), colours };
+  const drawShown = (hidden) => drawDonut(body, slices.filter((slice) => !hidden.has(slice.name)), colours, {
+    ...text, unit: centreUnit(text.plural, hidden.size),
+  });
   await drawWithLegend(body, legend, drawShown);
+}
+
+/** The line under the donut's total: what it counts, "requests", or "shown requests" while `hiddenCount` are hidden. */
+export function centreUnit(plural, hiddenCount) {
+  return hiddenCount === 0 ? plural : `shown ${plural}`;
 }
 
 /**
  * Draw into `body` the donut of `slices` (`[{ name, count }]`), each in its colour of `colours`, with a tooltip of its
- * name, share and count, and the slices' total in the centre, written by `text.formatTotal`, over `text.plural`.
+ * name, share and count, and the slices' total in the centre, written by `text.formatTotal`, over `text.unit`.
  */
 function drawDonut(body, slices, colours, text) {
   const svg = document.createElementNS(SVG_NAMESPACE, "svg");
@@ -119,20 +130,25 @@ function drawDonut(body, slices, colours, text) {
   svg.setAttribute("role", "img");
   let total = 0;
   for (const arc of donutArcs(slices, OUTER_RADIUS, INNER_RADIUS)) {
-    const path = svgElement("path", { d: arc.path, fill: colours.get(arc.name), class: "donut-slice" });
-    const tooltip = svgElement("title", {});
-    tooltip.textContent = `${arc.name}: ${formatShare(arc.share)} (${formatCount(arc.count)} ${text.plural})`;
-    path.append(tooltip);
-    svg.append(path);
+    svg.append(slicePath(arc, colours, text));
     total += arc.count;
   }
-  svg.setAttribute("aria-label", `${text.title}: ${formatCount(total)} ${text.plural}`);
+  svg.setAttribute("aria-label", `${text.title}: ${formatCount(total)} ${text.unit}`);
   const value = svgElement("text", { y: "-0.15em", class: "donut-total" });
   value.textContent = text.formatTotal(total);
   const unit = svgElement("text", { y: "1.35em", class: "donut-unit" });
-  unit.textContent = text.plural;
+  unit.textContent = text.unit;
   svg.append(value, unit);
   body.replaceChildren(svg);
+}
+
+// A slice's ring segment, with its tooltip: its name, its share of the slices shown, and its count.
+function slicePath(arc, colours, text) {
+  const path = svgElement("path", { d: arc.path, fill: colours.get(arc.name), class: "donut-slice" });
+  const tooltip = svgElement("title", {});
+  tooltip.textContent = `${arc.name}: ${formatShare(arc.share)} of ${text.unit} (${formatCount(arc.count)})`;
+  path.append(tooltip);
+  return path;
 }
 
 function svgElement(name, attributes) {

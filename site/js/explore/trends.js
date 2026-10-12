@@ -8,7 +8,9 @@
  * A section's `context` is what the page gives every section; see `pages/explore.js`.
  */
 
-import { drawBars, foldToOther, renderFigure, showError, showLoading, sumFolded } from "../shared/charts.js";
+import {
+  columnTotal, drawBars, foldToOther, renderFigure, showError, showLoading, sumFolded,
+} from "../shared/charts.js";
 import { weekTickFormat } from "../axes/ticks.js";
 import { barColours, OTHER_SERIES, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { seriesLegend } from "../figures/figure_rows.js";
@@ -81,15 +83,6 @@ export function barOpacity(row, selectedWeeks) {
 /** The end of every trend's definition: " " and the click hint when a bar click selects a week, else nothing. */
 export function clickHint(onWeekClick) {
   return onWeekClick === null ? "" : ` ${CLICK_HINT}`;
-}
-
-/** The sum of `row[column]` over `rows`. */
-export function columnTotal(rows, column) {
-  let total = 0;
-  for (const row of rows) {
-    total += row[column];
-  }
-  return total;
 }
 
 async function drawSessionsPerWeek(place, context) {

@@ -46,7 +46,29 @@
       <h2 id="session-list-heading">Session list</h2>
       <div id="sessions-table" class="card"></div>
     </section>
-    <section id="cite" aria-label="Cite"></section>
+    <section id="cite" class="section cite" aria-labelledby="cite-title">
+      <div>
+        <p class="eyebrow"><span class="eyebrow-mark" aria-hidden="true"></span>Citation</p>
+        <h2 id="cite-title">Cite this data</h2>
+      </div>
+      <div class="cite-copy-column">
+        <p>If the trace supports your work, please cite the paper that introduces it.</p>
+        <figure class="cite-block">
+          <figcaption>
+            <span>BibTeX · FreeInference agentic trace</span>
+            <button class="cite-copy" type="button" data-copy="bibtex" hidden>Copy</button>
+          </figcaption>
+          <pre id="bibtex"><code>@article{freeinference2026requests,
+  title  = {From Requests to Sessions: A Large-Scale Characterization
+            of Human-Driven Agentic Workloads},
+  author = {Nixon, William and Tian, Muxin and Zheng, Yunjia
+            and Gunawi, Haryadi S. and Yang, Juncheng},
+  year   = {2026}
+}</code></pre>
+        </figure>
+      </div>
+    </section>
+    <section id="team" class="section team" aria-labelledby="team-title"></section>
   </main>
   <footer id="site-footer" class="site-footer"></footer>
   <script type="module" src="js/pages/explore.js"></script>

@@ -41,6 +41,25 @@ CALLS_PER_REQUEST_QUERY = FIGURE_QUERIES / "calls_per_request_by_category.sql"  
 BATCH_WIDTH_QUERY = FIGURE_QUERIES / "latency_by_batch_width.sql"  # what a tool wait is, the widths and quantiles
 BATCHING_MODULE = SITE_FOLDER / "js" / "figures" / "tools_batching.js"  # the widest width drawn on its own
 EDGE_TOLERANCE = 1e-9  # relative; the browser computes the geometric edges itself, so they agree only to rounding
+# The figure queries that restate a pipeline definition in SQL, each with its figure's title. Each is read by a mirror
+# test, and the repository's documents name exactly these.
+RESTATING_QUERIES = {
+    "cost_share_by_session": "Cost share by session",
+    "session_time_by_part": "Session time by part",
+    "speedup_if_twice_as_fast": "Speed-up if twice as fast",
+    "calls_per_request_by_category": "Calls per request by category",
+    "latency_by_batch_width": "Tool latency by batch width",
+    "tool_mix_by_turn_position": "Tool mix along a turn",
+    "mutations_by_cause": "Context mutations by cause",
+    "prefill_against_storage": "Prefill against storage",
+    "api_cost_by_ttl": "API cost by TTL",
+    "infrastructure_cost_by_ttl": "Infrastructure cost by TTL",
+}
+MIRROR_TESTS = sorted(pathlib.Path(__file__).resolve().parent.glob("test_pipeline_mirrors*.py"))  # read the copies
+# The documents that list the restating queries, each as `figures/<name>.sql`.
+RESTATING_LISTS = [SITE_FOLDER.parent / name for name in ("README.md", "CONTRIBUTING.md", "CLAUDE.md")]
+# The folders of every figure entry: the first three sections', the cache simulation's and the comparison section's.
+FIGURE_FOLDERS = [SITE_FOLDER / "js" / folder for folder in ("figures", "simulation", "comparison")]
 
 
 def declaration(path: pathlib.Path, pattern: str) -> re.Match:
@@ -212,3 +231,22 @@ def test_the_scopes_are_the_pipeline_s_names_and_labels() -> None:
 def test_a_query_names_each_scope_as_the_pipeline_does(path: pathlib.Path) -> None:
     # A request of the benchmark's harness is the benchmark replay's, any other the paper's harnesses'.
     assert SCOPE_CASE.findall(path.read_text()) == [(population.SWE_BENCH, population.AGENTIC)]
+
+
+@pytest.mark.parametrize("query", RESTATING_QUERIES)
+def test_a_mirror_test_reads_each_restating_query(query: str) -> None:
+    mirror_text = "".join(path.read_text() for path in MIRROR_TESTS)
+    assert f"{query}.sql" in mirror_text
+
+
+@pytest.mark.parametrize("query", RESTATING_QUERIES)
+def test_each_restating_query_draws_the_figure_named_for_it(query: str) -> None:
+    entries = "".join(path.read_text() for folder in FIGURE_FOLDERS for path in folder.glob("*.js"))
+    # From the title to the query within one entry: the match may not pass the next entry's title.
+    entry = rf'title: "{re.escape(RESTATING_QUERIES[query])}",(?:(?!title: ).)*?query: "figures/{query}"'
+    assert re.search(entry, entries, re.DOTALL)
+
+
+@pytest.mark.parametrize("path", RESTATING_LISTS, ids=lambda path: path.name)
+def test_the_documents_list_exactly_the_restating_queries(path: pathlib.Path) -> None:
+    assert set(re.findall(r"figures/(\w+)\.sql", path.read_text())) == set(RESTATING_QUERIES)

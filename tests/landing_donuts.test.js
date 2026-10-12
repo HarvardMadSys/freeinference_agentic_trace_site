@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { donutArcs, pointAt, ringSegmentPath, sliceShares } from "../site/js/landing/arcs.js";
-import { donutSlices } from "../site/js/landing/donuts.js";
+import { centreUnit, donutSlices } from "../site/js/landing/donuts.js";
 
 // Ten models, most requests first, as `setup/model_order` gives them.
 const MODEL_ORDER = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9", "m10"];
@@ -21,6 +21,23 @@ test("a donut names the first eight of the order, folds the rest into Other, and
     { name: "m8", count: 5 },
     { name: "Other", count: 5 },
   ]);
+});
+
+test("the named slices run largest first where the colour order and the counts disagree, Other last", () => {
+  const rows = [
+    { model: "m1", requests: 10 },
+    { model: "m2", requests: 30 },
+    { model: "m3", requests: 20 },
+    { model: "m9", requests: 40 },
+  ];
+  assert.deepEqual(donutSlices(rows, "model", "requests", MODEL_ORDER).map((slice) => slice.name), [
+    "m2", "m3", "m1", "Other",
+  ]);
+});
+
+test("the centre names what its total counts, and says so once a slice is hidden", () => {
+  assert.equal(centreUnit("requests", 0), "requests");
+  assert.equal(centreUnit("sessions", 2), "shown sessions");
 });
 
 test("the harness donut sums each harness's sessions over the weeks", () => {

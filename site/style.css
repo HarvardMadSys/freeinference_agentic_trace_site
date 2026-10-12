@@ -810,7 +810,9 @@ section[id] {
   height: 13rem;
 }
 
+/* The even-odd rule makes the inner circle of a whole ring, a donut of one slice, a hole. */
 .donut-slice {
+  fill-rule: evenodd;
   stroke: var(--color-surface);
   stroke-width: 1.5;
 }
@@ -852,6 +854,197 @@ section[id] {
 
   .donut-card .figure-legend {
     margin-bottom: 0.75rem;
+  }
+}
+
+/* ---------- Cite and Team ---------- */
+
+/* The Cite section: its heading on the left, the sentence and the BibTeX on the right, wide enough for the BibTeX's
+   longest line at 1280 px; one column on a narrow screen. */
+.cite {
+  display: grid;
+  grid-template-columns: minmax(0, 0.6fr) minmax(20rem, 1.4fr);
+  gap: clamp(1.5rem, 6vw, 5rem);
+}
+
+.cite h2,
+.team h2 {
+  margin-top: 0.5rem;
+  font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.5rem);
+  letter-spacing: -0.02em;
+}
+
+.cite-copy-column p {
+  color: var(--color-text-muted);
+}
+
+.cite-block {
+  overflow: hidden;
+  margin: 1.25rem 0 0;
+  border: 1px solid var(--color-border);
+  border-radius: 0.7rem;
+  background: var(--color-surface);
+}
+
+/* The block's caption bar: what the block holds, and the copy button, which the page shows only where it can copy. */
+.cite-block figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-smallest);
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+
+.cite-copy {
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+.cite-copy:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+}
+
+/* A long line scrolls inside the block rather than widening the page. */
+.cite-block pre {
+  overflow-x: auto;
+  margin: 0;
+  padding: 1rem;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-smallest);
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+/* The Team section: its heading with the lab beside it, the authors in a row between two rules, then the About. */
+.team-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.7fr);
+  align-items: end;
+  gap: 1rem 3rem;
+}
+
+.team-heading > p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.team-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  border-block: 1px solid var(--color-border);
+}
+
+/* Each author with a rule after them, but the last. */
+.team-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.55rem;
+  margin-block: 0.65rem;
+  padding: 0.15rem 1.2rem;
+  border-right: 1px solid var(--color-border);
+}
+
+.team-list li:first-child {
+  padding-left: 0;
+}
+
+.team-list li:last-child {
+  border-right: 0;
+}
+
+.team-list a {
+  color: var(--color-text);
+}
+
+.team-list span {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-smallest);
+  letter-spacing: 0.03em;
+  color: var(--color-text-faint);
+}
+
+.team-about {
+  max-width: 44rem;
+  margin-top: 2rem;
+}
+
+.team-about p:not(.eyebrow) {
+  color: var(--color-text-muted);
+}
+
+/* Links led by an arrow that steps right under the pointer. */
+.arrow-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 1.25rem;
+  margin-top: 1rem;
+}
+
+.arrow-links a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.32rem;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-smallest);
+  font-weight: 600;
+}
+
+.arrow-links a::before {
+  content: "→";
+  color: var(--color-text-faint);
+  transition: transform 180ms ease, color 180ms ease;
+}
+
+.arrow-links a:hover {
+  text-decoration: none;
+}
+
+.arrow-links a:hover::before {
+  color: var(--color-accent);
+  transform: translateX(2px);
+}
+
+/* On a narrow screen the heading goes above the copy, and each author takes a line of their own. */
+@media (max-width: 58rem) {
+  .cite,
+  .team-heading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 46rem) {
+  .team-list {
+    flex-direction: column;
+  }
+
+  .team-list li {
+    margin: 0;
+    padding: 0.7rem 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .team-list li:last-child {
+    border-bottom: 0;
   }
 }
 

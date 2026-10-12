@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  categoryRowsFrame, chartFrame, colourScale, dropThinBins, foldToOther, MIN_ROWS_PER_BIN, sumFolded,
+  categoryRowsFrame, chartFrame, colourScale, columnTotal, dropThinBins, foldToOther, MIN_ROWS_PER_BIN, sumFolded,
 } from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
@@ -88,4 +88,9 @@ test("a chart's margins hold its 14.6 px tick labels and axis titles", () => {
   assert.equal(frame.marginLeft, 72); // a count of six digits with its separator, as "150,000"
   assert.equal(frame.marginBottom, 48); // the x tick labels, and the axis title on a line below them
   assert.equal(frame.marginTop, 32); // the y axis title above the chart
+});
+
+test("a column's total sums it over the rows, and is 0 for no rows", () => {
+  assert.equal(columnTotal([{ sessions: 3 }, { sessions: 4 }], "sessions"), 7);
+  assert.equal(columnTotal([], "sessions"), 0);
 });

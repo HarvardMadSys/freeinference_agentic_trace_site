@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { barOpacity, clickHint, columnTotal, tokenPartRows } from "../site/js/explore/trends.js";
+import { barOpacity, clickHint, tokenPartRows } from "../site/js/explore/trends.js";
 
 test("each week's input becomes three rows, cached first, in the weeks' order", () => {
   const weekRows = [
@@ -29,9 +29,4 @@ test("a trend's definition ends with the click hint only while a bar click selec
   const hint = " Faint bars are weeks outside the selection; click a bar to select its week alone.";
   assert.equal(clickHint(() => undefined), hint);
   assert.equal(clickHint(null), "");
-});
-
-test("a column's total sums it over the rows, and is 0 for no rows", () => {
-  assert.equal(columnTotal([{ sessions: 3 }, { sessions: 4 }], "sessions"), 7);
-  assert.equal(columnTotal([], "sessions"), 0);
 });

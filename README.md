@@ -14,9 +14,8 @@ charts. There is no server and no bundler.
 
 | Page | File | What it shows |
 |---|---|---|
-| Explore | `index.html` | A hero with the stats strip (weeks, sessions, requests, input tokens, tool calls, harnesses), weekly trends, eight distribution cards, 29 of the paper's figures in four sections (`#figures-sessions`, `#figures-tools`, `#figures-caching`, `#figures-comparison`: Sessions, Tools, Prefix caching, Human-driven against benchmark) and the session list (`#sessions`), a table of every top-level session with its own filter |
+| Explore | `index.html` | The landing page: a hero with the stats strip (weeks, sessions, requests, input tokens, tool calls, harnesses), the model and harness mixes and the weekly trends (`#overview`), eight distribution cards, 29 of the paper's figures in four sections (`#figures-sessions`, `#figures-tools`, `#figures-caching`, `#figures-comparison`: Sessions, Tools, Prefix caching, Human-driven against benchmark) (`#figures`), the session list (`#sessions`), a table of every top-level session with its own filter, the paper's citation (`#cite`) and the team (`#team`) |
 | Session | `session.html` | One session and its subagents: a bar per request with each tool call's programs and the skeleton of its arguments, context over time, and a timeline per agent |
-| About | `about.html` | What the site shows, definitions, where it draws more simply than the paper, how the data were built, and links |
 
 ## Frozen figures
 
@@ -130,6 +129,7 @@ deploy.sh          what make deploy runs: copies site/ onto an orphan branch and
 serve.py           what make serve runs: a local server that answers byte-range requests, as the host does
 pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
 package.json       sets ES modules for node --test; no dependencies
+docs/              differences.md: where the site draws more simply than the paper
 site_data/         builds site/data/ from a release, and opens a database over it as the browser does
   __main__.py      the step make data runs: loads and checks every week, writes the files, the indexes, the answers
   loading.py, weeks.py, harnesses.py
@@ -142,18 +142,19 @@ site_data/         builds site/data/ from a release, and opens a database over i
   check_answers.py what make deploy checks first: every answered query's text is the one its answer came from
   paths.py         the names of the folders and files the step writes
 site/              exactly the files that are deployed
-  *.html           one file per page: index (Explore), session, about
+  *.html           one file per page: index (Explore, the landing page), session
   style.css        tokens, layout and components
   js/shared/       database (answer files, queries by name, a week's files loaded whole), selection (the selection
                    and its notes), libraries, format, charts, histogram (the distribution card), table, layout (the
                    header and footer)
   js/landing/      the Explore page's opening: hero (the title, lede and buttons), stats (the stats strip beside it),
-                   donuts (the model and harness mixes) and arcs (a donut's shares and ring segments)
+                   donuts (the model and harness mixes), arcs (a donut's shares and ring segments), cite (the
+                   citation's copy button) and team (the authors and the About paragraph)
   js/engine/       DuckDB in the page: duckdb_start (starting it), duckdb_views (its views and setup),
                    duckdb_files (a week's files fetched whole, and the stream of every week's, kept behind the switch)
   js/theme/        colours, the site's colours as the style tokens give them
   js/axes/         ticks, the ticks of every chart's axes: how many, and where a log, duration or week axis ticks
-  js/pages/        one module per page: explore (with FIGURES_ARE_FROZEN), session, about
+  js/pages/        one module per page: explore (with FIGURES_ARE_FROZEN), session
   js/explore/      the Explore page's sections: trends, distributions, figure_sections (the figure runner),
                    legend (the legend of buttons that hides and shows a series), sessions_table, sessions_table_state
                    (its columns and its state in the URL), sessions_filter (its month and harness filter), and
@@ -196,7 +197,7 @@ tests/             what make test runs
                    on the shipped data, the numbers a figure shares with the paper's numbers.json
   test_pipeline_mirrors.py, test_pipeline_mirrors_caching.py
                    the pipeline constants the browser holds a copy of, against the pipeline's own
-  test_about_page.py        the About page's hand-written numbers and lists, against the code's
+  test_differences.py       docs/differences.md names every figure that differs, with the queries' and pipeline's numbers
   test_repository.py, test_deploy.py, test_serve.py
                    the repository's countable rules; make deploy against a local repository; make serve's byte ranges
   *.test.js        node --test, one file per JavaScript module with pure functions
@@ -224,6 +225,10 @@ for the answers and the Session page runs in the browser, only filter,
 count, sum and take quantiles, and the session list only filters its
 answer. Every number a figure shares with the paper equals the paper's, and
 `tests/test_paper_parity*.py` checks each one against the shipped data.
+`tests/test_pipeline_mirrors.py` checks that a mirror test reads each of the
+ten queries and that this file, `CONTRIBUTING.md` and `CLAUDE.md` list
+exactly them. Where a figure is drawn more simply than the paper, its
+Definition says how, and `docs/differences.md` lists every such difference.
 
 - Dataset: https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace
 - Pipeline: https://github.com/HarvardMadSys/freeinference_agentic_trace

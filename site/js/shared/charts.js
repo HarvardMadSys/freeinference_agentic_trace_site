@@ -217,6 +217,15 @@ export async function drawBars(body, rows, options) {
   return chart;
 }
 
+/** The sum of `row[column]` over `rows`. */
+export function columnTotal(rows, column) {
+  let total = 0;
+  for (const row of rows) {
+    total += row[column];
+  }
+  return total;
+}
+
 /** The distinct values, in the order of their first appearance. */
 export function distinct(values) {
   return [...new Set(values)];

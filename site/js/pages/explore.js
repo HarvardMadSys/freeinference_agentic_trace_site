@@ -1,6 +1,6 @@
 /**
  * The Explore page: the hero with its stats strip, the model and harness mixes, weekly trends, distribution cards,
- * the paper's figures in four sections, and the sessions table.
+ * the paper's figures in four sections, the sessions table, and the citation and the team.
  *
  * The page draws its header, hero, figure cards and every section's loading state from `weeks.json` and
  * `harnesses.json`, then gives the database the selection and runs every section.
@@ -48,8 +48,10 @@ import { layoutSessionsTable, runSessionsTable } from "../explore/sessions_table
 import { withFirstPage } from "../explore/sessions_table_state.js";
 import { layoutTrends, runTrends } from "../explore/trends.js";
 import { layoutMixes, runMixes } from "../landing/donuts.js";
+import { mountCopyButtons } from "../landing/cite.js";
 import { renderHero } from "../landing/hero.js";
 import { layoutStats, runStats } from "../landing/stats.js";
+import { renderTeam } from "../landing/team.js";
 
 // Whether every section and figure is frozen on its precomputed answer for every week and the paper's harnesses:
 // true mounts no picker and starts neither DuckDB nor the stream; false lets the visitor pick weeks and harnesses, and
@@ -77,6 +79,8 @@ start();
 /** Draw everything `weeks.json` and `harnesses.json` allow, then run the sections. */
 async function start() {
   renderFooter(document.querySelector("#site-footer"), PAGE_FILE, new URLSearchParams());
+  renderTeam(document.querySelector("#team"));
+  mountCopyButtons(document, navigator.clipboard);
   // Frozen, the selection's card is hidden; with the pickers, it shows the selection the figures draw instead.
   document.querySelector("#selection").hidden = FIGURES_ARE_FROZEN;
   let weeks;
