@@ -92,7 +92,7 @@ and write each answer as `site/data/all_weeks/<page>/<query>.json`, with
 the hash of each query's text in `all_weeks/queries.json`. The sessions
 table's answer SHALL be the one exception: it SHALL hold every harness's
 top-level sessions, the benchmark's marked, so the table can be filtered
-to any harness in the browser. The step SHALL print each answer's rows and
+to any harness in the browser. The step SHALL print the answers' files and
 size, and the Explore page SHALL draw from the answers alone.
 
 #### Scenario: An answer equals the live query

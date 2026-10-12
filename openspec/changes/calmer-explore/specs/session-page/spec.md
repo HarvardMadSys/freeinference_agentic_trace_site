@@ -69,7 +69,7 @@ Clicking a row SHALL open its details:
   call, the argument names and value types for any other.
 
 #### Scenario: A shell call's programs
-- **WHEN** the visitor opens the details of a request that ran `nc -z host 80 && echo up || echo down`
+- **WHEN** the visitor opens the details of a request whose shell call has the programs `nc`, `echo`, `echo` and the command skeleton `nc -z -w <num> <path> <num> && echo <str> || echo <str>`
 - **THEN** that call's Programs cell SHALL read `nc, echo, echo`, and the line under it `nc -z -w <num> <path> <num> && echo <str> || echo <str>`
 
 #### Scenario: A native call's arguments

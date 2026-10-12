@@ -17,9 +17,9 @@ stay as they are for `make data`, which fills them once with every week
 and the paper's harnesses; nothing in the browser fills them any more
 except the Session page's `selected_session`. The Explore page's time to
 draw stays what it is (under a second) and its transfer falls from about
-68 MB to under 2 MB per visit. Measured with the switch on (headless
-Chromium, `serve.py`, which does not compress): a visit to `/` makes 127
-requests and transfers 5.3 MB, 4.2 MB of it the sessions table's answer,
+68 MB to under 2 MB per visit. Measured with the switch on when it was
+turned on, before the figures were added (headless Chromium, `serve.py`,
+which does not compress): a visit to `/` makes 127 requests and transfers 5.3 MB, 4.2 MB of it the sessions table's answer,
 with no `.wasm` and no `.parquet`; gzipped, as a static host serves JSON,
 its own files come to 0.94 MB, plus 0.34 MB of chart libraries.
 
@@ -130,3 +130,23 @@ the week of 2026-08-23 (163,587 calls, written as the data step writes
 it), the two columns take the week's tool-call file from 0.99 MB to
 3.01 MB, so the sixteen weeks' tool-call files grow from 7.8 MB to about
 24 MB, about 3 MB a week.
+
+## Verification
+
+Measured at the end of the change on the shipped data (16 weeks, every one
+simulated; 125 files, 88.8 MB), with headless Chromium against `serve.py`
+on the same machine, three runs each. The Explore page draws every trend,
+headline number, distribution card, the 29 figures and the session list in
+1.0–1.2 s (median 1.0 s), with a clean console. It makes 149 requests: 97
+to the site, among them 57 data files (`weeks.json`, `harnesses.json` and
+55 answers), and 52 to the CDN; no `.wasm` and no `.parquet`. The site's
+own files are 5.1 MB uncompressed, 4.0 MB of it the session list's answer;
+gzipped at level 6, as a static host would send them, 1.0 MB (the data files
+0.89 MB, the session list's answer 0.79 MB), plus 0.34 MB of chart library and
+fonts as the CDN sends them: 1.3 MB per visit (5.9 MB uncompressed, the
+libraries included), against about 68 MB with the stream. The Session page opens the largest session's Requests view in
+3.5–3.6 s (8.0 s at 40 ms and 50 Mbit/s): 123 requests, 17 to `data/`
+(three JSON files, the week's four files whole, 13.5 MB with the
+skeletons, and ten range reads of 1 byte to 16 kB), and 6.8 MB of
+DuckDB-WASM and the other libraries from the CDN. The sixteen weeks' tool-call files, with programs
+and skeletons, total 21.4 MB.

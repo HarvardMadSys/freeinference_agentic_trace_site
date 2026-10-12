@@ -22,7 +22,8 @@ narrows the sessions table now.
 ### Requirement: The rows stream in after the default view
 **Reason**: nothing in the Explore page runs a query in the browser any
 more; the Session page reads its one week.
-**Migration**: none; `STREAM_ROWS_AFTER_DRAW` and the stream are deleted.
+**Migration**: none; the stream stays in the code behind
+`FIGURES_ARE_FROZEN`, and `STREAM_ROWS_AFTER_DRAW` is false.
 
 ## MODIFIED Requirements
 
@@ -34,8 +35,8 @@ table. The default (every month, the paper's harnesses) SHALL write no
 key. The Session page SHALL carry the keys back to Explore. A month or
 harness in the URL that the data do not hold SHALL be ignored, and the
 table SHALL say which. A `month=` key SHALL be read as that month, a
-`weeks=` key as the months its weeks fall in, a `scope` key or `weeks=all`
-as the default; each SHALL be rewritten.
+`weeks=` key as the months its weeks fall in, a `harness=` key as that harness, a
+`scope` key or `weeks=all` as the default; each SHALL be rewritten.
 
 #### Scenario: Sharing a view
 - **WHEN** a visitor opens a link with `?months=2026-07&harnesses=hermes,codex`

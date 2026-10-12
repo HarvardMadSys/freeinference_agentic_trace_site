@@ -17,8 +17,8 @@ and every figure draws at once.
 ### Requirement: Paper figures
 Between the distribution cards and the sessions table, the Explore page
 SHALL draw these figures from the answers `make data` precomputed over
-every week and the paper's harnesses, in three sections, each figure with
-its definition beside it:
+every week and the paper's harnesses, in four sections, each figure with
+its title and caption:
 
 | Section | Figure | What it plots |
 |---|---|---|
@@ -33,15 +33,10 @@ its definition beside it:
 | Sessions | `decode_cdf_by_model` | CDF of latency minus TTFT per model, for the same models and requests |
 | Sessions | `session_time_by_part` | Each session's time split between model time, tool waits and user waits, sessions ranked by user share, in rank bins |
 | Sessions | `speedup_if_twice_as_fast` | The session-time speed-up if prefill, decode or tool time alone ran twice as fast, with tool gaps capped as the pipeline caps them |
-| Benchmark against production | `turn_duration_by_scope` | CDF of turn duration, human-driven against benchmark, both medians and their ratio |
-| Benchmark against production | `session_duration_by_scope` | CDF of session duration, human-driven against benchmark |
-| Benchmark against production | `input_per_request_by_scope` | CDF of input tokens per request, human-driven against benchmark |
-| Benchmark against production | `user_prompt_tokens_by_scope` | CDF of a user's new prompt's tokens, human-driven against benchmark |
 | Tools | `latency_by_category` | 5th, 25th, 50th, 75th, 95th percentile of latency per category |
 | Tools | `result_tokens_by_category` | The same percentiles of result tokens per category |
 | Tools | `calls_per_request_by_category` | Mean calls per request, by the category of the request's first call |
 | Tools | `latency_by_batch_width` | Quantile band of the tool wait by the number of calls in the request, and the serial line |
-| Benchmark against production | `tool_mix_by_turn_position` | Share of calls in each of the pipeline's eight groups per tenth of a turn, human-driven and benchmark |
 | Prefix caching | `hit_ratio_cdf_by_gap_bin` | CDF of the hit ratio of requests in each of the pipeline's gap bins of the wait before them |
 | Prefix caching | `hit_ratio_by_idle_gap` | Median hit ratio per idle-gap bin, per provider |
 | Prefix caching | `gap_cdf_by_cause` | CDF of the wait before a request by what it waited for |
@@ -51,6 +46,11 @@ its definition beside it:
 | Prefix caching | `prefill_against_storage` | Simulated normalised prefill against mean retained tokens, one point per TTL under the TTL-only policy, the TTLs the paper names labelled at desktop width and fewer on a phone, every point named in its tooltip, human-driven and benchmark, on log axes |
 | Prefix caching | `api_cost_by_ttl` | Simulated API cost per TTL at the pipeline's prices, stacked by part, as a multiple of the one-minute total, the knee marked |
 | Prefix caching | `infrastructure_cost_by_ttl` | Simulated recompute and storage cost per TTL, stacked, as a multiple of the one-minute total, the minimum marked |
+| Human-driven against benchmark | `turn_duration_by_scope` | CDF of turn duration, human-driven against benchmark, both medians and their ratio |
+| Human-driven against benchmark | `session_duration_by_scope` | CDF of session duration, human-driven against benchmark, both medians and their ratio |
+| Human-driven against benchmark | `input_per_request_by_scope` | CDF of input tokens per request, human-driven against benchmark, both medians and their ratio |
+| Human-driven against benchmark | `user_prompt_tokens_by_scope` | CDF of a user's new prompt's tokens, human-driven against benchmark, both medians and their ratio |
+| Human-driven against benchmark | `tool_mix_by_turn_position` | Share of calls in each of the pipeline's eight groups per tenth of a turn, human-driven and benchmark |
 
 Each figure SHALL be one query file, answered by `make data`, and one
 chart function. Each figure SHALL show a title and one short caption; its
