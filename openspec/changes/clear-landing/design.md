@@ -39,7 +39,8 @@ One page, `index.html`, in this order:
      four parts, prefill, decode, tool and user idle, from the same
      per-session time breakdown the speed-up query computes (trusted TTFTs
      split prefill from decode, unsplit latency shared by the session's
-     ratio, tool waits capped), with a parity test against the paper's
+     ratio; tool waits uncapped for the figure and capped for the speed-up,
+     as the pipeline does), with a parity test against the paper's
      mean shares; one query computes the breakdown and both figures read
      it, so the definition has one home.
    - Tools: latency by category, result size by category, calls per
