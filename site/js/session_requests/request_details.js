@@ -39,7 +39,7 @@ export function programsText(programs) {
 /**
  * The line under a call in the details: a shell call's command with every value replaced by its type, or any other
  * call's argument names and value types, "path: <path>, diff: <path>". A skeleton that is not a JSON object is shown
- * as it is, and a missing one as a dash.
+ * as it is, and a missing one, or one with no arguments, as a dash.
  */
 export function skeletonText(call) {
   if (call.arguments_skeleton === null) {
@@ -59,7 +59,7 @@ export function skeletonText(call) {
   for (const [name, type] of Object.entries(skeleton)) {
     pairs.push(`${name}: ${typeof type === "string" ? type : JSON.stringify(type)}`);
   }
-  return pairs.join(", ");
+  return pairs.length === 0 ? MISSING_TEXT : pairs.join(", ");
 }
 
 /** The skeleton `text` parsed, when it is a JSON object; null otherwise. */

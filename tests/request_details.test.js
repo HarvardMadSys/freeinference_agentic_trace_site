@@ -76,3 +76,8 @@ test("a skeleton that does not parse is shown as it is, and a missing one as a d
   assert.equal(skeletonText({ ...NATIVE_CALL, arguments_skeleton: "{not json" }), "{not json");
   assert.equal(skeletonText({ ...NATIVE_CALL, arguments_skeleton: null }), "—");
 });
+
+test("a call with no arguments, its skeleton {}, shows a dash rather than an empty line", () => {
+  assert.equal(skeletonText({ ...NATIVE_CALL, arguments_skeleton: "{}" }), "—");
+  assert.equal(skeletonText({ ...SHELL_CALL, arguments_skeleton: "{}" }), "—");
+});
