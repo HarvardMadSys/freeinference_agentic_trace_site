@@ -21,7 +21,7 @@ measurement goes into `design.md`.
 ## 2. Explore: frozen figures, the table's filter
 
 - [x] 2.1 `FIGURES_ARE_FROZEN = true` in the Explore page's module: with it, no week or harness picker is mounted, every section and figure is drawn from its answer, figures draw at once rather than when in view, and neither DuckDB nor the stream starts; with it false, the previous behaviour, whose code and tests stay. `STREAM_ROWS_AFTER_DRAW = false`. Legends keep toggling series. Verify in the network panel that a visit fetches no `.wasm` and no `.parquet`, and measure the bytes transferred.
-- [ ] 2.2 The sessions table's filter: a folded disclosure above the table, one line in words when closed, with month pills, harness pills (the benchmark marked), "every harness" and "the paper's harnesses", applied with the search to the answer's rows in the browser; `months` and `harnesses` in the URL set it, older keys are read and rewritten; the Session page's back link carries them. Node tests of the filter and the URL. Verify that `?months=2026-07&harnesses=codex` filters the table and changes no figure.
+- [x] 2.2 The sessions table's filter: a folded disclosure above the table, one line in words when closed, with month pills, harness pills (the benchmark marked), "every harness" and "the paper's harnesses", applied with the search to the answer's rows in the browser; `months` and `harnesses` in the URL set it, older keys are read and rewritten; the Session page's back link carries them. Node tests of the filter and the URL. Verify that `?months=2026-07&harnesses=codex` filters the table and changes no figure.
 
 ## 3. Figures
 
