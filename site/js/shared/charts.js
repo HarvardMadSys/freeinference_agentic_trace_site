@@ -35,6 +35,7 @@ const PLOT_STYLE = Object.freeze({
   color: "var(--chart-label)", background: "transparent", fontFamily: "var(--font-sans)",
 });
 const PLOT_MARGINS = Object.freeze({ marginTop: 32, marginRight: 32, marginBottom: 48, marginLeft: 72 });
+const UNTITLED_MARGIN_TOP = 12; // pixels above a chart whose y axis has no title: room for half its top tick's label
 /** The options of every chart's grid lines. */
 export const GRID_STYLE = Object.freeze({ stroke: "var(--chart-grid)", strokeOpacity: 1 });
 /** The options of every chart's axes and reference rules: the axis ink, and an axis title with no arrow. */
@@ -192,8 +193,12 @@ export async function drawBars(body, rows, options) {
   const names = distinct(order ?? rows.map((row) => row[fill]));
   const foldedRows = sumFolded(foldToOther(rows, fill, names), { x, y, fill });
   const shown = [...colours.keys()].filter((name) => foldedRows.some((row) => row[fill] === name));
+  const frame = chartFrame(body);
+  if (yAxisLabel === null) {
+    frame.marginTop = UNTITLED_MARGIN_TOP;
+  }
   const chart = Plot.plot({
-    ...chartFrame(body),
+    ...frame,
     x: { type: "band", domain: xDomain ?? distinct(foldedRows.map((row) => row[x])) },
     color: colourScale(colours, shown),
     marks: [

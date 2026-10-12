@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { donutArcs, pointAt, ringSegmentPath, sliceShares } from "../site/js/landing/arcs.js";
-import { centreUnit, donutSlices } from "../site/js/landing/donuts.js";
+import { centreUnit, donutSlices, legendSeries } from "../site/js/landing/donuts.js";
 
 // Ten models, most requests first, as `setup/model_order` gives them.
 const MODEL_ORDER = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9", "m10"];
@@ -83,4 +83,12 @@ test("one slice of the whole turn is drawn as the whole ring, two circles of two
   const path = donutArcs([{ name: "a", count: 5 }], 100, 60)[0].path;
   assert.equal(path, "M 0 -100 A 100 100 0 1 1 0 100 A 100 100 0 1 1 0 -100 "
     + "M 0 -60 A 60 60 0 1 0 0 60 A 60 60 0 1 0 0 -60 Z");
+});
+
+test("each legend entry names its slice and its share of every slice", () => {
+  const slices = [{ name: "glm", count: 3 }, { name: "Other", count: 1 }];
+  assert.deepEqual(legendSeries(slices), [
+    { name: "glm", label: "glm 75%" },
+    { name: "Other", label: "Other 25%" },
+  ]);
 });

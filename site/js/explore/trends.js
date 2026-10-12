@@ -12,14 +12,14 @@ import {
   columnTotal, drawBars, foldToOther, renderFigure, showError, showLoading, sumFolded,
 } from "../shared/charts.js";
 import { weekTickFormat } from "../axes/ticks.js";
-import { barColours, OTHER_SERIES, TOKEN_PART_COLOURS } from "../theme/colours.js";
+import { barColours, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { seriesLegend } from "../figures/figure_rows.js";
 import { formatCompactCount, formatQuantity, formatTokens } from "../shared/format.js";
 import { drawWithLegend, shownRows } from "./legend.js";
 
-// A trend names this many series, its harnesses or models with most rows, and folds the rest into "Other": five
-// legend entries fit two rows in a third of the page, so no trend card has an empty band above its chart.
-const NAMED_SERIES = 4;
+// A trend names as many series as the donut above it, the harnesses or models that hold the eight series colours, and
+// folds the rest into "Other", so the donut's legend is also the trend's.
+const NAMED_SERIES = SERIES_SLOTS.length;
 
 // A bar of a week outside the selection is drawn at this opacity, so the selected weeks stand out.
 const UNSELECTED_BAR_OPACITY = 0.3;
@@ -104,7 +104,7 @@ async function drawRequestsPerWeek(place, context) {
   const rows = await context.database.runQuery("explore/requests_per_week_by_model");
   const body = renderFigure(place, {
     title: "Requests per week",
-    caption: "LLM requests of top-level sessions each week, by model.",
+    caption: "Requests each week, by model.",
     definition: `Requests of the top-level sessions per week, stacked by model.${clickHint(context.onWeekClick)}`,
     rows: formatQuantity(columnTotal(rows, "requests"), "request", "requests"),
   });
@@ -131,24 +131,29 @@ async function drawInputTokensPerWeek(place, context) {
     labels: TOKEN_PART_LABELS,
     yLabel: "Input tokens",
     format: formatTokens,
+    legendTopDown: true,
   });
 }
 
 /**
  * Draw into `body` a trend's bars of `rows`, one stack per week, `options` saying which column is the height (`y`),
  * which the series (`fill`), the series' `order`, `colours` and, where a series' name is not its label, `labels`, and
- * how the y axis reads. Above them goes the legend that hides and shows a series; a series past the fourth of the
- * order is first folded into "Other", so the legend hides "Other" as one. A click on a bar selects its week, if any
- * function takes it.
+ * how the y axis reads. Above them goes the legend that hides and shows a series, in the order of `colours`, or, with
+ * `legendTopDown`, in the order the stack draws them from the top down; a series past the eighth of the order is first
+ * folded into "Other", so the legend hides "Other" as one. A click on a bar selects its week, if any function takes it.
  */
 async function drawTrend(body, rows, context, options) {
-  const { y, fill, order, colours, labels = {} } = options;
+  const { y, fill, order, colours, labels = {}, legendTopDown = false } = options;
   const folded = sumFolded(foldToOther(rows, fill, order.slice(0, NAMED_SERIES)), { x: "week", y, fill });
   if (context.onWeekClick !== null) {
     body.classList.add("is-clickable");
   }
+  const legend = seriesLegend(folded, fill, colours, labels);
+  if (legendTopDown) {
+    legend.series.reverse();
+  }
   const drawShown = (hidden) => drawTrendBars(body, shownRows(folded, fill, hidden), context, options);
-  await drawWithLegend(body, seriesLegend(folded, fill, colours, labels), drawShown);
+  await drawWithLegend(body, legend, drawShown);
 }
 
 async function drawTrendBars(body, rows, context, options) {

@@ -643,11 +643,12 @@ section[id] {
   pointer-events: none;
 }
 
+/* The copy takes seven parts to the stats strip's four, wide enough at 1280 px for the title's first phrase on one line. */
 .hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(21rem, 0.85fr); /* the copy wide enough for the four buttons in a row */
+  grid-template-columns: minmax(0, 7fr) minmax(21rem, 4fr);
   align-items: center;
-  gap: clamp(2rem, 5vw, 4.5rem);
+  gap: clamp(2rem, 5vw, 3.5rem);
 }
 
 /* The eyebrow's crimson square, as the brand's mark. */
@@ -662,7 +663,7 @@ section[id] {
 
 .hero h1 {
   margin-top: 1rem;
-  font-size: clamp(2rem, 1.25rem + 2.7vw, 3.25rem);
+  font-size: clamp(2rem, 1.25rem + 2.7vw, 3.1rem);
   letter-spacing: -0.035em;
 }
 
@@ -696,9 +697,10 @@ section[id] {
   margin-top: 1.75rem;
 }
 
-/* The stats strip: a white card of six numbers in a grid of hairlines, the line of dates under them. */
+/* The stats strip: a white card of six numbers parted by hairlines, with no frame of their own inside the card's, and
+   the line of dates under them. */
 .stats-card {
-  padding: clamp(1.25rem, 3vw, 1.65rem);
+  padding: clamp(1rem, 2vw, 1.25rem);
   border: 1px solid var(--color-border);
   border-radius: 1rem;
   background: var(--color-surface);
@@ -713,15 +715,13 @@ section[id] {
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid var(--color-border);
-  border-radius: 0.55rem;
   background: var(--color-border);
 }
 
 .stats-grid li {
   min-width: 0;
-  padding: 0.75rem 0.8rem;
-  background: var(--color-background);
+  padding: 0.75rem 0.6rem;
+  background: var(--color-surface);
 }
 
 .stats-grid strong,
@@ -815,12 +815,20 @@ section[id] {
   margin: 0.75rem 0;
 }
 
-/* The legend beside the donut lists its slices one under another, two columns where nine would be too tall. */
+/* The legend beside the donut lists its slices one under another, in rows close enough that nine end level with the
+   donut, and in two columns where it goes under the donut. */
 .donut-card .figure-legend {
   grid-area: legend;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
-  gap: 0.25rem 1rem;
+  gap: 0 1rem;
+}
+
+.donut-card .legend-button {
+  min-height: 0;
+  padding-block: 0.0625rem;
+  line-height: 1.35;
+  text-align: left;
 }
 
 .donut-card .figure-definition {
@@ -877,6 +885,7 @@ section[id] {
   }
 
   .donut-card .figure-legend {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     margin-bottom: 0.75rem;
   }
 }
@@ -891,6 +900,12 @@ section[id] {
   gap: clamp(1.5rem, 6vw, 5rem);
 }
 
+/* A part of the page opens as Open Data's sections do: an eyebrow over a large serif heading, with room above. */
+.section-heading {
+  margin-top: clamp(1.5rem, 4vw, 3rem);
+}
+
+.section-heading h2,
 .cite h2,
 .team h2 {
   margin-top: 0.5rem;
@@ -1086,15 +1101,14 @@ section[id] {
 .trend-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0 1.5rem;
+  gap: 1.5rem;
 }
 
 /*
  * A figure card in a grid lays its five parts (title, caption, legend, chart, Definition) on its row's tracks, so the
  * charts of a row start at one height whatever the length of their captions and legends.
  */
-.card-grid > .card,
-.trend-grid > .card {
+.card-grid > .card {
   display: grid;
   grid-row: span 5;
   grid-template-rows: subgrid;
@@ -1104,9 +1118,33 @@ section[id] {
   margin-bottom: 1.5rem;
 }
 
-.card-grid > .card > .figure,
-.trend-grid > .card > .figure {
+.card-grid > .card > .figure {
   display: contents;
+}
+
+/* A card without a legend draws its chart where the legend would be, so it keeps no empty band above the chart. */
+.card-grid > .card .figure-legend:empty {
+  display: none;
+}
+
+.card-grid > .card .figure-legend:empty + .figure-body {
+  grid-row: span 2;
+}
+
+/* A trend card draws its chart right under its legend, and keeps its Definition at the card's foot. */
+.trend-grid > .card,
+.trend-grid > .card > .figure {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.trend-grid > .card > .figure {
+  flex: 1;
+}
+
+.trend-grid > .card .figure-definition {
+  margin-top: auto;
 }
 
 /* The parts are spaced by their own margins, not the rows' gap, so a legend place that is empty in every card of a
@@ -1138,6 +1176,17 @@ section[id] {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+/* A topic's number before its heading, in the eyebrow's monospace and the accent: "01 Sessions". */
+.topic-number {
+  margin-right: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-smallest);
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  vertical-align: 0.3em;
+  color: var(--color-accent);
 }
 
 /* A figure's card may shrink below its content, so a wide chart scrolls inside the card, not the page. */

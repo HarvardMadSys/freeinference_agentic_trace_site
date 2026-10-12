@@ -106,12 +106,18 @@ async function drawMix(place, slices, colours, text) {
     definition: text.definition,
     rows: formatQuantity(columnTotal(slices, "count"), text.singular, text.plural),
   });
-  // The legend lists the slices in the donut's order, largest first.
-  const legend = { series: slices.map((slice) => ({ name: slice.name, label: slice.name })), colours };
+  // The legend lists the slices in the donut's order, largest first, each with its share of every slice.
+  const legend = { series: legendSeries(slices), colours };
   const drawShown = (hidden) => drawDonut(body, slices.filter((slice) => !hidden.has(slice.name)), colours, {
     ...text, unit: centreUnit(text.plural, hidden.size),
   });
   await drawWithLegend(body, legend, drawShown);
+}
+
+/** The legend's entries `[{ name, label }]` of `slices`, each labelled with its share of them: "glm-5.3-flash 44.0%". */
+export function legendSeries(slices) {
+  const total = columnTotal(slices, "count");
+  return slices.map((slice) => ({ name: slice.name, label: `${slice.name} ${formatShare(slice.count / total)}` }));
 }
 
 /** The line under the donut's total: what it counts, "requests", or "shown requests" while `hiddenCount` are hidden. */
