@@ -26,10 +26,11 @@ const LABELLED_TTLS = Object.freeze({
   }),
   "SWE-Bench": Object.freeze({ "1s": "below", "10s": "below", "1m": "left", "5m": "right" }),
 });
-// The fewer TTLs named on a narrow chart, each to the right of its point; the tooltip still names every point.
+// The fewer TTLs named on a narrow chart, each to the right of its point, clear of the prefill axis's labels on the
+// left; the tooltip still names every point.
 const NARROW_LABELLED_TTLS = Object.freeze({
   Agentic: Object.freeze({ "1s": "right", "1m": "right", "15m": "right", [NO_TTL]: "right" }),
-  "SWE-Bench": Object.freeze({ "1s": "below", "1m": "left" }),
+  "SWE-Bench": Object.freeze({ "1s": "right", "1m": "right" }),
 });
 // How a TTL's name is set beside its point, by where it sits: pixels across and up from the point, and the end of the
 // name that is nearest it.

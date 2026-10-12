@@ -19,10 +19,11 @@ export const TENTHS = 10;
 const WHOLE_TURN_PERCENT = 100;
 const PERCENT_PER_TENTH = WHOLE_TURN_PERCENT / TENTHS;
 
-// The ticks of a panel's axis, in percent of the turn: its start, middle and end, the start and end alone on a narrow
-// chart; the panels stand far enough apart that one's "100%" and the next one's "0%" do not meet.
+// The ticks of a panel's axis, in percent of the turn: its start, middle and end, the panels far enough apart that
+// one's "100%" and the next one's "0%" do not meet; on a narrow chart the middle alone, since they would.
 const TURN_TICKS = Object.freeze([0, 50, 100]);
-const NARROW_TURN_TICKS = Object.freeze([0, 100]);
+const NARROW_TURN_TICKS = Object.freeze([50]);
+const NARROW_TITLE_WIDTH = 6; // ems; on a narrow chart a panel's title wraps at this width ("Human-/driven")
 const PANEL_GAP = 0.18; // the share of a panel's width left between the two panels
 const SHARE_DOMAIN = Object.freeze([0, 1]); // the y axis spans a whole share, whatever groups are hidden
 const PANEL_TITLE_MARGIN = 44; // pixels above the panels: room for their titles clear of the share axis's "100%"
@@ -104,9 +105,11 @@ async function drawToolMix(rows, body, colours) {
     y: { domain: SHARE_DOMAIN },
     color: colourScale(colours.series, groups),
     marks: [
-      // Each panel's title at its own left edge, lifted clear of the share axis's top label.
+      // Each panel's title at its own left edge, lifted clear of the share axis's top label; wrapped on a narrow
+      // chart, growing upward, so that the first does not run into the second.
       Plot.text(scopesOf(rows), {
-        fx: (scope) => scope, text: scopeLabel, frameAnchor: "top-left", textAnchor: "start", dy: -PANEL_TITLE_RISE,
+        fx: (scope) => scope, text: scopeLabel, frameAnchor: "top-left", textAnchor: "start", lineAnchor: "bottom",
+        dy: -PANEL_TITLE_RISE / 2, lineWidth: isNarrowChart(frame.width) ? NARROW_TITLE_WIDTH : Infinity,
         fill: "var(--chart-label)",
       }),
       Plot.gridY(GRID_STYLE),

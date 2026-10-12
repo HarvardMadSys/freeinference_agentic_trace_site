@@ -89,12 +89,13 @@ export function lineLabelPoints(series, lineLabels) {
   return labels;
 }
 
-// A text mark per placement, each label set above or below its point.
+// A text mark per placement, each label set above or below its point and ending at it, so that a point near the
+// chart's right edge keeps its label inside the chart.
 function lineLabelMarks(Plot, labels) {
   const marks = [];
   for (const [placement, dy] of Object.entries(LINE_LABEL_OFFSETS)) {
     const placed = labels.filter((label) => label.placement === placement);
-    marks.push(Plot.text(placed, { x: "x", y: "share", text: "label", dy, ...LINE_LABEL_STYLE }));
+    marks.push(Plot.text(placed, { x: "x", y: "share", text: "label", dy, textAnchor: "end", ...LINE_LABEL_STYLE }));
   }
   return marks;
 }

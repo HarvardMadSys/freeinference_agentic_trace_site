@@ -118,7 +118,7 @@ async function drawInputTokensPerWeek(place, context) {
   const rows = await context.database.runQuery("explore/input_tokens_per_week");
   const body = renderFigure(place, {
     title: "Input tokens per week",
-    caption: "Input tokens each week: cached, uncached or not reported.",
+    caption: "Input tokens each week, by cache status.",
     definition: "Input tokens of the top-level requests per week: cached and uncached where the provider reports cache "
       + `reads, not reported where it does not.${clickHint(context.onWeekClick)}`,
     rows: formatQuantity(columnTotal(rows, "requests"), "request", "requests"),
