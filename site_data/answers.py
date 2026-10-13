@@ -2,7 +2,7 @@
 site's database, each written as `all_weeks/<folder>/<query>.json`, and the SHA-256 of each such query's text, of
 each bucket query (`site_data/buckets.py`) and of each view over the selection the queries read, written to
 `all_weeks/queries.json` as `{"<folder>/<query>": "<hex>"}`, so a query or view edited since can be found
-(`site_data/check_answers.py`).
+(`stale_queries`).
 
 The default selection is every week of `weeks.json` and every harness of
 `harnesses.json` that is not the benchmark's. The selection tables are filled
@@ -122,6 +122,18 @@ def query_hashes(queries_folder: pathlib.Path = site_database.QUERIES_FOLDER) ->
     for name in hashed_names:
         hashes[name] = query_text_hash(queries_folder, name)
     return hashes
+
+
+def stale_queries(data_directory: pathlib.Path,
+                  queries_folder: pathlib.Path = site_database.QUERIES_FOLDER) -> list[str]:
+    """The name of each hashed query or view of `queries_folder` whose text's hash is not the one recorded in the data
+    folder's `all_weeks/queries.json`: edited, or added, since `make data` last wrote the answers and buckets."""
+    recorded = json.loads((data_directory / paths.ANSWERS_FOLDER / paths.QUERY_HASHES_FILE).read_text())
+    stale = []
+    for name, current_hash in query_hashes(queries_folder).items():
+        if recorded.get(name) != current_hash:
+            stale.append(name)
+    return stale
 
 
 def query_text_hash(queries_folder: pathlib.Path, name: str) -> str:

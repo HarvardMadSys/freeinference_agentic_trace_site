@@ -13,7 +13,6 @@ import pytest
 import site_data.__main__
 import site_data.answers
 import site_data.buckets
-import site_data.check_answers
 import site_data.paths
 
 import fixture_release
@@ -156,11 +155,10 @@ def test_the_bucket_queries_are_every_query_of_their_folder_and_are_hashed() -> 
     assert set(on_disk) <= set(site_data.answers.query_hashes())
 
 
-def test_a_bucket_query_edited_since_make_data_fails_the_check(data_directory: pathlib.Path,
-                                                               tmp_path: pathlib.Path) -> None:
+def test_a_bucket_query_edited_since_make_data_is_stale(data_directory: pathlib.Path,
+                                                        tmp_path: pathlib.Path) -> None:
     queries = tmp_path / "queries"
     shutil.copytree(site_database.QUERIES_FOLDER, queries)
     with (queries / "buckets" / "week_requests.sql").open("a") as query:
         query.write("-- edited\n")
-    stale = site_data.check_answers.stale_queries(data_directory, queries)
-    assert [query.name for query in stale] == ["buckets/week_requests"]
+    assert site_data.answers.stale_queries(data_directory, queries) == ["buckets/week_requests"]
