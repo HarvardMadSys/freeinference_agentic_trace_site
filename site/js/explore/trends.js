@@ -11,7 +11,7 @@
 import {
   columnTotal, drawBars, foldToOther, nameChart, renderFigure, showError, showLoading, sumFolded,
 } from "../shared/charts.js";
-import { weekTickFormat } from "../axes/ticks.js";
+import { monthTickFormat } from "../axes/ticks.js";
 import { barColours, HARNESS_FIRST_SLOT, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { seriesLegend } from "../figures/figure_rows.js";
 import { formatCountTick, formatQuantity, formatTokens } from "../shared/format.js";
@@ -22,6 +22,10 @@ import { harnessText } from "./sessions_table_state.js";
 // A trend names as many series as the donut above it, the harnesses or models that hold the eight series colours, and
 // folds the rest into "Other", so the donut's legend is also the trend's.
 const NAMED_SERIES = SERIES_SLOTS.length;
+
+// A trend's margins, in pixels: room on the left for a count tick ("150k") and little on the right, so the bars take the
+// card's width; the card's title names what the bars count, so the y axis has no title to keep room for.
+const TREND_MARGINS = Object.freeze({ marginLeft: 44, marginRight: 8 });
 
 // A bar of a week outside the selection is drawn at this opacity, so the selected weeks stand out.
 const UNSELECTED_BAR_OPACITY = 0.3;
@@ -175,7 +179,8 @@ function weekBarOptions(context) {
     stacked: true,
     xLabel: null,
     yAxisLabel: null, // the card's title names what the bars count
-    xTickFormat: weekTickFormat(context.weeks.map((entry) => entry.week)),
+    xTickFormat: monthTickFormat(context.weeks),
+    margins: TREND_MARGINS,
     xDomain: context.weeks.map((entry) => entry.week),
     yTickFormat: formatCountTick,
     fillOpacity: (row) => barOpacity(row, context.selection.weeks),

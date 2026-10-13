@@ -46,10 +46,9 @@ const SMALLEST_SHARE_WRITTEN = 0.001; // a share of the table under 0.1% is writ
 const MIN_GAP_DRAWN_S = 0.1; // a shorter gap is drawn at it, on the log axis, as in the paper
 const MAX_GAP_DRAWN_S = 86400; // the gap axis ends at a day, as the paper's does
 const HIT_RATIO_DOMAIN = Object.freeze([0, 1]); // a hit ratio runs from none of the input cached to all of it
-// The shortest and longest gap bins, each named above its line at a hit ratio where the next line is far from it.
-const GAP_BIN_END_LABELS = Object.freeze([
-  { name: "<1m", at: 0.85, placement: "above" }, { name: ">1h", at: 0.5, placement: "above" },
-]);
+// The shortest and longest gap bins, named off the lines: the longest above its line, where no line lies above it; the
+// shortest, which hugs the axis under the others, beside its right end at a share of 10%, where it rises alone.
+const GAP_BIN_END_LABELS = Object.freeze([{ name: "<1m", at: 0.1, placement: "end" }, { name: ">1h", at: 0.5, placement: "above" }]);
 const CAUSE_MARGIN_LEFT = 116; // pixels; room for the longest cause name, "Ask-user tool"
 const VALUE_MARGIN_RIGHT = 48; // pixels; room for a value written after a bar that reaches 1, "100%"
 const VALUE_OFFSET = 4; // pixels between a bar's end and its value

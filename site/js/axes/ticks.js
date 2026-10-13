@@ -168,6 +168,29 @@ export function weekTickFormat(weeks) {
 }
 
 /**
+ * A week axis's tick format over `weeks` (entries of `weeks.json`, `{ week, last_day }`, oldest first): every month the
+ * weeks span, the first and the last included, labelled once, "May", on the first week whose Sunday falls in it, or,
+ * for a last month in which no Sunday falls (the weeks end in its first days), on the last week; every other week
+ * unlabelled. Labels three or more weeks apart keep apart on a phone.
+ */
+export function monthTickFormat(weeks) {
+  const labels = new Map();
+  const labelledMonths = new Set();
+  for (const entry of weeks) {
+    const month = entry.week.slice(0, MONTH_LENGTH);
+    if (!labelledMonths.has(month)) {
+      labelledMonths.add(month);
+      labels.set(entry.week, shortMonth(entry.week));
+    }
+  }
+  const last = weeks.at(-1);
+  if (last !== undefined && !labelledMonths.has(last.last_day.slice(0, MONTH_LENGTH)) && !labels.has(last.week)) {
+    labels.set(last.week, shortMonth(last.last_day));
+  }
+  return (week) => labels.get(week) ?? "";
+}
+
+/**
  * The ticks of an elapsed-time axis over `[start, end]`, in seconds: every multiple within it of the smallest round
  * step that gives at most `maxTicks` intervals over the range, or of a whole number of seconds when even a week is too
  * fine.

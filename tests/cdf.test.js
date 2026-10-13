@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { cdfPoints, lineLabelPoints } from "../site/js/shared/cdf.js";
+import { cdfPoints, labelsThatFit, lineLabelPoints } from "../site/js/shared/cdf.js";
 
 // Two CDF series of three points each, as `cdfSeries` gives them.
 const SERIES = [
@@ -21,5 +21,17 @@ test("a series named for a label writes it at its point nearest the value asked;
   ]);
   assert.deepEqual(lineLabelPoints(SERIES, []), []);
   const empty = [{ name: "empty", label: "Empty", points: [] }];
-  assert.deepEqual(lineLabelPoints(empty, [{ name: "empty", at: 0, placement: "below" }]), []);
+  assert.deepEqual(lineLabelPoints(empty, [{ name: "empty", at: 0, placement: "end" }]), []);
+});
+
+test("a label beside a line's end sits at the line's last x and the share asked for", () => {
+  assert.deepEqual(lineLabelPoints(SERIES, [{ name: "short", at: 0.1, placement: "end" }]), [
+    { x: 1, share: 0.1, label: "Under 1 min", placement: "end" },
+  ]);
+});
+
+test("a narrow chart writes no label beside a line's end, and keeps those above a line", () => {
+  const labels = [{ placement: "end", label: "Under 1 min" }, { placement: "above", label: "Over 1 h" }];
+  assert.deepEqual(labelsThatFit(labels, 600), labels);
+  assert.deepEqual(labelsThatFit(labels, 300), [{ placement: "above", label: "Over 1 h" }]);
 });

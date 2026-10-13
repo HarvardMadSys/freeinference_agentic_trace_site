@@ -1,7 +1,8 @@
 /**
  * The Human-driven-against-benchmark CDFs of turn duration, session duration, input per request and user prompt tokens:
  * each a CDF per scope, human-driven and benchmark, each median marked with its value and a dotted line between the two
- * medians, as the paper draws them; the legend says which scope's median is the larger and by how much. The
+ * medians, as the paper draws them; a note in the chart's lower right corner says which scope's median is the larger
+ * and by how much. The
  * first three are listed in `comparison.js`, the user prompt size in the Session-structure section
  * (`figures/sessions.js`).
  *
@@ -12,7 +13,7 @@
  */
 
 import {
-  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, TIP_STYLE, X_INSET,
+  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH, TIP_STYLE, X_INSET,
 } from "../shared/charts.js";
 import { cdfPoints } from "../shared/cdf.js";
 import { axisWithTicks, isNarrowChart } from "../axes/ticks.js";
@@ -31,6 +32,7 @@ const MEDIAN_RADIUS = 3; // pixels; the dot on each median
 const MEDIAN_LABEL_OFFSET = 8; // pixels from a median's dot to its label, along each axis
 const RATIO_DECIMALS = 1; // the ratio of the medians as the paper writes it: 3.1×
 const MEDIAN_LINK_DASH = "1 3"; // the dotted line between the medians
+const SUMMARY_INSET = 6; // pixels between the chart's lower right corner and the note comparing the medians
 // A median's label: in the chart's ink, ringed in the card's colour so that a line it crosses does not cut its text.
 const MEDIAN_LABEL_STYLE = Object.freeze({
   fill: "currentColor", stroke: "var(--color-surface)", strokeWidth: 3, paintOrder: "stroke",
@@ -166,7 +168,7 @@ export function scopeMedians(rows, floor) {
 }
 
 /**
- * The legend's comparison of the medians, which the chart labels: the scope whose median is the larger, the ratio and
+ * The chart's note comparing the medians it labels: the scope whose median is the larger, the ratio and
  * `comparative`, "benchmark 3.1× longer"; "" unless the rows hold both scopes and a ratio.
  */
 export function medianSummary(rows, comparative) {
@@ -221,7 +223,6 @@ async function drawScopeCdf(rows, body, colours, axis) {
   const points = cdfPoints(series);
   const frame = chartFrame(body);
   const ticks = isNarrowChart(frame.width) ? (axis.narrowTicks ?? axis.ticks) : axis.ticks;
-  showMedianSummary(body, medianSummary(rows, axis.comparative));
   const chart = Plot.plot({
     ...frame,
     x: { type: "log", domain: [axis.floor, axis.end], inset: X_INSET },
@@ -234,6 +235,7 @@ async function drawScopeCdf(rows, body, colours, axis) {
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: `Share of ${axis.noun}` }),
       Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH, clip: true }),
       ...medianMarks(Plot, rows, axis),
+      summaryMark(Plot, medianSummary(rows, axis.comparative)),
       Plot.tip(points, Plot.pointerX({ ...TIP_STYLE, x: "x", y: "share", title: (point) => tipText(point, axis) })),
     ],
   });
@@ -242,7 +244,7 @@ async function drawScopeCdf(rows, body, colours, axis) {
 
 /**
  * The marks of the medians: a dot on each, the smaller's value above it to the left and the larger's below it to the
- * right, as the paper places them; with both scopes, the dotted line between them, whose ratio the legend gives.
+ * right, as the paper places them; with both scopes, the dotted line between them, whose ratio the chart's note gives.
  */
 function medianMarks(Plot, rows, axis) {
   const medians = scopeMedians(rows, axis.floor);
@@ -265,16 +267,16 @@ function medianMarks(Plot, rows, axis) {
   return marks;
 }
 
-/** Write `text` as the last item of the legend above `body`, in place of the one an earlier drawing wrote. */
-function showMedianSummary(body, text) {
-  const legend = legendPlace(body);
-  legend.querySelector(".legend-note")?.remove();
-  if (text !== "") {
-    const note = document.createElement("span");
-    note.className = "legend-item legend-note";
-    note.textContent = text;
-    legend.append(note);
-  }
+/**
+ * The note comparing the medians, `text`, written in the chart's lower right corner, which a CDF leaves empty: its
+ * lines are high on the right. No note where `text` is "".
+ */
+function summaryMark(Plot, text) {
+  const notes = text === "" ? [] : [text];
+  return Plot.text(notes, {
+    ...LINE_LABEL_STYLE, text: (note) => note, frameAnchor: "bottom-right", textAnchor: "end",
+    dx: -SUMMARY_INSET, dy: -SUMMARY_INSET,
+  });
 }
 
 function tipText(point, axis) {

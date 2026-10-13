@@ -5,7 +5,9 @@ import { drawnProviderRows, idleGapEdgeSeconds, idleGapLegend } from "../site/js
 import {
   causeLegend, GAP_FIGURES, gapBinColours, gapBinLegend, meanHitRatioBars, mutationTableLines, transitionLegend,
 } from "../site/js/figures/caching_gaps.js";
-import { calloutPoint, costLegend, costStacks, kneeText, lowestText } from "../site/js/simulation/costs.js";
+import {
+  API_COST_BY_TTL, calloutPoint, costLegend, costStacks, kneeText, lowestText,
+} from "../site/js/simulation/costs.js";
 import { prefillPoints, retainedDomain, ttlLabel } from "../site/js/simulation/prefill.js";
 import { scopeLegend } from "../site/js/comparison/scopes.js";
 import { decadeTicks } from "../site/js/axes/ticks.js";
@@ -175,4 +177,12 @@ test("the mutation table's lines come in the paper's order, causes after transit
 test("the mutation table names a week without a simulation, its prefill column being simulated", () => {
   assert.equal(GAP_FIGURES.mutationsByCause.isPartlySimulated, true);
   assert.equal(GAP_FIGURES.mutationsByCause.isSimulation, undefined);
+});
+
+test("the API cost's legend lists every part its stack draws, the output included", () => {
+  const legend = API_COST_BY_TTL.legend(API_ROWS, {}, "part");
+  const drawn = [...new Set(API_ROWS.map((row) => row.part))].sort();
+  assert.deepEqual(legend.series.map((one) => one.name).sort(), drawn);
+  assert.deepEqual(legend.series.map((one) => one.label), ["Cached input", "Uncached input", "Output"]);
+  assert.equal(legend.colours.get("output"), "var(--token-output)");
 });

@@ -191,7 +191,7 @@ export function legendPlace(body) {
  * `yTickFormat` is given, on the axis; `yLabel` names a y value in the tooltip and, unless `yAxisLabel` is given (null
  * for none), titles the axis; `xTickFormat`, when given, writes the x axis's ticks; `xDomain`, when given, lists every x value in order,
  * so one with no rows keeps its place; `fillOpacity`, when given, is each bar's opacity, a number or a function of its
- * row. Returns the chart's element.
+ * row; `margins`, when given, are Plot margins in place of the frame's. Returns the chart's element.
  */
 export async function drawBars(body, rows, options) {
   const { x, y, fill, order, colours, stacked = false, xLabel, yLabel, format = formatCount } = options;
@@ -201,7 +201,7 @@ export async function drawBars(body, rows, options) {
   const names = distinct(order ?? rows.map((row) => row[fill]));
   const foldedRows = sumFolded(foldToOther(rows, fill, names), { x, y, fill });
   const shown = [...colours.keys()].filter((name) => foldedRows.some((row) => row[fill] === name));
-  const frame = chartFrame(body);
+  const frame = { ...chartFrame(body), ...options.margins };
   if (yAxisLabel === null) {
     frame.marginTop = UNTITLED_MARGIN_TOP;
   }

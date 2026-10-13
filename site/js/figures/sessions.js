@@ -24,8 +24,9 @@ const MIN_COUNT_DRAWN = 1; // a count below one (a session with no tool step) is
 const MIN_SECONDS_DRAWN = 0.1; // a duration below a tenth of a second is drawn at it, on the log axis
 const DURATION_TICKS_S = Object.freeze([1, 60, 3600, 86400]); // a second, a minute, an hour and a day
 
-// The subagents axis's ticks: a 1, 3, 10, 30 series is evenly spaced on a log axis, where 1, 2, 3, 10, 20, 30 is not.
-const SUBAGENT_TICKS = Object.freeze([1, 3, 10, 30]);
+// The factor from one subagent bin's start to the next: the bins query's bins double (base 2), so the axis ticks at
+// their edges, 1, 2, 4, 8, and each bar starts and ends at a labelled tick.
+const SUBAGENT_BIN_FACTOR = 2;
 
 /** The Session-structure topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
 export const TAKEAWAY = "Sessions have a few user prompts, dozens of model requests, and long waits between prompts.";
@@ -78,9 +79,18 @@ export const FIGURES = Object.freeze([
   USER_PROMPT_TOKENS_BY_SCOPE,
 ]);
 
-/** The subagents axis's ticks within `[low, high]`, the range its bins span, every other one past `maxTicks`. */
+/**
+ * The subagents axis's ticks within `[low, high]`, the range its bins span: the bins' edges, the powers of two from one,
+ * every other one past `maxTicks`.
+ */
 export function subagentTicks([low, high], maxTicks) {
-  return atMost(SUBAGENT_TICKS.filter((tick) => tick >= low && tick <= high), maxTicks);
+  const edges = [];
+  for (let edge = 1; edge <= high; edge *= SUBAGENT_BIN_FACTOR) {
+    if (edge >= low) {
+      edges.push(edge);
+    }
+  }
+  return atMost(edges, maxTicks);
 }
 
 /** The requests-per-session CDF's legend: requests, user steps and tool steps, in that order. */

@@ -19,8 +19,9 @@ import { MULTIPLE_DECIMALS, multipleTick, ttlLabel } from "./prefill.js";
 const API_PARTS = Object.freeze({
   output: TOKEN_PART_NAMES.output, cache_read: TOKEN_PART_NAMES.cached, input: TOKEN_PART_NAMES.uncached,
 });
-// The API legend lists the token parts as every legend does, but output, a stack too thin to see; its tooltip names it.
-const API_LEGEND_ORDER = Object.freeze(["cache_read", "input"]);
+// The API legend lists the token parts as every legend of tokens does, output last: every part the stack draws, output
+// too, though its stack is thin.
+const API_LEGEND_ORDER = Object.freeze(["cache_read", "input", "output"]);
 const INFRASTRUCTURE_PARTS = Object.freeze({ recompute: "Recompute", storage: "Storage" });
 // Each cost part's colour: the API's parts in the colours of the tokens they price, recomputing in the uncached
 // input's, as it prefills the missed tokens again, and storage in violet, the one slot neither a token part nor a part
@@ -160,7 +161,7 @@ async function drawCostByTtl(rows, body, colours, { labels, flag, describe }) {
     ...chartFrame(body),
     x: { type: "log", domain: [stacks[0].seconds, stacks[stacks.length - 1].seconds], inset: X_INSET },
     y: { domain: [0, highestCost] },
-    // Every part in its cost colour, output too, which the API legend leaves out.
+    // Every part in its cost colour, as its legend lists it.
     color: colourScale(new Map(Object.entries(COST_PART_COLOURS)), parts),
     marks: [
       Plot.gridX([...ttlLabels.keys()], GRID_STYLE),

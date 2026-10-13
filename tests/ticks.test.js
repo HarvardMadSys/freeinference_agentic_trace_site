@@ -3,7 +3,8 @@ import { test } from "node:test";
 
 import {
   atMost, axisWithTicks, fewerOnNarrow, tickCountFor, decadeDomain, decadeTicks, durationTicks, elapsedAxis, elapsedTicks, everyOther, firstWeekOfEachMonth,
-  isNarrowChart, logAxisTicks, MAX_TICKS, maxTicksFor, NARROW_MAX_TICKS, sparseTickFormat, tickCount, weekTickFormat,
+  isNarrowChart, logAxisTicks, MAX_TICKS, maxTicksFor, monthTickFormat, NARROW_MAX_TICKS, sparseTickFormat, tickCount,
+  weekTickFormat,
 } from "../site/js/axes/ticks.js";
 
 test("a log axis ticks its powers of ten, every other one past six, and leaves a range of one power to Plot", () => {
@@ -122,4 +123,16 @@ test("a narrow chart's axes thin their ticks in one place: at most so many, ever
   assert.deepEqual(fewerOnNarrow([0.1, 1, 60], 520), [0.1, 1, 60]);
   assert.equal(tickCountFor(300, 5), NARROW_MAX_TICKS);
   assert.equal(tickCountFor(520, 5), 5);
+});
+
+test("a trend's axis labels every month its weeks span, the first and the last, on its first Sunday's week", () => {
+  const weeks = [
+    { week: "2026-05-17", last_day: "2026-05-23" }, { week: "2026-05-24", last_day: "2026-05-30" },
+    { week: "2026-05-31", last_day: "2026-06-06" }, { week: "2026-06-07", last_day: "2026-06-13" },
+    { week: "2026-08-23", last_day: "2026-08-29" }, { week: "2026-08-30", last_day: "2026-09-05" },
+  ];
+  const format = monthTickFormat(weeks);
+  assert.deepEqual(weeks.map((entry) => format(entry.week)), ["May", "", "", "Jun", "Aug", "Sep"]);
+  const oneWeek = monthTickFormat([{ week: "2026-01-31", last_day: "2026-02-06" }]);
+  assert.equal(oneWeek("2026-01-31"), "Jan");
 });

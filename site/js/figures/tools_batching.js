@@ -32,7 +32,7 @@ const HEADROOM = 1.05; // the wait axis reaches this far past the highest band o
 const MEAN_CALLS_HEADROOM = 1.08; // the calls axis reaches this far past the highest mean
 const MIN_CALLS_AXIS_END = 1.5; // the calls axis reaches at least this far, so a short bar still reads as short
 const CALLS_TICKS = 5; // about this many ticks on the calls axis
-const ONE_CALL = 1; // every bar and the width axis start at one call, the fewest a request with a call makes
+const ONE_CALL = 1; // the width axis starts at one call, the fewest a request with a call makes
 
 /** The calls-per-request figure: the mean calls of the requests whose first call is of each category. */
 export const CALLS_PER_REQUEST_BY_CATEGORY = Object.freeze({
@@ -84,7 +84,7 @@ export function waitAxisEnd(rows, shown) {
   return highest * HEADROOM;
 }
 
-/** Draw each category's mean calls per request as a bar from one call, most calls at the top. */
+/** Draw each category's mean calls per request as a bar from zero, most calls at the top. */
 async function drawCallsPerRequest(rows, body, colours) {
   // Plot is loaded here, not at the top, so node can test the section's figure list.
   const { Plot } = await import("../shared/libraries.js");
@@ -94,14 +94,15 @@ async function drawCallsPerRequest(rows, body, colours) {
   const ticks = tickCountFor(frame.width, CALLS_TICKS);
   const chart = Plot.plot({
     ...frame,
-    x: { domain: [ONE_CALL, Math.max(MIN_CALLS_AXIS_END, highest * MEAN_CALLS_HEADROOM)] },
+    // From zero, as every bar chart starts, so a bar's length is its mean.
+    x: { domain: [0, Math.max(MIN_CALLS_AXIS_END, highest * MEAN_CALLS_HEADROOM)] },
     y: { type: "band", domain: categories },
     color: colourScale(colours.categories, categories),
     marks: [
       Plot.gridX({ ...GRID_STYLE, ticks }),
       Plot.axisX({ ...AXIS_STYLE, ticks, label: "Calls" }),
       Plot.axisY({ ...AXIS_STYLE, label: null }),
-      Plot.barX(rows, { y: "category", x1: ONE_CALL, x2: "mean_calls", fill: "category" }),
+      Plot.barX(rows, { y: "category", x1: 0, x2: "mean_calls", fill: "category" }),
       Plot.tip(rows, Plot.pointerY({ ...TIP_STYLE, y: "category", x: "mean_calls", title: callsTipText })),
     ],
   });

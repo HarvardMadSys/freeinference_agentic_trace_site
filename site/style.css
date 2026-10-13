@@ -869,6 +869,13 @@ section[id] {
   }
 }
 
+/* On a phone a donut's legend is one column, so a long model's name and its share keep one line. */
+@media (max-width: 30rem) {
+  .donut-card .figure-legend {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ---------- Cite and Team ---------- */
 
 /* The Cite section: its heading on the left, the sentence and the BibTeX on the right, wide enough for the BibTeX's
@@ -943,8 +950,10 @@ section[id] {
 }
 
 /* A long line scrolls inside the block rather than widening the page. */
+/* The BibTeX's lines wrap, a long address anywhere, rather than scroll the block sideways. */
 .cite-block pre {
-  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   margin: 0;
   padding: 1rem;
   font-family: var(--font-mono);
@@ -1102,6 +1111,11 @@ section[id] {
 .card-grid > .card > .figure,
 .trend-grid > .card > .figure {
   display: contents;
+}
+
+/* A trend's legend sits on its chart: where a neighbour's legend runs longer, the room the row keeps is above it. */
+.trend-grid > .card .figure-legend {
+  align-self: end;
 }
 
 /* A card without a legend draws its chart where the legend would be, so it keeps no empty band above the chart. */

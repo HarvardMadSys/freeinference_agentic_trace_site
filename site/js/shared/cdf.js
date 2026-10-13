@@ -10,8 +10,13 @@ import { formatPercent, formatShare } from "./format.js";
 import { axisWithTicks, extent, logAxisTicks, TICK_COUNT } from "../axes/ticks.js";
 
 const MEDIAN_SHARE = 0.5; // the share of rows at which a CDF crosses its median
-// Pixels from a point to a label written above or below it on its line.
-const LINE_LABEL_OFFSETS = Object.freeze({ above: -9, below: 14 });
+const LABEL_ABOVE_OFFSET = -9; // pixels from a point up to a label written above it on its line
+const LABEL_END_OFFSET = 6; // pixels from a line's right end across to a label written beside it
+// Pixels the right margin grows by to hold a label written beside a line's right end, "Under 1 min".
+const LABEL_END_ROOM = 64;
+// A chart narrower than this, in pixels, keeps its plot's width and writes no label beside a line's end; its legend
+// names the line.
+const MIN_WIDTH_FOR_END_LABELS = 420;
 
 /**
  * Draw into `body` one line per series of `series`, `[{ name, label, points: [{ x, share }] }]`, with share running
@@ -20,7 +25,7 @@ const LINE_LABEL_OFFSETS = Object.freeze({ above: -9, below: 14 });
  * `xDomain`, when given, is the x axis's `[low, high]`, the lines cut at its ends; `xTicks`, when given, are the x
  * axis's ticks, else a log axis ticks its powers of ten (`logAxisTicks`); `xLabel` and `yLabel` title the axes, none
  * when null; `height`, when given, replaces the chart's height; `lineLabels`, when given, are the series whose label
- * is written on its line, as `lineLabelPoints` takes them.
+ * is written by its line, as `lineLabelPoints` takes them.
  */
 export async function drawCdf(body, series, options) {
   const { xLabel = null, yLabel = "Share of requests", logX = false, format = String, xTickFormat, colours } = options;
@@ -30,8 +35,13 @@ export async function drawCdf(body, series, options) {
   const points = cdfPoints(series);
   const names = series.map((one) => one.name);
   const xTicks = options.xTicks ?? (logX ? logAxisTicks(xDomain ?? extent(points.map((point) => point.x))) : undefined);
+  const frame = chartFrame(body);
+  const labels = labelsThatFit(lineLabelPoints(series, lineLabels), frame.width);
+  // A label beside a line's end is written in room the right margin keeps for it.
+  const hasEndLabel = labels.some((label) => label.placement === "end");
   const chart = Plot.plot({
-    ...chartFrame(body),
+    ...frame,
+    marginRight: frame.marginRight + (hasEndLabel ? LABEL_END_ROOM : 0),
     height,
     x: { type: logX ? "log" : "linear", domain: xDomain, inset: X_INSET },
     y: { domain: [0, 1] },
@@ -44,7 +54,7 @@ export async function drawCdf(body, series, options) {
       axisWithTicks(Plot.axisX, xTicks, { ...AXIS_STYLE, label: xLabel, tickFormat: xTickFormat }),
       Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: formatPercent, label: yLabel }),
       Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH }),
-      ...lineLabelMarks(Plot, lineLabelPoints(series, lineLabels)),
+      ...lineLabelMarks(Plot, labels),
       Plot.tip(points, Plot.pointerX({ ...TIP_STYLE, x: "x", y: "share", title: (point) => cdfTipText(point, format) })),
     ],
   });
@@ -67,9 +77,10 @@ function cdfTipText(point, format) {
 }
 
 /**
- * Where a series' label is written on its line, for each of `lineLabels`, `[{ name, at, placement }]`: on the point of
- * the series `name` nearest the value `at`, above or below its line (`placement`), as `{ x, share, label, placement }`.
- * A series with no points has no label.
+ * Where a series' label is written by its line, for each of `lineLabels`, `[{ name, at, placement }]`, as
+ * `{ x, share, label, placement }`: with `placement` "above", above the point of the series `name` nearest the value
+ * `at`, ending at it; with "end", beside the line's right end, at the height of the share `at`, where a line that
+ * rises there is told apart from the others. A series with no points has no label.
  */
 export function lineLabelPoints(series, lineLabels) {
   const labels = [];
@@ -78,24 +89,47 @@ export function lineLabelPoints(series, lineLabels) {
     if (one === undefined || one.points.length === 0) {
       continue;
     }
-    let nearest = one.points[0];
-    for (const point of one.points) {
-      if (Math.abs(point.x - at) < Math.abs(nearest.x - at)) {
-        nearest = point;
-      }
+    if (placement === "end") {
+      labels.push({ x: one.points.at(-1).x, share: at, label: one.label, placement });
+    } else {
+      const nearest = nearestPoint(one.points, at);
+      labels.push({ x: nearest.x, share: nearest.share, label: one.label, placement });
     }
-    labels.push({ x: nearest.x, share: nearest.share, label: one.label, placement });
   }
   return labels;
 }
 
-// A text mark per placement, each label set above or below its point and ending at it, so that a point near the
-// chart's right edge keeps its label inside the chart.
-function lineLabelMarks(Plot, labels) {
-  const marks = [];
-  for (const [placement, dy] of Object.entries(LINE_LABEL_OFFSETS)) {
-    const placed = labels.filter((label) => label.placement === placement);
-    marks.push(Plot.text(placed, { x: "x", y: "share", text: "label", dy, textAnchor: "end", ...LINE_LABEL_STYLE }));
+/**
+ * The labels of `labels` a chart `width` pixels wide writes: every one, but none beside a line's end on a chart too
+ * narrow to give it room.
+ */
+export function labelsThatFit(labels, width) {
+  if (width >= MIN_WIDTH_FOR_END_LABELS) {
+    return labels;
   }
-  return marks;
+  return labels.filter((label) => label.placement !== "end");
+}
+
+// The point of `points` whose x is nearest `at`.
+function nearestPoint(points, at) {
+  let nearest = points[0];
+  for (const point of points) {
+    if (Math.abs(point.x - at) < Math.abs(nearest.x - at)) {
+      nearest = point;
+    }
+  }
+  return nearest;
+}
+
+// The text marks of the labels: one above its point and ending at it, so that a point near the chart's right edge keeps
+// its label inside the chart; one beside a line's right end, in the room the right margin keeps, unclipped.
+function lineLabelMarks(Plot, labels) {
+  const above = labels.filter((label) => label.placement === "above");
+  const atEnds = labels.filter((label) => label.placement === "end");
+  return [
+    Plot.text(above, { x: "x", y: "share", text: "label", dy: LABEL_ABOVE_OFFSET, textAnchor: "end", ...LINE_LABEL_STYLE }),
+    Plot.text(atEnds, {
+      x: "x", y: "share", text: "label", dx: LABEL_END_OFFSET, textAnchor: "start", clip: false, ...LINE_LABEL_STYLE,
+    }),
+  ];
 }
