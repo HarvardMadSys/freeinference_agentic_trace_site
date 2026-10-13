@@ -7,9 +7,10 @@ histograms, drawn from the shipped answers, in six numbered topics shown
 one at a time behind a row of tabs under the heading: each topic with
 its heading, a takeaway sentence of at most twenty words under it, and
 no other intro text; each card with a title, an insight of at most
-twelve words under the title (one sentence saying what the chart means,
+twenty words under the title (one sentence saying what the chart means,
 a number in it only where the number is the point), a caption of at most
-twelve words under the chart, and its definition (at most forty words)
+forty words in at most three sentences under the chart, and its
+definition (at most sixty words in at most three sentences)
 and row count behind a control. A click on a tab SHALL show its topic
 and hide the others, and SHALL write the topic's anchor to the URL's
 hash, so that a link with that hash opens the Insights on that topic and
@@ -40,7 +41,7 @@ Nothing on the page SHALL run a query in the browser.
 
 #### Scenario: Opening the page
 - **WHEN** a visitor opens the page
-- **THEN** the first topic SHALL be shown and its figures drawn from their answer files, and no DuckDB module and no Parquet file SHALL be fetched
+- **THEN** the first topic SHALL be shown and its figures drawn from their answer files, and no database module, no row file and no query file SHALL be fetched
 
 #### Scenario: A figure for one month
 - **WHEN** the URL carries `months=2026-07`
@@ -59,7 +60,7 @@ Nothing on the page SHALL run a query in the browser.
 - **THEN** every number a figure shares with the paper SHALL equal the paper's
 
 #### Scenario: A caption that grew
-- **WHEN** a caption or an insight exceeds twelve words, a takeaway twenty, or a card has no insight
+- **WHEN** an insight or a takeaway exceeds twenty words, a caption forty, a definition sixty, or a card has no insight
 - **THEN** the node test that counts them SHALL fail
 
 #### Scenario: The topic bar
