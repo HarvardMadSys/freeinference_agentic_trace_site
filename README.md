@@ -41,7 +41,7 @@ since (`tests/test_answers.py`), as `make deploy` does through
 
 The one thing a visitor narrows is the Session Explorer's list. Its answer holds every
 harness's sessions, the benchmark's marked, and the list filters it in the
-browser by month (the weeks whose Sunday falls in it), harness, main model,
+browser by month (the calendar month, in UTC, a session started in), harness, main model,
 a minimum of requests and a search of the session id, newest session first.
 The month and harness drop-downs choose one of each, and the URL holds them
 as `months` and `harnesses` (`?months=2026-07&harnesses=codex`), so a

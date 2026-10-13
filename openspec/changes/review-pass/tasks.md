@@ -12,3 +12,4 @@ reruns `make data`; the others change no query and no data.
 - [x] 6.1 The Overview over every harness and the Session Explorer's first page (design §1, §6): the queries, `answers.py`, `make data`, the table's two-stage load, the donut captions without "human-driven"; the data committed.
 - [x] 7.1 Charts (design §7): the API cost legend, bars from zero, the gap-bin labels, the ratio annotation, the trends' width and ticks, the histogram's bins, the phone donut legend, the BibTeX wrap.
 - [x] 8.1 README, CONTRIBUTING, CLAUDE.md where they describe the changed parts; `openspec validate review-pass --strict`; a browser pass over the page and a session.
+- [x] 9.1 The month filter by the session's start (design §10): `rowsInFilter` by `first_start_ms` in UTC, the month drop-down from the first Sunday to the last Saturday, old `weeks=` links still read; tests of a session at a week's end and of September.

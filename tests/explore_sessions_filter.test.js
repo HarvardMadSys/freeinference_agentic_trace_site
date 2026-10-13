@@ -18,13 +18,18 @@ const HARNESSES = [
   { harness: "eval:swe-bench", sessions: 30, benchmark: true },
   { harness: "codex", sessions: 20, benchmark: false },
 ];
+/** The start of a session at `time` (an ISO date and time, UTC), as the table's rows hold it: in milliseconds. */
+function startedAt(time) {
+  return Date.parse(`${time}Z`);
+}
+
 const SESSIONS = [
-  { session_id: "a", week: "2026-06-28", harness: "codex", benchmark: false, requests: 150, first_start_ms: 1 },
-  { session_id: "b", week: "2026-07-05", harness: "codex", benchmark: false, requests: 120, first_start_ms: 2 },
-  { session_id: "c", week: "2026-07-12", harness: "codex", benchmark: false, requests: 20, first_start_ms: 3 },
-  { session_id: "d", week: "2026-07-12", harness: "hermes", benchmark: false, requests: 300, first_start_ms: 4 },
-  { session_id: "e", week: "2026-07-05", harness: "eval:swe-bench", benchmark: true, requests: 90, first_start_ms: 5 },
-  { session_id: "f", week: "2026-08-02", harness: "hermes", benchmark: false, requests: 10, first_start_ms: 6 },
+  { session_id: "a", week: "2026-06-28", harness: "codex", benchmark: false, requests: 150, first_start_ms: startedAt("2026-06-29T10:00") },
+  { session_id: "b", week: "2026-07-05", harness: "codex", benchmark: false, requests: 120, first_start_ms: startedAt("2026-07-06T10:00") },
+  { session_id: "c", week: "2026-07-12", harness: "codex", benchmark: false, requests: 20, first_start_ms: startedAt("2026-07-13T10:00") },
+  { session_id: "d", week: "2026-07-12", harness: "hermes", benchmark: false, requests: 300, first_start_ms: startedAt("2026-07-14T10:00") },
+  { session_id: "e", week: "2026-07-05", harness: "eval:swe-bench", benchmark: true, requests: 90, first_start_ms: startedAt("2026-07-07T10:00") },
+  { session_id: "f", week: "2026-08-02", harness: "hermes", benchmark: false, requests: 10, first_start_ms: startedAt("2026-08-03T10:00") },
 ];
 
 /** The filter a query string names. */
@@ -40,12 +45,45 @@ function rewritten(query) {
 
 /** The ids of the sessions the filter a query string names keeps. */
 function keptIds(query) {
-  return rowsInFilter(SESSIONS, filterOf(query), WEEKS).map((row) => row.session_id);
+  return rowsInFilter(SESSIONS, filterOf(query)).map((row) => row.session_id);
 }
 
-test("a month is the weeks whose Sunday falls in it", () => {
+test("the months are every calendar month from the first week's Sunday to the last week's Saturday", () => {
   assert.deepEqual(monthsOf(WEEKS), ["2026-06", "2026-07", "2026-08"]);
   assert.deepEqual(keptIds("months=2026-06"), ["a"]);
+  assert.deepEqual(monthsOf([{ week: "2026-11-29", last_day: "2026-12-05" }, { week: "2027-01-03", last_day: "2027-01-09" }]),
+    ["2026-11", "2026-12", "2027-01"]);
+  assert.deepEqual(monthsOf([]), []);
+});
+
+// The data's ends: the first week begins mid-May, and the last, the week of August 30, ends on September 5.
+const WEEKS_TO_SEPTEMBER = [
+  { week: "2026-05-17", last_day: "2026-05-23", month: "2026-05", simulated: true },
+  { week: "2026-05-31", last_day: "2026-06-06", month: "2026-05", simulated: true },
+  { week: "2026-08-30", last_day: "2026-09-05", month: "2026-08", simulated: true },
+];
+
+test("a session started June 6, in the week of May 31, is June's, not May's", () => {
+  const sessions = [
+    { session_id: "may", week: "2026-05-31", harness: "pi", first_start_ms: startedAt("2026-05-31T23:59") },
+    { session_id: "june", week: "2026-05-31", harness: "pi", first_start_ms: startedAt("2026-06-06T12:00") },
+  ];
+  const kept = (month) => rowsInFilter(sessions, { month, harness: "", unknown: [] }).map((row) => row.session_id);
+  assert.deepEqual(kept("2026-05"), ["may"]);
+  assert.deepEqual(kept("2026-06"), ["june"]);
+});
+
+test("September is a month to choose when the last week ends in it, and lists the sessions started in it", () => {
+  assert.deepEqual(monthChoices(WEEKS_TO_SEPTEMBER).map((choice) => choice.text), [
+    "All months", "May 2026", "June 2026", "July 2026", "August 2026", "September 2026",
+  ]);
+  const sessions = [
+    { session_id: "aug", week: "2026-08-30", harness: "pi", first_start_ms: startedAt("2026-08-31T08:00") },
+    { session_id: "sep", week: "2026-08-30", harness: "pi", first_start_ms: startedAt("2026-09-05T20:00") },
+  ];
+  const filter = readTableFilter(new URLSearchParams("months=2026-09"), WEEKS_TO_SEPTEMBER, HARNESSES);
+  assert.deepEqual(filter.unknown, []);
+  assert.deepEqual(rowsInFilter(sessions, filter).map((row) => row.session_id), ["sep"]);
 });
 
 test("no key is every month and every harness, the benchmark's included, and writes no key", () => {
@@ -133,6 +171,6 @@ test("the harness drop-down offers every harness after All harnesses, the benchm
 
 test("filtering to one harness and a minimum of 100 requests keeps its sessions with at least that many", () => {
   const state = readTableState(new URLSearchParams("min_requests=100"));
-  const shown = shownSessions(rowsInFilter(SESSIONS, filterOf("harnesses=codex"), WEEKS), state);
+  const shown = shownSessions(rowsInFilter(SESSIONS, filterOf("harnesses=codex")), state);
   assert.deepEqual(shown.map((row) => row.session_id), ["b", "a"]);
 });

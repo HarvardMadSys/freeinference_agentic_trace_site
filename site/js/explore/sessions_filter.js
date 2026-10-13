@@ -5,13 +5,14 @@
  *
  * A filter is `{ month, harness, unknown }`: the chosen month ("YYYY-MM"), or "" for every month; the chosen harness,
  * or "" for every harness, the benchmark's included; and what the URL named that the data do not hold, each in words
- * such as "month 2026-01". A month is the weeks whose Sunday falls in it. `weeks` and `harnesses` below are the arrays
- * `weeks.json` and `harnesses.json` hold, as `shared/selection.js` describes them. The default filter, every month and
- * every harness, writes no key.
+ * such as "month 2026-01". A month keeps the sessions whose start, in UTC, falls in that calendar month; the months to
+ * choose from are every calendar month from the first week's Sunday to the last week's Saturday. `weeks` and
+ * `harnesses` below are the arrays `weeks.json` and `harnesses.json` hold, as `shared/selection.js` describes them.
+ * The default filter, every month and every harness, writes no key.
  */
 
 import { monthName } from "../shared/format.js";
-import { EVERY_WEEK_VALUE, namesIn, weeksByMonth } from "../shared/selection.js";
+import { EVERY_WEEK_VALUE, namesIn } from "../shared/selection.js";
 import { harnessText } from "./sessions_table_state.js";
 
 // The URL keys the filter is written in, one value each.
@@ -21,6 +22,9 @@ const HARNESSES_KEY = "harnesses";
 // Keys of older links, read as the filter and removed when it is written: `month` names one month, `weeks` the weeks
 // whose months are meant (`all` for every month), `scope` is read as the default, `harness` names one harness.
 const OLDER_KEYS = Object.freeze(["month", "weeks", "scope", "harness"]);
+
+// The length of a month's name in a date, "2026-07" of "2026-07-05": the month a date or a timestamp falls in.
+const MONTH_LENGTH = "YYYY-MM".length;
 
 // The text of the month drop-down's first choice, which filters nothing.
 const EVERY_MONTH_TEXT = "All months";
@@ -60,17 +64,32 @@ export function writeTableFilter(params, filter) {
   return written;
 }
 
-/** The months of `weeks`, oldest first: each month a week's Sunday falls in, once. */
+/**
+ * The months of `weeks`, oldest first ("2026-05"): every calendar month from the first week's Sunday to the last week's
+ * Saturday, once; none for no week.
+ */
 export function monthsOf(weeks) {
-  return weeksByMonth(weeks).map((group) => group.month);
+  if (weeks.length === 0) {
+    return [];
+  }
+  const last = weeks.at(-1).last_day.slice(0, MONTH_LENGTH);
+  const months = [weeks[0].week.slice(0, MONTH_LENGTH)];
+  while (months.at(-1) < last) {
+    months.push(nextMonth(months.at(-1)));
+  }
+  return months;
 }
 
-/** The rows whose week's Sunday falls in the filter's month, and whose harness is its harness; "" keeps every one. */
-export function rowsInFilter(rows, filter, weeks) {
-  const monthSundays = weeks.filter((entry) => entry.month === filter.month).map((entry) => entry.week);
+/** The month a session row started in, in UTC, from its `first_start_ms`: "2026-06". */
+export function startMonth(row) {
+  return new Date(row.first_start_ms).toISOString().slice(0, MONTH_LENGTH);
+}
+
+/** The rows that started in the filter's month, in UTC, and whose harness is its harness; "" keeps every one. */
+export function rowsInFilter(rows, filter) {
   const kept = [];
   for (const row of rows) {
-    const isInMonth = filter.month === "" || monthSundays.includes(row.week);
+    const isInMonth = filter.month === "" || startMonth(row) === filter.month;
     const isOfHarness = filter.harness === "" || row.harness === filter.harness;
     if (isInMonth && isOfHarness) {
       kept.push(row);
@@ -104,6 +123,13 @@ export function harnessChoices(harnesses) {
 /** The note naming what the URL named that the data do not hold; "" when it named nothing unknown. */
 export function unknownFilterNote(filter) {
   return filter.unknown.length === 0 ? "" : `Not in the data, so not used: ${filter.unknown.join(", ")}.`;
+}
+
+/** The month after `month`, both "YYYY-MM": "2026-12" → "2027-01". */
+function nextMonth(month) {
+  const [year, monthNumber] = month.split("-").map(Number);
+  const next = monthNumber === 12 ? { year: year + 1, month: 1 } : { year, month: monthNumber + 1 };
+  return `${next.year}-${String(next.month).padStart(2, "0")}`;
 }
 
 /** The first of `named` that `known` holds, or "" when it holds none. */

@@ -118,8 +118,29 @@ header follow.
 - Provider letters keep the release's letters (A–F, H): re-lettering
   would break parity with the paper and the dataset. The definition of
   the provider figure says the letters are the dataset's.
-- The month filter keeps "the weeks whose Sunday falls in the month",
-  which is what the data holds per week; a change to the session's own
-  date is a separate decision.
+- The month filter kept "the weeks whose Sunday falls in the month" when
+  this design was written; that was decided separately afterwards and is
+  §10: a month now keeps the sessions that started in it.
 - No sentence of the figures, the hero, the footer or the guide line is
   rewritten.
+
+## 10. The month filter by the session's start
+A month keeps the sessions whose start (`first_start_ms`, in UTC) falls
+in that calendar month. Until now `rowsInFilter` in
+`site/js/explore/sessions_filter.js` kept the rows whose week's Sunday
+falls in the month, so "May 2026" listed a session started June 6 (in the
+week of May 31), and there was no September though the data run to
+September 5.
+
+The month drop-down lists every calendar month from the first week's
+Sunday to the last week's Saturday, oldest first, "All months" first as
+today: May, June, July, August and September 2026 for the current data.
+`monthsOf(weeks)` changes accordingly. A `weeks=` key in the URL still
+maps to the months its weeks fall in (reading old links), and
+`months=<YYYY-MM>` stays the written key. The count line and everything
+else stay as they are; no sentence shown on the page changes.
+`tests/explore_sessions_filter.test.js` covers a session at a week's end
+(started June 6 in the week of May 31 is in June, not May) and the
+September option. `weeks.json` holds each week's Sunday and Saturday,
+which is all the months need, so the Python side is unchanged.
+

@@ -181,7 +181,7 @@ function sortBy(view, key) {
 function drawTable(view) {
   const exploreParams = currentParams();
   const state = currentState();
-  const filtered = view.filter === null ? view.rows : rowsInFilter(view.rows, view.filter, view.context.weeks);
+  const filtered = view.filter === null ? view.rows : rowsInFilter(view.rows, view.filter);
   const shown = shownSessions(filtered, state);
   mountTable(view.tablePlace, {
     columns: linkedColumns(view.context, exploreParams),
