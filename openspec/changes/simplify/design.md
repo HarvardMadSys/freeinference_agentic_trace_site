@@ -19,7 +19,10 @@ checksums of every file under `site/data/all_weeks`.
 
 After each task the script runs again and `diff -r` compares the two
 trees. The diff must be empty. The only differences this design allows
-are named here: task 2.1 may change an answer file's floats in their
+are named here: task 1.1 drops the attribute `fill-opacity="1"` from the
+trend bars, which the removed opacity function wrote and which was
+always 1 (pixel-identical, checked in both schemes and at two widths);
+task 2.1 may change an answer file's floats in their
 last bits (under 1e-9 relative), listed in the report; task 3.2 may
 change the SVG attribute that `TIP_STYLE` set, provided the rendered
 tooltip background is the card surface in both schemes (checked with
