@@ -11,13 +11,12 @@
  */
 
 import { AXIS_STYLE, BAR_INSET, chartFrame, colourScale, TALL_CHART_HEIGHT } from "../shared/charts.js";
-import { drawCdf } from "../charts/cdf.js";
+import { cdfLegend, drawCdf } from "../charts/cdf.js";
 import { durationTicks, everyOther } from "../axes/ticks.js";
-import { CAUSE_COLOURS, TIME_PART_NAMES, TRANSITION_COLOURS } from "../theme/colours.js";
+import { CAUSE_COLOUR_MAP, TIME_PART_NAMES, TRANSITION_COLOUR_MAP } from "../theme/colours.js";
 import {
   formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare, MISSING_TEXT,
 } from "../shared/format.js";
-import { seriesLegend } from "../shared/series.js";
 
 // tests/test_pipeline_mirrors_caching.py checks the causes and the two gap limits below against the pipeline.
 // What a gap waited for, by the release's `waited_for` value in the order of the pipeline's `gaps.CAUSE_NAMES`, in
@@ -25,9 +24,6 @@ import { seriesLegend } from "../shared/series.js";
 const CAUSE_NAMES = Object.freeze({
   tool: TIME_PART_NAMES.tool, ask_user_tool: "Ask-user tool", user: TIME_PART_NAMES.user, subagent: "Subagent",
 });
-
-// The colour of each cause, by its `waited_for` value in the order of `CAUSE_NAMES`, as the charts take colours.
-const CAUSE_COLOUR_MAP = new Map(Object.entries(CAUSE_COLOURS));
 
 // The transitions the figure draws, in their order, with the names it draws them under. A switch to another model or
 // provider is routing, not a change of context, and is not drawn, as in the paper.
@@ -65,7 +61,7 @@ export const GAP_FIGURES = Object.freeze({
     query: "figures/gap_cdf_by_cause",
     binColumn: "series",
     seriesColumn: "series",
-    legend: (rows, colours, seriesColumn) => seriesLegend(rows, seriesColumn, CAUSE_COLOUR_MAP, CAUSE_NAMES),
+    legend: (rows) => cdfLegend(rows, CAUSE_COLOUR_MAP, { labels: CAUSE_NAMES }),
     draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
       labels: CAUSE_NAMES,
       floor: MIN_GAP_DRAWN_S,
@@ -111,8 +107,7 @@ export const GAP_FIGURES = Object.freeze({
     query: "figures/hit_ratio_cdf_by_transition",
     binColumn: "series",
     seriesColumn: "series",
-    legend: (rows, colours, seriesColumn) =>
-      seriesLegend(rows, seriesColumn, new Map(Object.entries(TRANSITION_COLOURS)), TRANSITION_NAMES),
+    legend: (rows) => cdfLegend(rows, TRANSITION_COLOUR_MAP, { labels: TRANSITION_NAMES }),
     draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
       labels: TRANSITION_NAMES,
       xDomain: HIT_RATIO_DOMAIN,

@@ -29,6 +29,8 @@ const KEY_SEPARATOR = "\u0000";
  * - `weeks`: every week the axis spans, `weeks.json`'s entries, each a bar's place even without rows and its months
  *   labelled once; without it, the bars of the rows' x values.
  * - `margins`: Plot margins in place of the frame's, where the bars should take more of the card's width.
+ * Required: the three columns, `valueLabel` and `valueFormat`.
+ * Needs the figure's legend: its colours are `colours.series`.
  */
 export async function drawStackedBars(rows, body, colours, parameters, hidden) {
   const { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat } = parameters;
@@ -40,7 +42,7 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
   const stacked = [...colours.series.keys()].filter((name) => shown.some((row) => row[seriesColumn] === name));
   const chart = Plot.plot({
     ...barsFrame(body, yLabel, margins),
-    x: { type: "band", domain: weeks?.map((entry) => entry.week) ?? distinct(shown.map((row) => row[xColumn])) },
+    x: { type: "band", domain: barPlaces(shown, xColumn, weeks) },
     color: colourScale(colours.series, stacked),
     marks: [
       Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT }),
@@ -123,6 +125,14 @@ function barsFrame(body, yLabel, margins) {
     frame.marginTop = UNTITLED_MARGIN_TOP;
   }
   return frame;
+}
+
+// The x values the bars take, in order: every week of `weeks` where given, else the rows' own x values.
+function barPlaces(rows, xColumn, weeks) {
+  if (weeks !== undefined) {
+    return weeks.map((entry) => entry.week);
+  }
+  return distinct(rows.map((row) => row[xColumn]));
 }
 
 // A segment's tooltip: its series, its bar's x value, and its value, "Sessions: 412".

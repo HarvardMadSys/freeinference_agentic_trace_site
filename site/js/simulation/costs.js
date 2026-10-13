@@ -82,11 +82,11 @@ export function costColours(order) {
  * The API cost's callout, on two lines so that it fits a phone's chart: the knee's total and TTL, and that it is near
  * the lowest, "0.65× at 30 min,\nnear the lowest".
  */
-export function kneeText(total, ttl) {
+function kneeText(total, ttl) {
   return `${total} at ${ttl},\nnear the lowest`;
 }
 
 /** The infrastructure cost's callout, on two lines: the lowest total and its TTL, "Lowest 0.42×\nat 15 min". */
-export function lowestText(total, ttl) {
+function lowestText(total, ttl) {
   return `Lowest ${total}\nat ${ttl}`;
 }

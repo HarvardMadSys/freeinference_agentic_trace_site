@@ -29,6 +29,8 @@ const CALLOUT_RISE_SHARE = 0.45; // the callout's text sits this share of the co
  * - `parts`: each part's name in the rows with its label, in the stack's order, bottom up.
  * - `calloutColumn`: the column marking the TTL called out, true on its rows.
  * - `calloutText(total, ttl)`: the callout's text, from the TTL's total and name as they are written.
+ * Required: all three.
+ * Needs the figure's legend: its colours are `colours.series`.
  */
 export async function drawKneeLines(rows, body, colours, { parts, calloutColumn, calloutText }, hidden) {
   // Plot is loaded here, not at the top, so node can test this module's pure functions.

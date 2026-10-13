@@ -10,7 +10,7 @@
  */
 
 import { drawRanked, rankedLegend } from "../charts/ranked.js";
-import { TIME_PART_COLOURS, TIME_PART_NAMES, TOKEN_PART_COLOURS } from "../theme/colours.js";
+import { TIME_PART_COLOUR_MAP, TIME_PART_NAMES, TOKEN_PART_COLOUR_MAP } from "../theme/colours.js";
 import { TOKEN_PART_NAMES } from "../session/token_parts.js";
 
 // The parts of a session's cost, bottom up in the stack, with the label each is drawn under.
@@ -28,7 +28,7 @@ export const COST_SHARE_BY_SESSION = Object.freeze({
   caption: "Cached input accounts for 72.9% of modeled API cost, despite costing one-tenth as much per token as uncached input. Its enormous volume outweighs the pricing discount.",
   query: "figures/cost_share_by_session",
   binColumn: "ranked_bin",
-  legend: (rows) => rankedLegend(rows, new Map(Object.entries(TOKEN_PART_COLOURS)), { parts: COST_PARTS }),
+  legend: (rows) => rankedLegend(rows, TOKEN_PART_COLOUR_MAP, { parts: COST_PARTS }),
   draw: (rows, body, colours, hidden) => drawRanked(rows, body, colours, {
     parts: COST_PARTS,
     yLabel: "Share of cost",
@@ -44,7 +44,7 @@ export const SESSION_TIME_BY_PART = Object.freeze({
   caption: "User idle time accounts for 50.3% of session duration and tool execution another 21.7%. Prefill and decoding together account for the remaining 28%.",
   query: "figures/session_time_by_part",
   binColumn: "ranked_bin",
-  legend: (rows) => rankedLegend(rows, new Map(Object.entries(TIME_PART_COLOURS)), { parts: TIME_PARTS }),
+  legend: (rows) => rankedLegend(rows, TIME_PART_COLOUR_MAP, { parts: TIME_PARTS }),
   draw: (rows, body, colours, hidden) => drawRanked(rows, body, colours, {
     parts: TIME_PARTS,
     yLabel: "Share of session time",

@@ -135,9 +135,12 @@ def read_explore_states(page, address: str) -> dict[str, dict[str, str]]:
         page.locator(f"#tab-{topic}").click()
         playwright.sync_api.expect(page.locator(f"#{topic}")).to_be_visible()
         wait_until_drawn(page)
-        units = read_when_settled(page, functools.partial(snapshot_units.topic_units, page, topic))
-        if not states:  # the first state also holds the page's units that no tab changes
-            units.update(read_when_settled(page, functools.partial(snapshot_units.explore_page_units, page)))
+        try:
+            units = read_when_settled(page, functools.partial(snapshot_units.topic_units, page, topic))
+            if not states:  # the first state also holds the page's units that no tab changes
+                units.update(read_when_settled(page, functools.partial(snapshot_units.explore_page_units, page)))
+        except snapshot_units.SharedTitleError as error:
+            raise PageError(f"in the state {state}: {error}") from error
         states[state] = units
     return states
 

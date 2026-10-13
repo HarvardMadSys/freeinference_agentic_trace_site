@@ -15,7 +15,7 @@ import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE } from "../shared/chart
 import { cdfLegend, drawCdf } from "../charts/cdf.js";
 import { durationTicks, everyOther, extent, tickCountFor } from "../axes/ticks.js";
 import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
-import { slottedColours, TIME_PART_COLOURS, TIME_PART_NAMES } from "../theme/colours.js";
+import { slottedColours, TIME_PART_COLOUR_MAP, TIME_PART_NAMES } from "../theme/colours.js";
 import { rowsWithSeriesColour } from "../shared/series.js";
 import { SESSION_TIME_BY_PART } from "./sessions_ranked.js";
 
@@ -154,7 +154,7 @@ async function drawSpeedups(rows, body) {
     x: { domain: [NO_SPEEDUP, speedupAxisEnd(bars)] },
     y: { domain: bars.map((bar) => bar.label) },
     // Each part's bar in the paper's colour of that part of a session's time, as the session time figure draws it.
-    color: colourScale(new Map(Object.entries(TIME_PART_COLOURS)), bars.map((bar) => bar.part)),
+    color: colourScale(TIME_PART_COLOUR_MAP, bars.map((bar) => bar.part)),
     marks: [
       Plot.gridX({ ...GRID_STYLE, ticks }),
       Plot.axisX({ ...AXIS_STYLE, ticks, tickFormat: speedupTick, label: null }),

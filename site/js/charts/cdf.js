@@ -42,7 +42,8 @@ const MEDIAN_LABEL_STYLE = Object.freeze({
  * - `callout(Plot, rows, medians)`: the marks of a note the kind does not draw, from the rows drawn and the medians
  *   marked (`seriesMedians`), laid over the lines.
  * - `height`: the chart's height in pixels, a frame size for a chart beside a tall neighbour; else every chart's.
- * Only the lines are cut at the plot's edge; the median's marks and the tooltip are not.
+ * Required: `valueFormat`. Only the lines are cut at the plot's edge; the median's marks and the tooltip are not.
+ * Needs the figure's legend: its colours are `colours.series`.
  */
 export async function drawCdf(rows, body, colours, parameters, hidden) {
   const { labels = {}, floor = -Infinity, logScale, xDomain, xTicks, narrowXTicks, xTickFormat } = parameters;
@@ -69,7 +70,7 @@ export async function drawCdf(rows, body, colours, parameters, hidden) {
       Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: formatPercent, label: yLabel }),
       Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH, clip: xDomain !== undefined }),
       ...medianMarks(Plot, medians, valueFormat),
-      ...(callout === undefined ? [] : callout(Plot, shown, medians)),
+      ...calloutMarks(Plot, callout, shown, medians),
       Plot.tip(points, Plot.pointerX({
         x: "x", y: "share", title: (point) => cdfTipText(point, valueFormat, shareNoun),
       })),
@@ -162,6 +163,14 @@ function medianRule(Plot, medianColumn) {
     return [];
   }
   return [Plot.ruleY([MEDIAN_SHARE], { ...AXIS_STYLE, strokeDasharray: DASH })];
+}
+
+// The marks of the figure's callout, from the rows drawn and the medians marked; none without a callout.
+function calloutMarks(Plot, callout, shown, medians) {
+  if (callout === undefined) {
+    return [];
+  }
+  return callout(Plot, shown, medians);
 }
 
 // A dot on each median, the smallest's value above it to the left and the others' below them to the right, so that

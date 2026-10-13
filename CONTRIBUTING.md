@@ -302,7 +302,9 @@ fact about the query's rows, not a choice of how to draw them:
   week, a category, a CDF series), every row of a bin carrying the bin's
   count in `rows`; `null` when every row is a bin of its own. A bin under
   `MIN_ROWS_PER_BIN` is hidden whole, and the line of rows sums the bins'
-  counts.
+  counts. The line of rows names a hidden bin by this column (`HIDDEN_NOUNS`
+  in `explore/figure_rows.js`): a `series`, `week`, `category` or, for
+  `waited_for`, a cause; any other column's a "bin".
 - `seriesColumn` (rows that each name their series): that column. A hidden
   series' rows are left out before `draw` is called; a figure with a
   `legend` and no `seriesColumn` holds its series in columns and leaves out
@@ -412,12 +414,16 @@ the browser.
    `tests/figure_sections.test.js`, which checks the legend's shape;
    `tests/figure_words.test.js` counts the words of its insight, caption and
    definition, and of each section's takeaway.
-4. **The legend**, for a figure of more than one series: `legend(rows,
-   colours, seriesColumn)`, a call to its kind's legend function (or, beside
-   a plain draw, `seriesLegend` in `shared/series.js`, which builds one
-   from rows that name their series), and either a `seriesColumn` or a
-   `draw` that leaves out the series named in `hidden`. A series that is a
-   model, category, cause, transition or gap bin takes that thing's colour.
+4. **The legend**, for a figure of more than one series, and for any figure
+   drawn by `cdf`, `stacked_bars`, `ranked` or `knee_lines`, even of one
+   series, since those kinds colour their series from the legend's colours:
+   `legend(rows, colours, seriesColumn)`, a call to its kind's legend
+   function, or a legend several figures share (`scopeLegend` in
+   `comparison/scopes.js`), or, beside a plain draw, `seriesLegend` in
+   `shared/series.js`, which builds one from rows that name their series;
+   and either a `seriesColumn` or a `draw` that leaves out the series named
+   in `hidden`. A series that is a model, category, cause, transition or
+   gap bin takes that thing's colour.
 5. **Parity**, when the paper's `numbers.json` holds a number the figure
    shows: compare it in `tests/test_paper_parity*.py`, which reads the
    query's shipped answer, `site/data/all_weeks/<query>.json`, through
@@ -433,6 +439,10 @@ the browser.
    an item of README's "Where the numbers come from" says how; the definition
    says what is drawn and leaves the paper out, which
    `tests/test_differences.py` checks.
+8. **The snapshots.** With the entry in place, run `make snapshots`, and
+   commit `tests/snapshots` with it: a new figure adds units; no other unit
+   may move. `make test` is then green, the figure having joined
+   `EXPECTED_COLUMNS` (step 1) and `SECTION_FIGURES` (step 3).
 
 ## JavaScript style
 
@@ -547,7 +557,11 @@ change. The diff of `tests/snapshots/` is reviewed like code: it is what a
 visitor will see differently, and a line there that the change did not mean
 to move is a bug. A change that should alter nothing a visitor sees, such
 as a refactoring, leaves the snapshots as they are. Without Chromium
-(`make setup-browser`) the snapshot test skips, saying so.
+(`make setup-browser`) the snapshot test skips, saying so. It needs the
+network, since the pages load Plot from its CDN and the fonts from Google:
+offline it fails, naming each request that failed and its host. A unit is
+named by its card's title, so a retitled card shows as a "new" unit and its
+old one as "no longer shown".
 
 Before committing anything that touches a page: open it at 360 px wide and
 at desktop width, in light and dark mode; check the console is clean; check

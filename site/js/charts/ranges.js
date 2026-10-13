@@ -31,12 +31,13 @@ const ASTERISK_NOTE = "* a shell command, by its purpose";
  * shares, Other last), each in its category's colour, and the asterisk's note in the figure's legend place. It has no
  * series to hide. Its named parameters:
  * - `unitFactor`: the factor from the query's unit to the drawn one, `1 / 1000` for milliseconds drawn in seconds.
- * - `floor`: the smallest value drawn, in the drawn unit; a smaller one is drawn at it, on the log axis.
+ * - `floor`: the smallest value drawn, in the drawn unit; a smaller one is drawn at it, on the log axis; else none.
  * - `xLabel`: the value axis's title.
  * - `valueFormat`: how a value is written in the tooltip; `xTickFormat`: how a power of ten is written on the axis.
+ * Required: `unitFactor`, `xLabel` and `valueFormat`.
  */
 export async function drawRanges(rows, body, colours, parameters) {
-  const { unitFactor, floor, xLabel, valueFormat, xTickFormat } = parameters;
+  const { unitFactor, floor = -Infinity, xLabel, valueFormat, xTickFormat } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const categories = drawnCategories(rows, colours.categories);

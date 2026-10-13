@@ -13,6 +13,10 @@ import re
 import typing
 
 
+class SharedTitleError(Exception):
+    """Two cards of one state share a title, so their units, which are named by title, would share files."""
+
+
 class SessionAddress(typing.NamedTuple):
     """A session the Session page opens: its week's Sunday, and an id, a top-level session's or a subagent's."""
 
@@ -155,9 +159,10 @@ def cards_units(cards) -> dict[str, str]:
     """The units of every card `cards` matches, each card's under its title's name; two cards may not share a title."""
     units = {}
     for card in cards.all():
-        name = unit_name(card.locator(".figure-title").inner_text())
+        title = card.locator(".figure-title").inner_text()
+        name = unit_name(title)
         if f"{name}.texts" in units:
-            raise ValueError(f"two cards are titled {name!r}; their units would share files")
+            raise SharedTitleError(f"two cards are titled {title!r}; their units would share files")
         units.update(figure_units(card, name))
     return units
 

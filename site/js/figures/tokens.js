@@ -13,7 +13,7 @@ import { cdfLegend, drawCdf } from "../charts/cdf.js";
 import { drawStackedBars, stackedBarsLegend, weekTicks } from "../charts/stacked_bars.js";
 import { drawHistogram } from "../charts/histogram.js";
 import { axisWithTicks, decadeDomain, decadeTicks, sparseTickFormat } from "../axes/ticks.js";
-import { ROLE_COLOURS, TOKEN_PART_COLOURS, VIOLET_SLOT } from "../theme/colours.js";
+import { ROLE_COLOURS, TOKEN_PART_COLOUR_MAP, TOKEN_PART_COLOURS, VIOLET_SLOT } from "../theme/colours.js";
 import {
   formatBinaryThousands, formatCompactCount, formatCount, formatCountTick, formatPercent, formatShare,
 } from "../shared/format.js";
@@ -88,7 +88,7 @@ export const FIGURES = Object.freeze([
     query: "figures/token_split_by_week",
     binColumn: "week",
     seriesColumn: "part",
-    legend: (rows) => stackedBarsLegend(rows, new Map(Object.entries(TOKEN_PART_COLOURS)), {
+    legend: (rows) => stackedBarsLegend(rows, TOKEN_PART_COLOUR_MAP, {
       seriesColumn: "part", labels: TOKEN_PART_NAMES,
     }),
     draw: (rows, body, colours, hidden) => drawStackedBars(rows, body, colours, {
@@ -112,7 +112,7 @@ export const FIGURES = Object.freeze([
     drawsLines: true,
     query: "figures/token_growth_by_messages",
     binColumn: "bin_start",
-    legend: () => partsLegend(TOKEN_PART_NAMES, new Map(Object.entries(TOKEN_PART_COLOURS))),
+    legend: () => partsLegend(TOKEN_PART_NAMES, TOKEN_PART_COLOUR_MAP),
     draw: drawTokenGrowth,
   }),
   Object.freeze({

@@ -9,7 +9,7 @@
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE } from "../shared/charts.js";
 import { isNarrowChart, percentTick } from "../axes/ticks.js";
-import { TOOL_GROUP_COLOURS } from "../theme/colours.js";
+import { TOOL_GROUP_COLOUR_MAP } from "../theme/colours.js";
 import { formatPercent, formatShare } from "../shared/format.js";
 import { seriesLegend } from "../shared/series.js";
 import { SCOPE_LABELS, SCOPES } from "./scopes.js";
@@ -42,7 +42,7 @@ export const TOOL_MIX_BY_TURN_POSITION = Object.freeze({
   seriesNouns: Object.freeze({ Agentic: "human-driven calls", "SWE-Bench": "benchmark calls" }),
   seriesColumn: "tool_group",
   legend: (rows, colours, seriesColumn) =>
-    seriesLegend(rows, seriesColumn, new Map(Object.entries(TOOL_GROUP_COLOURS))),
+    seriesLegend(rows, seriesColumn, TOOL_GROUP_COLOUR_MAP),
   draw: drawToolMix,
 });
 

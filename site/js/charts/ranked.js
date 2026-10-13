@@ -20,6 +20,8 @@ const SHARE_DOMAIN = Object.freeze([0, 1]); // the y axis spans a whole share, w
  * colour of `colours.series` (a Map from part to colour), with a tooltip per bin. Its named parameters:
  * - `parts`: each part's column with its label, in the stack's order, bottom up.
  * - `yLabel`: what the shares are of, the value axis's title.
+ * Required: both.
+ * Needs the figure's legend: its colours are `colours.series`.
  */
 export async function drawRanked(rows, body, colours, { parts, yLabel }, hidden) {
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
