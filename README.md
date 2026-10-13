@@ -172,11 +172,10 @@ site/              exactly the files that are deployed
                    user prompt size and the tool mix are listed in the Session-structure and Tools sections), and
                    scopes, the two scopes they compare
   js/session/      the Session page's bucket (a session's rows from its week's bucket, and the category order),
-                   address, agent tree, facts, legends, overlap grouping, token parts and chart frame
+                   address, agent tree, facts, legends, token parts and chart frame
   js/session_requests/  the Requests view: a row per request, its details (each call's programs and argument
-                        skeleton), brackets and legend
-  js/session_charts/    the Context and Timeline views, the series and bars they draw, their range slider and
-                        the Timeline's pointer
+                        skeleton), the brackets that group overlapping requests, and its legend
+  js/session_charts/    the Context and Timeline views, the series and bars they draw, and their range slider
   queries/         one .sql file per chart or table, in one folder per purpose: explore, figures (and two per-model
                    medians only the paper-parity test reads), buckets (the session buckets' tree, requests and tool
                    calls, run per week by make data), setup (the selection tables, the one view, the colour orders)

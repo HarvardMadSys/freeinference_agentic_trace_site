@@ -273,13 +273,10 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
 - `seriesNouns` (optional): when the series count different things, each
   series' name with the plural noun of what it counts; the line of rows then
   gives each count ("84,239 turns · 12,002 sessions").
-- `isSimulation` (optional): true for a figure of the cache simulation, which
-  draws the harnesses the simulation replays (the paper's, and on its own the
-  benchmark replay) in the simulated weeks only; the line of rows names a
-  selected week the simulation does not cover.
-- `isPartlySimulated` (optional): true for a figure drawn from the selection
-  with one column from the cache simulation, as the mutation table's prefill;
-  the line of rows names the selected weeks the simulation does not cover.
+- `isSimulation` (optional): true for a figure that reads the cache
+  simulation, whole (the cost and prefill figures) or for one column (the
+  mutation table's prefill); the line of rows names a week the simulation
+  does not cover.
 - `drawsLines` (optional): true for a figure that draws its series as lines,
   whose legend then shows a short line per series instead of a square.
 - `isWide` (optional): true for a figure whose card takes its section's whole
