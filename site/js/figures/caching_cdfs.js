@@ -1,6 +1,6 @@
 /**
  * The Prefix-caching section's CDF of the hit ratio after a gap of each length: one line per gap bin, the shortest and
- * the longest gaps named on their lines. No other CDF writes a series' name on its line, so this one keeps a plain
+ * the longest gaps named on their lines. No other CDF writes a series' name on its line, so this one has a plain
  * draw, built from the CDF kind's helpers (`charts/cdf.js`); the section's other CDFs are drawn by the kind, in
  * `caching_gaps.js`.
  *

@@ -102,8 +102,7 @@ async function drawToolMix(rows, body, colours) {
     y: { domain: SHARE_DOMAIN },
     color: colourScale(colours.series, groups),
     marks: [
-      // Each panel's title at its own left edge, lifted clear of the share axis's top label; wrapped on a narrow
-      // chart, growing upward, so that the first does not run into the second.
+      // Titles at each panel's left, above the axis's "100%"; on a narrow chart wrapped upward, so the two do not meet.
       Plot.text(scopesOf(rows), {
         fx: (scope) => scope, text: scopeLabel, frameAnchor: "top-left", textAnchor: "start", lineAnchor: "bottom",
         dy: -PANEL_TITLE_RISE / 2, lineWidth: isNarrowChart(frame.width) ? NARROW_TITLE_WIDTH : Infinity,

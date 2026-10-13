@@ -4,7 +4,7 @@
  *
  * Its rows are a bins query's: one bin per row, `bin_start`, `bin_end` and `rows`, how many rows (requests or
  * sessions) fall in it. Its stats query's one row holds `count`, `max` and the percentiles `p50` to `p95`; the kind
- * reads it by name, and `histogramCard` joins the two with the parameters into a card,
+ * reads that query by name, and `histogramCard` joins the two with the parameters into a card,
  * `{ ...parameters, bins, percentiles, count, max }`, which the drawing reads. The count is also the figure's line of
  * rows, which the kind writes.
  */
@@ -81,8 +81,8 @@ export function binsFromRows(rows) {
 }
 
 /**
- * The bins a card's chart draws: every bin on a linear scale; on a log scale only those starting above 0, since a
- * log axis has no place for 0 and an undrawn bin must not stretch the count axis. The line of rows still counts every row.
+ * The bins a card's chart draws: every bin on a linear scale; on a log scale only those starting above 0, since a log
+ * axis has no place for 0 and an undrawn bin must not stretch the count axis. The line of rows still counts every row.
  */
 export function drawableBins(card) {
   return card.logScale ? card.bins.filter((bin) => bin.x0 > 0) : card.bins;

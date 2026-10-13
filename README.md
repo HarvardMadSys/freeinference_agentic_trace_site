@@ -224,6 +224,7 @@ tests/             what make test runs
                    a block of text) read as text and compared with tests/snapshots/
   snapshots/       one folder per page state, one text file per unit, rewritten by make snapshots
   *.test.js        node --test, one file per JavaScript module with pure functions
+  module_headers.test.js    the module headers over ten lines, listed as a warning for review, never failed
 openspec/          the specifications and the changes that built the site
 ```
 

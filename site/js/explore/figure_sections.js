@@ -1,9 +1,8 @@
 /**
- * The figure sections of the Explore page's Insights: the Session-structure, Tokens-and-cost, Latency, Tools,
- * Prefix-caching and Human-driven-against-benchmark figures, each a card in its section's grid, drawn from its query's
- * answer over every week and the paper's harnesses, its thin bins hidden and its line of rows written behind its
- * Definition control. A histogram figure, one that declares a `statsQuery`, is drawn whole by its draw function,
- * which reads that query and writes its own line of rows (`charts/histogram.js`).
+ * The figure sections of the Explore page's Insights (`FIGURE_SECTIONS`): each figure a card in its section's grid,
+ * drawn from its query's answer over every week and the paper's harnesses, its thin bins hidden and its line of rows
+ * written behind its Definition control. A histogram figure, one that declares a `statsQuery`, is drawn whole by its
+ * draw function, which reads that query and writes its own line of rows (`charts/histogram.js`).
  *
  * Only the figures of a shown topic are drawn: a hidden topic's cards have no width to draw a chart at, so its figures
  * start when the topic is shown (`startFigures`). A figure started is not started again, unless its topic was hidden

@@ -4,11 +4,9 @@
  *
  * A filter is `{ month, harness, unknown }`: the chosen month ("YYYY-MM"), or "" for every month; the chosen harness,
  * or "" for every harness, the benchmark's included; and what the URL named that the data do not hold, each in words
- * such as "month 2026-01". A month keeps the sessions whose start, in UTC, falls in that calendar month; the months to
- * choose from are every calendar month from the first week's Sunday to the last week's Saturday. `weeks` below is the
- * array `weeks.json` holds, oldest first: `{ week, last_day, month, simulated }`; `harnesses` is the array
- * `harnesses.json` holds, most sessions first: `{ harness, sessions, benchmark }`. The default filter, every month and
- * every harness, writes no key.
+ * such as "month 2026-01". A month keeps the sessions whose start, in UTC, falls in that calendar month. `weeks` below
+ * is the array `weeks.json` holds, oldest first: `{ week, last_day, month, simulated }`; `harnesses` is the array
+ * `harnesses.json` holds, most sessions first: `{ harness, sessions, benchmark }`.
  */
 
 import { monthName } from "../shared/format.js";

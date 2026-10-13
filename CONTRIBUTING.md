@@ -18,11 +18,18 @@ binding, and `make test` checks the countable ones.
   without aliases; JavaScript uses named imports.
 - **One job per unit.** A function is at most 50 lines, a module at most 300.
   A function that computes two things is split.
-- **Docstrings state definitions; comments explain why.** Every exported
-  function has a one-line docstring (Python) or JSDoc line (JavaScript) that
-  says what it returns. A constant that is a decision gets a name and a
-  one-line comment saying what it decides. Neither refers to history, people
-  or paper figure numbers.
+- **Docstrings state definitions; comments explain why.** A module's header
+  (its docstring in Python, its opening comment in JavaScript) says what the
+  module holds and the shape of what crosses its boundary: the rows it reads,
+  the objects it takes and returns. Every export has a docstring (Python) or
+  JSDoc (JavaScript) that states its definition: what it returns, for which
+  input. A constant that is a decision gets a name and a one-line comment
+  saying what it decides. A comment inside a function says why, in one line.
+  None tells how the code came to be, who did what, or a paper figure number;
+  history is in git. A header over ten lines is a sign to look again, not a
+  failure: `tests/module_headers.test.js` lists each as a warning, and a
+  sentence a first-time reader needs stays, however long the header; none is
+  cut to reach a count.
 - **SQL is a literal.** Every query is one `.sql` file under `site/queries/`.
   No SQL is written in JavaScript, and no query is assembled from strings. A
   query reads the selection from the selection tables and from nothing else:
@@ -231,9 +238,10 @@ query's current text: `make data` records the hash of each query in
 `make data` runs again.
 
 **A pure JavaScript module with its test** (`site/js/shared/format.js`,
-`tests/format.test.js`): exported functions with one-line JSDoc, module-level
-constants with a comment, helpers below the exports, and a `node --test` file
-with one `test()` per behaviour.
+`tests/format.test.js`): a header saying what the module holds, exported
+functions each with a JSDoc stating its definition, module-level constants
+with a comment, helpers below the exports, and a `node --test` file with one
+`test()` per behaviour.
 
 **A Python module with its test** (`site_data/weeks.py`, `tests/test_weeks.py`):
 a module docstring stating the definition, a frozen dataclass for anything

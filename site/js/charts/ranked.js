@@ -4,7 +4,7 @@
  *
  * Its rows are a rank-bin query's: one bin per row, `percentile` (the bin's middle, in percent of the sessions
  * ranked), one column per part holding the bin's mean share of it, and `bin_sessions`, the bin's sessions. The parts
- * are columns, not rows, so the kind leaves out the parts its legend hides itself.
+ * are columns, not rows, so the kind itself leaves out the parts the legend hides.
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE } from "../shared/charts.js";

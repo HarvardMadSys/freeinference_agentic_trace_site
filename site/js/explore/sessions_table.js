@@ -7,9 +7,9 @@
  * `explore/sessions_of_selection`, has arrived, and enables its controls once it has.
  *
  * The answer holds every week's sessions of every harness, and the table filters them itself by month and harness
- * (`explore/sessions_filter.js`). It owns the keys `months` and `harnesses`: it reads them from the URL once, writes them
- * back in that form, and writes them again whenever the visitor changes the filter. A key the table does not read is
- * left as it is.
+ * (`explore/sessions_filter.js`). It owns the keys `months` and `harnesses`: it reads them from the URL once, writes
+ * back the month and harness it kept, and writes them again whenever the visitor changes the filter. A key the table
+ * does not read is left as it is.
  *
  * A section's `context` is what the page gives every section; see `explore/start.js`. This one writes its state
  * with `context.replaceQuery(params)`.

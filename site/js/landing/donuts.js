@@ -1,8 +1,8 @@
 /**
  * The Overview's two donuts, over every harness, the benchmark's included, as the stats strip counts: the model mix,
  * each model's share of the requests (`explore/model_mix`), and the harness mix, each harness's share of the sessions
- * (`explore/sessions_per_week_by_harness`, which the page asks for once and the sessions trend draws too, summed over
- * the weeks).
+ * (`explore/sessions_per_week_by_harness`, summed over the weeks).
+ *
  * A donut names the series that hold the eight colours of its colour order (`setup/model_order`,
  * `setup/harness_order`), in those colours, as the trends colour them, and folds the rest into "Other"; the donut kind
  * (`charts/donut.js`) draws it. Its legend hides and shows a slice (`explore/legend.js`).
