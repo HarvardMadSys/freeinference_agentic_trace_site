@@ -22,27 +22,8 @@ trace files. Rebuilding from the same release SHALL write identical files.
 - **WHEN** the step runs twice on the same release
 - **THEN** the two runs' files SHALL be byte for byte identical
 
-### Requirement: One file per kind of row, ordered by week
-The step SHALL write, for each of the four kinds of row (`requests`,
-`tool_calls`, `sessions`, `simulation`), one Parquet file per week at
-`<kind>/week=<sunday>/rows.parquet`, with `weeks.json`, `harnesses.json`
-and the folder `all_weeks/` beside them. The week SHALL be read from the
-folder name. Each file SHALL be sorted by session, then step where those
-columns exist, in row groups no larger than a named constant, so a query
-filtered by week opens only that week's file and a query filtered by
-session reads only the row groups that hold it. The files SHALL hold every
-session of the release, the benchmark's included.
-
-#### Scenario: Reading one week
-- **WHEN** a query filters `requests` on one week
-- **THEN** DuckDB SHALL open that week's file only
-
-#### Scenario: Fetching one week
-- **WHEN** the browser fetches `requests/week=2026-08-09/rows.parquet`
-- **THEN** it SHALL hold every request of that week's sessions and nothing else
-
 ### Requirement: Requests
-`requests.parquet` SHALL hold one row per request of every session, subagent
+The `requests` frame SHALL hold one row per request of every session, subagent
 sessions included, with these columns:
 - from the release: `session_id, step, start_ms, end_ms, ttft_ms, model,
   provider, step_trigger, waited_for, prompt_tokens, completion_tokens,
@@ -82,7 +63,7 @@ requests apart, and a subagent's request SHALL have none.
 - **THEN** its `missed_tokens_no_ttl` SHALL be 1500
 
 ### Requirement: Tool calls
-`tool_calls.parquet` SHALL hold one row per tool call with `session_id,
+The `tool_calls` frame SHALL hold one row per tool call with `session_id,
 step, call_index, name, category, programs, arguments_skeleton, outcome,
 result_tokens, latency_ms, harness, is_top_level, root_session_id`.
 `programs` SHALL be the release's list of program labels, in the command's
@@ -92,14 +73,14 @@ its type.
 
 #### Scenario: A call joins its request
 - **WHEN** a tool call has `session_id` S and `step` 4
-- **THEN** exactly one row of `requests` SHALL have `session_id` S and `step` 4 in the same week's file
+- **THEN** exactly one row of `requests` SHALL have `session_id` S and `step` 4 in the same week
 
 #### Scenario: A native call
 - **WHEN** a tool call is not a shell call
 - **THEN** its `programs` SHALL be null and its `arguments_skeleton` SHALL still be kept
 
 ### Requirement: Sessions
-`sessions.parquet` SHALL hold one row per session, subagents included, with
+The `sessions` frame SHALL hold one row per session, subagents included, with
 `session_id, harness, parent_session_id, spawned_by_step,
 root_session_id, depth, user_id`, and per session, counting its own requests
 only: `requests, user_steps, tool_steps, tool_calls, first_start_ms,
@@ -118,18 +99,18 @@ at every depth) and `subagent_requests` (their requests).
 - **THEN** their count and token sums SHALL equal the session's `requests`, `input_tokens`, `cached_tokens` and `output_tokens`
 
 ### Requirement: Simulation tallies
-`simulation.parquet` SHALL hold the cache simulation's per-week tallies of
+The `simulation` frame SHALL hold the cache simulation's per-week tallies of
 both scopes, the paper's Agentic population and the benchmark's, under the
 TTL-only policy unchanged: `scope, ttl, hit_tokens, miss_tokens,
 reusable_token_seconds, dead_token_seconds`, and the scope's
-`active_token_seconds`, `span_seconds` and `output_tokens` from the week's
+`span_seconds` and `output_tokens` from the week's
 totals. It SHALL NOT hold the other eviction policies. A week the
-simulation has not yet covered SHALL have no file, and `weeks.json` SHALL
+simulation has not yet covered SHALL contribute no rows, and `weeks.json` SHALL
 say so.
 
 #### Scenario: A week without a simulation
 - **WHEN** the simulation folder has no folder for week W
-- **THEN** `weeks.json` SHALL mark W as not simulated, and the step SHALL still write the other files
+- **THEN** `weeks.json` SHALL mark W as not simulated, and the step SHALL still write every answer and bucket
 
 #### Scenario: The span
 - **WHEN** week W's totals give the Agentic scope a span of S seconds
@@ -138,29 +119,32 @@ say so.
 ### Requirement: Weeks index
 `weeks.json` SHALL list every week, oldest first, as `{week, last_day,
 month, simulated}`, where `month` (`YYYY-MM`) is the month of the week's
-Sunday. It SHALL be small enough to load before DuckDB.
+Sunday. Every page SHALL read it; the Explore page before any answer.
 
 #### Scenario: A week that spans two months
 - **WHEN** a week runs from 2026-05-31 to 2026-06-06
 - **THEN** its `month` SHALL be `2026-05`
 
 ### Requirement: Size and contents
-The data folder SHALL hold only the columns above, the two indexes, the
+The data folder SHALL hold only the two indexes, the
 precomputed answers and the session buckets with their indexes, nothing
-from the trace files, and no file larger than 25 MiB. The step SHALL
-print each kind's rows and size over every week, the answers folder's
-size, and the buckets' count and size.
+from the trace files and no row file, and no file larger than 25 MiB. The step SHALL
+print the answers' files and size, and the buckets' count and size.
 
 #### Scenario: Publishing what the release publishes
 - **WHEN** the data folder is compared with the release
 - **THEN** every value in it SHALL be a release value or computed only from release values
 
+#### Scenario: No row file
+- **WHEN** `make data` has run
+- **THEN** `site/data` SHALL hold no `.parquet` file
+
 ### Requirement: Harness index
 `harnesses.json` SHALL list every harness of the release, most sessions
 first, as `{harness, sessions, benchmark}`, where `sessions` counts its
 top-level sessions over every week and `benchmark` is whether the pipeline's
-population puts it in the benchmark scope. It SHALL be small enough to load
-before DuckDB.
+population puts it in the benchmark scope. The Explore page SHALL read it, with
+`weeks.json`, before any answer.
 
 #### Scenario: The benchmark harness
 - **WHEN** the release holds `eval:swe-bench` sessions
@@ -168,13 +152,16 @@ before DuckDB.
 
 ### Requirement: Precomputed answers for the default selection
 `make data` SHALL run every query under `queries/explore/` and
-`queries/figures/`, and the colour orders under `queries/setup/`, once
+`queries/figures/`, and the colour orders under `queries/setup/`, over
+the release's rows held as frames in memory, once
 with every week and every non-benchmark harness in the selection tables,
 and write each answer as `site/data/all_weeks/<page>/<query>.json`, with
-the hash of each query's text in `all_weeks/queries.json`. The sessions
-table's answer SHALL be the one exception: it SHALL hold every harness's
-top-level sessions, the benchmark's marked, so the table can be filtered
-to any harness in the browser. The step SHALL print the answers' files and
+the hash of each query's text in `all_weeks/queries.json`. The Explore
+queries (the Overview's mixes and trends, the sessions table's, its
+first page's and the trace totals') SHALL be answered with every
+harness, the benchmark's marked in the table's answer, so the table can
+be filtered to any harness in the browser. Every query under
+`queries/explore/` SHALL be read by a page. The step SHALL print the answers' files and
 size, and the Explore page SHALL draw from the answers alone.
 
 #### Scenario: An answer equals the live query
@@ -193,16 +180,24 @@ size, and the Explore page SHALL draw from the answers alone.
 - **WHEN** the sessions-table answer is written
 - **THEN** it SHALL hold the benchmark harness's sessions with `benchmark` true, and the other harnesses' with it false
 
+#### Scenario: A week without a simulation
+- **WHEN** a release week has no simulation rows
+- **THEN** the simulated answers SHALL still be written, from the other weeks' rows
+
 ### Requirement: Session buckets
 `make data` SHALL write, for each week, the rows of every top-level
 session and its subagents into `session_buckets/<week>/<xx>.json.gz`,
 `xx` the first two characters of the top-level session id, as an object
-from top-level id to `{tree, requests, tool_calls}` in the answers'
-column-and-rows shape, the columns those of `queries/buckets/`; and
+from top-level id to `{tree, requests, tool_calls}`, each part
+`{columns, rows}` with the columns of its query under `queries/buckets/`
+less `root_session_id` (the key) and each row its values in column
+order; and
 `session_buckets/<week>/index.json.gz` from every session id of the week,
-subagents included, to its top-level id. Both SHALL be gzipped with a
-fixed modification time, so that a rebuild of the same rows writes the
-same bytes. A prefix only subagents' ids start with SHALL have an empty
+subagents included, to its top-level id. Both SHALL be written with
+sorted keys, the queries' row order and a gzip header without a time, so
+that a rebuild of the same rows writes the
+same bytes; `site_data/buckets.py`'s docstring is the format's one
+statement. A prefix only subagents' ids start with SHALL have an empty
 bucket; a prefix no session id of the week starts with SHALL have no
 file. The
 bucket queries SHALL be hashed in `queries.json` as the answers' are. The

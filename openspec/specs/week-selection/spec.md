@@ -51,15 +51,15 @@ totals'), and `benchmark_harness` from
 tables and from nothing else. For the session buckets it SHALL fill
 `selected_weeks` with one week at a time. The Explore page SHALL answer
 every query from `data/all_weeks/`, and the Session page SHALL read its
-session from a bucket; while the figures are frozen, the browser SHALL
-fill no selection table.
+session from a bucket; the browser SHALL fill no selection table and run
+no query.
 
 #### Scenario: The default selection
 - **WHEN** `make data` answers a figure query
 - **THEN** it SHALL have run with every week and every non-benchmark harness in the selection tables
 
 #### Scenario: Changing the selection
-- **WHEN** the visitor unticks one month in the sessions table's filter
+- **WHEN** the visitor picks one month in the sessions table's drop-down
 - **THEN** the table SHALL filter its answer's rows in the browser, no selection table SHALL be filled and no query SHALL run
 
 #### Scenario: The Session page
