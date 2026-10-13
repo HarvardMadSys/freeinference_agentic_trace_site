@@ -5,22 +5,18 @@
 
 import { URLS } from "../shared/layout.js";
 
-// The paper's authors in its order, each with their affiliation, short so the five fit one row, and, where they have
-// one, their page.
+// The paper's authors in its order, each with their affiliation, short so the five fit one row.
 const AUTHORS = Object.freeze([
-  Object.freeze({
-    name: "William Nixon", affiliation: "UChicago & Harvard",
-    url: "https://williamnixon20.github.io/",
-  }),
-  Object.freeze({ name: "Muxin Tian", affiliation: "Toronto", url: null }),
-  Object.freeze({ name: "Yunjia Zheng", affiliation: "Harvard", url: null }),
-  Object.freeze({ name: "Haryadi S. Gunawi", affiliation: "UChicago", url: null }),
-  Object.freeze({ name: "Juncheng Yang", affiliation: "Harvard", url: "https://juncheng.seas.harvard.edu/" }),
+  Object.freeze({ name: "William Nixon", affiliation: "UChicago & Harvard" }),
+  Object.freeze({ name: "Muxin Tian", affiliation: "Toronto" }),
+  Object.freeze({ name: "Yunjia Zheng", affiliation: "Harvard" }),
+  Object.freeze({ name: "Haryadi S. Gunawi", affiliation: "UChicago" }),
+  Object.freeze({ name: "Juncheng Yang", affiliation: "Harvard" }),
 ]);
 
 /** Fill `container` with the Team section's content: its heading and the authors. */
 export function renderTeam(container) {
-  const authors = AUTHORS.map((author) => `<li>${authorName(author)}<span>${author.affiliation}</span></li>`);
+  const authors = AUTHORS.map((author) => `<li><strong>${author.name}</strong><span>${author.affiliation}</span></li>`);
   container.innerHTML = `
     <div class="team-heading">
       <div>
@@ -32,8 +28,3 @@ export function renderTeam(container) {
     <ul class="team-list">${authors.join("")}</ul>`;
 }
 
-// An author's name in bold, linking to their page where they have one.
-function authorName(author) {
-  const name = `<strong>${author.name}</strong>`;
-  return author.url === null ? name : `<a href="${author.url}" target="_blank" rel="noopener">${name}</a>`;
-}
