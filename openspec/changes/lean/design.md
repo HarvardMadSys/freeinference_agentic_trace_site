@@ -47,8 +47,9 @@ visitor sees no change. `shared/charts.js` keeps the frame, the tooltip
 style, the colour scale and the width; `axes/ticks.js` stays.
 
 ## 3. One URL format
-`sessions_filter.js` reads and writes `months`, `harnesses`, `model`,
-`min`, `search`, `sort`, `page` only; `weeks=`, `month=`, `scope=`,
+The sessions table reads and writes `months`, `harnesses`, `model`,
+`min_requests`, `search`, `sort`, `direction`, `page` only, and leaves
+any other key as it is; `weeks=`, `month=`, `scope=`,
 `weeks=all`, the unknown-week note and the old anchors' redirect in the
 Overview go, with their tests. A key the data cannot satisfy is
 ignored, as today.

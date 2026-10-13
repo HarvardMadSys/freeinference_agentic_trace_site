@@ -123,10 +123,12 @@ at most nine modules; `make test` counts them.
 - The Session page imports nothing from `shared/answers.js`, and
   `tests/test_repository.py` checks it; how it reads a session is below.
 - The URL keys `months` and `harnesses` belong
-  to the session list: `explore/sessions_filter.js` reads them (and the
-  older `weeks`, `month`, `scope` and `harness`), filters the list's answer,
-  which holds every harness's sessions, and writes them back; they reach
-  nothing else.
+  to the session list: `explore/sessions_filter.js` reads them, filters the
+  list's answer, which holds every harness's sessions, and writes them back;
+  they reach nothing else. With the table's own `search`, `model`,
+  `min_requests`, `sort`, `direction` and `page`
+  (`explore/sessions_table_state.js`) they are the only keys the table
+  reads; any other key is left as it is.
 - A figure is a figure entry (below), listed in its section's module, in the
   page's order: `js/figures/sessions.js` (Session structure), `tokens.js` (Tokens and
   cost), `latency.js` (Latency), `tools.js` (Tools), `caching.js` (Prefix

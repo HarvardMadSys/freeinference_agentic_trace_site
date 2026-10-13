@@ -43,8 +43,7 @@ The month and harness drop-downs choose one of each, and the URL holds them
 as `months` and `harnesses` (`?months=2026-07&harnesses=codex`), so a
 filtered list can be shared as a link; the default, every month and every
 harness, writes no key, and the keys change no figure. A key naming several
-keeps its first; older links' `weeks`, `month`, `scope` and `harness` are
-read as the filter and rewritten.
+keeps its first, and a key the list does not read is left as it is.
 
 The Session page runs no query either. `make data` writes every week's
 sessions into gzipped JSON buckets, the top-level sessions whose ids share

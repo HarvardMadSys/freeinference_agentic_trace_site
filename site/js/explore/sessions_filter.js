@@ -1,6 +1,6 @@
 /**
- * The sessions table's filter by month and harness: the URL keys `months` and `harnesses` that hold it, the keys of
- * older links read as it, the rows it keeps, and the choices of the month and harness drop-downs that change it.
+ * The sessions table's filter by month and harness: the URL keys `months` and `harnesses` that hold it, the rows it
+ * keeps, and the choices of the month and harness drop-downs that change it.
  *
  * A filter is `{ month, harness, unknown }`: the chosen month ("YYYY-MM"), or "" for every month; the chosen harness,
  * or "" for every harness, the benchmark's included; and what the URL named that the data do not hold, each in words
@@ -18,13 +18,6 @@ import { harnessText, setOrDelete } from "./sessions_table_state.js";
 const MONTHS_KEY = "months";
 const HARNESSES_KEY = "harnesses";
 
-// Keys of older links, read as the filter and removed when it is written: `month` names one month, `weeks` the weeks
-// whose months are meant (`all` for every month), `scope` is read as the default, `harness` names one harness.
-const OLDER_KEYS = Object.freeze(["month", "weeks", "scope", "harness"]);
-
-// A value of the older key `weeks` that names every week, and so every month.
-const EVERY_WEEK_VALUE = "all";
-
 // The length of a month's name in a date, "2026-07" of "2026-07-05": the month a date or a timestamp falls in.
 const MONTH_LENGTH = "YYYY-MM".length;
 
@@ -35,17 +28,15 @@ const EVERY_MONTH_TEXT = "All months";
 const EVERY_HARNESS_TEXT = "All harnesses";
 
 /**
- * The filter the URL names, older keys included. A key naming several months or harnesses keeps the first the data
- * hold; with none known, every month or every harness. A `months` key wins over `month`, which wins over `weeks`.
+ * The filter the URL's `months` and `harnesses` name. A key naming several months or harnesses keeps the first the
+ * data hold; with none known, every month or every harness.
  */
 export function readTableFilter(params, weeks, harnesses) {
   const everyMonth = monthsOf(weeks);
-  const namedMonths = requestedMonths(params, weeks);
+  const namedMonths = namesIn(params.get(MONTHS_KEY) ?? "");
   const everyHarness = harnesses.map((entry) => entry.harness);
-  const namedHarnesses = requestedHarnesses(params);
-  const knownSundays = weeks.map((entry) => entry.week);
+  const namedHarnesses = namesIn(params.get(HARNESSES_KEY) ?? "");
   const unknown = [
-    ...unknownWords("week", olderWeeks(params), knownSundays),
     ...unknownWords("month", namedMonths, everyMonth),
     ...unknownWords("harness", namedHarnesses, everyHarness),
   ];
@@ -53,14 +44,11 @@ export function readTableFilter(params, weeks, harnesses) {
 }
 
 /**
- * A copy of `params` with `filter` written, the older keys removed and every other key untouched; a key already there
- * keeps its place. Every month writes no `months`, every harness no `harnesses`.
+ * A copy of `params` with `filter` written and every other key untouched; a key already there keeps its place. Every
+ * month writes no `months`, every harness no `harnesses`.
  */
 export function writeTableFilter(params, filter) {
   const written = new URLSearchParams(params);
-  for (const key of OLDER_KEYS) {
-    written.delete(key);
-  }
   setOrDelete(written, MONTHS_KEY, filter.month, "");
   setOrDelete(written, HARNESSES_KEY, filter.harness, "");
   return written;
@@ -137,35 +125,6 @@ function nextMonth(month) {
 /** The first of `named` that `known` holds, or "" when it holds none. */
 function firstKnown(named, known) {
   return named.find((name) => known.includes(name)) ?? "";
-}
-
-/** The months the URL asks for: those `months` or `month` names, or the months of the known weeks `weeks` names. */
-function requestedMonths(params, weeks) {
-  if (params.has(MONTHS_KEY)) {
-    return namesIn(params.get(MONTHS_KEY));
-  }
-  if (params.has("month")) {
-    return namesIn(params.get("month"));
-  }
-  const sundays = olderWeeks(params);
-  return monthsOf(weeks.filter((entry) => sundays.includes(entry.week)));
-}
-
-/** The Sundays an older `weeks` key names when no `months` or `month` key is read instead; none for `weeks=all`. */
-function olderWeeks(params) {
-  const value = params.get("weeks");
-  if (params.has(MONTHS_KEY) || params.has("month") || value === null || value === EVERY_WEEK_VALUE) {
-    return [];
-  }
-  return namesIn(value);
-}
-
-/** The harnesses the URL asks for: those `harnesses` names, or the one an older `harness` key names. */
-function requestedHarnesses(params) {
-  if (params.has(HARNESSES_KEY)) {
-    return namesIn(params.get(HARNESSES_KEY));
-  }
-  return namesIn(params.get("harness") ?? "");
 }
 
 /** The comma-separated names of a URL value, each trimmed, empty ones dropped. */
