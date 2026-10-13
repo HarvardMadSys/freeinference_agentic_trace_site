@@ -193,7 +193,7 @@ def test_without_a_simulated_week_every_query_has_an_answer(tmp_path: pathlib.Pa
                              "--out", str(tmp_path / "data")])
     assert written_files(tmp_path / "data") == answers_folder_files(site_data.answers.answered_query_names())
     for name in SIMULATION_QUERIES:
-        assert isinstance(read_answer(tmp_path / "data", name), list), name
+        assert read_answer(tmp_path / "data", name) == [], name
     assert site_data.check_answers.stale_queries(tmp_path / "data") == []
 
 

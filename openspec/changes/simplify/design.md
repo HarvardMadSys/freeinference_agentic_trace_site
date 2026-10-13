@@ -94,7 +94,8 @@ no query reads (`requests.idle_gap_s`, `simulation.active_token_seconds`);
 the bucket columns no view reads (`n_tool_calls`, `main_model`,
 `user_id`, `call_index` in the SELECT). The figure queries
 `ttft_median_by_model` and `decode_median_by_model` stay: parity reads
-them.
+them. `requests.idle_gap_s` stays too: `idle_gap_bin` is computed from it,
+and the hand-counted gap tests read it.
 
 The parity tests read `site/data/all_weeks/<query>.json` into a frame
 instead of running the query live; the `selected_database` and scope

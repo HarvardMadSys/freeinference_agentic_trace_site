@@ -98,8 +98,3 @@ def query_rows(connection: duckdb.DuckDBPyConnection, name: str) -> QueryRows:
     result = connection.execute(statement_text(name))
     columns = [column[0] for column in result.description]
     return QueryRows(columns=columns, rows=[list(row) for row in result.fetchall()])
-
-
-def run_query(connection: duckdb.DuckDBPyConnection, name: str) -> pandas.DataFrame:
-    """The rows of the query `name`, as a frame with the query's columns."""
-    return connection.execute(statement_text(name)).df()

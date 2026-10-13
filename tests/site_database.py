@@ -1,5 +1,5 @@
 """The site's database for the tests: `site_data.site_database`, which sets the database up as the data step does,
-under the names the tests use, and the list of every query outside `setup/`.
+under the names the tests use, a query's rows as a frame, and the list of every query outside `setup/`.
 
 A test opens the database over the fixture's frames, fills the selection
 tables and runs a query by name, exactly as the data step runs it; or, for a
@@ -7,6 +7,7 @@ case the fixture does not hold, over a few rows of its own.
 """
 
 import duckdb
+import pandas
 import pyarrow
 
 import site_data.site_database
@@ -20,7 +21,11 @@ BENCHMARK_TABLE_STATEMENT = site_data.site_database.BENCHMARK_TABLE_STATEMENT
 open_site_database = site_data.site_database.open_site_database
 statement_text = site_data.site_database.statement_text
 select_weeks = site_data.site_database.select_weeks
-run_query = site_data.site_database.run_query
+
+
+def run_query(connection: duckdb.DuckDBPyConnection, name: str) -> pandas.DataFrame:
+    """The rows of the query `name`, as a frame with the query's columns."""
+    return connection.execute(statement_text(name)).df()
 
 
 def query_names() -> list[str]:

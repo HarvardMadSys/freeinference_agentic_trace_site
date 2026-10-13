@@ -51,6 +51,8 @@ REQUEST_KEY = ["week", "session_id", "step"]  # the columns a request shares wit
 def requests_frame(release: loading.WeekTaggedRelease, request_misses: pandas.DataFrame) -> pandas.DataFrame:
     """The site's requests, in week, session and step order; `request_misses` are the simulation's per-request misses
     of the simulated weeks, each row with its `week` (`simulation.request_misses_frame`)."""
+    # Oldest week first, as every frame is: the queries add floats in the frames' row order, so this order fixes an
+    # answer's last bits.
     requests = release.requests.sort_values(["week", "session_id", "step"], ignore_index=True)
     requests = with_sessions(requests, release.sessions)
     requests["turn"] = turns.turn_numbers(requests)

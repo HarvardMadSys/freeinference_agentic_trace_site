@@ -43,7 +43,7 @@ def test_each_table_holds_the_rows_of_every_week_and_the_simulation_those_of_the
     assert connection.table("simulation").df().week.unique().tolist() == [FIRST_SUNDAY]  # the one simulated week
 
 
-def test_the_benchmark_session_s_rows_are_in_the_views(connection: duckdb.DuckDBPyConnection) -> None:
+def test_the_benchmark_session_s_rows_are_in_the_tables(connection: duckdb.DuckDBPyConnection) -> None:
     requests = connection.table("requests").df()
     assert requests[requests.session_id == "swe-bench"].harness.tolist() == ["eval:swe-bench"] * 2
     sessions = connection.table("sessions").df()
