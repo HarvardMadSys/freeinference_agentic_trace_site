@@ -39,8 +39,9 @@ filter and link stays as it is. The change is to what is behind them.
 - **Tooling.** `make serve` is Python's own HTTP server, since no page
   reads byte ranges; the `check-answers` command goes, the test that
   does the same stays; the deploy check asks for a bucket index.
-- **The specs are squashed** into three files that describe the site as
-  it is, and the archived changes leave the tree: git history keeps them.
+- **The specs' drift is fixed** where this change touches them; the
+  squash into three files and the archive's removal follow in the change
+  `lean`.
 
 ## Before and after
 | | Now | After |
@@ -59,8 +60,9 @@ filter and link stays as it is. The change is to what is behind them.
 1. The browser query path and the Parquet row files go. Recomputing
    figures in the browser would be a new change; the dataset's rows stay
    on Hugging Face and in the pipeline repository.
-2. The archived changes leave the tree; git history keeps them.
-3. The specs are squashed into three files.
+2. The archived changes leave the tree; git history keeps them (done in
+   `lean`).
+3. The specs are squashed into three files (done in `lean`).
 4. Git history is not rewritten: the row files already pushed stay in
    the pack.
 
@@ -69,7 +71,7 @@ filter and link stays as it is. The change is to what is behind them.
   built data, tests), `site-data` (no row files; answers from frames;
   what the folder holds), `explore-page` (the headline numbers'
   population), `week-selection` (the browser fills no table). Then the
-  squash, by hand, after this change is archived.
+  squash and the archive's removal, in `lean`.
 - Code: about 1,700 lines of JavaScript, 90 of CSS, 400 of Python and
   SQL, 1,300 of tests, 300 of docs and 7,000 lines of archived specs
   removed; four to eight modules fewer.

@@ -168,15 +168,10 @@ headings; the `check_answers` CLI tests; the doc-equality test in
   newest week's `session_buckets/<week>/index.json.gz`.
 
 ## 6. The specs
-After this change is archived, by hand in one commit: the five spec
-files become three, `site` (repository, data, deployment, look),
-`explore-page` and `session-page`, each requirement moved verbatim,
-`week-selection`'s one live requirement folded into the sessions table,
-the rules that restate CONTRIBUTING dropped, the drift fixed (the
-site-data purpose, "reads its week's files whole", the headline
-scenario, "unticks one month", the About page in a title).
-`openspec/changes/archive/` is deleted: git history holds every change.
-`openspec validate --specs --strict` passes.
+This change's deltas fix the drift they touch. The squash into three
+files and the archive's removal are the last task of the change `lean`,
+which follows this one, so that its deltas can be written against the
+specs as they are now.
 
 ## 7. What is not done
 No rewrite of git history: the 83 MB of Parquet already pushed stays in

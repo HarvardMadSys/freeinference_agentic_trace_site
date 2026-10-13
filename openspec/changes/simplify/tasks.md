@@ -12,4 +12,4 @@ starts. A final whole-branch review closes.
 - [ ] 3.2 One caller, one form in the explore and shared modules (design §3: the dropped options, the table, the section hook, `TIP_STYLE`). Done likewise, with the two tooltip screenshots.
 - [ ] 4.1 Tests that test behaviour (design §4). Done when every listed test is removed or reduced and `make test` is green.
 - [ ] 5.1 Docs and tooling (design §5). Done when each fact named there is written once, `serve.py` and `check_answers.py` are gone, and `make serve`, `make test`, `make data --help`-level commands in README all work as written.
-- [ ] 6.1 The whole-branch review and its fixes, then merge. After archiving, by hand in one commit: the spec squash and the archive's removal (design §6), `openspec validate --specs --strict` green.
+- [ ] 6.1 The whole-branch review and its fixes, then merge and archive.
