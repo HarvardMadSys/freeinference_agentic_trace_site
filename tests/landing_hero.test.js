@@ -10,9 +10,10 @@ test("the lede's first words count the weeks in digits, one week in the singular
   assert.equal(weekCountText(null), "Weeks");
 });
 
-test("the hero's five buttons and the lab's name lead to their addresses", () => {
+test("the title is the page's h1, the hero section's label, and the five buttons and the lab's name lead to their addresses", () => {
   const container = { innerHTML: "" };
   renderHero(container, 16);
+  assert.match(container.innerHTML, /<h1 id="hero-title">FreeInference <em>Agentic Dataset<\/em><\/h1>/);
   const buttons = [...container.innerHTML.matchAll(/<a class="button[^"]*" href="([^"]*)"[^>]*>([^<]*)<\/a>/g)];
   assert.deepEqual(buttons.map((match) => [match[2], match[1]]), [
     ["Session Explorer", "#sessions"],

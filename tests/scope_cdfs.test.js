@@ -33,7 +33,7 @@ test("the ratio of the medians is written with one decimal, and only while both 
 });
 
 test("a scope CDF's legend lists the scopes of the rows, human-driven first, in their colours", () => {
-  const legend = scopeLegend(ROWS, {}, "series");
+  const legend = scopeLegend([...ROWS].reverse(), {}, "series");
   assert.deepEqual(legend.series, [
     { name: "Agentic", label: "Human-driven" }, { name: "SWE-Bench", label: "Benchmark" },
   ]);

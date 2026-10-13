@@ -25,6 +25,7 @@ function fakePage(text) {
 
 test("the BibTeX entry links the paper's address, and its copy button starts hidden, naming the block it copies", () => {
   const page = readFileSync(EXPLORE_PAGE, "utf8");
+  assert.match(page, /<pre id="bibtex">/);
   assert.ok(page.includes(`howpublished = {\\url{${URLS.paper}}}`), "the entry links the paper");
   assert.match(page, /<button class="cite-copy" type="button" data-copy="bibtex" hidden>Copy<\/button>/);
 });
