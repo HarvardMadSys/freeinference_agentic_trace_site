@@ -2,7 +2,7 @@
  * The weekly trends: top-level sessions per week stacked by harness, their requests per week stacked by model, and
  * their input tokens per week split by whether the provider reports cache reads, over every week. Each chart's legend
  * is a row of buttons that hide and show its series (`explore/legend.js`). Each chart is a card of its own, laid out as
- * the figure cards, and drawn by the week-bars kind (`charts/week_bars.js`).
+ * the figure cards, and drawn by the stacked-bars kind (`charts/stacked_bars.js`).
  *
  * A section's `context` is what the page gives every section; see `explore/start.js`.
  */
@@ -12,7 +12,7 @@ import { readAnswer } from "../shared/answers.js";
 import { barColours, HARNESS_FIRST_SLOT, OTHER_SERIES, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { formatCompactCount, formatCount, formatCountTick, formatQuantity } from "../shared/format.js";
 import { TOKEN_PART_NAMES } from "../session/token_parts.js";
-import { drawWeekBars, weekBarsLegend } from "../charts/week_bars.js";
+import { drawStackedBars, stackedBarsLegend } from "../charts/stacked_bars.js";
 import { drawWithLegend } from "./legend.js";
 import { harnessText } from "./sessions_table_state.js";
 
@@ -140,7 +140,7 @@ async function drawInputTokensPerWeek(place, context) {
  */
 async function drawTrend(body, rows, context, trend) {
   const { seriesColumn, valueColumn, colours, labels, legendTopDown = false } = trend;
-  const legend = weekBarsLegend(rows, colours, { seriesColumn, valueColumn, labels });
+  const legend = stackedBarsLegend(rows, colours, { xColumn: "week", seriesColumn, valueColumn, labels });
   if (legendTopDown) {
     legend.series.reverse();
   }
@@ -150,7 +150,8 @@ async function drawTrend(body, rows, context, trend) {
 // Draw a trend's bars of the series not in `hidden`, with no y-axis title, since the card's title names what the bars
 // count, and name the chart.
 async function drawTrendBars(rows, body, context, trend, hidden) {
-  await drawWeekBars(rows, body, { series: trend.colours }, {
+  await drawStackedBars(rows, body, { series: trend.colours }, {
+    xColumn: "week",
     seriesColumn: trend.seriesColumn,
     valueColumn: trend.valueColumn,
     valueLabel: trend.valueLabel,

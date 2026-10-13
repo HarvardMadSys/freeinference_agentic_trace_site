@@ -1,6 +1,7 @@
 /**
  * The CDF drawing of the CDF figures not yet drawn by the CDF kind (`charts/cdf.js`): one line per series of the share
  * of rows at or below each value, a dashed rule at the median, and, where asked, a series' label written on its line.
+ * Its only users are the Prefix-caching figures' CDFs, in `figures/caching_gaps.js`.
  */
 
 import {

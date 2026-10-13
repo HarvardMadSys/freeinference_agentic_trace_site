@@ -1,18 +1,11 @@
 /**
- * What every chart shares: its frame and ink, folding series past the eighth into "Other", loading and error states,
- * the figure card and its places, and the bar drawing; the chart kinds are in `js/charts/`. The colours a chart draws
- * in come from `theme/colours.js`. The drawing functions load Plot themselves; the rest is plain functions, tested with `node --test`.
+ * What every chart shares: its frame and ink, thin bins, loading and error states, and the figure card and its places;
+ * the chart kinds are in `js/charts/`. The colours a chart draws in come from `theme/colours.js`. Its functions
+ * that need no page are tested with `node --test`.
  */
-
-import { OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
-import { formatCount } from "./format.js";
-import { TICK_COUNT } from "../axes/ticks.js";
 
 /** A bin, category or model with fewer rows than this is not drawn: too few rows to show a shape. */
 export const MIN_ROWS_PER_BIN = 50;
-
-// Joins a bar's x value and series name into one key when summing folded rows.
-const KEY_SEPARATOR = "\u0000";
 
 /** Every chart's height, so a grid of figures lines up. */
 export const CHART_HEIGHT = 240;
@@ -38,7 +31,6 @@ const PLOT_STYLE = Object.freeze({
   color: "var(--chart-label)", background: "transparent", fontFamily: "var(--font-sans)",
 });
 const PLOT_MARGINS = Object.freeze({ marginTop: 32, marginRight: 32, marginBottom: 48, marginLeft: 72 });
-const UNTITLED_MARGIN_TOP = 12; // pixels above a chart whose y axis has no title: room for half its top tick's label
 /** The options of every chart's grid lines. */
 export const GRID_STYLE = Object.freeze({ stroke: "var(--chart-grid)", strokeOpacity: 1 });
 /** The options of every chart's axes and reference rules: the axis ink, and an axis title with no arrow. */
@@ -60,28 +52,6 @@ export function chartFrame(body) {
 export function categoryRowsFrame(body, categoryCount) {
   const height = categoryCount * CATEGORY_ROW_HEIGHT + CATEGORY_MARGINS_Y;
   return { ...chartFrame(body), height, marginTop: CATEGORY_MARGIN_TOP, marginLeft: CATEGORY_MARGIN_LEFT };
-}
-
-/** A copy of `rows` with `row[key]` replaced by "Other" where it is not among the first eight distinct `names`. */
-export function foldToOther(rows, key, names) {
-  const named = distinct(names).slice(0, SERIES_SLOTS.length);
-  return rows.map((row) => (named.includes(row[key]) ? row : { ...row, [key]: OTHER_NAME }));
-}
-
-/** The rows with every row sharing `row[x]` and `row[fill]` summed into one on `row[y]`, in order of first appearance. */
-export function sumFolded(rows, { x, y, fill }) {
-  const sums = new Map();
-  for (const row of rows) {
-    // Two rows belong together when both their bar and their series match; the separator cannot occur in either.
-    const barAndSeries = `${row[x]}${KEY_SEPARATOR}${row[fill]}`;
-    const sum = sums.get(barAndSeries);
-    if (sum === undefined) {
-      sums.set(barAndSeries, { ...row });
-    } else {
-      sum[y] += row[y];
-    }
-  }
-  return [...sums.values()];
 }
 
 /** `{ rows, hidden }`: the rows whose `row[countKey]` is at least `MIN_ROWS_PER_BIN`, and how many rows were dropped. */
@@ -187,48 +157,6 @@ export function rowsPlace(body) {
   return body.closest(".figure").querySelector(".figure-rows");
 }
 
-/**
- * Draw into `body` one stacked bar per x value of `rows`: `row[x]` along the axis, `row[y]` the height of its segment,
- * coloured by `row[fill]` in its colour from `colours`, a Map from each fill value to its colour, in the order the
- * segments stack, bottom up. The caller folds series past the eighth into "Other" (`foldToOther`, `sumFolded`) before
- * calling. `format` writes a y value in the tooltip and, unless `yTickFormat` is given, on the axis; `yLabel` names a y
- * value in the tooltip and, unless `yAxisLabel` is given (null for none), titles the axis; `xTickFormat`, when given,
- * writes the x axis's ticks; `xDomain`, when given, lists every x value in order, so one with no rows keeps its place;
- * `margins`, when given, are Plot margins in place of the frame's.
- */
-export async function drawBars(body, rows, options) {
-  const { x, y, fill, colours, xLabel, yLabel, format = formatCount } = options;
-  const { xTickFormat, xDomain, yTickFormat = format, yAxisLabel = yLabel } = options;
-  // Plot is loaded here, not at the top, so node can test this module's pure functions.
-  const { Plot } = await import("./libraries.js");
-  const shown = [...colours.keys()].filter((name) => rows.some((row) => row[fill] === name));
-  const frame = { ...chartFrame(body), ...options.margins };
-  if (yAxisLabel === null) {
-    frame.marginTop = UNTITLED_MARGIN_TOP;
-  }
-  const chart = Plot.plot({
-    ...frame,
-    x: { type: "band", domain: xDomain ?? distinct(rows.map((row) => row[x])) },
-    color: colourScale(colours, shown),
-    marks: [
-      Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT }),
-      Plot.axisX({ ...AXIS_STYLE, tickFormat: xTickFormat, label: xLabel }),
-      Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: yTickFormat, label: yAxisLabel }),
-      Plot.barY(rows, {
-        x,
-        y,
-        fill,
-        order: shown, // the stacking order, bottom up
-        inset: BAR_INSET,
-        title: (row) => barTipText(row, { x, y, fill, yLabel, format }),
-        tip: true,
-      }),
-      Plot.ruleY([0], AXIS_STYLE),
-    ],
-  });
-  body.replaceChildren(chart);
-}
-
 /** The sum of `row[column]` over `rows`. */
 export function columnTotal(rows, column) {
   let total = 0;
@@ -257,10 +185,6 @@ export function colourScale(colours, shown) {
     domain: shown,
     range: shown.map((name) => colours.get(name)),
   };
-}
-
-function barTipText(row, { x, y, fill, yLabel, format }) {
-  return `${row[fill]}\n${row[x]}\n${yLabel}: ${format(row[y])}`;
 }
 
 // An element of `tagName` with the class `className` holding `text`.

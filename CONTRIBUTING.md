@@ -301,11 +301,11 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
   categories, providers }`, each a Map from name to colour) and, for a figure
   with a `legend`, the legend's as `series`; `hidden` is the Set of the
   series names the legend hides. It is one call to the figure's chart kind
-  (below), its columns and labels written out.
+  (below), its columns where they vary, and its labels.
 
 **The chart kinds** (`js/charts/`), one module per shape several figures
-share: `cdf` (CDF lines), `week_bars` (stacked bars per week), `ranges`
-(quantile ranges per category), `histogram`, `ranked` (stacked shares over
+share: `cdf` (CDF lines), `stacked_bars` (stacked bars over a named x
+column, a week or a bin), `ranges` (quantile ranges per category), `histogram`, `ranked` (stacked shares over
 ranked sessions), `knee_lines` (cost against cache TTL with one TTL called
 out) and `donut`. Each exports a draw function, `drawCdf(rows, body, colours,
 { named parameters }, hidden)`, and, where it has series, a legend function,
@@ -315,9 +315,10 @@ it takes and its draw function what each parameter decides. A kind imports
 only from `shared/`, `axes/` and `theme/`. A kind takes only parameters two
 or more figures use, with two exceptions: a kind kept whole may take a
 parameter one figure uses when the alternative is a near-copy of the kind
-(the histogram's `ticks`, the donut's `labels`), and a frame size (the week
-bars' `weeks` and `margins`, the CDF's `height`) is a plain size, not
-behaviour. A note the kind does not draw, such as the scope CDFs' ratio of
+(the histogram's `ticks`, the donut's `labels`, the stacked bars' `xLabel`
+and `xTickFormat` for bars that are not weeks), and a frame or axis setting
+(the stacked bars' `weeks` and `margins`, the CDF's `height`, once it
+exists) is a plain setting, not behaviour. A note the kind does not draw, such as the scope CDFs' ratio of
 medians, is a short named function in the figure's module, given to the kind
 as its `callout`. A figure that would need any other parameter no other
 figure uses keeps a plain draw function of its own.

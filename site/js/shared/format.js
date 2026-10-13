@@ -37,7 +37,8 @@ const TOKENS_PER_BINARY_THOUSAND = 1024;
 // The unit of a TTL's name, by its last letter, as a duration is written: "1m" is "1 min", never "1m".
 const TTL_UNITS = Object.freeze({ s: "s", m: "min", h: "h", d: "d" });
 // tests/test_pipeline_mirrors_caching.py checks these two against the pipeline.
-const NO_TTL_NAME = "none"; // the simulation's name of the TTL of a cache that keeps every block for the week
+/** The simulation's name of the TTL of a cache that keeps every block for the week. */
+export const NO_TTL_NAME = "none";
 const NO_TTL_LABEL = "∞"; // how a figure writes the TTL `none`, as the paper does
 
 /** A multiple in a tooltip or a callout, with two decimals: 0.65×. */

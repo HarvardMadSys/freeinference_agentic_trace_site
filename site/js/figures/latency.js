@@ -4,20 +4,19 @@
  * requests over every week, over requests whose TTFT is trusted; how a session's time splits between its parts, drawn
  * in `sessions_ranked.js`; and the speed-up of the sessions' machine time if one of its parts alone ran twice as fast.
  *
- * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Each CDF query's rows name their model in
- * `series`; every model has the colour every chart gives it, and a model past the eighth, whose colour is the Other
- * grey, is not drawn. Each row of the speed-up query is one part of the machine time, every row holding the same
- * `rows`, the sessions it rests on.
+ * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. The CDFs are drawn by one call to the CDF kind
+ * (`charts/cdf.js`); the speed-up, which no kind fits, has a plain draw function. Each CDF query's rows name their
+ * model in `series`; every model has the colour every chart gives it, and a model past the eighth, whose colour is the
+ * Other grey, is not drawn. Each row of the speed-up query is one part of the machine time, every row holding the
+ * same `rows`, the sessions it rests on.
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE } from "../shared/charts.js";
-import { drawCdfSeries } from "../shared/cdf.js";
-import { cdfPoints, cdfSeries } from "../charts/cdf.js";
-import { durationTicks, extent, fewerOnNarrow, tickCountFor } from "../axes/ticks.js";
+import { cdfLegend, drawCdf } from "../charts/cdf.js";
+import { durationTicks, everyOther, extent, tickCountFor } from "../axes/ticks.js";
 import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
 import { slottedColours, TIME_PART_COLOURS, TIME_PART_NAMES } from "../theme/colours.js";
 import { rowsWithSeriesColour } from "./figure_rows.js";
-import { seriesLegend } from "../shared/series.js";
 import { SESSION_TIME_BY_PART } from "./sessions_ranked.js";
 
 // The parts of the machine time, by their name in the speed-up query, top down, with the name each bar is drawn under.
@@ -48,7 +47,15 @@ export const TTFT_CDF_BY_MODEL = Object.freeze({
   seriesColumn: "series",
   drawnRows: (rows, colours) => rowsWithSeriesColour(rows, "series", colours.models),
   legend: modelCdfLegend,
-  draw: drawModelCdf,
+  draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
+    logScale: true,
+    xTicks: durationTicksOf(rows),
+    narrowXTicks: everyOther(durationTicksOf(rows)),
+    xTickFormat: formatDurationTick,
+    xLabel: null,
+    yLabel: "Share of requests",
+    valueFormat: formatSeconds,
+  }, hidden),
 });
 
 /** The decode time figure: the CDF of latency minus TTFT per model, for the models and requests of the TTFT figure. */
@@ -64,7 +71,15 @@ export const DECODE_CDF_BY_MODEL = Object.freeze({
   seriesColumn: "series",
   drawnRows: (rows, colours) => rowsWithSeriesColour(rows, "series", colours.models),
   legend: modelCdfLegend,
-  draw: drawModelCdf,
+  draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
+    logScale: true,
+    xTicks: durationTicksOf(rows),
+    narrowXTicks: everyOther(durationTicksOf(rows)),
+    xTickFormat: formatDurationTick,
+    xLabel: null,
+    yLabel: "Share of requests",
+    valueFormat: formatSeconds,
+  }, hidden),
 });
 
 /** The speed-up figure: the sessions' machine time over the same with prefill, decode or tool time alone halved. */
@@ -117,20 +132,13 @@ export function speedupAxisEnd(bars) {
  * A per-model CDF's legend: the models of the rows among the eight with most requests over every week, in the model
  * order and colours every chart shares.
  */
-export function modelCdfLegend(rows, colours, seriesColumn) {
-  return seriesLegend(rows, seriesColumn, slottedColours(colours.models));
+export function modelCdfLegend(rows, colours) {
+  return cdfLegend(rows, slottedColours(colours.models));
 }
 
-/** Draw one CDF per model of the rows, in seconds on a log axis of durations, each model in its legend's colour. */
-async function drawModelCdf(rows, body, colours) {
-  const series = cdfSeries(rows, [...colours.series.keys()]);
-  const seconds = cdfPoints(series).map((point) => point.x);
-  const ticks = durationTicks(extent(seconds));
-  const xTicks = fewerOnNarrow(ticks, chartFrame(body).width);
-  await drawCdfSeries(body, series, {
-    logX: true, xTicks, xTickFormat: formatDurationTick, format: formatSeconds,
-    colours: colours.series,
-  });
+/** A model CDF's x ticks: the durations people count time in (`durationTicks`) within the rows' range of seconds. */
+export function durationTicksOf(rows) {
+  return durationTicks(extent(rows.map((row) => row.x)));
 }
 
 /** Draw one horizontal bar per part from 1× to its speed-up, labelled with it at its end. */

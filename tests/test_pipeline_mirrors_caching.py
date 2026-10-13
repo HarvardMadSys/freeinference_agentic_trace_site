@@ -41,8 +41,8 @@ CAUSE_ROW = re.compile(r"\('(\w+)', (\d+)\)")
 OBJECT_ENTRY = re.compile(r'(\w+): "([^"]+)"')
 # A TTL of a query: `('<name>', <seconds>)`, the last one's seconds infinite.
 TTL_ROW = re.compile(r"\('(\w+)', (\d+|'infinity'::DOUBLE)\)")
-# A key of a JavaScript object of TTLs: a quoted name, or the constant `[NO_TTL]`.
-TTL_ENTRY = re.compile(r'"([^"]+)":|\[NO_TTL\]:')
+# A key of a JavaScript object of TTLs: a quoted name, or the constant `[NO_TTL_NAME]`.
+TTL_ENTRY = re.compile(r'"([^"]+)":|\[NO_TTL_NAME\]:')
 
 
 def bound(text: str) -> float:
@@ -97,7 +97,6 @@ def test_a_query_s_ttls_are_the_simulation_s_in_its_order(path: pathlib.Path) ->
 def test_the_retention_figures_name_the_scopes_and_the_ttl_none_as_the_pipeline_and_the_paper() -> None:
     assert test_pipeline_mirrors.javascript_object_keys(COLOURS_MODULE, "SCOPE_COLOURS") == [
         population.AGENTIC, population.SWE_BENCH]
-    assert javascript_string(RETENTION_MODULE, "NO_TTL") == cache_retention.NO_TTL
     assert javascript_string(FORMAT_MODULE, "NO_TTL_NAME") == cache_retention.NO_TTL
     assert javascript_string(FORMAT_MODULE, "NO_TTL_LABEL") == cache_retention.TTL_LABELS[cache_retention.NO_TTL]
 
@@ -113,10 +112,10 @@ def javascript_string(path: pathlib.Path, constant: str) -> str:
 
 
 def labelled_ttls(scope: str) -> list[str]:
-    """The TTLs `LABELLED_TTLS` of simulation/prefill.js places a name beside for `scope`, in order, `[NO_TTL]` read as
-    the TTL it names."""
+    """The TTLs `LABELLED_TTLS` of simulation/prefill.js places a name beside for `scope`, in order,
+    `[NO_TTL_NAME]` read as the TTL it names."""
     body = test_pipeline_mirrors.declaration(RETENTION_MODULE, rf'"?{scope}"?: Object\.freeze\(\{{(.*?)\}}\)').group(1)
-    no_ttl = javascript_string(RETENTION_MODULE, "NO_TTL")
+    no_ttl = javascript_string(FORMAT_MODULE, "NO_TTL_NAME")
     return [name if name else no_ttl for name in TTL_ENTRY.findall(body)]
 
 

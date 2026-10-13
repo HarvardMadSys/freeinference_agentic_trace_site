@@ -63,7 +63,9 @@ export async function drawRanges(rows, body, colours, parameters) {
         insetTop: MEDIAN_TICK_INSET,
         insetBottom: MEDIAN_TICK_INSET,
       }),
-      Plot.tip(ranges, Plot.pointerY({ y: "category", x: "p50", title: (drawn) => rangeTipText(drawn, unitFactor, valueFormat) })),
+      Plot.tip(ranges, Plot.pointerY({
+        y: "category", x: "p50", title: (drawn) => rangeTipText(drawn, unitFactor, valueFormat),
+      })),
     ],
   });
   body.replaceChildren(chart);
