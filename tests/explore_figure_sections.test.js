@@ -2,24 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  drawFigureSeries, figureColours, figuresToStart, newFigureRun, noteVisibility, runDrawsAtOnce,
+  drawFigureSeries, figuresToStart, newFigureRun, noteVisibility, runDrawsAtOnce, startFigures,
 } from "../site/js/explore/figure_sections.js";
-import { SERIES_SLOTS } from "../site/js/theme/colours.js";
-
-test("the figures' colours follow the model and provider orders from the first slot, a category its group's", async () => {
-  const orders = {
-    models: Promise.resolve([{ model: "model-b" }, { model: "model-a" }]),
-    categories: Promise.resolve([{ category: "Other" }, { category: "Read" }, { category: "Edit" }]),
-    providers: Promise.resolve([{ provider: "B" }, { provider: "A" }]),
-  };
-  const colours = await figureColours(orders);
-  assert.deepEqual([...colours.models], [["model-b", SERIES_SLOTS[0]], ["model-a", SERIES_SLOTS[1]]]);
-  assert.deepEqual([...colours.categories], [
-    ["Read", "var(--tool-group-read)"], ["Edit", "var(--tool-group-write-edit)"], ["Other", "var(--series-other)"],
-  ]);
-  assert.deepEqual([...colours.providers], [["B", SERIES_SLOTS[0]], ["A", SERIES_SLOTS[1]]]);
-  assert.ok(Object.isFrozen(colours));
-});
 
 // Three figures in page order, as `figuresToStart` takes them, and a run's context it only carries.
 const FIGURE_LIST = [{ name: "first" }, { name: "second" }, { name: "third" }];
@@ -75,6 +59,58 @@ test("a new run, as a selection change makes, starts the figures in view again",
   earlier.startedNames.add("first");
   assert.deepEqual(figuresToStart(earlier, FIGURE_LIST, visible), []);
   assert.deepEqual(names(figuresToStart(newFigureRun(CONTEXT, false), FIGURE_LIST, visible)), ["first"]);
+});
+
+/**
+ * What the page keeps of two figures, "first" in a shown topic and "second" in a hidden one, for a run that draws at
+ * once, its queries answered by `answer`; and the two topics, whose `hidden` a test flips as the tabs do.
+ */
+function figuresOfTwoTopics(answer) {
+  const shownTopic = { hidden: false };
+  const hiddenTopic = { hidden: true };
+  const cards = [{ figure: { name: "first" }, topic: shownTopic }, { figure: { name: "second" }, topic: hiddenTopic }];
+  const places = new Map();
+  for (const { figure, topic } of cards) {
+    places.set(figure.name, { body: { replaceChildren: () => undefined }, rows: {}, topic });
+  }
+  const orders = { models: Promise.resolve([]), categories: Promise.resolve([]), providers: Promise.resolve([]) };
+  const context = { orders, database: { runQuery: answer }, selection: { weeks: [] }, weeks: [] };
+  const run = newFigureRun(context, true);
+  return { figures: { cards, places, run, visibleNames: new Set() }, shownTopic, hiddenTopic };
+}
+
+// An answer that never comes, so a started figure stays drawing and touches no page.
+const NEVER_ANSWERED = () => new Promise(() => undefined);
+
+test("a run that draws at once starts the shown topic's figures alone, and a hidden topic's once it is shown", () => {
+  const { figures, shownTopic, hiddenTopic } = figuresOfTwoTopics(NEVER_ANSWERED);
+  startFigures(figures);
+  assert.deepEqual([...figures.run.startedNames], ["first"]);
+  hiddenTopic.hidden = false;
+  shownTopic.hidden = true;
+  startFigures(figures);
+  assert.deepEqual([...figures.run.startedNames], ["first", "second"]);
+});
+
+test("a topic shown twice in one run does not start its figures twice", () => {
+  const { figures } = figuresOfTwoTopics(NEVER_ANSWERED);
+  assert.equal(startFigures(figures).length, 1);
+  assert.equal(startFigures(figures).length, 0);
+});
+
+test("a figure whose topic was hidden before its drawing settled is started again when the topic is next shown", async () => {
+  globalThis.document = { createElement: () => ({}) };
+  const { figures, shownTopic } = figuresOfTwoTopics(() => Promise.resolve([]));
+  const drawings = startFigures(figures);
+  shownTopic.hidden = true;
+  await Promise.all(drawings);
+  assert.deepEqual([...figures.run.startedNames], []);
+  shownTopic.hidden = false;
+  const drawnAgain = startFigures(figures);
+  assert.equal(drawnAgain.length, 1);
+  await Promise.all(drawnAgain);
+  assert.deepEqual([...figures.run.startedNames], ["first"]);
+  delete globalThis.document;
 });
 
 test("intersection entries add the cards in view and remove the cards that left it", () => {

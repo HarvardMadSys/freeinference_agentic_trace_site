@@ -225,3 +225,18 @@ export function toolCategoryColour(category) {
 export function causeColours() {
   return new Map(Object.entries(CAUSE_COLOURS));
 }
+
+/**
+ * The colours every figure shares, `{ models, categories, providers }`, each a Map from name to colour, from the colour
+ * orders, which do not depend on the selection: a tool category in its tool group's colour, the category Other last.
+ */
+export async function figureColours(orders) {
+  const models = await orders.models;
+  const categories = await orders.categories;
+  const providers = await orders.providers;
+  return Object.freeze({
+    models: assignColours(models.map((row) => row.model)),
+    categories: toolCategoryColours(categories.map((row) => row.category)),
+    providers: assignColours(providers.map((row) => row.provider)),
+  });
+}

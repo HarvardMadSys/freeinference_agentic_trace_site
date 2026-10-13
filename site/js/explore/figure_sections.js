@@ -4,14 +4,16 @@
  * weeks and harnesses, its thin bins hidden and its line of rows written behind its Definition control. A histogram
  * figure, one with a `statsQuery`, is drawn by `shared/histogram.js` from its two queries' answers, every bin shown.
  *
- * With the default selection every figure is drawn at once, from its precomputed answer. With any other, a figure's
- * query starts when its card comes into view, and a figure started for the current run is not started again. A page
+ * Only the figures of a shown topic are drawn: a hidden topic's cards have no width to draw a chart at, so its figures
+ * start when the topic is shown (`startFigures`). With the default selection a shown topic's figures are drawn at
+ * once, from their precomputed answers. With any other, a figure's query starts when its card comes into view. A
+ * figure started for the current run is not started again, unless its topic was hidden before it was drawn. A page
  * that draws every run at once, whatever the selection, watches no card.
  *
  * `figures` is what the page keeps of them: `{ cards, places, run, visibleNames, drawsEveryRunAtOnce }`, every figure
- * with its card (`[{ figure, card }]`), the places of the latest layout by figure name (`{ body, rows }`, `rows` the line of rows), the
- * current run (`newFigureRun`; null from a layout until its run starts), the names of the figures whose cards are in
- * view, and whether every run draws all its figures at once.
+ * with its card and its topic's section (`[{ figure, card, topic }]`), the places of the latest layout by figure name
+ * (`{ body, rows, topic }`, `rows` the line of rows), the current run (`newFigureRun`; null from a layout until its run
+ * starts), the names of the figures whose cards are in view, and whether every run draws all its figures at once.
  * Each layout makes fresh places, so a run that a newer one replaced draws into places no longer on the page. A run's
  * `context` is what the page gives every section; see `explore/start.js`. Each figure shows its own loading state,
  * error or note.
@@ -22,7 +24,7 @@
  */
 
 import { MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote } from "../shared/charts.js";
-import { assignColours, toolCategoryColours } from "../theme/colours.js";
+import { figureColours } from "../theme/colours.js";
 import { isDefaultSelection } from "../shared/selection.js";
 import { drawHistogram, histogramCard, rowsText } from "../shared/histogram.js";
 import { dropThinGroups, figureDrawnRows, figureRowsText, unsimulatedWeeks } from "../figures/figure_rows.js";
@@ -97,9 +99,9 @@ export function showErrorInFigures(figures, error) {
 }
 
 /**
- * Start a run of the figures for `context`'s selection, in the places of the latest layout: every figure at once for
- * the default selection or a page that draws every run at once, else those in view now and the others as they come
- * into view. Settles when the figures started now are drawn.
+ * Start a run of the figures for `context`'s selection, in the places of the latest layout: every figure of a shown
+ * topic at once for the default selection or a page that draws every run at once, else those in view now and the
+ * others as they come into view. Settles when the figures started now are drawn.
  */
 export async function runFigures(figures, context) {
   figures.run = newFigureRun(context, runDrawsAtOnce(figures.drawsEveryRunAtOnce, context));
@@ -145,40 +147,43 @@ export function noteVisibility(visibleNames, entries) {
   }
 }
 
-/**
- * The colours every figure shares, `{ models, categories, providers }`, each a Map from name to colour, from the colour
- * orders, which do not depend on the selection: a tool category in its tool group's colour, the category Other last.
- */
-export async function figureColours(orders) {
-  const models = await orders.models;
-  const categories = await orders.categories;
-  const providers = await orders.providers;
-  return Object.freeze({
-    models: assignColours(models.map((row) => row.model)),
-    categories: toolCategoryColours(categories.map((row) => row.category)),
-    providers: assignColours(providers.map((row) => row.provider)),
-  });
-}
-
 /** Note which cards are in view, then start the current run's figures that came into view. */
 function noteCardsInView(figures, entries) {
   noteVisibility(figures.visibleNames, entries);
   startFigures(figures);
 }
 
-/** Start drawing the figures the current run draws now, marking each started; return their drawings. */
-function startFigures(figures) {
+/**
+ * Start drawing the figures of the shown topics that the current run draws now, marking each started, as a card coming
+ * into view or a topic shown asks; return their drawings.
+ */
+export function startFigures(figures) {
   const run = figures.run;
   if (run === null) {
     return [];
   }
-  const figureList = figures.cards.map(({ figure }) => figure);
   const drawings = [];
-  for (const figure of figuresToStart(run, figureList, figures.visibleNames)) {
+  for (const figure of figuresToStart(run, shownFigures(figures.cards), figures.visibleNames)) {
     run.startedNames.add(figure.name);
-    drawings.push(drawFigure(figure, figures.places.get(figure.name), run.context));
+    drawings.push(drawFigureInRun(figure, figures.places.get(figure.name), run));
   }
   return drawings;
+}
+
+/** The figures of `cards` (`[{ figure, topic }]`) whose topic's section is shown. */
+function shownFigures(cards) {
+  return cards.filter((entry) => !entry.topic.hidden).map((entry) => entry.figure);
+}
+
+/**
+ * Draw `figure` into `place` for `run`. A topic hidden before the drawing settled may have hidden the chart as it read
+ * its width, so the figure is marked unstarted again and drawn anew when its topic is next shown.
+ */
+async function drawFigureInRun(figure, place, run) {
+  await drawFigure(figure, place, run.context);
+  if (place.topic.hidden) {
+    run.startedNames.delete(figure.name);
+  }
 }
 
 /** Draw one figure into `place`, a histogram or a chart of one query's rows; its error stays in its own card. */
@@ -253,9 +258,9 @@ async function drawFigureRows(figure, rows, body, colours) {
 /** Fill every card with a fresh title, caption, body and Definition control; keep and return the places by name. */
 function layOutPlaces(figures) {
   const places = new Map();
-  for (const { figure, card } of figures.cards) {
+  for (const { figure, card, topic } of figures.cards) {
     const body = renderFigure(card, figure);
-    places.set(figure.name, { body, rows: card.querySelector(".figure-rows") });
+    places.set(figure.name, { body, rows: card.querySelector(".figure-rows"), topic });
   }
   figures.places = places;
   figures.run = null; // the run of this layout starts once the database holds its selection
@@ -263,21 +268,22 @@ function layOutPlaces(figures) {
 }
 
 /**
- * Every figure of every section of `figureSections`, each with a new card in its section's grid, `[{ figure, card }]`;
- * each section's takeaway is written under its heading.
+ * Every figure of every section of `figureSections`, each with a new card in its section's grid and that section,
+ * `[{ figure, card, topic }]`; each section's takeaway is written under its heading.
  */
 async function placeCards(figureSections) {
   const cards = [];
   for (const section of figureSections) {
     const { FIGURES, TAKEAWAY } = await import(section.module);
-    placeTakeaway(document.querySelector(section.selector), TAKEAWAY);
-    const grid = document.querySelector(`${section.selector} .card-grid`);
+    const topic = document.querySelector(section.selector);
+    placeTakeaway(topic, TAKEAWAY);
+    const grid = topic.querySelector(".card-grid");
     for (const figure of FIGURES) {
       const card = document.createElement("article");
       card.className = figure.isWide === true ? "card is-wide" : "card";
       card.id = figure.name;
       grid.append(card);
-      cards.push({ figure, card });
+      cards.push({ figure, card, topic });
     }
   }
   return cards;

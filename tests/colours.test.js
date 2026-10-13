@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  assignColours, barColours, CAUSE_COLOURS, causeColours, GAP_BIN_SLOTS, OTHER_SERIES, SCOPE_COLOURS, SERIES_SLOTS,
-  slottedColours, TIME_PART_COLOURS, TIME_PART_NAMES, TOKEN_PART_COLOURS, TOOL_GROUP_COLOURS, TOOL_GROUP_OF_CATEGORY,
-  toolCategoryColours, TRANSITION_COLOURS,
+  assignColours, barColours, CAUSE_COLOURS, causeColours, figureColours, GAP_BIN_SLOTS, OTHER_SERIES, SCOPE_COLOURS,
+  SERIES_SLOTS, slottedColours, TIME_PART_COLOURS, TIME_PART_NAMES, TOKEN_PART_COLOURS, TOOL_GROUP_COLOURS,
+  TOOL_GROUP_OF_CATEGORY, toolCategoryColours, TRANSITION_COLOURS,
 } from "../site/js/theme/colours.js";
 
 const NINE_MODELS = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9"];
@@ -121,4 +121,19 @@ test("every tool group a category names has a colour", () => {
   for (const group of Object.values(TOOL_GROUP_OF_CATEGORY)) {
     assert.ok(group in TOOL_GROUP_COLOURS, group);
   }
+});
+
+test("the figures' colours follow the model and provider orders from the first slot, a category its group's", async () => {
+  const orders = {
+    models: Promise.resolve([{ model: "model-b" }, { model: "model-a" }]),
+    categories: Promise.resolve([{ category: "Other" }, { category: "Read" }, { category: "Edit" }]),
+    providers: Promise.resolve([{ provider: "B" }, { provider: "A" }]),
+  };
+  const colours = await figureColours(orders);
+  assert.deepEqual([...colours.models], [["model-b", SERIES_SLOTS[0]], ["model-a", SERIES_SLOTS[1]]]);
+  assert.deepEqual([...colours.categories], [
+    ["Read", "var(--tool-group-read)"], ["Edit", "var(--tool-group-write-edit)"], ["Other", "var(--series-other)"],
+  ]);
+  assert.deepEqual([...colours.providers], [["B", SERIES_SLOTS[0]], ["A", SERIES_SLOTS[1]]]);
+  assert.ok(Object.isFrozen(colours));
 });

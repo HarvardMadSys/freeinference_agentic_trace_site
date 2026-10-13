@@ -4,8 +4,9 @@
  *
  * A page names its sections (`{ id, layout, run }`, the id of its place in the page's HTML, the function that draws its
  * loading state and the one that runs it) and, when it draws figures, its figure sections (`FIGURE_SECTIONS` of
- * `explore/figure_sections.js`, or a part of it). A section that reads the answer of sessions per week by harness says
- * so with `readsSessionsPerWeek`, so that only a page with such a section asks for it.
+ * `explore/figure_sections.js`, or a part of it), shown one topic at a time behind the tabs of its `#topic-tabs` row
+ * (`explore/topic_tabs.js`), a topic's figures drawn when it is shown. A section that reads the answer of sessions per
+ * week by harness says so with `readsSessionsPerWeek`, so that only a page with such a section asks for it.
  *
  * Behind the switch, with `FIGURES_ARE_FROZEN` false, a page also mounts the pickers into its `#selection` card, when
  * its HTML has one, and writes the URL's selection back in its shortest form; it runs its sections from the
@@ -14,8 +15,8 @@
  * first run has drawn, the database streams the weeks' rows in, and the picker's note counts the weeks streamed.
  *
  * While `FIGURES_ARE_FROZEN`, a page shows the default selection whatever the URL says: it mounts no picker, hides the
- * selection's card, answers every section from its precomputed file, draws every figure at once, takes no click on a
- * trend bar, and starts neither DuckDB nor the stream. The URL's `months` and `harnesses` then filter the sessions
+ * selection's card, answers every section from its precomputed file, draws a shown topic's figures at once, takes no
+ * click on a trend bar, and starts neither DuckDB nor the stream. The URL's `months` and `harnesses` then filter the sessions
  * table alone, which reads them, and the older `weeks`, `month` and `scope`, and rewrites them in its own keys.
  *
  * `page` is what the page owns: `{ file, sections, weeks, harnesses, selection, database, orders, figures, latestRun,
@@ -46,9 +47,11 @@ import { mountHeader, renderFooter } from "../shared/layout.js";
 import { defaultSelection, readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
 import {
   layoutFigures, mountFigureSections, runFigures, showErrorInFigureSections, showErrorInFigures, showNoteInFigures,
+  startFigures,
 } from "./figure_sections.js";
 import { mountSelection, showStreamedWeeks } from "./selection_pickers.js";
 import { withFirstPage } from "./sessions_table_state.js";
+import { mountTopicTabs } from "./topic_tabs.js";
 
 // Whether every section and figure is frozen on its precomputed answer for every week and the paper's harnesses:
 // true mounts no picker and starts neither DuckDB nor the stream; false lets the visitor pick weeks and harnesses, and
@@ -89,8 +92,9 @@ export async function startPage({ file, sections, figureSections = [], showWeekC
   showSelectionAndHeader(page, params);
   // The pickers are drawn first; the figure modules load and their cards are placed after.
   page.figures = mountFigureSections(figureSections, FIGURES_ARE_FROZEN);
+  mountTabs(page, figureSections);
   await runEverySection(page);
-  scrollToAnchor();
+  scrollToAnchor(figureSections);
   if (!FIGURES_ARE_FROZEN) {
     await page.database.streamRows((progress) => showStreamed(page, progress.streamedWeeks));
   }
@@ -194,14 +198,29 @@ function askSessionsPerWeek(page) {
 }
 
 /**
- * Bring the section the URL's anchor names, such as `#cite`, into view: the browser looked for it while the sections
- * were still empty, so the page was too short to scroll to it.
+ * Show the topic of `figureSections` the URL's anchor names, or the first, behind the tabs of the page's `#topic-tabs`
+ * row, when it has one; showing a topic starts the current run's figures of it.
  */
-function scrollToAnchor() {
-  const target = document.getElementById(window.location.hash.slice(1));
-  if (window.location.hash !== "" && target !== null) {
-    target.scrollIntoView();
+function mountTabs(page, figureSections) {
+  const row = document.querySelector("#topic-tabs");
+  if (row !== null) {
+    mountTopicTabs(row, figureSections, () => page.figures.then(startFigures));
   }
+}
+
+/**
+ * Bring the section the URL's anchor names, such as `#cite`, into view: the browser looked for it while the sections
+ * were still empty, so the page was too short to scroll to it. The anchor of a topic of `figureSections` brings the
+ * section holding the topics into view, so that the heading and the tabs above the topic are seen.
+ */
+function scrollToAnchor(figureSections) {
+  const target = document.getElementById(window.location.hash.slice(1));
+  if (window.location.hash === "" || target === null) {
+    return;
+  }
+  const isTopic = figureSections.some((section) => section.selector === window.location.hash);
+  const scrolled = isTopic ? target.parentElement : target;
+  scrolled.scrollIntoView();
 }
 
 /** Make `selection` the page's: write it to the URL and the header's links, and run every section again. */

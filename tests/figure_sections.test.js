@@ -98,10 +98,12 @@ test("the page holds the six figure sections in order, each with its number and 
   assert.deepEqual(found, PAGE_SECTIONS);
 });
 
-test("the Insights open on their heading, before the six topics", () => {
+test("the Insights open on their heading and the row of topic tabs, before the six topics", () => {
   const firstTopic = PAGE.indexOf(`<section id="${PAGE_SECTIONS[0].id}"`);
   const heading = PAGE.indexOf('<h2 id="insights-title">Insights</h2>');
-  assert.ok(PAGE.indexOf('<section id="insights"') < heading && heading !== -1 && heading < firstTopic);
+  const tabs = PAGE.indexOf('<div id="topic-tabs" class="topic-tabs" role="tablist" aria-label="Topics"></div>');
+  assert.ok(PAGE.indexOf('<section id="insights"') < heading && heading !== -1);
+  assert.ok(heading < tabs && tabs < firstTopic);
 });
 
 test("a figure section holds its heading and its cards, and no intro text", () => {
