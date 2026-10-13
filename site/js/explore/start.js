@@ -18,7 +18,7 @@
 
 import { showError } from "../shared/charts.js";
 import { fetchHarnesses, fetchWeeks, runQuery } from "../shared/database.js";
-import { EXPLORE_FILE, mountHeader, renderFooter, selectionQuery } from "../shared/layout.js";
+import { EXPLORE_FILE, mountHeader, renderFooter, queryString } from "../shared/layout.js";
 import {
   FIGURE_SECTIONS, layoutFigures, mountFigureSections, runFigures, showErrorInFigures, startFigures,
 } from "./figure_sections.js";
@@ -59,17 +59,17 @@ export async function startPage({ sections, showWeekCount }) {
 function sectionContext(weeks, harnesses) {
   // The orders cover every week and harness; a section awaits its own.
   const orders = {
-    harnesses: askedRows("setup/harness_order"),
-    models: askedRows("setup/model_order"),
-    categories: askedRows("setup/category_order"),
-    providers: askedRows("setup/provider_order"),
+    harnesses: promisedRows("setup/harness_order"),
+    models: promisedRows("setup/model_order"),
+    categories: promisedRows("setup/category_order"),
+    providers: promisedRows("setup/provider_order"),
   };
-  const sessionsPerWeekByHarness = askedRows("explore/sessions_per_week_by_harness");
+  const sessionsPerWeekByHarness = promisedRows("explore/sessions_per_week_by_harness");
   return { orders, sessionsPerWeekByHarness, weeks, harnesses, replaceQuery };
 }
 
 /** The promised rows of the query `name`, asked for once for every section that reads them. */
-function askedRows(name) {
+function promisedRows(name) {
   const rows = runQuery(name);
   // Each section that awaits the rows shows a failure in its own place, not here.
   rows.catch(() => undefined);
@@ -110,13 +110,13 @@ function scrollToAnchor() {
 }
 
 /**
- * Write `params` to the address bar, as `selectionQuery` writes them, keeping its anchor, without reloading the page;
+ * Write `params` to the address bar, as `queryString` writes them, keeping its anchor, without reloading the page;
  * then redraw the header, whose links carry them.
  */
 function replaceQuery(params) {
   const { pathname, hash } = window.location;
   // The entry keeps its state, the Insights' shown topic, which Back to it shows again.
-  window.history.replaceState(window.history.state, "", `${pathname}${selectionQuery(params)}${hash}`);
+  window.history.replaceState(window.history.state, "", `${pathname}${queryString(params)}${hash}`);
   renderPageHeader();
 }
 

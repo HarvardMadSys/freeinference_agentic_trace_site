@@ -12,7 +12,7 @@ import { OPEN_REQUEST_EVENT } from "../session/view_chart.js";
 import { showError, showLoading, showNote } from "../shared/charts.js";
 import { toolCategoryColours } from "../theme/colours.js";
 import { shortSessionId } from "../shared/format.js";
-import { mountHeader, renderFooter, selectionQuery } from "../shared/layout.js";
+import { mountHeader, renderFooter, queryString } from "../shared/layout.js";
 
 // The title of each view's tab.
 const VIEW_TITLES = Object.freeze({ requests: "Requests", context: "Context", timeline: "Timeline" });
@@ -26,7 +26,7 @@ mountHeader(document.querySelector("#site-header"), "session.html", selection);
 renderFooter(document.querySelector("#site-footer"), "session.html", selection, null);
 showWeekCountInFooter();
 // The link back opens the Explore page at its Session Explorer, with the table's search, filters, sort and page.
-document.querySelector("#back-link").href = `index.html${selectionQuery(selection)}#sessions`;
+document.querySelector("#back-link").href = `index.html${queryString(selection)}#sessions`;
 
 const page = {
   title: document.querySelector("#session-title"),
@@ -74,7 +74,7 @@ function switchView(shownView, view, session, address) {
  * session id may be a subagent's, whose group the Requests view then expands.
  */
 function openRequest(shownView, session, address, { sessionId, step }) {
-  history.replaceState(null, "", selectionQuery(requestParameters(parameters, sessionId, step)));
+  history.replaceState(null, "", queryString(requestParameters(parameters, sessionId, step)));
   for (const tab of page.tabs.querySelectorAll(".view-tab")) {
     markActive(tab, tab.dataset.view === "requests");
   }
@@ -154,7 +154,7 @@ function viewTab(view, activeView) {
   tab.className = "view-tab";
   tab.dataset.view = view;
   tab.textContent = VIEW_TITLES[view];
-  tab.href = selectionQuery(viewParameters(parameters, view));
+  tab.href = queryString(viewParameters(parameters, view));
   markActive(tab, view === activeView);
   return tab;
 }

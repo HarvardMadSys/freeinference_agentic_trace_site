@@ -21,7 +21,7 @@ import {
   writeTableState,
 } from "../site/js/explore/sessions_table_state.js";
 import { selectionParameters } from "../site/js/session/address.js";
-import { selectionQuery } from "../site/js/shared/layout.js";
+import { queryString } from "../site/js/shared/layout.js";
 
 const DEFAULT_STATE = {
   search: "",
@@ -156,7 +156,7 @@ test("the Session page's link back carries the table's filters, search, sort and
   const exploreQuery = "months=2026-07&harnesses=eval:swe-bench&search=aa&sort=requests&direction=ascending&page=2";
   const link = sessionLink(row, new URLSearchParams(exploreQuery));
   const sessionParams = new URLSearchParams(link.slice(link.indexOf("?")));
-  const backQuery = selectionQuery(selectionParameters(sessionParams));
+  const backQuery = queryString(selectionParameters(sessionParams));
   assert.equal(backQuery, "?months=2026-07&harnesses=eval%3Aswe-bench&search=aa&sort=requests&direction=ascending&page=2");
 });
 

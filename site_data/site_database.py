@@ -1,16 +1,14 @@
-"""The site's database in DuckDB, set up and filled by the same `.sql` files the browser runs.
+"""The site's database in DuckDB over a local data folder, in which `make data` and the tests run the site's queries.
 
-The browser opens its database by running the `site/queries/setup/create_*.sql`
-statements in its own order: the four views of the files, then the selection
-tables, then the views over the selection, then the benchmark harness table. A view statement's `{files}` placeholder is
-replaced by the files of the weeks that have that kind of row, as `weeks.json`
-lists them, each single-quoted and separated by commas; the benchmark harness
-table is filled with the harnesses `harnesses.json` marks as the benchmark's.
-The selection tables are filled through the `clear_*` and `insert_*`
-statements, one parameterised insert per value. The functions here run the
-same statements in the same order over a local data folder, so a query runs
-here exactly as a page runs it. A query's name is its path under
-`site/queries/` without `.sql`.
+It is opened by running the `site/queries/setup/create_*.sql` statements in
+this order: the four views of the files, then the selection tables, then the
+views over the selection, then the benchmark harness table. A view statement's
+`{files}` placeholder is replaced by the files of the weeks that have that kind
+of row, as `weeks.json` lists them, each single-quoted and separated by commas;
+the benchmark harness table is filled with the harnesses `harnesses.json` marks
+as the benchmark's. The selection tables are filled through the `clear_*` and
+`insert_*` statements, one parameterised insert per value. A query's name is its
+path under `site/queries/` without `.sql`.
 
 A kind no week has a file of (the simulation, when no week is simulated) gets
 no view, since DuckDB cannot read an empty list of files; a query of it then
@@ -27,11 +25,11 @@ from site_data import harnesses, paths, weeks
 QUERIES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site" / "queries"
 SETUP_FOLDER = QUERIES_FOLDER / "setup"  # the statements that create and fill the views and tables
 FILES_PLACEHOLDER = "{files}"  # stands for a view's list of quoted file names
-# One thread, as DuckDB-WASM runs: a sum of floats then adds its rows in the same order on every run, so a rebuilt
-# answer is the same to the last bit.
+# One thread, so that a sum of floats adds its rows in the same order on every run and a rebuilt answer is the same to
+# the last bit.
 THREADS = 1
 
-# The statement that registers each kind of row as a view, by the kind's folder, in the order they run.
+# The statement that registers each kind of row as a view, by the kind's folder.
 VIEW_STATEMENTS = {
     paths.REQUESTS_FOLDER: "setup/create_view_requests",
     paths.TOOL_CALLS_FOLDER: "setup/create_view_tool_calls",
@@ -39,13 +37,13 @@ VIEW_STATEMENTS = {
     paths.SIMULATION_FOLDER: "setup/create_view_simulation",
 }
 
-# The statements that make the empty selection tables, run after the views, in this order.
+# The statements that make the empty selection tables, run after the views.
 SELECTION_TABLE_STATEMENTS = [
     "setup/create_selected_weeks",
     "setup/create_selected_harnesses",
 ]
 
-# The statements that make the views over the selected rows, run after the selection tables they read, in this order.
+# The statements that make the views over the selected rows, run after the selection tables they read.
 SELECTION_VIEW_STATEMENTS = [
     "setup/create_view_session_time",
 ]

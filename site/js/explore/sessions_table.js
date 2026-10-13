@@ -17,7 +17,7 @@
 
 import { showError, showLoading, showNote } from "../shared/charts.js";
 import { runQuery } from "../shared/database.js";
-import { selectionQuery } from "../shared/layout.js";
+import { queryString } from "../shared/layout.js";
 import { mountTable } from "../shared/table.js";
 import {
   harnessChoices, monthChoices, readTableFilter, rowsInFilter, unknownFilterNote, writeTableFilter,
@@ -75,7 +75,7 @@ export function sessionLink(row, exploreParams) {
       params.append(key, value);
     }
   }
-  return `session.html${selectionQuery(params)}`;
+  return `session.html${queryString(params)}`;
 }
 
 // ---------- Drawing ----------

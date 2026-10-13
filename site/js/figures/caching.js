@@ -65,7 +65,7 @@ export function idleGapEdgeSeconds(edge) {
 
 /**
  * The idle-gap figure's legend: each provider of the rows among the eight with most requests as "Provider A", in the
- * order of their letters and in the colours every chart shares, so a provider keeps its colour whatever the selection.
+ * order of their letters and in the colours every chart shares, from an order over every week and harness.
  * A provider past the eighth would take the Other colour, which a named line cannot share, so it is not drawn.
  */
 export function idleGapLegend(rows, colours, seriesColumn) {

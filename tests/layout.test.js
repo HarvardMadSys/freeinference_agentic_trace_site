@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { LINKED_SECTIONS, renderFooter, renderHeader, selectionQuery } from "../site/js/shared/layout.js";
+import { LINKED_SECTIONS, renderFooter, renderHeader, queryString } from "../site/js/shared/layout.js";
 
 // The Explore page, whose sections the header and footer link by anchor.
 const EXPLORE_PAGE = new URL("../site/index.html", import.meta.url);
@@ -150,7 +150,7 @@ test("the Session page's link back reads Session Explorer and opens the Explore 
   const page = readFileSync(new URL("../site/session.html", import.meta.url), "utf8");
   assert.match(page, /<a id="back-link" href="index\.html#sessions">← Session Explorer<\/a>/);
   const module = readFileSync(new URL("../site/js/pages/session.js", import.meta.url), "utf8");
-  assert.ok(module.includes("`index.html${selectionQuery(selection)}#sessions`"), "the link back drops the table's keys");
+  assert.ok(module.includes("`index.html${queryString(selection)}#sessions`"), "the link back drops the table's keys");
 });
 
 test("the footer's line counts the weeks in digits as the hero's lede does, and says Weeks while the count is unknown", () => {
@@ -161,11 +161,10 @@ test("the footer's line counts the weeks in digits as the hero's lede does, and 
 
 test("the query string keeps the commas of a list of names plain", () => {
   const params = new URLSearchParams("sort=requests");
-  params.set("weeks", "2026-05-31,2026-06-07");
   params.set("harnesses", "hermes,codex");
-  assert.equal(selectionQuery(params), "?sort=requests&weeks=2026-05-31,2026-06-07&harnesses=hermes,codex");
+  assert.equal(queryString(params), "?sort=requests&harnesses=hermes,codex");
 });
 
 test("no keys give an empty query string", () => {
-  assert.equal(selectionQuery(new URLSearchParams()), "");
+  assert.equal(queryString(new URLSearchParams()), "");
 });

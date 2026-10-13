@@ -5,7 +5,7 @@ import {
   harnessChoices, monthChoices, monthsOf, readTableFilter, rowsInFilter, unknownFilterNote, writeTableFilter,
 } from "../site/js/explore/sessions_filter.js";
 import { readTableState, shownSessions } from "../site/js/explore/sessions_table_state.js";
-import { selectionQuery } from "../site/js/shared/layout.js";
+import { queryString } from "../site/js/shared/layout.js";
 
 const WEEKS = [
   { week: "2026-06-28", last_day: "2026-07-04", month: "2026-06", simulated: true },
@@ -40,7 +40,7 @@ function filterOf(query) {
 /** The query string the filter a query string names is rewritten as. */
 function rewritten(query) {
   const params = new URLSearchParams(query);
-  return selectionQuery(writeTableFilter(params, readTableFilter(params, WEEKS, HARNESSES)));
+  return queryString(writeTableFilter(params, readTableFilter(params, WEEKS, HARNESSES)));
 }
 
 /** The ids of the sessions the filter a query string names keeps. */
@@ -102,6 +102,10 @@ test("months=2026-07&harnesses=codex keeps July 2026's codex sessions and reads 
   assert.deepEqual(filterOf("months=2026-07&harnesses=codex"), { month: "2026-07", harness: "codex", unknown: [] });
   assert.deepEqual(keptIds("months=2026-07&harnesses=codex"), ["b", "c"]);
   assert.equal(rewritten("months=2026-07&harnesses=codex"), "?months=2026-07&harnesses=codex");
+});
+
+test("the names of a key are trimmed and an empty one is dropped", () => {
+  assert.deepEqual(filterOf("harnesses= codex ,"), { month: "", harness: "codex", unknown: [] });
 });
 
 test("a key naming several harnesses or months keeps its first", () => {

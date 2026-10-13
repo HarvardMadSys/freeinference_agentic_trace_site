@@ -264,7 +264,7 @@ export function causeColours() {
 
 /**
  * The colours every figure shares, `{ models, categories, providers }`, each a Map from name to colour, from the colour
- * orders, which do not depend on the selection: a tool category in its own colour, the category Other last.
+ * orders, which cover every week and harness: a tool category in its own colour, the category Other last.
  */
 export async function figureColours(orders) {
   const models = await orders.models;
