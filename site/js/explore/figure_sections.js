@@ -1,5 +1,5 @@
 /**
- * The figure sections of the Explore page's Insights: the Session-structure, Tokens-and-cost, Latency, Tools,
+ * The figure sections of the Insights page: the Session-structure, Tokens-and-cost, Latency, Tools,
  * Prefix-caching and Human-driven-against-benchmark figures, each a card in its section's grid, drawn for the selected
  * weeks and harnesses, its thin bins hidden and its line of rows written behind its Definition control. A histogram
  * figure, one with a `statsQuery`, is drawn by `shared/histogram.js` from its two queries' answers, every bin shown.
@@ -34,12 +34,12 @@ import { drawWithLegend, shownRows } from "./legend.js";
  * imported by its path rather than under a second name.
  */
 export const FIGURE_SECTIONS = Object.freeze([
-  Object.freeze({ selector: "#insights-sessions", module: "../figures/sessions.js" }),
-  Object.freeze({ selector: "#insights-tokens", module: "../figures/tokens.js" }),
-  Object.freeze({ selector: "#insights-latency", module: "../figures/latency.js" }),
-  Object.freeze({ selector: "#insights-tools", module: "../figures/tools.js" }),
-  Object.freeze({ selector: "#insights-caching", module: "../figures/caching.js" }),
-  Object.freeze({ selector: "#insights-comparison", module: "../comparison/comparison.js" }),
+  Object.freeze({ selector: "#structure", module: "../figures/sessions.js" }),
+  Object.freeze({ selector: "#tokens", module: "../figures/tokens.js" }),
+  Object.freeze({ selector: "#latency", module: "../figures/latency.js" }),
+  Object.freeze({ selector: "#tools", module: "../figures/tools.js" }),
+  Object.freeze({ selector: "#caching", module: "../figures/caching.js" }),
+  Object.freeze({ selector: "#comparison", module: "../comparison/comparison.js" }),
 ]);
 
 // A card counts as in view from one viewport height above the viewport to one below it, so the row of figures after

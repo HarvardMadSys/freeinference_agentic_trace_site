@@ -57,16 +57,16 @@ const SECTION_FIGURES = {
 
 // The figure sections of insights.html, in order: each section's id, its number and its heading.
 const PAGE_SECTIONS = [
-  { id: "insights-sessions", number: "01", heading: "Session structure" },
-  { id: "insights-tokens", number: "02", heading: "Tokens and cost" },
-  { id: "insights-latency", number: "03", heading: "Latency" },
-  { id: "insights-tools", number: "04", heading: "Tools" },
-  { id: "insights-caching", number: "05", heading: "Prefix caching" },
-  { id: "insights-comparison", number: "06", heading: "Human-driven against benchmark" },
+  { id: "structure", number: "01", heading: "Session structure" },
+  { id: "tokens", number: "02", heading: "Tokens and cost" },
+  { id: "latency", number: "03", heading: "Latency" },
+  { id: "tools", number: "04", heading: "Tools" },
+  { id: "caching", number: "05", heading: "Prefix caching" },
+  { id: "comparison", number: "06", heading: "Human-driven against benchmark" },
 ];
 const PAGE = readFileSync(new URL("../site/insights.html", import.meta.url), "utf8");
 const PAGE_SECTION =
-  /<section id="(insights-\w+)" class="figure-section"[^>]*>\s*<h2[^>]*><span class="topic-number">(\d+)<\/span>([^<]+)<\/h2>/g;
+  /<section id="(\w+)" class="figure-section"[^>]*>\s*<h2[^>]*><span class="topic-number">(\d+)<\/span>([^<]+)<\/h2>/g;
 
 // A histogram figure names its stats query beside its bins query; every other figure is drawn from one query.
 function isHistogram(figure) {
@@ -96,6 +96,14 @@ async function sections() {
 test("the page holds the six figure sections in order, each with its number and heading", () => {
   const found = [...PAGE.matchAll(PAGE_SECTION)].map((match) => ({ id: match[1], number: match[2], heading: match[3] }));
   assert.deepEqual(found, PAGE_SECTIONS);
+});
+
+test("the page opens on its heading and the topic bar, before the six topics", () => {
+  const firstTopic = PAGE.indexOf(`<section id="${PAGE_SECTIONS[0].id}"`);
+  const heading = PAGE.indexOf('<h1 id="insights-title">Insights</h1>');
+  const topicBar = PAGE.indexOf('<nav id="topic-bar" class="topic-bar" aria-label="Topics"></nav>');
+  assert.ok(heading !== -1 && heading < topicBar && topicBar < firstTopic);
+  assert.doesNotMatch(PAGE, /class="eyebrow"/);
 });
 
 test("a figure section holds its heading and its cards, and no intro text", () => {

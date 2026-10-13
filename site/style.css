@@ -42,6 +42,7 @@
   --radius-button: 0.65rem;
   --page-width: 76rem; /* Open Data's width: the header's links fit one row in it, and the header, page and footer align */
   --header-height: 4.5rem; /* the sticky header's height on one row, or a little more where its links wrap below */
+  --topic-bar-height: 3rem; /* the Insights page's topic bar, which sticks under the header */
   --loading-card-height: 26rem; /* about a drawn figure card's height, so a loading card holds the place of one */
   --gutter: clamp(1rem, 4vw, 3.5rem); /* Open Data's gutter, with the phone's 1rem kept so 360 px still fits */
 
@@ -1140,11 +1141,37 @@ section[id] {
   gap: 1rem;
 }
 
-/* The figure sections, one after the other, spaced as the page spaces its parts. */
-.figure-sections {
+/* The Insights page's topic bar: one row of the six topics that sticks under the site header, on the header's
+   translucent paper and across the page's gutters; the topic in view is marked as the header marks the current page.
+   Its row of links scrolls sideways where it does not fit, as the header's do on a phone, and the bar holds the
+   background so that the row's faded edge fades the links alone. */
+.topic-bar {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 20;
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  align-items: center;
+  height: var(--topic-bar-height);
+  margin-inline: calc(-1 * var(--gutter));
+  padding-inline: var(--gutter);
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-background) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+}
+
+.topic-links {
+  position: relative; /* the links' offsets are measured from the row, which scrolls */
+  display: flex;
+  gap: 1.4rem;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+/* A topic, or a figure in it, lands below the header and the topic bar. */
+.figure-section[id],
+.figure-section .card[id] {
+  scroll-margin-top: calc(var(--header-height) + var(--topic-bar-height) + 1rem);
 }
 
 /* A topic's number before its heading, in the eyebrow's monospace and the accent: "01 Session structure". */
