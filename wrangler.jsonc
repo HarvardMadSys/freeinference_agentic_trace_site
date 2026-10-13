@@ -8,7 +8,7 @@
     "directory": "./site"
   },
   // Until a custom domain is chosen, the site answers at <name>.<account subdomain>.workers.dev, which is where
-  // the first deploy's checks run (a range request answered with 206; every page end to end).
+  // the deploy workflow checks the published site.
   "workers_dev": true,
   // Preview URLs per uploaded version, at <version>-<name>.<account subdomain>.workers.dev, for `npm run deploy:preview`.
   "preview_urls": true

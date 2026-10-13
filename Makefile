@@ -7,7 +7,7 @@ PIPELINE ?= ../freeinference-agentic-pipeline
 RELEASE ?= $(PIPELINE)/data/v1/release
 SIMULATION ?= $(PIPELINE)/data/v1/simulation
 
-.PHONY: setup setup-browser data serve test check-answers deploy
+.PHONY: setup setup-browser data serve test deploy
 
 # Create the virtual environment; install the pipeline's package from its
 # repository, then this package with its test tools.
@@ -26,22 +26,19 @@ setup-browser:
 data:
 	$(PYTHON) -m site_data --release $(RELEASE) --simulation $(SIMULATION) --out site/data
 
-# Serve the site locally at http://localhost:8000. serve.py answers range requests, which DuckDB needs to read
-# only the parts of a Parquet file a query touches; python3 -m http.server would send whole files.
+# Serve the site locally at http://localhost:8000 with Python's own file server. It ignores range requests and sends
+# whole files, which is all the site needs: no page reads part of a file.
 serve:
-	python3 serve.py --directory site --port 8000
+	python3 -m http.server -d site -b 127.0.0.1 8000
 
 # The paper-parity test reads the pipeline's numbers.json; it is told where the pipeline is and skips when it is absent.
+# tests/test_answers.py fails on an answer or bucket whose query was edited since make data last ran.
 test:
 	FREEINFERENCE_PIPELINE=$(PIPELINE) $(PYTHON) -m pytest
 	node --test "tests/*.test.js"
 
-# Check that every answer in site/data comes from its query as the query is now: one edited since make data fails.
-check-answers:
-	$(PYTHON) -m site_data.check_answers
-
-# Publish site/, with its data, to Cloudflare as the static assets of the Worker wrangler.jsonc names, once the
-# answers are checked. Needs `npm install` once and a Cloudflare API token (see README); a push to main deploys
-# the same way through .github/workflows/deploy.yml.
-deploy: check-answers
+# Publish site/, with its data, to Cloudflare as the static assets of the Worker wrangler.jsonc names. Needs
+# `npm install` once and a Cloudflare API token (see README); a push to main deploys the same way through
+# .github/workflows/deploy.yml.
+deploy:
 	npx wrangler deploy

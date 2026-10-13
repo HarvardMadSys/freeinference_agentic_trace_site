@@ -15,7 +15,6 @@ import pytest
 import site_data.__main__
 import site_data.answers
 import site_data.buckets
-import site_data.check_answers
 import site_data.paths
 import site_data.site_database
 
@@ -194,7 +193,7 @@ def test_without_a_simulated_week_every_query_has_an_answer(tmp_path: pathlib.Pa
     assert written_files(tmp_path / "data") == answers_folder_files(site_data.answers.answered_query_names())
     for name in SIMULATION_QUERIES:
         assert isinstance(read_answer(tmp_path / "data", name), list), name
-    assert site_data.check_answers.stale_queries(tmp_path / "data") == []
+    assert site_data.answers.stale_queries(tmp_path / "data") == []
 
 
 def test_the_answers_record_the_hash_of_each_answered_query_s_text(data_directory: pathlib.Path) -> None:
@@ -204,19 +203,10 @@ def test_the_answers_record_the_hash_of_each_answered_query_s_text(data_director
                                        *site_data.buckets.BUCKET_PARTS.values(),
                                        *site_data.site_database.SELECTION_VIEW_STATEMENTS])
     assert recorded == site_data.answers.query_hashes()
-    assert site_data.check_answers.stale_queries(data_directory) == []
 
 
-def test_the_check_prints_how_many_queries_the_answers_match(data_directory: pathlib.Path,
-                                                             capsys: pytest.CaptureFixture) -> None:
-    site_data.check_answers.main(["--data", str(data_directory)])
-    count = (len(site_data.answers.answered_query_names()) + len(site_data.buckets.BUCKET_PARTS)
-             + len(site_data.site_database.SELECTION_VIEW_STATEMENTS))
-    assert capsys.readouterr().out == f"answers match {count} queries and views\n"
-
-
-def test_a_query_or_view_edited_or_added_since_make_data_fails_the_check(data_directory: pathlib.Path,
-                                                                 tmp_path: pathlib.Path) -> None:
+def test_a_query_or_view_edited_or_added_since_make_data_is_stale(data_directory: pathlib.Path,
+                                                                  tmp_path: pathlib.Path) -> None:
     queries = tmp_path / "queries"
     shutil.copytree(site_data.site_database.QUERIES_FOLDER, queries)
     with (queries / "explore" / "trace_totals.sql").open("a") as query:
@@ -224,38 +214,13 @@ def test_a_query_or_view_edited_or_added_since_make_data_fails_the_check(data_di
     (queries / "figures" / "added_since.sql").write_text("SELECT 1 AS one;\n")
     with (queries / "setup" / "create_view_session_time.sql").open("a") as view:
         view.write("-- edited\n")
-    assert site_data.check_answers.stale_queries(data_directory, queries) == [
-        site_data.check_answers.StaleQuery(name="explore/trace_totals", reason=site_data.check_answers.CHANGED),
-        site_data.check_answers.StaleQuery(name="figures/added_since", reason=site_data.check_answers.UNRECORDED),
-        site_data.check_answers.StaleQuery(name="setup/create_view_session_time",
-                                           reason=site_data.check_answers.CHANGED),
+    assert site_data.answers.stale_queries(data_directory, queries) == [
+        "explore/trace_totals", "figures/added_since", "setup/create_view_session_time",
     ]
-
-
-def test_the_check_fails_and_names_each_stale_query(data_directory: pathlib.Path, tmp_path: pathlib.Path,
-                                                    capsys: pytest.CaptureFixture) -> None:
-    data = tmp_path / "data"
-    shutil.copytree(data_directory / site_data.paths.ANSWERS_FOLDER, data / site_data.paths.ANSWERS_FOLDER)
-    hashes_path = data / site_data.paths.ANSWERS_FOLDER / site_data.paths.QUERY_HASHES_FILE
-    recorded = json.loads(hashes_path.read_text())
-    recorded["explore/trace_totals"] = "0" * 64
-    hashes_path.write_text(json.dumps(recorded))
-    with pytest.raises(SystemExit) as exit_info:
-        site_data.check_answers.main(["--data", str(data)])
-    assert exit_info.value.code == 1
-    assert f"explore/trace_totals: {site_data.check_answers.CHANGED}" in capsys.readouterr().err
-
-
-def test_without_recorded_hashes_the_check_says_to_run_make_data(tmp_path: pathlib.Path,
-                                                                capsys: pytest.CaptureFixture) -> None:
-    with pytest.raises(SystemExit) as exit_info:
-        site_data.check_answers.main(["--data", str(tmp_path)])
-    assert exit_info.value.code == 1
-    assert "run make data first" in capsys.readouterr().err
 
 
 def test_shipped_answers_come_from_the_current_queries() -> None:
     """Every answer under the tracked `site/data` was written from its query's current text: a query edited since `make
     data`, or added since, fails here until `make data` is rerun."""
-    stale = site_data.check_answers.stale_queries(SHIPPED_DATA_FOLDER)
-    assert stale == [], "stale answers: " + ", ".join(f"{query.name} ({query.reason})" for query in stale)
+    stale = site_data.answers.stale_queries(SHIPPED_DATA_FOLDER)
+    assert stale == [], "edited or added since make data last ran, so rerun it: " + ", ".join(stale)
