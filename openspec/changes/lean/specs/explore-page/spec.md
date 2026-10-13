@@ -32,7 +32,8 @@ Every series a chart draws SHALL be in its legend.
 
 Each figure SHALL be one query
 file answered by `make data` and one entry whose `draw` is one call to
-a chart kind in `js/charts/` with its columns and labels written out,
+a chart kind in `js/charts/` with its columns, where they vary, and its labels
+written out,
 plus, where the paper's callout needs it, one short named function; a
 kind SHALL take only parameters two or more figures use, and a figure
 that needs more SHALL keep a plain draw function of its own. The definitions,
