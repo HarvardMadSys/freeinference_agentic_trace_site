@@ -78,10 +78,10 @@ bars kind generalises to stacked bars over a named x column
 (`stacked_bars.js`, `xColumn`, `weeks` and `margins` optional), so the
 input-share bars call it too and `drawBars` leaves `shared/charts.js`.
 The transition CDF calls the CDF kind with a `height`; the gap-bin CDF
-keeps a plain draw. Converting the CDFs with an x domain changes their
-clipping: the kind clips only its lines, so tooltips are no longer cut
-at the plot's edge. That is a deliberate visible change, recorded here
-and shown in the snapshot diff of those two figures alone.
+keeps a plain draw. Every CDF now clips only its lines, so a tooltip and
+a median rule are no longer cut at the plot's edge. That is a deliberate
+visible change, recorded here and shown in the snapshot diff of three
+figures alone: the gap-by-cause, the transition and the gap-bin CDFs.
 
 ## 3. One URL format
 The sessions table reads and writes `months`, `harnesses`, `model`,
