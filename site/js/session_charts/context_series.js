@@ -91,7 +91,7 @@ export function trajectoryPoints(tree, requests) {
  */
 export function areaParts(split) {
   if (split === "roles") {
-    return INPUT_ROLES.map((role) => ({ name: role.name, colour: ROLE_COLOURS[role.role] }));
+    return INPUT_ROLES.map((inputRole) => ({ name: inputRole.name, colour: ROLE_COLOURS[inputRole.role] }));
   }
   return [
     { name: TOKEN_PART_NAMES.cached, colour: TOKEN_PART_COLOURS.cached },
@@ -206,8 +206,8 @@ function partRows(elapsed, tokens, parts) {
 function partTokens(request, split) {
   if (split === "roles") {
     const tokens = {};
-    for (const role of INPUT_ROLES) {
-      tokens[role.name] = request[role.column];
+    for (const inputRole of INPUT_ROLES) {
+      tokens[inputRole.name] = request[inputRole.column];
     }
     return tokens;
   }

@@ -7,6 +7,9 @@
  * tool_calls }`, each part `{ columns, rows }` with a row's values in column order (`site_data/buckets.py`). Beside the
  * buckets, the week's `index.json.gz` maps every session id of the week, subagents included, to its top-level id. A
  * prefix with no top-level session in the week has no bucket.
+ *
+ * Every function is given the data folder as `dataUrl`: an absolute URL ending in a slash, so that a file's path
+ * resolves inside the folder.
  */
 
 // The folder of every week's buckets in the data folder.
@@ -37,9 +40,9 @@ const NOT_FOUND = 404;
 
 /**
  * `{ tree, requests, toolCalls }`, the rows of the top-level session that holds the session `id` of the week `week`
- * (a Sunday), from the data folder at `dataUrl` (an absolute URL ending in a slash), each row an object from column
- * name to value; null when the week holds no session `id`. The id's bucket is fetched first; an id it does not hold, a
- * subagent's, is looked up in the week's index, and its top-level session's bucket fetched unless it is the same one.
+ * (a Sunday), from the data folder at `dataUrl`, each row an object from column name to value; null when the week
+ * holds no session `id`. The id's bucket is fetched first; an id it does not hold, a subagent's, is looked up in the
+ * week's index, and its top-level session's bucket fetched unless it is the same one.
  */
 export async function fetchSession(dataUrl, week, id) {
   const bucket = await fetchJsonOrNull(bucketUrl(dataUrl, week, id));
@@ -125,7 +128,7 @@ function weekFileUrl(dataUrl, week, name) {
   return fileUrl(dataUrl, `${BUCKETS_FOLDER}/${encodeURIComponent(week)}/${name}`);
 }
 
-/** The absolute URL of the file `path` in the data folder at `dataUrl`, which ends in a slash. */
+/** The absolute URL of the file `path` in the data folder at `dataUrl`. */
 function fileUrl(dataUrl, path) {
   return new URL(path, dataUrl).href;
 }

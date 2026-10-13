@@ -72,8 +72,8 @@ export function detailFacts(request) {
     { label: "Model", value: `${request.model} at provider ${request.provider}` },
     { label: "Input tokens", value: inputText(request) },
   ];
-  for (const role of INPUT_ROLES) {
-    facts.push({ label: role.name, value: countOrMissing(request[role.column]) });
+  for (const inputRole of INPUT_ROLES) {
+    facts.push({ label: inputRole.name, value: countOrMissing(request[inputRole.column]) });
   }
   facts.push(
     { label: "Output tokens", value: formatCount(request.completion_tokens) },

@@ -20,6 +20,10 @@ const SESSION_COUNT_SERIES = Object.freeze({ requests: "Requests", user_steps: "
 // The series of the duration CDF, by their name in the query, with the name each is drawn under.
 const DURATION_SERIES = Object.freeze({ turn: "Turn", session: "Session" });
 
+// Each CDF's series in the series colours, in the order above.
+const SESSION_COUNT_COLOURS = assignColours(Object.keys(SESSION_COUNT_SERIES));
+const DURATION_COLOURS = assignColours(Object.keys(DURATION_SERIES));
+
 const MIN_COUNT_DRAWN = 1; // a count below one (a session with no tool step) is drawn at one, on the log axis
 const MIN_SECONDS_DRAWN = 0.1; // a duration below a tenth of a second is drawn at it, on the log axis
 const DURATION_TICKS_S = Object.freeze([1, 60, 3600, 86400]); // a second, a minute, an hour and a day
@@ -44,8 +48,7 @@ export const FIGURES = Object.freeze([
     binColumn: "series",
     seriesColumn: "series",
     seriesOverSameRows: true,
-    legend: (rows, colours, seriesColumn) =>
-      seriesLegend(rows, seriesColumn, assignColours(Object.keys(SESSION_COUNT_SERIES)), SESSION_COUNT_SERIES),
+    legend: (rows, colours, seriesColumn) => seriesLegend(rows, seriesColumn, SESSION_COUNT_COLOURS, SESSION_COUNT_SERIES),
     draw: drawRequestsPerSession,
   }),
   Object.freeze({
@@ -59,8 +62,7 @@ export const FIGURES = Object.freeze([
     binColumn: "series",
     seriesColumn: "series",
     seriesNouns: Object.freeze({ turn: "turns", session: "sessions" }),
-    legend: (rows, colours, seriesColumn) =>
-      seriesLegend(rows, seriesColumn, assignColours(Object.keys(DURATION_SERIES)), DURATION_SERIES),
+    legend: (rows, colours, seriesColumn) => seriesLegend(rows, seriesColumn, DURATION_COLOURS, DURATION_SERIES),
     draw: drawDurations,
   }),
   Object.freeze({

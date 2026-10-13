@@ -30,6 +30,9 @@ const CAUSE_NAMES = Object.freeze({
   tool: TIME_PART_NAMES.tool, ask_user_tool: "Ask-user tool", user: TIME_PART_NAMES.user, subagent: "Subagent",
 });
 
+// The colour of each cause, by its `waited_for` value in the order of `CAUSE_NAMES`, as the charts take colours.
+const CAUSE_COLOUR_MAP = new Map(Object.entries(CAUSE_COLOURS));
+
 // The transitions the figure draws, in their order, with the names it draws them under. A switch to another model or
 // provider is routing, not a change of context, and is not drawn, as in the paper.
 const TRANSITION_NAMES = Object.freeze({ append: "Append", mutation: "Mutation" });
@@ -79,8 +82,7 @@ export const GAP_FIGURES = Object.freeze({
     query: "figures/gap_cdf_by_cause",
     binColumn: "series",
     seriesColumn: "series",
-    legend: (rows, colours, seriesColumn) =>
-      seriesLegend(rows, seriesColumn, new Map(Object.entries(CAUSE_COLOURS)), CAUSE_NAMES),
+    legend: (rows, colours, seriesColumn) => seriesLegend(rows, seriesColumn, CAUSE_COLOUR_MAP, CAUSE_NAMES),
     draw: drawGapByCause,
   }),
   meanHitRatioByCause: Object.freeze({
@@ -253,7 +255,7 @@ async function drawMeanHitRatioByCause(rows, body) {
     marginRight: VALUE_MARGIN_RIGHT,
     x: { domain: [0, 1], axis: null },
     y: { type: "band", domain: causes },
-    color: colourScale(new Map(Object.entries(CAUSE_COLOURS)), causes),
+    color: colourScale(CAUSE_COLOUR_MAP, causes),
     marks: [
       Plot.axisY({ ...AXIS_STYLE, label: null, tickFormat: (cause) => CAUSE_NAMES[cause] }),
       Plot.barX(bars, { x1: 0, x2: "mean", y: "cause", fill: "cause", inset: BAR_INSET }),

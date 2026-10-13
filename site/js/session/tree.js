@@ -10,8 +10,7 @@ import { shortSessionId } from "../shared/format.js";
 
 /**
  * The top-level session of `tree`: the one no other session spawned, so it has no parent, as the release defines it.
- * Its `depth` is 0, and the two agree on every row of the shipped buckets; the parent is the definition, the depth
- * counted from it.
+ * Its `depth` is 0 exactly then, since `site_data/session_tree.py` counts depth by following parents.
  */
 export function topLevelSession(tree) {
   return tree.find((session) => session.parent_session_id === null);

@@ -72,7 +72,8 @@ export const FIGURES = Object.freeze([
     query: "figures/token_split_by_week",
     binColumn: "week",
     seriesColumn: "part",
-    legend: (rows, colours, seriesColumn) => seriesLegend(rows, seriesColumn, tokenPartColours(), TOKEN_PART_NAMES),
+    legend: (rows, colours, seriesColumn) =>
+      seriesLegend(rows, seriesColumn, new Map(Object.entries(TOKEN_PART_COLOURS)), TOKEN_PART_NAMES),
     draw: drawTokenSplit,
   }),
   Object.freeze({
@@ -84,7 +85,7 @@ export const FIGURES = Object.freeze([
     drawsLines: true,
     query: "figures/token_growth_by_messages",
     binColumn: "bin_start",
-    legend: () => partsLegend(TOKEN_PART_NAMES, tokenPartColours()),
+    legend: () => partsLegend(TOKEN_PART_NAMES, new Map(Object.entries(TOKEN_PART_COLOURS))),
     draw: drawTokenGrowth,
   }),
   Object.freeze({
@@ -120,9 +121,9 @@ export const FIGURES = Object.freeze([
 function contextShareLegend(rows, colours, seriesColumn) {
   const roleColours = new Map();
   const roleNames = {};
-  for (const { role, name } of INPUT_ROLES) {
-    roleColours.set(role, ROLE_COLOURS[role]);
-    roleNames[role] = name;
+  for (const inputRole of INPUT_ROLES) {
+    roleColours.set(inputRole.role, ROLE_COLOURS[inputRole.role]);
+    roleNames[inputRole.role] = inputRole.name;
   }
   return seriesLegend(rows, seriesColumn, roleColours, roleNames);
 }
@@ -159,7 +160,7 @@ async function drawContextShare(rows, body, colours) {
     x: "bin_start",
     y: "share",
     fill: "role",
-    order: INPUT_ROLES.map((input) => input.role),
+    order: INPUT_ROLES.map((inputRole) => inputRole.role),
     colours: colours.series,
     stacked: true,
     xLabel: "Input tokens",
@@ -203,8 +204,11 @@ async function drawTokenGrowth(rows, body, colours, hidden) {
   body.replaceChildren(chart);
 }
 
-/** One point per bin and part of `parts` with a median: `{ part, messages, tokens, median, rows }`, each part's points in bin order. */
-function growthPoints(rows, parts) {
+/**
+ * One point per bin and part of `parts` (the parts shown) with a median: `{ part, messages, tokens, median, rows }`,
+ * each part's points in bin order.
+ */
+export function growthPoints(rows, parts) {
   const points = [];
   for (const part of parts) {
     for (const row of rows) {
@@ -222,9 +226,4 @@ function growthTipText(point) {
   const messages = `${formatCount(point.messages)}–${formatCount(lastMessage)} messages`;
   const median = `median ${formatCompactCount(point.median)} tokens`;
   return `${TOKEN_PART_NAMES[point.part]}\n${messages}\n${median}\n${formatCount(point.rows)} requests`;
-}
-
-/** The token part colours as a map from part to colour, as the chart helpers take them. */
-function tokenPartColours() {
-  return new Map(Object.entries(TOKEN_PART_COLOURS));
 }

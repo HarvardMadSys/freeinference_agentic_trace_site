@@ -157,6 +157,15 @@ export const TOOL_GROUP_OF_CATEGORY = Object.freeze({
   "*Network": "Browser/Web",
 });
 
+// The colour of each tool category of `TOOL_GROUP_OF_CATEGORY`: its tool group's.
+function groupColourOfEachCategory() {
+  const colours = {};
+  for (const [category, group] of Object.entries(TOOL_GROUP_OF_CATEGORY)) {
+    colours[category] = TOOL_GROUP_COLOURS[group];
+  }
+  return colours;
+}
+
 /**
  * The colour of each tool category of the release, the same in every chart: a category with a tool group
  * (`TOOL_GROUP_OF_CATEGORY`) takes the group's, and the six without one each a colour of their own
@@ -268,13 +277,4 @@ export async function figureColours(orders) {
     categories: toolCategoryColours(categories.map((row) => row.category)),
     providers: assignColours(providers.map((row) => row.provider)),
   });
-}
-
-// The colour of each tool category of `TOOL_GROUP_OF_CATEGORY`: its tool group's.
-function groupColourOfEachCategory() {
-  const colours = {};
-  for (const [category, group] of Object.entries(TOOL_GROUP_OF_CATEGORY)) {
-    colours[category] = TOOL_GROUP_COLOURS[group];
-  }
-  return colours;
 }

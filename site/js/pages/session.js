@@ -21,9 +21,6 @@ const VIEW_TITLES = Object.freeze({ requests: "Requests", context: "Context", ti
 // The data folder beside the page, as an absolute URL: the session's bucket and the category order are read from it.
 const DATA_URL = new URL("data/", window.location.href).href;
 
-// Stops the view shown, so that showing another stops it first: the page shows one view at a time.
-let stopShownView = () => undefined;
-
 const parameters = new URLSearchParams(window.location.search);
 const selection = selectionParameters(parameters);
 mountHeader(document.querySelector("#site-header"), "session.html", selection);
@@ -39,6 +36,8 @@ const page = {
   tabs: document.querySelector("#views"),
   view: document.querySelector("#view"),
 };
+// Stops the view shown, so that showing another stops it first: the page shows one view at a time.
+let stopShownView = () => undefined;
 showLoading(page.facts);
 showLoading(page.view);
 openSession(readAddress(parameters)).catch(showFailure);

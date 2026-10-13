@@ -37,7 +37,7 @@ export const COST_SHARE_BY_SESSION = Object.freeze({
   query: "figures/cost_share_by_session",
   binColumn: "ranked_bin",
   legend: () => partsLegend(COST_PARTS, new Map(Object.entries(TOKEN_PART_COLOURS))),
-  draw: (rows, body, colours, hidden) => drawRankedShares(body, rows, {
+  draw: (rows, body, colours, hidden) => drawRankedShares(rows, body, {
     labels: COST_PARTS, colours: colours.series, hidden, yLabel: "Share of cost",
   }),
 });
@@ -52,7 +52,7 @@ export const SESSION_TIME_BY_PART = Object.freeze({
   query: "figures/session_time_by_part",
   binColumn: "ranked_bin",
   legend: () => partsLegend(TIME_PARTS, new Map(Object.entries(TIME_PART_COLOURS))),
-  draw: (rows, body, colours, hidden) => drawRankedShares(body, rows, {
+  draw: (rows, body, colours, hidden) => drawRankedShares(rows, body, {
     labels: TIME_PARTS, colours: colours.series, hidden, yLabel: "Share of session time",
   }),
 });
@@ -96,7 +96,7 @@ export function rankTips(rows, parts, labels) {
  * label) not in `hidden`, bottom up in that order, each in its colour of `colours`, with a tooltip per bin; `yLabel`
  * says what the shares are of.
  */
-async function drawRankedShares(body, rows, { labels, colours, hidden, yLabel }) {
+async function drawRankedShares(rows, body, { labels, colours, hidden, yLabel }) {
   // Plot is loaded here, not at the top, so node can test the section's figure list.
   const { Plot } = await import("../shared/libraries.js");
   const shown = Object.keys(labels).filter((part) => !hidden.has(part));
