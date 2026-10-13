@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  categoryRowsFrame, chartFrame, colourScale, columnTotal, dropThinBins, foldToOther, MIN_ROWS_PER_BIN, sumFolded,
+  categoryRowsFrame, chartFrame, chartName, colourScale, columnTotal, dropThinBins, foldToOther, MIN_ROWS_PER_BIN,
+  sumFolded,
 } from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
 
@@ -93,4 +94,20 @@ test("a chart's margins hold its 14.6 px tick labels and axis titles", () => {
 test("a column's total sums it over the rows, and is 0 for no rows", () => {
   assert.equal(columnTotal([{ sessions: 3 }, { sessions: 4 }], "sessions"), 7);
   assert.equal(columnTotal([], "sessions"), 0);
+});
+
+/** A figure's body as `renderFigure` lays it out, its card holding the elements `parts` names by class. */
+function bodyOfFigure(parts) {
+  const figure = { querySelector: (selector) => parts[selector] ?? null };
+  return { closest: () => figure };
+}
+
+test("a chart is named by its card's title and insight, or its caption where the card has no insight", () => {
+  const title = { textContent: "Tokens per request" };
+  const insight = { textContent: "Each request adds little to a large context." };
+  const caption = { textContent: "Input, uncached input and output tokens of each request." };
+  const withInsight = bodyOfFigure({ ".figure-title": title, ".figure-insight": insight, ".figure-caption": caption });
+  assert.equal(chartName(withInsight), "Tokens per request: Each request adds little to a large context.");
+  const withCaption = bodyOfFigure({ ".figure-title": title, ".figure-caption": caption });
+  assert.equal(chartName(withCaption), "Tokens per request: Input, uncached input and output tokens of each request.");
 });

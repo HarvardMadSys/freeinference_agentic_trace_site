@@ -14,8 +14,8 @@ export const ROWS_PER_PAGE = 20;
 // The room, in pixels, kept before an item that a row scrolls sideways to bring into view.
 const ROW_EDGE_ROOM = 16;
 
-// The mark after a sorted column's title, by sort direction.
-const SORT_ARROWS = { ascending: "▲", descending: "▼" };
+// The mark after a sortable column's title, by its sort state: faint arrows both ways while another column sorts.
+const SORT_MARKS = Object.freeze({ none: "↕", ascending: "▲", descending: "▼" });
 
 /** A new array of `rows` sorted by `row[key]` in `direction` ("ascending" or "descending"); missing values last, ties in input order. */
 export function sortRows(rows, key, direction) {
@@ -51,6 +51,8 @@ export function pageRows(rows, pageNumber, rowsPerPage) {
  */
 export function mountTable(container, { columns, rows, sort, pageNumber, summary, onSort, onPage, onRowClick }) {
   const page = pageRows(rows, pageNumber, ROWS_PER_PAGE);
+  // A sort from the keyboard redraws the table; its button is focused again in the new header.
+  const focusedSortKey = container.contains(document.activeElement) ? document.activeElement.dataset.sortKey : undefined;
   const wrap = document.createElement("div");
   wrap.className = "table-wrap";
   const table = document.createElement("table");
@@ -62,6 +64,7 @@ export function mountTable(container, { columns, rows, sort, pageNumber, summary
     container.append(summaryLine(summary));
   }
   container.append(wrap, pager(page, onPage));
+  focusSortButton(wrap, focusedSortKey);
   showSortedColumn(wrap);
   mountScrollingRow(wrap);
 }
@@ -95,6 +98,14 @@ export function bringIntoRow(row, item) {
   if (itemBox.left < rowBox.left || itemBox.right > rowBox.right) {
     row.scrollLeft += itemBox.left - rowBox.left - ROW_EDGE_ROOM;
   }
+}
+
+/**
+ * The sort state of `column` under `sort` (`{ key, direction }`), as its header's `aria-sort` says it: "ascending" or
+ * "descending" when the table is sorted by it, else "none".
+ */
+export function columnSortState(column, sort) {
+  return sort && sort.key === column.key ? sort.direction : "none";
 }
 
 /**
@@ -171,22 +182,43 @@ function tableHead(columns, sort, onSort) {
   return head;
 }
 
+// A column's header: its title, or, where the table sorts, its sort button, the header's aria-sort its sort state.
 function headerCell(column, sort, onSort) {
   const cell = document.createElement("th");
   cell.scope = "col";
-  cell.textContent = column.title;
   if (column.isNumber) {
     cell.classList.add("is-number");
   }
-  if (sort && sort.key === column.key) {
-    cell.classList.add("is-sorted");
-    cell.setAttribute("aria-sort", sort.direction);
-    cell.textContent = `${column.title} ${SORT_ARROWS[sort.direction]}`;
+  if (!onSort) {
+    cell.textContent = column.title;
+    return cell;
   }
-  if (onSort) {
-    cell.addEventListener("click", () => onSort(column.key));
-  }
+  const state = columnSortState(column, sort);
+  cell.setAttribute("aria-sort", state);
+  cell.classList.toggle("is-sorted", state !== "none");
+  cell.append(sortButton(column, state, onSort));
   return cell;
+}
+
+// A header's sort button: the column's title and its sort mark; Enter, Space and a click call `onSort(column.key)`.
+function sortButton(column, state, onSort) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "sort-button";
+  button.dataset.sortKey = column.key;
+  const mark = document.createElement("span");
+  mark.className = "sort-mark";
+  mark.setAttribute("aria-hidden", "true"); // the header's aria-sort says the state
+  mark.textContent = SORT_MARKS[state];
+  button.append(column.title, "\u00a0", mark); // a no-break space keeps the mark with the title's last word
+  button.addEventListener("click", () => onSort(column.key));
+  return button;
+}
+
+// Focus the sort button of the column `key` in `wrap`, when one was focused before the table was drawn again.
+function focusSortButton(wrap, key) {
+  const button = [...wrap.querySelectorAll(".sort-button")].find((candidate) => candidate.dataset.sortKey === key);
+  button?.focus(); // no button when none was focused (`key` undefined)
 }
 
 function tableBody(columns, rows, onRowClick) {

@@ -23,7 +23,7 @@
  * current run, so a new selection, which starts a new run, shows every series again.
  */
 
-import { MIN_ROWS_PER_BIN, renderFigure, showError, showLoading, showNote } from "../shared/charts.js";
+import { MIN_ROWS_PER_BIN, nameChart, renderFigure, showError, showLoading, showNote } from "../shared/charts.js";
 import { figureColours } from "../theme/colours.js";
 import { isDefaultSelection } from "../shared/selection.js";
 import { drawHistogram, histogramCard, rowsText } from "../shared/histogram.js";
@@ -198,6 +198,7 @@ async function drawHistogramFigure(figure, place, context) {
   const card = histogramCard(figure, binRows, statsRows[0]);
   place.rows.textContent = rowsText(card);
   await drawHistogram(place.body, card);
+  nameChart(place.body);
 }
 
 /** Run one figure's query and draw its rows into `place`, its thin bins hidden, with its line of rows. */
@@ -217,9 +218,9 @@ async function drawQueryFigure(figure, place, context) {
 }
 
 /**
- * Draw `figure`'s rows with the series named in `hidden` left out: a figure whose rows each name their series in
- * `seriesColumn` is drawn from the rows of the other series; any other is given `hidden` and leaves those series out
- * of its marks.
+ * Draw `figure`'s rows with the series named in `hidden` left out, and name its chart: a figure whose rows each name
+ * their series in `seriesColumn` is drawn from the rows of the other series; any other is given `hidden` and leaves
+ * those series out of its marks.
  */
 export async function drawFigureSeries(figure, rows, body, colours, hidden) {
   if (figure.seriesColumn !== undefined) {
@@ -227,6 +228,7 @@ export async function drawFigureSeries(figure, rows, body, colours, hidden) {
   } else {
     await figure.draw(rows, body, colours, hidden);
   }
+  nameChart(body);
 }
 
 /**
@@ -238,6 +240,7 @@ export async function drawFigureSeries(figure, rows, body, colours, hidden) {
 async function drawFigureRows(figure, rows, body, colours) {
   if (figure.legend === undefined) {
     await figure.draw(rows, body, colours);
+    nameChart(body);
     return;
   }
   const legend = figure.legend(rows, colours, figure.seriesColumn);

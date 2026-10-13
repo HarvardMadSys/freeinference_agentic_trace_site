@@ -228,6 +228,14 @@ body {
   background: var(--color-background);
 }
 
+/* A button or a link focused from the keyboard shows a ring of two pixels in the accent. */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 /* An element the page hides takes no room, whatever display rule its class gives it. */
 [hidden] {
   display: none !important;
@@ -504,7 +512,7 @@ a[target="_blank"]::after {
   color: var(--color-text-faint);
 }
 
-.footer-nav h2 {
+.footer-nav-title {
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--font-size-smallest);
@@ -1640,11 +1648,33 @@ button:disabled:hover {
   font-size: var(--font-size-smallest);
   font-weight: 600;
   color: var(--color-text-muted);
-  cursor: pointer;
+}
+
+/* A sortable column's header is a button drawn as the header's text: the title and its sort mark, nothing of a
+   button's box. */
+.sort-button {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  background: none;
   user-select: none;
 }
 
-.data-table th.is-sorted {
+.sort-button:hover {
+  color: var(--color-accent-strong);
+  background: none;
+}
+
+/* An unsorted column's mark, both ways, is faint; a sorted one's arrow takes the accent with its title. */
+.sort-mark {
+  color: var(--color-text-faint);
+}
+
+.data-table th.is-sorted,
+.data-table th.is-sorted .sort-mark {
   color: var(--color-accent);
 }
 

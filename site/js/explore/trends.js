@@ -9,7 +9,7 @@
  */
 
 import {
-  columnTotal, drawBars, foldToOther, renderFigure, showError, showLoading, sumFolded,
+  columnTotal, drawBars, foldToOther, nameChart, renderFigure, showError, showLoading, sumFolded,
 } from "../shared/charts.js";
 import { weekTickFormat } from "../axes/ticks.js";
 import { barColours, HARNESS_FIRST_SLOT, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
@@ -159,6 +159,7 @@ async function drawTrend(body, rows, context, options) {
 
 async function drawTrendBars(body, rows, context, options) {
   const chart = await drawBars(body, rows, { ...weekBarOptions(context), ...options });
+  nameChart(body);
   if (context.onWeekClick !== null) {
     chart.addEventListener("click", () => selectPointedWeek(chart, context.onWeekClick));
   }

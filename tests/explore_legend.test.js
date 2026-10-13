@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  drawWithLegend, hasLegend, isEverySeriesHidden, mountLegend, shownRows, toggledSeries,
+  drawWithLegend, hasLegend, isEverySeriesHidden, legendIndexForKey, mountLegend, shownRows, toggledSeries,
 } from "../site/js/explore/legend.js";
 
 /**
@@ -50,6 +50,10 @@ class FakeElement {
 
   click() {
     this.listeners.get("click")();
+  }
+
+  focus() {
+    globalThis.document.activeElement = this;
   }
 
   /** The text of the element's own string children, as a button's label is. */
@@ -201,4 +205,28 @@ test("a drawing after a click that fails shows its error in the chart's place", 
   await settle();
   assert.equal(body.children[0].className, "note is-error");
   assert.equal(body.children[0].textContent, "the chart could not be drawn");
+});
+
+test("the arrow keys move between a legend's buttons, stopping at its ends; any other key is the browser's", () => {
+  assert.equal(legendIndexForKey("ArrowRight", 0, 3), 1);
+  assert.equal(legendIndexForKey("ArrowRight", 2, 3), 2);
+  assert.equal(legendIndexForKey("ArrowLeft", 1, 3), 0);
+  assert.equal(legendIndexForKey("ArrowLeft", 0, 3), 0);
+  assert.equal(legendIndexForKey("Tab", 1, 3), null);
+  assert.equal(legendIndexForKey("Enter", 1, 3), null);
+});
+
+test("a legend is one tab stop, a named group, and ArrowRight moves the stop and the focus to the next button", (context) => {
+  useFakeDocument(context);
+  const container = new FakeElement("div");
+  mountLegend(container, LEGEND.series, LEGEND.colours, new Set(), () => undefined);
+  assert.equal(container.getAttribute("role"), "group");
+  assert.equal(container.getAttribute("aria-label"), "Series");
+  assert.deepEqual(container.children.map((button) => button.tabIndex), [0, -1]);
+  let isDefaultPrevented = false;
+  const event = { key: "ArrowRight", preventDefault: () => { isDefaultPrevented = true; } };
+  container.children[0].listeners.get("keydown")(event);
+  assert.equal(isDefaultPrevented, true);
+  assert.deepEqual(container.children.map((button) => button.tabIndex), [-1, 0]);
+  assert.equal(globalThis.document.activeElement, container.children[1]);
 });

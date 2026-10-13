@@ -14,7 +14,7 @@ import { legendLine } from "../session/legend.js";
 import { listenForRequestClick, startChartView, viewChartWidth } from "../session/view_chart.js";
 import { elapsedAxis } from "../axes/ticks.js";
 import {
-  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, renderFigure, TIP_STYLE, X_INSET,
+  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, nameChart, renderFigure, TIP_STYLE, X_INSET,
 } from "../shared/charts.js";
 import { formatCountTick, formatQuantity } from "../shared/format.js";
 
@@ -41,6 +41,7 @@ function drawContextView(Plot, container, tree, requests) {
   const figure = document.createElement("div");
   const body = renderFigure(figure, {
     title: "Context over time",
+    heading: "h2", // the view's title, under the page's h1
     caption: "Input tokens of each request over the session.",
     definition:
       "Input tokens of each request at its start, against time since the session's first request: the top-level " +
@@ -134,6 +135,7 @@ function drawChart({ Plot, tree, requests, body, chartBox, legend, slider, view 
   });
   listenForRequestClick(body, plot);
   chartBox.replaceChildren(plot);
+  nameChart(body);
   alignToChart(slider, plot);
   legend.replaceChildren(...contextLegend(parts, tree, marks));
 }

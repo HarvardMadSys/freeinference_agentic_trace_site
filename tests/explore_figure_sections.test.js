@@ -135,15 +135,18 @@ function recordingFigure(seriesColumn) {
   return { figure, calls };
 }
 
+// A figure's body as the drawing names its chart in it: here the figure draws no chart, so there is none to name.
+const BODY = Object.freeze({ querySelectorAll: () => [] });
+
 test("a long-format figure is drawn from the rows of its shown series, without the hidden set", async () => {
   const { figure, calls } = recordingFigure("series");
-  await drawFigureSeries(figure, SERIES_ROWS, "body", "colours", new Set(["b"]));
-  assert.deepEqual(calls, [[[{ series: "a", x: 1 }, { series: "a", x: 3 }], "body", "colours"]]);
+  await drawFigureSeries(figure, SERIES_ROWS, BODY, "colours", new Set(["b"]));
+  assert.deepEqual(calls, [[[{ series: "a", x: 1 }, { series: "a", x: 3 }], BODY, "colours"]]);
 });
 
 test("a wide-format figure is drawn from every row and given the hidden set", async () => {
   const { figure, calls } = recordingFigure(undefined);
   const hidden = new Set(["cached"]);
-  await drawFigureSeries(figure, SERIES_ROWS, "body", "colours", hidden);
-  assert.deepEqual(calls, [[SERIES_ROWS, "body", "colours", hidden]]);
+  await drawFigureSeries(figure, SERIES_ROWS, BODY, "colours", hidden);
+  assert.deepEqual(calls, [[SERIES_ROWS, BODY, "colours", hidden]]);
 });

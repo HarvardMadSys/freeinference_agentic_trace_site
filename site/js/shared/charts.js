@@ -121,12 +121,13 @@ export function showError(container, error) {
  * sentence of what the chart means, shows its title, the insight, an empty place for its legend, the body and its
  * caption (evidence supporting the insight); a card without one shows its title, its caption, the legend's place and
  * the body. Both end in a Definition control that opens on the full definition and the line of rows it rests on,
- * `rows`, which may also be written later into the card's `.figure-rows`.
+ * `rows`, which may also be written later into the card's `.figure-rows`. The title is a heading of the tag `heading`,
+ * an `h3` under a section's `h2` by default.
  */
-export function renderFigure(container, { title, insight = null, caption, definition, rows = "" }) {
+export function renderFigure(container, { title, insight = null, caption, definition, rows = "", heading = "h3" }) {
   const figure = document.createElement("div");
   figure.className = "figure";
-  const titleLine = textElement("h3", "figure-title", title);
+  const titleLine = textElement(heading, "figure-title", title);
   const captionLine = textElement("p", "figure-caption", caption);
   const legend = textElement("div", "figure-legend legend", "");
   const body = textElement("div", "figure-body", "");
@@ -154,6 +155,27 @@ export function figureDefinition(definition, rows = "") {
   details.querySelector(".figure-definition-text").textContent = definition;
   details.querySelector(".figure-rows").textContent = rows;
   return details;
+}
+
+/**
+ * The accessible name of the chart in a figure's `body` (as `renderFigure` lays it out): its card's title and its
+ * insight, or its caption where it has none, "Sessions per week: Top-level sessions each week, by harness."
+ */
+export function chartName(body) {
+  const figure = body.closest(".figure");
+  const point = figure.querySelector(".figure-insight") ?? figure.querySelector(".figure-caption");
+  return `${figure.querySelector(".figure-title").textContent}: ${point.textContent}`;
+}
+
+/**
+ * Name every chart drawn in a figure's `body` for a screen reader, as one image named by `chartName`; called after
+ * each drawing, since a drawing replaces the chart. A body holding a note or a table has no chart to name.
+ */
+export function nameChart(body) {
+  for (const chart of body.querySelectorAll("svg:not(svg svg)")) {
+    chart.setAttribute("role", "img");
+    chart.setAttribute("aria-label", chartName(body));
+  }
 }
 
 /** The place above a figure's body, as `renderFigure` lays it out, where its legend goes. */

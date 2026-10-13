@@ -142,7 +142,8 @@ function sectionHref(section, activeFile, query) {
 function headerSectionLink(section, activeFile, query) {
   const href = sectionHref(section, activeFile, query);
   if (MARKED_SECTIONS[activeFile] === section.anchor) {
-    return `<a class="nav-link is-active" href="${href}" aria-current="page">${section.title}</a>`;
+    // The marked link names where the page was opened from, not the page itself.
+    return `<a class="nav-link is-active" href="${href}" aria-current="true">${section.title}</a>`;
   }
   return `<a class="nav-link" href="${href}">${section.title}</a>`;
 }
@@ -156,10 +157,11 @@ function externalLink(link, className) {
   return `<a class="${className}" href="${link.url}" target="_blank" rel="noopener">${link.title}</a>`;
 }
 
-function footerLinkList(heading, links) {
+// A list of the footer's links under its title, which names the nav to a screen reader and is no heading of the page.
+function footerLinkList(title, links) {
   return `
-    <nav class="footer-nav" aria-label="${heading}">
-      <h2>${heading}</h2>
+    <nav class="footer-nav" aria-label="${title}">
+      <p class="footer-nav-title">${title}</p>
       <div class="footer-links">${links.join("")}</div>
     </nav>`;
 }

@@ -22,7 +22,7 @@ function rendered(render, activeFile, query, weekCount = 16) {
 function sectionLinks(activeFile, query) {
   const links = [];
   const markup = rendered(renderHeader, activeFile, query);
-  const pattern = /<a class="nav-link( is-active)?" href="([^"]*)"( aria-current="page")?>([^<]*)<\/a>/g;
+  const pattern = /<a class="nav-link( is-active)?" href="([^"]*)"( aria-current="true")?>([^<]*)<\/a>/g;
   for (const match of markup.matchAll(pattern)) {
     assert.equal(match[1] !== undefined, match[3] !== undefined, `${match[4]} is marked without aria-current`);
     links.push([match[4], match[2], match[1] !== undefined]);
@@ -42,7 +42,7 @@ function externalLinks(markup) {
 // The titles of the footer's links under the heading `heading`.
 function footerList(heading) {
   const markup = rendered(renderFooter, "index.html", "");
-  const list = markup.split(`<h2>${heading}</h2>`)[1].split("</nav>")[0];
+  const list = markup.split(`<p class="footer-nav-title">${heading}</p>`)[1].split("</nav>")[0];
   return [...list.matchAll(/>([^<]+)<\/a>/g)].map((match) => match[1]);
 }
 
@@ -105,7 +105,9 @@ test("the footer holds the brand, its line and the two lists of links, and nothi
   const markup = rendered(renderFooter, "index.html", "");
   assert.match(markup, /FreeInference <em>Agentic Dataset<\/em>/);
   assert.match(markup, /<p>16 weeks worth of coding agent traces from FreeInference\.<\/p>/);
-  assert.deepEqual([...markup.matchAll(/<h2>([^<]+)<\/h2>/g)].map((match) => match[1]), ["On this site", "Elsewhere"]);
+  const titles = [...markup.matchAll(/<p class="footer-nav-title">([^<]+)<\/p>/g)].map((match) => match[1]);
+  assert.deepEqual(titles, ["On this site", "Elsewhere"]);
+  assert.doesNotMatch(markup, /<h[1-6]/, "the footer's list titles are no headings");
   assert.doesNotMatch(markup, /Copyright|Accessibility|footer-legal/);
 });
 

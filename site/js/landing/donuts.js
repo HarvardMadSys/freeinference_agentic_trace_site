@@ -10,7 +10,7 @@
  * A section's `context` is what the page gives every section; see `explore/start.js`.
  */
 
-import { columnTotal, renderFigure, showError, showLoading } from "../shared/charts.js";
+import { chartName, columnTotal, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { formatCompactCount, formatCount, formatQuantity, formatShare } from "../shared/format.js";
 import { barColours, HARNESS_FIRST_SLOT, OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
 import { drawWithLegend } from "../explore/legend.js";
@@ -143,7 +143,8 @@ function drawDonut(body, slices, colours, text) {
     svg.append(slicePath(arc, colours, text));
     total += arc.count;
   }
-  svg.setAttribute("aria-label", `${text.title}: ${formatCount(total)} ${text.unit}`);
+  // Named by its card's title and caption, as every chart is; the total in the centre is read as its text.
+  svg.setAttribute("aria-label", chartName(body));
   const value = svgElement("text", { y: "-0.15em", class: "donut-total" });
   value.textContent = text.formatTotal(total);
   const unit = svgElement("text", { y: "1.35em", class: "donut-unit" });

@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  bringIntoRow, cellContent, filterRows, markMoreBeyondEdge, pageRows, ROWS_PER_PAGE, searchRows, sortRows,
+  bringIntoRow, cellContent, columnSortState, filterRows, markMoreBeyondEdge, pageRows, ROWS_PER_PAGE, searchRows,
+  sortRows,
 } from "../site/js/shared/table.js";
 
 const SESSIONS = [
@@ -178,4 +179,12 @@ test("a row scrolls an item beyond its right edge into view, with room before it
   const still = { ...fakeBox(0, 160), scrollLeft: 30 };
   bringIntoRow(still, fakeBox(20, 120));
   assert.equal(still.scrollLeft, 30);
+});
+
+test("a column's header says its sort state: the direction of the column sorted by, none for every other", () => {
+  const sort = { key: "requests", direction: "descending" };
+  assert.equal(columnSortState({ key: "requests" }, sort), "descending");
+  assert.equal(columnSortState({ key: "requests" }, { key: "requests", direction: "ascending" }), "ascending");
+  assert.equal(columnSortState({ key: "turns" }, sort), "none");
+  assert.equal(columnSortState({ key: "turns" }, undefined), "none");
 });

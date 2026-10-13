@@ -7,6 +7,9 @@
  * rows and `label` the text its button shows, and their colours, a Map from name to colour. The hidden series are a
  * Set of names; it lives as long as one drawing of the chart, so a new selection, which draws every chart afresh,
  * shows every series again, and it is never written to the URL.
+ *
+ * From the keyboard a legend is one tab stop, a group of buttons: Tab reaches the last button focused in it, the first
+ * at first, ArrowLeft and ArrowRight move between its buttons, and Enter or Space toggles one, as a click does.
  */
 
 import { legendPlace, showError, showNote } from "../shared/charts.js";
@@ -17,11 +20,14 @@ const EVERY_SERIES_HIDDEN_NOTE = "Every series is hidden: click one in the legen
 // A legend lists at least this many series: with one there is nothing to choose between, and the chart stays as it is.
 const MIN_SERIES_IN_LEGEND = 2;
 
+// The name a screen reader gives a legend's group of buttons.
+const LEGEND_GROUP_NAME = "Series";
+
 /**
  * Fill `container` with one button per series of `series` (`[{ name, label }]`), each with its colour from `colours`
  * (a Map from name to colour) in a swatch shaped as the chart draws it, `swatch` ("square" or "line"), pressed unless
- * its name is in `hidden`. A click flips the button between pressed and struck through and calls `onToggle(name)`.
- * Fewer than two series leave `container` empty.
+ * its name is in `hidden`, the whole one tab stop with the arrow keys inside it. A click flips the button between
+ * pressed and struck through and calls `onToggle(name)`. Fewer than two series leave `container` empty.
  */
 export function mountLegend(container, series, colours, hidden, onToggle, swatch = "square") {
   if (!hasLegend(series)) {
@@ -32,7 +38,27 @@ export function mountLegend(container, series, colours, hidden, onToggle, swatch
   for (const { name, label } of series) {
     buttons.push(legendButton({ label, colour: colours.get(name), swatch }, hidden.has(name), () => onToggle(name)));
   }
+  for (const [index, button] of buttons.entries()) {
+    button.tabIndex = index === 0 ? 0 : -1;
+    button.addEventListener("keydown", (event) => moveFocusByKey(buttons, index, event));
+  }
+  container.setAttribute("role", "group");
+  container.setAttribute("aria-label", LEGEND_GROUP_NAME);
   container.replaceChildren(...buttons);
+}
+
+/**
+ * The index of the button an arrow key moves focus to from the button at `index` of `count`: ArrowRight the next and
+ * ArrowLeft the one before, each stopping at the ends; null for any other key.
+ */
+export function legendIndexForKey(key, index, count) {
+  if (key === "ArrowRight") {
+    return Math.min(index + 1, count - 1);
+  }
+  if (key === "ArrowLeft") {
+    return Math.max(index - 1, 0);
+  }
+  return null;
 }
 
 /** A copy of `hidden` with `name` hidden when it was shown, and shown when it was hidden. */
@@ -107,6 +133,19 @@ function legendButton(entry, isHidden, onClick) {
   button.append(swatch, entry.label);
   button.addEventListener("click", () => flipAndCall(button, onClick));
   return button;
+}
+
+// An arrow key on the button at `index` of `buttons` focuses the button it names, which becomes the legend's tab stop.
+function moveFocusByKey(buttons, index, event) {
+  const next = legendIndexForKey(event.key, index, buttons.length);
+  if (next === null) {
+    return;
+  }
+  event.preventDefault(); // an arrow would otherwise scroll the page
+  for (const [other, button] of buttons.entries()) {
+    button.tabIndex = other === next ? 0 : -1;
+  }
+  buttons[next].focus();
 }
 
 function flipAndCall(button, onClick) {

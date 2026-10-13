@@ -15,7 +15,7 @@ import { alignToChart, rangeSlider } from "./range_slider.js";
 import { pointerFrame } from "./timeline_pointer.js";
 import { startChartView, viewChartWidth } from "../session/view_chart.js";
 import { elapsedAxis, isNarrowChart } from "../axes/ticks.js";
-import { AXIS_STYLE, chartFrame, GRID_STYLE, legendPlace, renderFigure } from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, GRID_STYLE, legendPlace, nameChart, renderFigure } from "../shared/charts.js";
 import { formatQuantity } from "../shared/format.js";
 
 const ROW_HEIGHT = 32; // pixels per agent row
@@ -35,6 +35,7 @@ function drawTimelineView(Plot, container, tree, requests, toolCalls) {
   const figure = document.createElement("div");
   const body = renderFigure(figure, {
     title: "Where the time went",
+    heading: "h2", // the view's title, under the page's h1
     caption: "Each agent's time in the parts' colours; subagent waits in violet.",
     definition:
       "One row per agent; on a phone the subagents are numbered in start order, and a bar's tooltip names its " +
@@ -66,6 +67,7 @@ function drawGantt({ Plot, body, rows, bars, chartPlace, slider }, range) {
   const shownBars = barsWithin(bars, range);
   const chart = ganttChart(Plot, body, rows, shownBars, range);
   chartPlace.replaceChildren(pointerFrame(chart, shownBars, rows.length));
+  nameChart(body);
   alignToChart(slider, chart);
 }
 
