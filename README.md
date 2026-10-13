@@ -199,7 +199,7 @@ site/              exactly the files that are deployed
                    setup), duckdb_files (the week files' names, and the stream of every week's files)
   js/theme/        colours, the site's colours as the style tokens give them
   js/axes/         ticks, the ticks of every chart's axes: how many, and where a log, duration or week axis ticks
-  js/pages/        one module per page: explore, session
+  js/pages/        one module per page: overview, explorer, insights, session
   js/explore/      the Explore page's start and sections: start (the start every Explore page shares, with
                    FIGURES_ARE_FROZEN), trends, figure_sections (the figure runner),
                    legend (the legend of buttons that hides and shows a series), sessions_table, sessions_table_state

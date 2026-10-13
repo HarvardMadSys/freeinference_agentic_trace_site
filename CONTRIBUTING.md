@@ -88,7 +88,8 @@ binding, and `make test` checks the countable ones.
 ```
 make data:     queries/explore/, queries/figures/, setup/*_order  →  run over site/data/*.parquet  →  data/all_weeks/<page>/<query>.json
                queries/buckets/, one week at a time                →  run over site/data/*.parquet  →  data/session_buckets/<week>/<xx>.json.gz
-Explore:       index.html  →  js/pages/explore.js  →  js/explore/start.js, section modules and js/shared/  →  data/all_weeks/<page>/<query>.json
+Explore:       index.html, explorer.html, insights.html  →  js/pages/overview.js, explorer.js, insights.js  →  js/explore/start.js,
+               section modules and js/shared/  →  data/all_weeks/<page>/<query>.json
 Session:       session.html  →  js/pages/session.js  →  js/session/bucket.js  →  data/session_buckets/<week>/<xx>.json.gz
 ```
 

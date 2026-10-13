@@ -1,8 +1,9 @@
 /**
  * The header and footer every page shares.
  *
- * The links to the Explore page's sections carry the URL keys the page gives them, such as the sessions table's
- * filter, sort and page, so moving between pages and back keeps them. On the Explore page itself such a link is its
+ * They link the three Explore pages and the Overview page's Cite section. The Session Explorer link carries the URL
+ * keys the page gives it, the sessions table's filter, search, sort and page, so that moving from the table to a
+ * session and back by the header keeps them; no other link carries a key. On its own page a link to a section is its
  * anchor alone, so following it scrolls the page rather than loading it again.
  */
 
@@ -20,20 +21,26 @@ export const URLS = Object.freeze({
   github: "https://github.com/HarvardMadSys",
 });
 
-// The page that holds the sections the header and footer link.
-const EXPLORE_FILE = "index.html";
+// The Overview page, the landing page, which the brand links.
+const OVERVIEW_FILE = "index.html";
 
-/** The Explore page's sections, linked from the header and from the footer's "On this site". */
+// The Session Explorer page, whose link alone carries the URL keys: they are its table's.
+const EXPLORER_FILE = "explorer.html";
+
+/**
+ * The site's links, in the header and in the footer's "On this site": each `{ file, anchor, title }`, a page's file and
+ * no anchor, or a section's page and its anchor.
+ */
 export const SECTIONS = Object.freeze([
-  Object.freeze({ anchor: "#overview", title: "Overview" }),
-  Object.freeze({ anchor: "#sessions", title: "Session Explorer" }),
-  Object.freeze({ anchor: "#insights", title: "Insights" }),
-  Object.freeze({ anchor: "#cite", title: "Cite" }),
+  Object.freeze({ file: OVERVIEW_FILE, anchor: "", title: "Overview" }),
+  Object.freeze({ file: EXPLORER_FILE, anchor: "", title: "Session Explorer" }),
+  Object.freeze({ file: "insights.html", anchor: "", title: "Insights" }),
+  Object.freeze({ file: OVERVIEW_FILE, anchor: "#cite", title: "Cite" }),
 ]);
 
-// The section whose header link a page marks as current, by the page's file: the Session page is opened from the
-// Session Explorer. The Explore page marks none, since all four are on it.
-const MARKED_SECTIONS = Object.freeze({ "session.html": "#sessions" });
+// The page whose header link a page marks as current, by the page's file, where that is not the page itself: the
+// Session page is opened from the Session Explorer.
+const MARKED_PAGES = Object.freeze({ "session.html": EXPLORER_FILE });
 
 // The places off the site the header links, after its sections.
 const EXTERNAL_LINKS = Object.freeze([
@@ -58,9 +65,9 @@ const AFFILIATION = "Harvard SEAS · MadSys Lab";
 const FOOTER_LINE = "A trace of agent sessions served by FreeInference.";
 
 /**
- * Fill `container` with the site header: the brand, the affiliation, the links to the Explore page's sections and the
- * links off the site.
- * `activeFile` is the page's own file name; `carried` is the URLSearchParams every link to the Explore page carries.
+ * Fill `container` with the site header: the brand, the affiliation, the links to the site's pages and sections, the
+ * current page's marked, and the links off the site.
+ * `activeFile` is the page's own file name; `carried` is the URLSearchParams the Session Explorer link carries.
  */
 export function renderHeader(container, activeFile, carried) {
   const query = selectionQuery(carried);
@@ -69,7 +76,7 @@ export function renderHeader(container, activeFile, carried) {
   const externalLinks = EXTERNAL_LINKS.map((link) => externalLink(link, "nav-link is-external"));
   container.innerHTML = `
     <div class="header-inner">
-      ${brand(query)}
+      ${brand()}
       <a class="affiliation" href="${URLS.lab}" target="_blank" rel="noopener">${AFFILIATION}</a>
       <nav class="site-nav" aria-label="Site">
         ${sectionLinks.join("")}
@@ -98,7 +105,7 @@ export function mountHeader(container, activeFile, carried) {
 }
 
 /**
- * Fill `container` with the site footer: the brand and one line, the Explore page's sections and the places off the
+ * Fill `container` with the site footer: the brand and one line, the site's pages and sections and the places off the
  * site.
  * `activeFile` and `carried` are as `renderHeader` takes them.
  */
@@ -109,7 +116,7 @@ export function renderFooter(container, activeFile, carried) {
   container.innerHTML = `
     <div class="footer-inner">
       <div class="footer-brand">
-        ${brand(query)}
+        ${brand()}
         <p>${FOOTER_LINE}</p>
       </div>
       ${footerLinkList("On this site", sectionLinks)}
@@ -117,25 +124,39 @@ export function renderFooter(container, activeFile, carried) {
     </div>`;
 }
 
-// The brand, linking to the Explore page with the carried keys: a crimson square over a pale one, and the name.
-function brand(query) {
+// The brand, linking to the Overview page: a crimson square over a pale one, and the name.
+function brand() {
   return `
-    <a class="brand" href="${EXPLORE_FILE}${query}">
+    <a class="brand" href="${OVERVIEW_FILE}">
       <span class="brand-mark" aria-hidden="true"></span>
       <span>FreeInference <em>Agentic Dataset</em></span>
     </a>`;
 }
 
-// The address of `section` from the page `activeFile`: its anchor alone on the Explore page, else the page, the
-// carried keys and the anchor.
+/**
+ * The address of `section` from the page `activeFile`: a section's anchor alone on its own page; else its file, the
+ * carried keys `query` for the Session Explorer page alone, and its anchor.
+ */
 function sectionHref(section, activeFile, query) {
-  return activeFile === EXPLORE_FILE ? section.anchor : `${EXPLORE_FILE}${query}${section.anchor}`;
+  if (section.anchor !== "" && section.file === activeFile) {
+    return section.anchor;
+  }
+  const carried = section.file === EXPLORER_FILE ? query : "";
+  return `${section.file}${carried}${section.anchor}`;
+}
+
+/** Whether the header marks the link `section` on the page `activeFile`: a page's own link, never a section's. */
+function isMarkedLink(section, activeFile) {
+  const markedFile = MARKED_PAGES[activeFile] ?? activeFile;
+  return section.anchor === "" && section.file === markedFile;
 }
 
 function headerSectionLink(section, activeFile, query) {
-  const isMarked = MARKED_SECTIONS[activeFile] === section.anchor;
-  const className = isMarked ? "nav-link is-active" : "nav-link";
-  return `<a class="${className}" href="${sectionHref(section, activeFile, query)}">${section.title}</a>`;
+  const href = sectionHref(section, activeFile, query);
+  if (isMarkedLink(section, activeFile)) {
+    return `<a class="nav-link is-active" href="${href}" aria-current="page">${section.title}</a>`;
+  }
+  return `<a class="nav-link" href="${href}">${section.title}</a>`;
 }
 
 function footerSectionLink(section, activeFile, query) {
