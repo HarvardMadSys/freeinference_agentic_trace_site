@@ -48,21 +48,39 @@ series, `legend(rows, colours, options)`:
 - `donut.js`: the Overview's donut, moved from `landing/arcs.js`.
 
 A figure entry is `{ name, query, title, insight, caption, definition,
-draw, legend? }`, and `draw` is one visible call:
-`draw: (rows, body, colours) => cdfLines(rows, body, colours, { x:
-"requests", series: "series", xLabel: "Requests or steps" })`. A reader
-sees which kind draws the figure and with which columns, without a
-table of flags. A callout the kind does not know (the ratio text of the
-scope CDFs, the knee text) is a short named function in the figure's
-module, called after the kind. A kind takes only parameters two or more
-figures use; a figure that would need a parameter of its own keeps a
-plain draw function, which is the honest form for a one-off chart. The
-flags `drawsLines`, `binColumn`, `seriesColumn`, `seriesOverSameRows`,
-`drawnRows`, `seriesNouns`, `isSimulation` go; thin-bin hiding and the
-line of rows are the kind's, from the same parameters. Each figure is
-converted one at a time, the snapshot test green after each, so a
-visitor sees no change. `shared/charts.js` keeps the frame, the tooltip
-style, the colour scale and the width; `axes/ticks.js` stays.
+draw, legend? }` plus the fields that describe its rows, and `draw` is
+one visible call:
+`draw: (rows, body, colours) => drawCdf(rows, body, colours, { xLabel:
+"Requests or steps", ... })`. A reader sees which kind draws the figure
+and with which labels, without a table of flags. A callout the kind does
+not know (the ratio text of the scope CDFs, the knee text) is a short
+named function in the figure's module, passed to the kind's `callout`
+hook, which receives what the kind drew (the rows and the medians). A
+kind takes only parameters two or more figures use, with two named
+exceptions: a kind kept whole may take a one-figure parameter when the
+alternative is a near-copy of the kind (the histogram's `ticks`, the
+donut's `labels`), and frame sizes (`weeks`, `margins`, the CDF's
+`height`) are plain sizes, not behaviour. A figure that would need more
+keeps a plain draw function, built from the kind's exported helpers
+where they fit, which is the honest form for a one-off chart; the
+survey found thirteen such figures. A kind imports only from `shared/`,
+`axes/` and `theme/`; the series helpers live in `shared/series.js`.
+
+Thin-bin hiding and the line of rows stay in the runner, because the
+counting rules vary by figure, not by kind. After 3.3 an entry keeps
+the fields that describe its rows: `binColumn` (a column, or null when
+every row is its own bin), `seriesColumn`, `seriesOverSameRows`,
+`seriesNouns`, `drawnRows`, `drawsLines` (which picks the legend's
+swatch), and `readsSimulation` (formerly `isSimulation`); a histogram
+declares its `statsQuery`, which is what the runner checks. The week
+bars kind generalises to stacked bars over a named x column
+(`stacked_bars.js`, `xColumn`, `weeks` and `margins` optional), so the
+input-share bars call it too and `drawBars` leaves `shared/charts.js`.
+The transition CDF calls the CDF kind with a `height`; the gap-bin CDF
+keeps a plain draw. Converting the CDFs with an x domain changes their
+clipping: the kind clips only its lines, so tooltips are no longer cut
+at the plot's edge. That is a deliberate visible change, recorded here
+and shown in the snapshot diff of those two figures alone.
 
 ## 3. One URL format
 The sessions table reads and writes `months`, `harnesses`, `model`,
