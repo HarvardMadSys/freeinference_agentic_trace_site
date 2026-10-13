@@ -100,8 +100,8 @@ export function labelsThatFit(labels, width) {
 
 /**
  * Draw one CDF line per gap bin of the rows, in its legend's colour, a dashed rule at the median, and the shortest and
- * longest gaps named on their lines. Every mark is cut at the plot's edge but a label beside a line's end, which is
- * written in room the right margin keeps for it.
+ * longest gaps named on their lines. Only the lines are cut at the plot's edge, as the CDF kind cuts them; a label
+ * beside a line's end is written in room the right margin keeps for it.
  */
 async function drawHitRatioByGapBin(rows, body, colours) {
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
@@ -116,7 +116,6 @@ async function drawHitRatioByGapBin(rows, body, colours) {
     marginRight: frame.marginRight + (hasEndLabel ? LABEL_END_ROOM : 0),
     x: { type: "linear", domain: HIT_RATIO_DOMAIN, inset: X_INSET },
     y: { domain: [0, 1] },
-    clip: true,
     color: colourScale(colours.series, series.map((one) => one.name)),
     marks: [
       Plot.gridX(GRID_STYLE),
@@ -124,7 +123,7 @@ async function drawHitRatioByGapBin(rows, body, colours) {
       Plot.ruleY([MEDIAN_SHARE], { ...AXIS_STYLE, strokeDasharray: DASH }),
       Plot.axisX({ ...AXIS_STYLE, label: "Hit ratio", tickFormat: formatPercent }),
       Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: formatPercent, label: "Share of requests" }),
-      Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH }),
+      Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH, clip: true }),
       ...lineLabelMarks(Plot, labels),
       Plot.tip(points, Plot.pointerX({ x: "x", y: "share", title: (point) => cdfTipText(point, formatShare) })),
     ],
@@ -144,7 +143,7 @@ function nearestPoint(points, at) {
 }
 
 // The text marks of the labels: one above its point and ending at it, so that a point near the chart's right edge keeps
-// its label inside the chart; one beside a line's right end, in the room the right margin keeps, unclipped.
+// its label inside the chart; one beside a line's right end, in the room the right margin keeps.
 function lineLabelMarks(Plot, labels) {
   const above = labels.filter((label) => label.placement === "above");
   const atEnds = labels.filter((label) => label.placement === "end");
@@ -153,7 +152,7 @@ function lineLabelMarks(Plot, labels) {
       x: "x", y: "share", text: "label", dy: LABEL_ABOVE_OFFSET, textAnchor: "end", ...LINE_LABEL_STYLE,
     }),
     Plot.text(atEnds, {
-      x: "x", y: "share", text: "label", dx: LABEL_END_OFFSET, textAnchor: "start", clip: false, ...LINE_LABEL_STYLE,
+      x: "x", y: "share", text: "label", dx: LABEL_END_OFFSET, textAnchor: "start", ...LINE_LABEL_STYLE,
     }),
   ];
 }

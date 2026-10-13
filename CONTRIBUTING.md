@@ -268,6 +268,8 @@ Its card and its drawing:
   Definition control.
 - `isWide` (optional): true for a figure whose card takes its section's whole
   width: one that needs the room, or that would otherwise sit alone in a row.
+- `drawsLines` (optional): true for a figure that draws its series as lines,
+  whose legend then shows a short line per series instead of a square.
 - `query`: the query whose answer it draws, as `readAnswer` names it
   (`"figures/<name>"`).
 - `legend` (a figure of more than one series): `legend(rows, colours, seriesColumn)`
@@ -307,15 +309,12 @@ fact about the query's rows, not a choice of how to draw them:
   model draws only those with one of the eight series colours, never one in
   the Other grey. The line of rows counts these, and thin bins are hidden
   among them.
-- `drawsLines` (optional): true when the rows are drawn as lines, so the
-  legend shows a short line per series instead of a square.
 - `readsSimulation` (optional): true when the rows come from the cache
   simulation, whole (the cost and prefill figures) or in one column (the
   mutation table's prefill); the line of rows names a week the simulation
   does not cover.
 - `statsQuery` (a histogram's): the query summarising its rows, which are
-  bins; the page reads it as the sign of a histogram, whose bins are all
-  drawn (below).
+  bins (below).
 
 **The chart kinds** (`js/charts/`), one module per shape several figures
 share: `cdf` (CDF lines), `stacked_bars` (stacked bars over a named x

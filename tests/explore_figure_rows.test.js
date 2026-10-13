@@ -77,6 +77,7 @@ const WEEK_ENTRIES = [
   { week: "2026-08-09", simulated: true },
   { week: "2026-08-16", simulated: false },
 ];
+
 test("a figure of the trace leaves no week unsimulated; a simulation figure names the weeks not simulated", () => {
   assert.deepEqual(unsimulatedWeeks({}, WEEK_ENTRIES), []);
   assert.deepEqual(unsimulatedWeeks({ readsSimulation: true }, WEEK_ENTRIES), ["2026-08-16"]);
@@ -90,4 +91,3 @@ test("a figure's line of rows counts its rows, names the weeks not simulated and
   assert.equal(figureRowsText(byWeek, [{ week: "2026-08-16", rows: 60 }], 2, []),
     "60 rows · 2 weeks hidden (fewer than 50 rows each)");
 });
-

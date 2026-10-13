@@ -28,15 +28,9 @@
 <line x1="72" x2="432" y1="32" y2="32">
 </line>
 </g>
-<clipPath id="plot-clip">
-<rect x="72" y="32" width="360" height="160">
-</rect>
-</clipPath>
-<g aria-label="rule" clip-path="url(#plot-clip)">
-<g stroke="var(--chart-axis)" stroke-dasharray="4 3" transform="translate(0,0.5)">
+<g aria-label="rule" stroke="var(--chart-axis)" stroke-dasharray="4 3" transform="translate(0,0.5)">
 <line x1="72" x2="432" y1="112" y2="112">
 </line>
-</g>
 </g>
 <g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0.5,0)">
 <path transform="translate(88,192)" d="M0,0L0,6">
@@ -88,6 +82,10 @@
 <g aria-label="y-axis label" text-anchor="start" transform="translate(-68.5,-28.5)">
 <text y="0.71em" transform="translate(72,32)">Share of requests</text>
 </g>
+<clipPath id="plot-clip">
+<rect x="72" y="32" width="360" height="160">
+</rect>
+</clipPath>
 <g aria-label="line" clip-path="url(#plot-clip)">
 <g fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" transform="translate(0.5,0.5)">
 <path stroke="var(--gap-bin-1)" d="M88,192L98.321,191.2L146.99,190.4L283.636,189.6L335.621,188.8L358.151,188L370.895,187.2L378.909,186.4L384.675,185.6L388.903,184.8L392.085,184L394.708,183.2L396.789,182.4L398.528,181.6L399.962,180.8L401.225,180L402.381,179.2L403.372,178.4L404.242,177.6L405.023,176.8L405.707,176L406.311,175.2L406.851,174.4L407.341,173.6L407.796,172.8L408.21,172L408.588,171.2L408.927,170.4L409.24,169.6L409.524,168.8L409.787,168L410.035,167.2L410.264,166.4L410.479,165.6L410.681,164.8L410.869,164L411.043,163.2L411.21,162.4L411.367,161.6L411.515,160.8L411.654,160L411.785,159.2L411.91,158.4L412.03,157.6L412.143,156.8L412.249,156L412.351,155.2L412.449,154.4L412.544,153.6L412.634,152.8L412.722,152L412.805,151.2L412.883,150.4L412.958,149.6L413.03,148.8L413.1,148L413.167,147.2L413.233,146.4L413.297,145.6L413.358,144.8L413.417,144L413.474,143.2L413.529,142.4L413.583,141.6L413.634,140.8L413.684,140L413.733,139.2L413.779,138.4L413.826,137.6L413.868,136.8L413.912,136L413.953,135.2L413.994,134.4L414.034,133.6L414.072,132.8L414.109,132L414.146,131.2L414.182,130.4L414.217,129.6L414.25,128.8L414.283,128L414.315,127.2L414.346,126.4L414.376,125.6L414.406,124.8L414.435,124L414.464,123.2L414.491,122.4L414.517,121.6L414.544,120.8L414.57,120L414.595,119.2L414.62,118.4L414.644,117.6L414.668,116.8L414.691,116L414.714,115.2L414.736,114.4L414.757,113.6L414.78,112.8L414.801,112L414.822,111.2L414.842,110.4L414.862,109.6L414.882,108.8L414.901,108L414.92,107.2L414.938,106.4L414.957,105.6L414.974,104.8L414.992,104L415.009,103.2L415.026,102.4L415.042,101.6L415.058,100.8L415.075,100L415.09,99.2L415.106,98.4L415.121,97.6L415.136,96.8L415.151,96L415.166,95.2L415.18,94.4L415.195,93.6L415.208,92.8L415.222,92L415.236,91.2L415.249,90.4L415.262,89.6L415.275,88.8L415.288,88L415.3,87.2L415.313,86.4L415.325,85.6L415.337,84.8L415.349,84L415.361,83.2L415.373,82.4L415.384,81.6L415.395,80.8L415.406,80L415.417,79.2L415.428,78.4L415.439,77.6L415.45,76.8L415.46,76L415.471,75.2L415.481,74.4L415.491,73.6L415.501,72.8L415.511,72L415.521,71.2L415.53,70.4L415.54,69.6L415.549,68.8L415.559,68L415.568,67.2L415.577,66.4L415.586,65.6L415.595,64.8L415.604,64L415.613,63.2L415.622,62.4L415.631,61.6L415.639,60.8L415.647,60L415.656,59.2L415.664,58.4L415.673,57.6L415.681,56.8L415.689,56L415.698,55.2L415.706,54.4L415.714,53.6L415.722,52.8L415.73,52L415.738,51.2L415.746,50.4L415.754,49.6L415.762,48.8L415.769,48L415.777,47.2L415.785,46.4L415.793,45.6L415.802,44.8L415.81,44L415.818,43.2L415.827,42.4L415.835,41.6L415.844,40.8L415.853,40L415.862,39.2L415.871,38.4L415.88,37.6L415.89,36.8L415.901,36L415.912,35.2L415.925,34.4L415.94,33.6L415.958,32.8L416,32">
@@ -104,20 +102,12 @@
 </path>
 </g>
 </g>
-<g aria-label="text" clip-path="url(#plot-clip)">
-<g fill="var(--chart-label)" stroke="var(--color-surface)" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="end" transform="translate(0.5,-8.5)">
+<g aria-label="text" fill="var(--chart-label)" stroke="var(--color-surface)" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="end" transform="translate(0.5,-8.5)">
 <text y="0.32em" transform="translate(258.1468903102403,59.2)">Over 1 h</text>
-</g>
 </g>
 <g aria-label="text" fill="var(--chart-label)" stroke="var(--color-surface)" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="start" transform="translate(6.5,0.5)">
 <text y="0.32em" transform="translate(416,176)">Under 1 min</text>
 </g>
-<clipPath id="plot-clip">
-<rect x="72" y="32" width="360" height="160">
-</rect>
-</clipPath>
-<g aria-label="tip" clip-path="url(#plot-clip)">
-<g fill="var(--plot-background)" stroke="currentColor" pointer-events="none" text-anchor="start" transform="translate(0.5,0.5)">
-</g>
+<g aria-label="tip" fill="var(--plot-background)" stroke="currentColor" pointer-events="none" text-anchor="start" transform="translate(0.5,0.5)">
 </g>
 </svg>
