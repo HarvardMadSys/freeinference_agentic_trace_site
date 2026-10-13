@@ -13,7 +13,8 @@ seven chart kinds and a list of entries, one URL format, and one test
 that says whether the page changed.
 
 ## The aim, and the rule for every task
-The aim is a codebase a normal person can maintain, not a smaller one.
+The aim is a codebase a normal person can maintain, not a smaller one:
+ordinary software engineering practice, applied plainly.
 Fewer lines are a consequence, never the goal. The rule for every item
 and every review: **a change is made only if the code is clearer
 afterwards to someone reading it for the first time.** Where removing
