@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { LINKED_SECTIONS, renderFooter, renderHeader } from "../site/js/shared/layout.js";
+import { LINKED_SECTIONS, renderFooter, renderHeader, selectionQuery } from "../site/js/shared/layout.js";
 
 // The Explore page, whose sections the header and footer link by anchor.
 const EXPLORE_PAGE = new URL("../site/index.html", import.meta.url);
@@ -124,7 +124,7 @@ test("the Explore page runs Overview, Session Explorer, Insights, Cite and Team,
   const page = readFileSync(EXPLORE_PAGE, "utf8");
   const order = [...page.matchAll(/<section (?:id="([a-z-]+)" )?class="([a-z -]+)"/g)].map((match) => match[1] ?? match[2]);
   assert.deepEqual(order, [
-    "hero", "selection", "overview", "sessions", "insights", "insights-sessions", "insights-tokens", "insights-latency",
+    "hero", "overview", "sessions", "insights", "insights-sessions", "insights-tokens", "insights-latency",
     "insights-tools", "insights-caching", "insights-comparison", "cite", "team",
   ]);
   for (const section of LINKED_SECTIONS) {
@@ -157,4 +157,15 @@ test("the footer's line counts the weeks in digits as the hero's lede does, and 
   assert.match(rendered(renderFooter, "index.html", "", 17), /<p>17 weeks worth of coding agent traces from FreeInference\.<\/p>/);
   assert.match(rendered(renderFooter, "index.html", "", 1), /<p>1 week worth of coding agent traces/);
   assert.match(rendered(renderFooter, "session.html", "", null), /<p>Weeks worth of coding agent traces/);
+});
+
+test("the query string keeps the commas of a list of names plain", () => {
+  const params = new URLSearchParams("sort=requests");
+  params.set("weeks", "2026-05-31,2026-06-07");
+  params.set("harnesses", "hermes,codex");
+  assert.equal(selectionQuery(params), "?sort=requests&weeks=2026-05-31,2026-06-07&harnesses=hermes,codex");
+});
+
+test("no keys give an empty query string", () => {
+  assert.equal(selectionQuery(new URLSearchParams()), "");
 });

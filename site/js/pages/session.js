@@ -12,8 +12,7 @@ import { OPEN_REQUEST_EVENT } from "../session/view_chart.js";
 import { showError, showLoading, showNote } from "../shared/charts.js";
 import { toolCategoryColours } from "../theme/colours.js";
 import { shortSessionId } from "../shared/format.js";
-import { mountHeader, renderFooter } from "../shared/layout.js";
-import { selectionQuery } from "../shared/selection.js";
+import { mountHeader, renderFooter, selectionQuery } from "../shared/layout.js";
 
 // The title of each view's tab.
 const VIEW_TITLES = Object.freeze({ requests: "Requests", context: "Context", timeline: "Timeline" });

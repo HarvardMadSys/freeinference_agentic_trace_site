@@ -1,71 +1,20 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import {
-  drawFigureSeries, figuresToStart, newFigureRun, noteVisibility, runDrawsAtOnce, startFigures,
-} from "../site/js/explore/figure_sections.js";
-
-// Three figures in page order, as `figuresToStart` takes them, and a run's context it only carries.
-const FIGURE_LIST = [{ name: "first" }, { name: "second" }, { name: "third" }];
-const CONTEXT = { selection: { weeks: ["2026-07-05"], harnesses: ["hermes"] } };
-
-function names(figureList) {
-  return figureList.map((figure) => figure.name);
-}
-
-// The weeks and harnesses of `CONTEXT`'s page: its selection is narrowed to one week.
-const PAGE = {
-  weeks: [{ week: "2026-06-28" }, { week: "2026-07-05" }],
-  harnesses: [{ harness: "hermes", benchmark: false }, { harness: "eval:swe-bench", benchmark: true }],
-};
-
-test("a page that draws every run at once draws a narrowed selection's run at once", () => {
-  assert.equal(runDrawsAtOnce(true, { ...PAGE, ...CONTEXT }), true);
-});
-
-test("a page that draws in view draws a narrowed selection in view, and the default selection at once", () => {
-  assert.equal(runDrawsAtOnce(false, { ...PAGE, ...CONTEXT }), false);
-  const everyWeek = { weeks: ["2026-06-28", "2026-07-05"], harnesses: ["hermes"] };
-  assert.equal(runDrawsAtOnce(false, { ...PAGE, selection: everyWeek }), true);
-});
+import { drawFigureSeries, newFigureRun, startFigures } from "../site/js/explore/figure_sections.js";
 
 test("a new run carries its context and has started no figure", () => {
-  const run = newFigureRun(CONTEXT, false);
-  assert.equal(run.context, CONTEXT);
-  assert.equal(run.drawsAtOnce, false);
+  const context = { weeks: [] };
+  const run = newFigureRun(context);
+  assert.equal(run.context, context);
   assert.equal(run.startedNames.size, 0);
 });
 
-test("a run that draws at once starts every figure, whether in view or not", () => {
-  const run = newFigureRun(CONTEXT, true);
-  assert.deepEqual(names(figuresToStart(run, FIGURE_LIST, new Set())), ["first", "second", "third"]);
-});
-
-test("a run that draws in view starts only the figures in view, in page order", () => {
-  const run = newFigureRun(CONTEXT, false);
-  assert.deepEqual(names(figuresToStart(run, FIGURE_LIST, new Set(["third", "first"]))), ["first", "third"]);
-  assert.deepEqual(figuresToStart(run, FIGURE_LIST, new Set()), []);
-});
-
-test("a figure already started for the run is not started again when it comes back into view", () => {
-  const run = newFigureRun(CONTEXT, false);
-  run.startedNames.add("first");
-  assert.deepEqual(names(figuresToStart(run, FIGURE_LIST, new Set(["first", "second"]))), ["second"]);
-});
-
-test("a new run, as a selection change makes, starts the figures in view again", () => {
-  const visible = new Set(["first"]);
-  const earlier = newFigureRun(CONTEXT, false);
-  earlier.startedNames.add("first");
-  assert.deepEqual(figuresToStart(earlier, FIGURE_LIST, visible), []);
-  assert.deepEqual(names(figuresToStart(newFigureRun(CONTEXT, false), FIGURE_LIST, visible)), ["first"]);
-});
-
 /**
- * What the page keeps of two figures, "first" in a shown topic and "second" in a hidden one, for a run that draws at
- * once, its queries answered by `answer`; and the two topics, whose `hidden` a test flips as the tabs do.
+ * What the page keeps of two figures, "first" in a shown topic and "second" in a hidden one, for a run; and the two
+ * topics, whose `hidden` a test flips as the tabs do.
  */
-function figuresOfTwoTopics(answer) {
+function figuresOfTwoTopics() {
   const shownTopic = { hidden: false };
   const hiddenTopic = { hidden: true };
   const cards = [{ figure: { name: "first" }, topic: shownTopic }, { figure: { name: "second" }, topic: hiddenTopic }];
@@ -74,16 +23,19 @@ function figuresOfTwoTopics(answer) {
     places.set(figure.name, { body: { replaceChildren: () => undefined }, rows: {}, topic });
   }
   const orders = { models: Promise.resolve([]), categories: Promise.resolve([]), providers: Promise.resolve([]) };
-  const context = { orders, database: { runQuery: answer }, selection: { weeks: [] }, weeks: [] };
-  const run = newFigureRun(context, true);
-  return { figures: { cards, places, run, visibleNames: new Set() }, shownTopic, hiddenTopic };
+  const run = newFigureRun({ orders, weeks: [] });
+  return { figures: { cards, places, run }, shownTopic, hiddenTopic };
 }
 
-// An answer that never comes, so a started figure stays drawing and touches no page.
+// A stand-in for the page's `fetch` whose answer never comes, so a started figure stays drawing and touches no page.
 const NEVER_ANSWERED = () => new Promise(() => undefined);
 
-test("a run that draws at once starts the shown topic's figures alone, and a hidden topic's once it is shown", () => {
-  const { figures, shownTopic, hiddenTopic } = figuresOfTwoTopics(NEVER_ANSWERED);
+// A stand-in for the page's `fetch` that answers every file with no rows.
+const ANSWERED_EMPTY = async () => ({ ok: true, json: async () => [] });
+
+test("a run starts the shown topic's figures alone, and a hidden topic's once it is shown", (context) => {
+  context.mock.method(globalThis, "fetch", NEVER_ANSWERED);
+  const { figures, shownTopic, hiddenTopic } = figuresOfTwoTopics();
   startFigures(figures);
   assert.deepEqual([...figures.run.startedNames], ["first"]);
   hiddenTopic.hidden = false;
@@ -92,15 +44,17 @@ test("a run that draws at once starts the shown topic's figures alone, and a hid
   assert.deepEqual([...figures.run.startedNames], ["first", "second"]);
 });
 
-test("a topic shown twice in one run does not start its figures twice", () => {
-  const { figures } = figuresOfTwoTopics(NEVER_ANSWERED);
+test("a topic shown twice does not start its figures twice", (context) => {
+  context.mock.method(globalThis, "fetch", NEVER_ANSWERED);
+  const { figures } = figuresOfTwoTopics();
   assert.equal(startFigures(figures).length, 1);
   assert.equal(startFigures(figures).length, 0);
 });
 
-test("a figure whose topic was hidden before its drawing settled is started again when the topic is next shown", async () => {
+test("a figure whose topic was hidden before its drawing settled is started again when it is next shown", async (context) => {
+  context.mock.method(globalThis, "fetch", ANSWERED_EMPTY);
   globalThis.document = { createElement: () => ({}) };
-  const { figures, shownTopic } = figuresOfTwoTopics(() => Promise.resolve([]));
+  const { figures, shownTopic } = figuresOfTwoTopics();
   const drawings = startFigures(figures);
   shownTopic.hidden = true;
   await Promise.all(drawings);
@@ -111,15 +65,6 @@ test("a figure whose topic was hidden before its drawing settled is started agai
   await Promise.all(drawnAgain);
   assert.deepEqual([...figures.run.startedNames], ["first"]);
   delete globalThis.document;
-});
-
-test("intersection entries add the cards in view and remove the cards that left it", () => {
-  const visible = new Set(["first", "second"]);
-  noteVisibility(visible, [
-    { target: { id: "second" }, isIntersecting: false },
-    { target: { id: "third" }, isIntersecting: true },
-  ]);
-  assert.deepEqual([...visible].sort(), ["first", "third"]);
 });
 
 // Rows of two series, as a long-format figure's query returns them.

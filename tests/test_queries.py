@@ -1,12 +1,7 @@
-"""Every query of the site, run as the browser runs it on data built from the fixture release, returns its columns."""
-
-import pathlib
-import re
+"""Every query of the site, run as the data step runs it on data built from the fixture release, returns its columns."""
 
 import duckdb
 import pytest
-
-import site_data.answers
 
 import fixture_release
 import site_database
@@ -94,40 +89,6 @@ EXPECTED_COLUMNS = {
 
 FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is named `<sunday>_<saturday>`
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
-
-# The browser's module that sets up DuckDB, whose lists of setup statements the tests compare with the helper's.
-VIEWS_MODULE = site_database.QUERIES_FOLDER.parent / "js" / "engine" / "duckdb_views.js"
-# The browser's database module, whose lists of answered queries the tests compare with the data step's.
-DATABASE_MODULE = site_database.QUERIES_FOLDER.parent / "js" / "shared" / "database.js"
-
-
-def browser_list(module: pathlib.Path, constant: str) -> list[str]:
-    """The quoted strings, in order, of the list `const <constant> = Object.freeze([...]);` in the JS `module`."""
-    declaration = re.search(rf"const {constant} = Object\.freeze\(\[(.*?)\]\);", module.read_text(), re.DOTALL)
-    assert declaration is not None, f"{module.name} declares no {constant}"
-    return re.findall(r'"([^"]+)"', declaration.group(1))
-
-
-def browser_view_statements() -> dict[str, str]:
-    """The kinds and statement names, in order, of the map `const VIEW_STATEMENTS = Object.freeze({...});` in
-    duckdb_views.js."""
-    declaration = re.search(r"const VIEW_STATEMENTS = Object\.freeze\(\{(.*?)\}\);", VIEWS_MODULE.read_text(),
-                            re.DOTALL)
-    assert declaration is not None, f"{VIEWS_MODULE.name} declares no VIEW_STATEMENTS"
-    return dict(re.findall(r'(\w+): "([^"]+)"', declaration.group(1)))
-
-
-def test_the_setup_statements_run_in_the_browser_s_order() -> None:
-    assert list(site_database.VIEW_STATEMENTS_BY_KIND.items()) == list(browser_view_statements().items())
-    assert site_database.SELECTION_TABLE_STATEMENTS == browser_list(VIEWS_MODULE, "SELECTION_TABLE_STATEMENTS")
-    assert site_database.SELECTION_VIEW_STATEMENTS == browser_list(VIEWS_MODULE, "SELECTION_VIEW_STATEMENTS")
-
-
-def test_the_browser_answers_the_queries_the_data_step_answers() -> None:
-    # The browser names a page by its folder with the slash, as a query's name starts with it.
-    assert browser_list(DATABASE_MODULE, "ANSWERED_PAGES") == [f"{page}/" for page in site_data.answers.ANSWERED_PAGES]
-    assert browser_list(DATABASE_MODULE, "COLOUR_ORDER_QUERIES") == site_data.answers.COLOUR_ORDER_QUERIES
-
 
 def test_every_create_statement_on_disk_is_run() -> None:
     on_disk = {f"setup/{path.stem}" for path in site_database.SETUP_FOLDER.glob("create_*.sql")}

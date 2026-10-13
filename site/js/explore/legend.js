@@ -5,8 +5,7 @@
  *
  * A legend is `{ series, colours }`: the series it lists, `[{ name, label }]`, `name` being the series' value in the
  * rows and `label` the text its button shows, and their colours, a Map from name to colour. The hidden series are a
- * Set of names; it lives as long as one drawing of the chart, so a new selection, which draws every chart afresh,
- * shows every series again, and it is never written to the URL.
+ * Set of names; it lives as long as one drawing of the chart, and it is never written to the URL.
  *
  * From the keyboard a legend is one tab stop, a group of buttons: Tab reaches the last button focused in it, the first
  * at first, ArrowLeft and ArrowRight move between its buttons, and Enter or Space toggles one, as a click does.

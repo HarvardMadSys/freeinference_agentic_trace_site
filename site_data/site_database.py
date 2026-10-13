@@ -26,13 +26,12 @@ from site_data import harnesses, paths, weeks
 
 QUERIES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site" / "queries"
 SETUP_FOLDER = QUERIES_FOLDER / "setup"  # the statements that create and fill the views and tables
-FILES_PLACEHOLDER = "{files}"  # stands for a view's list of quoted file names, as in js/engine/duckdb_files.js
+FILES_PLACEHOLDER = "{files}"  # stands for a view's list of quoted file names
 # One thread, as DuckDB-WASM runs: a sum of floats then adds its rows in the same order on every run, so a rebuilt
 # answer is the same to the last bit.
 THREADS = 1
 
-# The statement that registers each kind of row as a view, by the kind's folder, in the order
-# js/engine/duckdb_views.js runs them.
+# The statement that registers each kind of row as a view, by the kind's folder, in the order they run.
 VIEW_STATEMENTS = {
     paths.REQUESTS_FOLDER: "setup/create_view_requests",
     paths.TOOL_CALLS_FOLDER: "setup/create_view_tool_calls",
@@ -40,15 +39,13 @@ VIEW_STATEMENTS = {
     paths.SIMULATION_FOLDER: "setup/create_view_simulation",
 }
 
-# The statements that make the empty selection tables, run after the views, in the order js/engine/duckdb_views.js
-# runs them.
+# The statements that make the empty selection tables, run after the views, in this order.
 SELECTION_TABLE_STATEMENTS = [
     "setup/create_selected_weeks",
     "setup/create_selected_harnesses",
 ]
 
-# The statements that make the views over the selected rows, run after the selection tables they read, in the order
-# js/engine/duckdb_views.js runs them.
+# The statements that make the views over the selected rows, run after the selection tables they read, in this order.
 SELECTION_VIEW_STATEMENTS = [
     "setup/create_view_session_time",
 ]

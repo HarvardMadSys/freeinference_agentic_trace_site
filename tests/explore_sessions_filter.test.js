@@ -5,7 +5,7 @@ import {
   harnessChoices, monthChoices, monthsOf, readTableFilter, rowsInFilter, unknownFilterNote, writeTableFilter,
 } from "../site/js/explore/sessions_filter.js";
 import { readTableState, shownSessions } from "../site/js/explore/sessions_table_state.js";
-import { selectionQuery } from "../site/js/shared/selection.js";
+import { selectionQuery } from "../site/js/shared/layout.js";
 
 const WEEKS = [
   { week: "2026-06-28", last_day: "2026-07-04", month: "2026-06", simulated: true },

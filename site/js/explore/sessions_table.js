@@ -6,27 +6,25 @@
  * page. On its default view the table draws its first page from `explore/sessions_first_page` before the full list,
  * `explore/sessions_of_selection`, has arrived, and enables its controls once it has.
  *
- * While `context.filterInTable`, there is no selection to choose: the answer holds every week's sessions of every
- * harness and the table filters them itself by month and harness (`explore/sessions_filter.js`). It then owns the keys
- * `months` and `harnesses`: it reads them, and the older `weeks`, `month`, `scope` and `harness`, from the URL once,
- * rewrites them in its own keys, and keeps the filter while the visitor changes it. While the page's pickers choose
- * the selection instead, the table never touches the selection's keys, has no month drop-down, and its harness
- * drop-down chooses among the selected harnesses.
+ * The answer holds every week's sessions of every harness, and the table filters them itself by month and harness
+ * (`explore/sessions_filter.js`). It owns the keys `months` and `harnesses`: it reads them, and the older `weeks`,
+ * `month`, `scope` and `harness`, from the URL once, rewrites them in its own keys, and keeps the filter while the
+ * visitor changes it.
  *
  * A section's `context` is what the page gives every section; see `explore/start.js`. This one writes its state
  * with `context.replaceQuery(params)`.
  */
 
-import { showError, showLoading } from "../shared/charts.js";
-import { selectionQuery, writeSelection } from "../shared/selection.js";
+import { showError, showLoading, showNote } from "../shared/charts.js";
+import { runQuery } from "../shared/database.js";
+import { selectionQuery } from "../shared/layout.js";
 import { mountTable } from "../shared/table.js";
-import { note } from "./selection_pickers.js";
 import {
-  EVERY_HARNESS_TEXT, harnessChoices, monthChoices, readTableFilter, rowsInFilter, unknownFilterNote, writeTableFilter,
+  harnessChoices, monthChoices, readTableFilter, rowsInFilter, unknownFilterNote, writeTableFilter,
 } from "./sessions_filter.js";
 import {
-  choices, COLUMNS, firstPageCountLine, isDefaultState, isStateFiltered, nextSort, readTableState, rowsOfHarnesses,
-  sessionCountLine, shownSessions, wholeNumberOrNull, withCachedShare, withFirstPage, writeTableState,
+  choices, COLUMNS, firstPageCountLine, isDefaultState, isStateFiltered, nextSort, readTableState, sessionCountLine,
+  shownSessions, wholeNumberOrNull, withCachedShare, withFirstPage, writeTableState,
 } from "./sessions_table_state.js";
 
 // The text of the model drop-down's first choice, which filters nothing.
@@ -38,27 +36,26 @@ export function layoutSessionsTable(container) {
 }
 
 /**
- * Lay out a fresh place in `container`, load the selection's sessions and draw the controls and the table into it,
- * or the error if the query fails. A run that a newer one replaced draws into a place no longer on the page. While
- * the table filters itself, its filter is read and rewritten in the URL first, before the answer is loaded.
+ * Lay out a fresh place in `container`, load the sessions and draw the controls and the table into it, or the error
+ * if the query fails. The table's filter is read and rewritten in the URL first, before the answer is loaded.
  */
 export async function runSessionsTable(container, context) {
   const place = document.createElement("div");
   showLoading(place);
   container.replaceChildren(place);
-  const filter = context.filterInTable ? rewriteFilter(context) : null;
+  const filter = rewriteFilter(context);
   await drawSessions(place, context, filter).catch((error) => showError(place, error));
 }
 
 /**
- * The table's columns for `context`: the session column links each row to its Session page, carrying `exploreParams`,
- * the Explore page's URL keys, so the link back to its Session Explorer reopens the table as it was.
+ * The table's columns: the session column links each row to its Session page, carrying `exploreParams`, the Explore
+ * page's URL keys, so the link back to its Session Explorer reopens the table as it was.
  */
-export function linkedColumns(context, exploreParams) {
+export function linkedColumns(exploreParams) {
   const columns = [];
   for (const column of COLUMNS) {
     if (column.key === "session_id") {
-      columns.push({ ...column, href: (row) => sessionLink(row, exploreParams, context) });
+      columns.push({ ...column, href: (row) => sessionLink(row, exploreParams) });
     } else {
       columns.push(column);
     }
@@ -68,43 +65,37 @@ export function linkedColumns(context, exploreParams) {
 
 /**
  * The Session page's address for `row`: its week and id, then every other key of `exploreParams` (the table's
- * filters, search, sort and page), then the keys of `context.selection`, written against `context.weeks` and
- * `context.harnesses`; while `context.filterInTable`, the page's keys are the table's alone and pass as they are.
- * The Session page passes the keys it does not read on to its link back to the Session Explorer.
+ * filters, search, sort and page). The Session page passes the keys it does not read on to its link back to the
+ * Session Explorer.
  */
-export function sessionLink(row, exploreParams, context) {
+export function sessionLink(row, exploreParams) {
   const params = new URLSearchParams({ week: row.week, id: row.session_id });
   for (const [key, value] of exploreParams) {
     if (!params.has(key)) {
       params.append(key, value);
     }
   }
-  if (context.filterInTable) {
-    return `session.html${selectionQuery(params)}`;
-  }
-  return `session.html${selectionQuery(writeSelection(params, context.selection, context.weeks, context.harnesses))}`;
+  return `session.html${selectionQuery(params)}`;
 }
 
 // ---------- Drawing ----------
 // `view` is `{ rows, tablePlace, context, filter, notePlace }`: the loaded sessions, where the table goes, the
-// section's context, the month and harness filter (null unless the table filters itself), and where the note naming
-// the URL's unknown months and harnesses goes.
+// section's context, the month and harness filter, and where the note naming the URL's unknown months and harnesses
+// goes.
 
 /**
- * Draw the table into `place`. On the default view of the table that filters itself, its first page is drawn at once
- * from the small answer of the 20 newest sessions, the controls disabled; the full list follows and is drawn over it.
+ * Draw the table into `place`. On the table's default view, its first page is drawn at once from the small answer of
+ * the 20 newest sessions, the controls disabled; the full list follows and is drawn over it.
  */
 async function drawSessions(place, context, filter) {
   const notePlace = document.createElement("div");
   notePlace.className = "table-note";
   const view = { rows: [], tablePlace: document.createElement("div"), context, filter, notePlace };
-  if (filter !== null && filter.month === "" && filter.harness === "" && isDefaultState(currentState())) {
-    drawFirstPage(place, view, await context.database.runQuery("explore/sessions_first_page"));
+  if (filter.month === "" && filter.harness === "" && isDefaultState(currentState())) {
+    drawFirstPage(place, view, await runQuery("explore/sessions_first_page"));
   }
-  const queryRows = await context.database.runQuery("explore/sessions_of_selection");
-  // The table that filters itself lists every harness; otherwise it lists the page's selected harnesses alone.
-  const listed = filter === null ? rowsOfHarnesses(queryRows, context.selection.harnesses) : queryRows;
-  view.rows = listed.map(withCachedShare);
+  const rows = await runQuery("explore/sessions_of_selection");
+  view.rows = rows.map(withCachedShare);
   place.replaceChildren(controlsRow(view), view.notePlace, view.tablePlace);
   drawUnknownNote(view);
   drawTable(view);
@@ -119,7 +110,7 @@ function drawFirstPage(place, view, firstPageRows) {
   }
   place.replaceChildren(controls, view.notePlace, view.tablePlace);
   mountTable(view.tablePlace, {
-    columns: linkedColumns(view.context, currentParams()),
+    columns: linkedColumns(currentParams()),
     rows: firstPage,
     rowCount: firstPage.length === 0 ? 0 : firstPage[0].total_sessions,
     sort: currentState().sort,
@@ -127,7 +118,7 @@ function drawFirstPage(place, view, firstPageRows) {
     summary: firstPageCountLine(firstPage),
     onSort: () => undefined, // the sort buttons are drawn disabled
     onPage: () => undefined,
-    onRowClick: (row) => window.location.assign(sessionLink(row, currentParams(), view.context)),
+    onRowClick: (row) => window.location.assign(sessionLink(row, currentParams())),
     isWaiting: true,
   });
 }
@@ -164,8 +155,12 @@ function changeTableFilter(view, filter) {
 
 /** Draw the note naming what the URL named that the data do not hold, or nothing. */
 function drawUnknownNote(view) {
-  const unknown = view.filter === null ? "" : unknownFilterNote(view.filter);
-  view.notePlace.replaceChildren(...(unknown === "" ? [] : [note(unknown)]));
+  const unknown = unknownFilterNote(view.filter);
+  if (unknown === "") {
+    view.notePlace.replaceChildren();
+  } else {
+    showNote(view.notePlace, unknown);
+  }
 }
 
 /** Apply `change`, part of a state such as `{ model }`, and go back to the first page. */
@@ -181,24 +176,23 @@ function sortBy(view, key) {
 function drawTable(view) {
   const exploreParams = currentParams();
   const state = currentState();
-  const filtered = view.filter === null ? view.rows : rowsInFilter(view.rows, view.filter);
+  const filtered = rowsInFilter(view.rows, view.filter);
   const shown = shownSessions(filtered, state);
   mountTable(view.tablePlace, {
-    columns: linkedColumns(view.context, exploreParams),
+    columns: linkedColumns(exploreParams),
     rows: shown,
     sort: state.sort,
     pageNumber: state.pageNumber,
     summary: sessionCountLine(shown, view.rows, isFiltered(view, state)),
     onSort: (key) => sortBy(view, key),
     onPage: (pageNumber) => changeTable(view, { ...currentState(), pageNumber }),
-    onRowClick: (row) => window.location.assign(sessionLink(row, exploreParams, view.context)),
+    onRowClick: (row) => window.location.assign(sessionLink(row, exploreParams)),
   });
 }
 
-/** Whether the table shows fewer than its rows: a search, a filter of its own, or a month or harness chosen. */
+/** Whether the table shows fewer than its rows: a month or harness chosen, a search, or a filter of its own. */
 function isFiltered(view, state) {
-  const isMonthOrHarnessChosen = view.filter !== null && (view.filter.month !== "" || view.filter.harness !== "");
-  return isMonthOrHarnessChosen || isStateFiltered(state);
+  return view.filter.month !== "" || view.filter.harness !== "" || isStateFiltered(state);
 }
 
 // ---------- Controls ----------
@@ -208,7 +202,6 @@ function controlsRow(view) {
   const state = currentState();
   const row = document.createElement("div");
   row.className = "controls table-controls";
-  const harnessFields = view.filter === null ? [selectedHarnessField(view, state)] : filterFields(view);
   const modelChoices = valueChoices(EVERY_MODEL_TEXT, choices(view.rows, "main_model", state.model));
   const model = choiceSelect(modelChoices, state.model);
   model.addEventListener("change", () => changeFilter(view, { model: model.value }));
@@ -220,11 +213,11 @@ function controlsRow(view) {
   const searchField = labelledField("Search", search);
   searchField.classList.add("is-search");
   // In this order, two to a row on a phone: month and harness, model and minimum, then the search alone.
-  row.append(...harnessFields, labelledField("Model", model), labelledField("Min requests", minimum), searchField);
+  row.append(...filterFields(view), labelledField("Model", model), labelledField("Min requests", minimum), searchField);
   return row;
 }
 
-/** The month and harness drop-downs of the table that filters itself; a choice names nothing unknown. */
+/** The month and harness drop-downs; a choice names nothing unknown. */
 function filterFields(view) {
   const month = choiceSelect(monthChoices(view.context.weeks), view.filter.month);
   month.addEventListener("change", () => changeTableFilter(view, { ...view.filter, month: month.value, unknown: [] }));
@@ -233,14 +226,6 @@ function filterFields(view) {
     changeTableFilter(view, { ...view.filter, harness: harness.value, unknown: [] });
   });
   return [labelledField("Month", month), labelledField("Harness", harness)];
-}
-
-/** The harness drop-down of the table that lists the page's selection: one of the harnesses its rows hold. */
-function selectedHarnessField(view, state) {
-  const harnessValues = valueChoices(EVERY_HARNESS_TEXT, choices(view.rows, "harness", state.harness));
-  const harness = choiceSelect(harnessValues, state.harness);
-  harness.addEventListener("change", () => changeFilter(view, { harness: harness.value }));
-  return labelledField("Harness", harness);
 }
 
 /** `control` under its name in small capitals, as one field of the controls row. */

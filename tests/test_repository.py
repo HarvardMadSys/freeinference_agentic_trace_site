@@ -15,8 +15,7 @@ JAVASCRIPT_FOLDER = ROOT / "site" / "js"
 LIBRARIES_MODULE = ROOT / "site" / "js" / "shared" / "libraries.js"  # the only file that names a library URL
 QUERIES_FOLDER = ROOT / "site" / "queries"  # the only place SQL is written
 SESSION_PAGE_MODULE = JAVASCRIPT_FOLDER / "pages" / "session.js"  # the Session page, which reads one bucket
-DATABASE_MODULE = JAVASCRIPT_FOLDER / "shared" / "database.js"  # the Explore page's answers and queries
-ENGINE_FOLDER = JAVASCRIPT_FOLDER / "engine"  # DuckDB in the page, which only the Explore page's switch can start
+DATABASE_MODULE = JAVASCRIPT_FOLDER / "shared" / "database.js"  # the Explore page's indexes and answers
 PAGES = ("index.html", "session.html")  # the site's pages: Explore, the landing page, and Session
 DATA_FOLDER = "site/data"  # built by `make data` and tracked, so a clone serves the site without building
 ROW_KINDS = ("requests", "sessions", "tool_calls")  # the kinds of row every week has a file of; the simulation has fewer weeks
@@ -141,10 +140,9 @@ def statically_imported_modules(page_module: pathlib.Path) -> set[pathlib.Path]:
     return found
 
 
-def test_the_session_page_loads_neither_the_database_nor_duckdb() -> None:
+def test_the_session_page_does_not_load_the_database_module() -> None:
     for module in statically_imported_modules(SESSION_PAGE_MODULE):
         assert module != DATABASE_MODULE.resolve(), f"the Session page imports {DATABASE_MODULE.relative_to(ROOT)}"
-        assert ENGINE_FOLDER.resolve() not in module.parents, f"the Session page imports {module.relative_to(ROOT)}"
 
 
 def test_the_explore_page_s_start_imports_the_database() -> None:

@@ -1,13 +1,11 @@
 /**
- * The header and footer every page shares.
+ * The header and footer every page shares, and the query string of the URL keys their links carry (`selectionQuery`).
  *
  * They link the Explore page's sections. From another page, the links carry the URL keys the page gives them, the
  * sessions table's filter, search, sort and page, so that moving from the table to a session and back by the header
  * keeps them. On the Explore page itself a link is its section's anchor alone, so following it scrolls the page rather
  * than loading it again.
  */
-
-import { selectionQuery } from "./selection.js";
 
 /** Every address outside the site that a page links, each written once. */
 export const URLS = Object.freeze({
@@ -60,6 +58,13 @@ export function weekCountText(weekCount) {
     return "Weeks";
   }
   return `${weekCount} ${weekCount === 1 ? "week" : "weeks"}`;
+}
+
+/** The query string of `params` for the address bar or a link: "?" and the keys, commas left plain; "" for no keys. */
+export function selectionQuery(params) {
+  // A comma needs no escaping in a query string and reads back the same, so `weeks=a,b` stays readable.
+  const query = params.toString().replaceAll("%2C", ",");
+  return query === "" ? "" : `?${query}`;
 }
 
 /**

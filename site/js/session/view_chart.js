@@ -19,8 +19,8 @@ export function viewChartWidth(body) {
  * view that replaced it.
  */
 export function startChartView(container, draw) {
-  // An AbortController rather than the run counter the Explore and Figures pages keep: stopping a view must also
-  // drop a Plot load still in flight, and the caller holds only the stop function this returns.
+  // An AbortController rather than a run counter: stopping a view must also drop a Plot load still in flight, and the
+  // caller holds only the stop function this returns.
   const controller = new AbortController();
   showLoading(container);
   drawWithPlot(container, draw, controller.signal);

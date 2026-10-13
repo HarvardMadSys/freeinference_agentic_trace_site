@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { datesLine, harnessesText, statsRows } from "../site/js/landing/stats.js";
-import { defaultSelection } from "../site/js/shared/selection.js";
 
 // Four weeks, the last not simulated, as weeks.json holds them.
 const WEEKS = [
@@ -11,13 +10,6 @@ const WEEKS = [
   { week: "2026-05-31", last_day: "2026-06-06", month: "2026-05", simulated: true },
   { week: "2026-06-07", last_day: "2026-06-13", month: "2026-06", simulated: true },
   { week: "2026-06-14", last_day: "2026-06-20", month: "2026-06", simulated: false },
-];
-
-// Three harnesses, the second the benchmark, as harnesses.json holds them.
-const HARNESSES = [
-  { harness: "hermes", sessions: 3953, benchmark: false },
-  { harness: "eval:swe-bench", sessions: 1035, benchmark: true },
-  { harness: "codex", sessions: 763, benchmark: false },
 ];
 
 // The trace totals as the data step answers them over every week and every harness.
@@ -35,8 +27,8 @@ function shipped(path) {
   return JSON.parse(readFileSync(new URL(`../site/data/${path}`, import.meta.url), "utf8"));
 }
 
-test("the strip counts the selection's weeks and the trace totals, the largest compactly", () => {
-  assert.deepEqual(statsRows(TOTALS_ROW, defaultSelection(WEEKS, HARNESSES)), [
+test("the strip counts the weeks and the trace totals, the largest compactly", () => {
+  assert.deepEqual(statsRows(TOTALS_ROW, WEEKS), [
     { value: "4", label: "weeks" },
     { value: "12,002", label: "sessions" },
     { value: "1.2M", label: "requests" },
@@ -56,7 +48,7 @@ test("the strip over the shipped data counts every week and the whole trace, as 
   const harnesses = shipped("harnesses.json");
   const [totals] = shipped("all_weeks/explore/trace_totals.json");
   const listed = shipped("all_weeks/explore/sessions_of_selection.json");
-  const rows = statsRows(totals, defaultSelection(weeks, harnesses));
+  const rows = statsRows(totals, weeks);
   assert.equal(rows[0].value, String(weeks.length));
   assert.equal(rows[1].value, listed.length.toLocaleString("en-US"));
   const benchmarks = harnesses.filter((entry) => entry.benchmark).length;

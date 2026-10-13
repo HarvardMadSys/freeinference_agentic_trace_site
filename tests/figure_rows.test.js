@@ -102,11 +102,10 @@ const WEEK_ENTRIES = [
   { week: "2026-08-09", simulated: true },
   { week: "2026-08-16", simulated: false },
 ];
-test("a figure of the selection leaves no week unsimulated; a simulation figure names the selected weeks not simulated", () => {
-  const selection = { harnesses: ["codex"], weeks: ["2026-08-09", "2026-08-16"] };
-  assert.deepEqual(unsimulatedWeeks({}, selection, WEEK_ENTRIES), []);
-  assert.deepEqual(unsimulatedWeeks({ isSimulation: true }, selection, WEEK_ENTRIES), ["2026-08-16"]);
-  assert.deepEqual(unsimulatedWeeks({ isPartlySimulated: true }, selection, WEEK_ENTRIES), ["2026-08-16"]);
+test("a figure of the trace leaves no week unsimulated; a simulation figure names the weeks not simulated", () => {
+  assert.deepEqual(unsimulatedWeeks({}, WEEK_ENTRIES), []);
+  assert.deepEqual(unsimulatedWeeks({ isSimulation: true }, WEEK_ENTRIES), ["2026-08-16"]);
+  assert.deepEqual(unsimulatedWeeks({ isPartlySimulated: true }, WEEK_ENTRIES), ["2026-08-16"]);
 });
 
 test("a figure draws the rows its drawnRows keeps given the shared colours, or every row without one", () => {

@@ -73,7 +73,6 @@ export function histogramCard(entry, binRows, statsRow) {
 
 /** The bins `{ x0, x1, count }` of a histogram's bins query's rows, in the rows' order. */
 export function binsFromRows(rows) {
-  // DuckDB returns 64-bit integers as BigInt, which Plot's scales do not accept.
   return rows.map((row) => ({
     x0: Number(row[BIN_START_COLUMN]),
     x1: Number(row[BIN_END_COLUMN]),

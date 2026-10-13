@@ -45,10 +45,7 @@ binding, and `make test` checks the countable ones.
   the week files, `setup/create_view_*.sql` but `create_view_session_time`,
   hold the placeholder `{files}`, which the opener
   replaces with the names of that kind's week files, each single-quoted and
-  separated by commas (`engine/duckdb_files.js` in the browser,
-  `site_data/site_database.py` in Python): HTTP has no directory listing, and
-  a file registered under its name is what the stream, with the switch off,
-  swaps for its bytes once it has fetched the file whole. One view reads the selection:
+  separated by commas (`site_data/site_database.py`). One view reads the selection:
   `setup/create_view_session_time.sql`, each selected top-level session's
   time in prefill, decode, tool and user idle, made after the selection
   tables; both figures of a session's time read it, so the breakdown has one
@@ -97,19 +94,16 @@ Session:       session.html  →  js/pages/session.js  →  js/session/bucket.js
 
 ```
 js/pages/             one module per page
-js/shared/            what every page uses: the database, the selection, the libraries, formatting, charts, the
-                      histogram and CDF figures, the table, the header and footer
+js/shared/            what every page uses: the answers, the libraries, formatting, charts, the histogram and CDF
+                      figures, the table, the header and footer
 js/landing/           the Explore page's own parts: the hero, the stats strip beside it, the model and harness
                       donuts, the citation's copy button and the team
 js/theme/             the site's colours as the style tokens give them, and the colours every figure shares
 js/axes/              the ticks of every chart's axes: how many, where a log, duration or elapsed-time axis ticks, which
                       week a week axis labels, and an axis mark that labels each tick it is given
-js/engine/            DuckDB in the page: starting it, its views and setup, and the stream of every week's files, kept
-                      behind the switch
 js/explore/           the Explore page's start (start.js) and its sections: the trends, the figure runner
                       (figure_sections.js), the Insights' topic tabs (topic_tabs.js), the legend of buttons, the
-                      session list with its state and its month and harness filter, and the week and harness
-                      pickers, mounted only with the switch off
+                      session list with its state and its month and harness filter
 js/figures/           the Insights' figures: one module per section, listing its figure entries, the modules a
                       section takes entries from, and the row rules every figure shares (figure_rows.js)
 js/simulation/        the Prefix-caching section's figures of the cache simulation: prefill against storage, and the
@@ -147,30 +141,15 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   `index.html` with the URL's keys, which are the table's. Pages link one
   another by their `.html` names; the host serves each at its clean path
   with the query kept.
-- `shared/database.js` fetches `weeks.json` and `harnesses.json` and runs a
-  query by name: `runQuery("explore/request_count")` names
-  `queries/explore/request_count.sql`. An Explore or figure query is
-  answered from its file under `data/all_weeks/`, as is a colour order
-  (`setup/*_order`). The Explore page opens the database with `answersOnly`,
-  so a query with an answer file reads it whatever the selection; the page
-  runs no other, so DuckDB never starts there. Only with the switch off does
-  DuckDB load, the first time a query needs it (`engine/duckdb_views.js`): it
-  registers each week's Parquet files as the views `requests`, `tool_calls`,
-  `sessions` and `simulation` and fills `benchmark_harness`.
-- The Session page imports nothing from `shared/database.js` or `js/engine/`,
-  and `tests/test_repository.py` checks it; how it reads a session is below.
-- The figures are frozen: `FIGURES_ARE_FROZEN` in `explore/start.js` is
-  `true`. The browser query path stays in the code and its tests behind it.
-  Set to `false`, `shared/selection.js` reads the selection from the URL
-  keys `weeks`, `month` and `harnesses` (none for the default: every week
-  and the paper's harnesses), `explore/selection_pickers.js` draws the week
-  and harness pickers and calls the page back with each new selection, the
-  database fills the selection tables before a query whenever the selection
-  has changed, and any selection but the default runs in DuckDB. With the switch
-  off, setting `STREAM_ROWS_AFTER_DRAW` in `database.js` (now `false`) to
-  `true` streams every week's files into memory after the first view
-  (`streamRows`), so a narrowed selection reads no HTTP ranges.
-- While the figures are frozen, the URL keys `months` and `harnesses` belong
+- `shared/database.js` fetches `weeks.json` and `harnesses.json` and reads a
+  query's answer by name: `runQuery("explore/request_count")` reads
+  `data/all_weeks/explore/request_count.json`, which `make data` wrote by
+  running `queries/explore/request_count.sql`. Every Explore and figure
+  query, and every colour order (`setup/*_order`), has its answer file; the
+  page runs no query itself.
+- The Session page imports nothing from `shared/database.js`, and
+  `tests/test_repository.py` checks it; how it reads a session is below.
+- The URL keys `months` and `harnesses` belong
   to the session list: `explore/sessions_filter.js` reads them (and the
   older `weeks`, `month`, `scope` and `harness`), filters the list's answer,
   which holds every harness's sessions, and writes them back; they reach

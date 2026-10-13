@@ -76,16 +76,15 @@ export function restingCountText(rows, figure) {
 }
 
 /**
- * The selected weeks (`selection.weeks`, Sundays) that the cache simulation does not cover, by `weekEntries` (the
- * entries of `weeks.json`), for a figure drawn from the simulation (`isSimulation`) or with a column from it
- * (`isPartlySimulated`); none for any other figure.
+ * The weeks (Sundays) of `weekEntries` (the entries of `weeks.json`) that the cache simulation does not cover, for a
+ * figure drawn from the simulation (`isSimulation`) or with a column from it (`isPartlySimulated`); none for any other
+ * figure.
  */
-export function unsimulatedWeeks(figure, selection, weekEntries) {
+export function unsimulatedWeeks(figure, weekEntries) {
   if (figure.isSimulation !== true && figure.isPartlySimulated !== true) {
     return [];
   }
-  const simulated = new Set(weekEntries.filter((entry) => entry.simulated).map((entry) => entry.week));
-  return selection.weeks.filter((week) => !simulated.has(week));
+  return weekEntries.filter((entry) => !entry.simulated).map((entry) => entry.week);
 }
 
 /**

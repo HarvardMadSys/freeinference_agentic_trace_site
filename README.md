@@ -197,22 +197,18 @@ site/              exactly the files that are deployed
   *.html           one file per page: index (Explore, the landing page) and session
   style.css        tokens, layout and components
   favicon.svg      the brand mark, for the browser tab
-  js/shared/       database (answer files and queries by name), selection (the selection
-                   and its notes), libraries, format, charts, histogram (the histogram figures), cdf (the CDF
-                   figures), table, layout (the header and footer)
+  js/shared/       database (the indexes, and the answer files by query name), libraries, format, charts, histogram
+                   (the histogram figures), cdf (the CDF figures), table, layout (the header and footer)
   js/landing/      the landing page's own parts: hero (the title, lede and buttons), stats (the stats strip beside
                    it), donuts (the model and harness mixes), arcs (a donut's shares and ring segments), cite (the
                    citation's copy button) and team (the authors)
-  js/engine/       DuckDB in the page, kept behind the switch: duckdb_start (starting it), duckdb_views (its views and
-                   setup), duckdb_files (the week files' names, and the stream of every week's files)
   js/theme/        colours, the site's colours as the style tokens give them, and the colours every figure shares
   js/axes/         ticks, the ticks of every chart's axes: how many, and where a log, duration or week axis ticks
   js/pages/        one module per page: explore, session
-  js/explore/      the Explore page's start and sections: start (the page's start, with FIGURES_ARE_FROZEN), trends,
+  js/explore/      the Explore page's start and sections: start (the page's start), trends,
                    figure_sections (the figure runner), topic_tabs (the Insights' tabs, one topic shown at a time),
                    legend (the legend of buttons that hides and shows a series), sessions_table, sessions_table_state
-                   (its columns and its state in the URL), sessions_filter (its month and harness filter), and
-                   selection_pickers (the week and harness pickers, mounted only with the switch off)
+                   (its columns and its state in the URL), and sessions_filter (its month and harness filter)
   js/figures/      one module per figure section (sessions, tokens, latency, tools, caching), the modules they take
                    figures from (sessions_ranked, tools_batching, caching_gaps), and figure_rows, the row rules every
                    figure shares

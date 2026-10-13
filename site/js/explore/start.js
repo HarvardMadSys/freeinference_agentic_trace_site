@@ -1,74 +1,38 @@
 /**
  * The Explore page's start: it draws the header, the footer, the Insights' topic tabs and every section's loading state,
- * reads `weeks.json` and `harnesses.json`, then gives the database the selection and runs the page's sections and the
- * figures of `FIGURE_SECTIONS` (`explore/figure_sections.js`), shown one topic at a time behind the tabs of the
- * `#topic-tabs` row (`explore/topic_tabs.js`), a topic's figures drawn when it is shown.
+ * reads `weeks.json` and `harnesses.json`, then runs the page's sections and the figures of `FIGURE_SECTIONS`
+ * (`explore/figure_sections.js`), once, from their answer files. The figures are shown one topic at a time behind the
+ * tabs of the `#topic-tabs` row (`explore/topic_tabs.js`), a topic's figures drawn when it is shown.
  *
  * The page's module names its sections, each `{ id, layout, run }`: the id of its place in `index.html`, the function
- * that draws its loading state and the one that runs it.
- *
- * Behind the switch, with `FIGURES_ARE_FROZEN` false, the page also mounts the pickers into its `#selection` card and
- * writes the URL's selection back in its shortest form; it runs its sections from the precomputed answers for the
- * default selection and in DuckDB for any other. A change of the selection, from the pickers or a trend bar, rewrites
- * the URL, gives the database the new selection and runs the sections again. Once the first run has drawn, the
- * database streams the weeks' rows in, and the picker's note counts the weeks streamed.
- *
- * While `FIGURES_ARE_FROZEN`, the page shows the default selection whatever the URL says: it mounts no picker, hides
- * the selection's card, answers every section from its precomputed file, draws a shown topic's figures at once, takes
- * no click on a trend bar, and starts neither DuckDB nor the stream. The URL's `months` and `harnesses` then filter the
- * sessions table alone, which reads them, and the older `weeks`, `month` and `scope`, and rewrites them in its own keys.
- *
- * `page` is what the page owns: `{ sections, weeks, harnesses, selection, database, orders, figures, latestRun,
- * streamedWeeks }`:
- * - `sections`, its sections; `weeks` and `harnesses`, the entries of `weeks.json` and `harnesses.json`;
- * - `selection`, the current selection (the default one while frozen), and `database`, the database;
- * - `orders`, the colour orders (below);
- * - `figures`, a promise of what the figure sections keep (`explore/figure_sections.js`), asked for before the indexes
- *   are read and settled once every figure card is placed; it stays a promise, and each run awaits it;
- * - `latestRun`, the number of the latest run of the sections, so a run that a newer one replaced stops before it
- *   draws;
- * - `streamedWeeks`, the Sundays streamed in so far behind the switch (null when the page does not stream).
- * `orders` is `{ harnesses, models, categories, providers }`, the promised rows of `setup/harness_order`,
- * `setup/model_order`, `setup/category_order` and `setup/provider_order`, asked for once. A section runs as
- * `run(container, context)` with `context = { database, orders, sessionsPerWeekByHarness, selection, weeks, harnesses,
- * onWeekClick, replaceQuery, filterInTable }`, and lays out fresh places in its container each time, so a run that a
- * newer one replaced draws into places no longer on the page. `sessionsPerWeekByHarness` is the promised rows of
- * `explore/sessions_per_week_by_harness`, asked for once a run, since the harness mix and the sessions trend both draw
- * them. `filterInTable` is whether the sessions table filters its rows by month and harness itself, which it does
- * while the figures are frozen.
+ * that draws its loading state and the one that runs it. A section runs as `run(container, context)` with
+ * `context = { orders, sessionsPerWeekByHarness, weeks, harnesses, replaceQuery }`:
+ * - `orders`, `{ harnesses, models, categories, providers }`, the promised rows of `setup/harness_order`,
+ *   `setup/model_order`, `setup/category_order` and `setup/provider_order`, asked for once;
+ * - `sessionsPerWeekByHarness`, the promised rows of `explore/sessions_per_week_by_harness`, asked for once, since the
+ *   harness mix and the sessions trend both draw them;
+ * - `weeks` and `harnesses`, the entries of `weeks.json` and `harnesses.json`;
+ * - `replaceQuery(params)`, which writes `params` to the address bar and the header's links; the sessions table keeps
+ *   its filter, search, sort and page there.
  */
 
-import { showError, showNote } from "../shared/charts.js";
-import { fetchHarnesses, fetchWeeks, openDatabase, STREAM_ROWS_AFTER_DRAW } from "../shared/database.js";
-import { EXPLORE_FILE, mountHeader, renderFooter } from "../shared/layout.js";
-import { defaultSelection, readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
+import { showError } from "../shared/charts.js";
+import { fetchHarnesses, fetchWeeks, runQuery } from "../shared/database.js";
+import { EXPLORE_FILE, mountHeader, renderFooter, selectionQuery } from "../shared/layout.js";
 import {
-  FIGURE_SECTIONS, layoutFigures, mountFigureSections, runFigures, showErrorInFigures, showNoteInFigures, startFigures,
+  FIGURE_SECTIONS, layoutFigures, mountFigureSections, runFigures, showErrorInFigures, startFigures,
 } from "./figure_sections.js";
-import { mountSelection, showStreamedWeeks } from "./selection_pickers.js";
-import { withFirstPage } from "./sessions_table_state.js";
 import { mountTopicTabs } from "./topic_tabs.js";
-
-// Whether every section and figure is frozen on its precomputed answer for every week and the paper's harnesses:
-// true mounts no picker and starts neither DuckDB nor the stream; false lets the visitor pick weeks and harnesses, and
-// the browser computes every section for them.
-export const FIGURES_ARE_FROZEN = true;
-
-// The notes in every section's place while no week, or no harness, is selected.
-const NO_WEEK_NOTE = "Pick at least one week to see its numbers.";
-const NO_HARNESS_NOTE = "Pick at least one harness to see its numbers.";
 
 /**
  * Start the Explore page: draw its header, footer and topic tabs, its `sections` and its figures, and, once
  * `weeks.json` is read, call `showWeekCount` with the number of weeks, or with null when the indexes cannot be read.
- * Settles once the first run of the sections has drawn.
+ * Settles once the sections have drawn.
  */
 export async function startPage({ sections, showWeekCount }) {
   renderFooter(document.querySelector("#site-footer"), EXPLORE_FILE, new URLSearchParams(), null);
-  // Frozen, the selection's card is hidden; with the pickers, it shows the selection the figures draw instead.
-  document.querySelector("#selection").hidden = FIGURES_ARE_FROZEN;
   // The figure modules load and the tabs are drawn while the indexes are read, so a tab shows its topic at once.
-  const figures = mountFigureSections(FIGURES_ARE_FROZEN);
+  const figures = mountFigureSections();
   mountTabs(figures);
   let weeks;
   let harnesses;
@@ -77,7 +41,7 @@ export async function startPage({ sections, showWeekCount }) {
   } catch (error) {
     mountHeader(document.querySelector("#site-header"), EXPLORE_FILE, new URLSearchParams());
     showWeekCount(null);
-    // Every section and figure shows the error in its own place; the hidden card shows nothing.
+    // Every section and figure shows the error in its own place.
     showErrorInEverySection(sections, error);
     showErrorInFigures(await figures, error);
     return;
@@ -85,117 +49,45 @@ export async function startPage({ sections, showWeekCount }) {
   // The footer counts the weeks as the hero does.
   renderFooter(document.querySelector("#site-footer"), EXPLORE_FILE, new URLSearchParams(), weeks.length);
   showWeekCount(weeks.length);
-  const params = new URLSearchParams(window.location.search);
-  const page = openPage(sections, weeks, harnesses, params, figures);
-  showSelectionAndHeader(page, params);
-  await runEverySection(page);
+  renderPageHeader();
+  const context = sectionContext(weeks, harnesses);
+  await runEverySection(sections, await figures, context);
   scrollToAnchor();
-  if (!FIGURES_ARE_FROZEN) {
-    await page.database.streamRows((progress) => showStreamed(page, progress.streamedWeeks));
-  }
 }
 
-/**
- * The page's state for `weeks` and `harnesses`: its selection, its database, the colour orders asked for, and
- * `figures`, the promise of what the figure sections keep.
- */
-function openPage(sections, weeks, harnesses, params, figures) {
-  const selection = FIGURES_ARE_FROZEN ? defaultSelection(weeks, harnesses) : readSelection(params, weeks, harnesses);
-  const dataUrl = new URL("data/", window.location.href).href;
-  const database = openDatabase(dataUrl, weeks, harnesses, { answersOnly: FIGURES_ARE_FROZEN });
-  // The orders cover every week and harness, so they do not change with the selection; a section awaits its own.
+/** What every section is given; see the module's comment. */
+function sectionContext(weeks, harnesses) {
+  // The orders cover every week and harness; a section awaits its own.
   const orders = {
-    harnesses: database.runQuery("setup/harness_order"),
-    models: database.runQuery("setup/model_order"),
-    categories: database.runQuery("setup/category_order"),
-    providers: database.runQuery("setup/provider_order"),
+    harnesses: askedRows("setup/harness_order"),
+    models: askedRows("setup/model_order"),
+    categories: askedRows("setup/category_order"),
+    providers: askedRows("setup/provider_order"),
   };
-  for (const order of Object.values(orders)) {
-    // With nothing selected no section awaits the orders; a failure is shown by the sections that do, not here.
-    order.catch(() => undefined);
-  }
-  const streamedWeeks = STREAM_ROWS_AFTER_DRAW ? [] : null;
-  return { sections, weeks, harnesses, selection, database, orders, figures, latestRun: 0, streamedWeeks };
+  const sessionsPerWeekByHarness = askedRows("explore/sessions_per_week_by_harness");
+  return { orders, sessionsPerWeekByHarness, weeks, harnesses, replaceQuery };
 }
 
-/**
- * Write the URL's selection back in its shortest form, which draws the header, and mount the pickers; while the
- * figures are frozen, draw the header alone: the sessions table rewrites the URL's keys, which are its own.
- */
-function showSelectionAndHeader(page, params) {
-  if (FIGURES_ARE_FROZEN) {
-    renderPageHeader(page);
-    return;
-  }
-  // A key that says the default, or names no known week, goes.
-  replaceQuery(page, writeSelection(params, page.selection, page.weeks, page.harnesses));
-  mountPicker(page);
-}
-
-/**
- * Give the database the page's selection, then run every section; with no week or no harness selected, show the note
- * instead.
- */
-async function runEverySection(page) {
-  page.latestRun += 1;
-  const run = page.latestRun;
-  const selection = page.selection;
-  const figures = await page.figures;
-  if (selection.weeks.length === 0 || selection.harnesses.length === 0) {
-    const note = selection.weeks.length === 0 ? NO_WEEK_NOTE : NO_HARNESS_NOTE;
-    showNoteInEverySection(page.sections, note);
-    showNoteInFigures(figures, note);
-    return;
-  }
-  layoutEverySection(page.sections);
-  layoutFigures(figures);
-  try {
-    await page.database.setSelection(selection);
-  } catch (error) {
-    if (run === page.latestRun) {
-      // A newer selection's run shows its own state instead.
-      showErrorInEverySection(page.sections, error);
-      showErrorInFigures(figures, error);
-    }
-    return;
-  }
-  // A newer selection replaced this one while its tables were filled; that selection's run draws the page.
-  if (run !== page.latestRun) {
-    return;
-  }
-  const context = sectionContext(page);
-  const sectionRuns = page.sections.map((section) => section.run(sectionElement(section), context));
-  await Promise.all([...sectionRuns, runFigures(figures, context)]);
-}
-
-/** What every section of a run is given; see the module's comment. */
-function sectionContext(page) {
-  return {
-    database: page.database,
-    orders: page.orders,
-    sessionsPerWeekByHarness: askSessionsPerWeek(page.database),
-    selection: page.selection,
-    weeks: page.weeks,
-    harnesses: page.harnesses,
-    // Frozen, the selection never changes, so a trend bar takes no click.
-    onWeekClick: FIGURES_ARE_FROZEN ? null : (week) => selectWeek(page, week),
-    replaceQuery: (params) => replaceQuery(page, params),
-    filterInTable: FIGURES_ARE_FROZEN,
-  };
-}
-
-/** The promised rows of `explore/sessions_per_week_by_harness`, asked for once a run for every section that reads them. */
-function askSessionsPerWeek(database) {
-  const rows = database.runQuery("explore/sessions_per_week_by_harness");
+/** The promised rows of the query `name`, asked for once for every section that reads them. */
+function askedRows(name) {
+  const rows = runQuery(name);
   // Each section that awaits the rows shows a failure in its own place, not here.
   rows.catch(() => undefined);
   return rows;
 }
 
+/** Lay out every section and figure, each loading, then run them all. */
+async function runEverySection(sections, figures, context) {
+  layoutEverySection(sections);
+  layoutFigures(figures);
+  const sectionRuns = sections.map((section) => section.run(sectionElement(section), context));
+  await Promise.all([...sectionRuns, runFigures(figures, context)]);
+}
+
 /**
  * Show the topic the URL's anchor names, or the first, behind the tabs of the `#topic-tabs` row; showing a topic starts
- * the current run's figures of it, once `figures`, the promise of what the figure sections keep, settles. Before the
- * first run there is none to start, and the run starts the shown topic's figures itself.
+ * the figures of it, once `figures`, the promise of what the figure sections keep, settles. Before the run there is
+ * none to start, and the run starts the shown topic's figures itself.
  */
 function mountTabs(figures) {
   // The promise never rejects: a figure module that fails to load shows its error in its own section.
@@ -217,50 +109,21 @@ function scrollToAnchor() {
   scrolled.scrollIntoView();
 }
 
-/** Make `selection` the page's: write it to the URL and the header's links, and run every section again. */
-function changeSelection(page, selection) {
-  page.selection = selection;
-  // A new selection lists other sessions, so the sessions table starts again on its first page.
-  const params = writeSelection(new URLSearchParams(window.location.search), selection, page.weeks, page.harnesses);
-  replaceQuery(page, withFirstPage(params));
-  runEverySection(page);
-}
-
 /**
  * Write `params` to the address bar, as `selectionQuery` writes them, keeping its anchor, without reloading the page;
  * then redraw the header, whose links carry them.
  */
-function replaceQuery(page, params) {
+function replaceQuery(params) {
   const { pathname, hash } = window.location;
   // The entry keeps its state, the Insights' shown topic, which Back to it shows again.
   window.history.replaceState(window.history.state, "", `${pathname}${selectionQuery(params)}${hash}`);
-  renderPageHeader(page);
+  renderPageHeader();
 }
 
-/** Select `week` alone, keeping the harnesses, as a click on its trend bar asks. */
-function selectWeek(page, week) {
-  const harnesses = page.selection.harnesses;
-  changeSelection(page, { weeks: [week], harnesses, unknownWeeks: [], unknownMonth: null, unknownHarnesses: [] });
-  mountPicker(page);
-}
-
-function renderPageHeader(page) {
+function renderPageHeader() {
   // The header is given every key of the URL, the sessions table's included, as the Session page's links are: a
   // visitor who follows its link to the table finds the table as it was.
   mountHeader(document.querySelector("#site-header"), EXPLORE_FILE, new URLSearchParams(window.location.search));
-}
-
-/** Mount the pickers into the page's selection card. */
-function mountPicker(page) {
-  const picker = document.querySelector("#selection");
-  const onChange = (selection) => changeSelection(page, selection);
-  mountSelection(picker, page.weeks, page.harnesses, page.selection, onChange, () => page.streamedWeeks);
-}
-
-/** Keep `streamedWeeks`, the Sundays streamed in so far, and rewrite the picker's count of them. */
-function showStreamed(page, streamedWeeks) {
-  page.streamedWeeks = streamedWeeks;
-  showStreamedWeeks(document.querySelector("#selection"), streamedWeeks, page.weeks);
 }
 
 function sectionElement(section) {
@@ -270,12 +133,6 @@ function sectionElement(section) {
 function layoutEverySection(sections) {
   for (const section of sections) {
     section.layout(sectionElement(section));
-  }
-}
-
-function showNoteInEverySection(sections, text) {
-  for (const section of sections) {
-    showNote(sectionElement(section), text);
   }
 }
 

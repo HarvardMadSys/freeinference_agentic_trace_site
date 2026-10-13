@@ -1,7 +1,8 @@
 /**
- * The sessions table's columns, its state in the URL keys `search`, `harness`, `model`, `min_requests`, `sort`,
- * `direction` and `page`, and the rows it lists for a state: those whose id contains the search and that pass every
- * filter, sorted. A state is `{ search, harness, model, minRequests, sort: { key, direction }, pageNumber }`.
+ * The sessions table's columns, its state in the URL keys `search`, `model`, `min_requests`, `sort`, `direction` and
+ * `page`, and the rows it lists for a state: those whose id contains the search and that pass every filter, sorted. A
+ * state is `{ search, model, minRequests, sort: { key, direction }, pageNumber }`. The month and harness filter is
+ * `explore/sessions_filter.js`.
  */
 
 import {
@@ -23,7 +24,7 @@ const BENCHMARK_MARK = Object.freeze({ text: "Benchmark", title: "A replay of SW
 // harness's cell marks the benchmark replay. The first four fit a phone's width, so its requests come before its
 // model. A session's week is not a column: its start gives it, and the month filter chooses by it. Its tool calls, peak
 // prompt and subagents are not either: the Session page shows them, and nine columns fit a desktop card.
-// The session column gets its link when the table is drawn, since the link carries the selection.
+// The session column gets its link when the table is drawn, since the link carries the table's URL keys.
 export const COLUMNS = Object.freeze([
   Object.freeze({ key: "session_id", title: "Session", format: shortSessionId }),
   Object.freeze({ key: "first_start_ms", title: "Started (UTC)", format: shortMinute }),
@@ -36,11 +37,10 @@ export const COLUMNS = Object.freeze([
   Object.freeze({ key: "cached_share", title: "Cached share", format: formatOptionalShare, isNumber: true }),
 ]);
 
-/** The table's state in `params`: `{ search, harness, model, minRequests, sort: { key, direction }, pageNumber }`. */
+/** The table's state in `params`: `{ search, model, minRequests, sort: { key, direction }, pageNumber }`. */
 export function readTableState(params) {
   return {
     search: params.get("search") ?? "",
-    harness: params.get("harness") ?? "",
     model: params.get("model") ?? "",
     minRequests: wholeNumberOrNull(params.get("min_requests")),
     sort: readSort(params),
@@ -52,7 +52,6 @@ export function readTableState(params) {
 export function writeTableState(params, state) {
   const written = new URLSearchParams(params);
   setOrDelete(written, "search", state.search, "");
-  setOrDelete(written, "harness", state.harness, "");
   setOrDelete(written, "model", state.model, "");
   setOrDelete(written, "min_requests", state.minRequests === null ? "" : String(state.minRequests), "");
   setOrDelete(written, "sort", state.sort.key, DEFAULT_SORT.key);
@@ -61,7 +60,7 @@ export function writeTableState(params, state) {
   return written;
 }
 
-/** A copy of `params` without the table's page, so a table with a new selection or filter opens on its first page. */
+/** A copy of `params` without the table's page, so a table with a new filter opens on its first page. */
 export function withFirstPage(params) {
   const written = new URLSearchParams(params);
   written.delete("page");
@@ -71,9 +70,6 @@ export function withFirstPage(params) {
 /** The rows the table lists for `state`: those whose id contains the search and that pass every filter, sorted. */
 export function shownSessions(rows, state) {
   const conditions = [];
-  if (state.harness !== "") {
-    conditions.push({ key: "harness", equals: state.harness });
-  }
   if (state.model !== "") {
     conditions.push({ key: "main_model", equals: state.model });
   }
@@ -83,15 +79,6 @@ export function shownSessions(rows, state) {
   // Only the id is searched: a search over every column would match the text "null" of a missing value.
   const found = searchRows(rows, "session_id", state.search);
   return sortRows(filterRows(found, conditions), state.sort.key, state.sort.direction);
-}
-
-/**
- * The rows of `rows` whose harness is one of `harnesses`. The answer for the default selection holds every harness,
- * the benchmark's included, so a table that lists the page's selection keeps only the selected harnesses' rows.
- */
-export function rowsOfHarnesses(rows, harnesses) {
-  const selected = new Set(harnesses);
-  return rows.filter((row) => selected.has(row.harness));
 }
 
 /** The sort after a click on the column `key`: the same column reversed, or a new one, numbers largest first. */
@@ -145,9 +132,9 @@ export function firstPageCountLine(firstPageRows) {
   return formatQuantity(total, "session", "sessions");
 }
 
-/** Whether `state` searches or filters by harness, model or a minimum of requests. */
+/** Whether `state` searches or filters by model or a minimum of requests. */
 export function isStateFiltered(state) {
-  return state.search !== "" || state.harness !== "" || state.model !== "" || state.minRequests !== null;
+  return state.search !== "" || state.model !== "" || state.minRequests !== null;
 }
 
 /** A harness as the table and its drop-down name it: the benchmark's without its "eval:" prefix, "swe-bench". */

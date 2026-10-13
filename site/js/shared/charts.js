@@ -190,12 +190,12 @@ export function legendPlace(body) {
  * "Other", summed into one bar per x. Bars stack when `stacked`; `format` writes a y value in the tooltip and, unless
  * `yTickFormat` is given, on the axis; `yLabel` names a y value in the tooltip and, unless `yAxisLabel` is given (null
  * for none), titles the axis; `xTickFormat`, when given, writes the x axis's ticks; `xDomain`, when given, lists every x value in order,
- * so one with no rows keeps its place; `fillOpacity`, when given, is each bar's opacity, a number or a function of its
- * row; `margins`, when given, are Plot margins in place of the frame's. Returns the chart's element.
+ * so one with no rows keeps its place; `margins`, when given, are Plot margins in place of the frame's. Returns the
+ * chart's element.
  */
 export async function drawBars(body, rows, options) {
   const { x, y, fill, order, colours, stacked = false, xLabel, yLabel, format = formatCount } = options;
-  const { xTickFormat, xDomain, fillOpacity, yTickFormat = format, yAxisLabel = yLabel } = options;
+  const { xTickFormat, xDomain, yTickFormat = format, yAxisLabel = yLabel } = options;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("./libraries.js");
   const names = distinct(order ?? rows.map((row) => row[fill]));
@@ -217,7 +217,6 @@ export async function drawBars(body, rows, options) {
         x,
         ...barHeight(y, stacked),
         fill,
-        fillOpacity,
         order: shown, // the stacking order, bottom up; unused when the bars do not stack
         inset: BAR_INSET,
         title: (row) => barTipText(row, { x, y, fill, yLabel, format }),

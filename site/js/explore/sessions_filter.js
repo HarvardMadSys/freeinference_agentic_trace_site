@@ -1,18 +1,17 @@
 /**
- * The sessions table's filter by month and harness, used while the Explore page's figures are frozen: the URL keys
- * `months` and `harnesses` that hold it, the keys of older links read as it, the rows it keeps, and the choices of the
- * month and harness drop-downs that change it.
+ * The sessions table's filter by month and harness: the URL keys `months` and `harnesses` that hold it, the keys of
+ * older links read as it, the rows it keeps, and the choices of the month and harness drop-downs that change it.
  *
  * A filter is `{ month, harness, unknown }`: the chosen month ("YYYY-MM"), or "" for every month; the chosen harness,
  * or "" for every harness, the benchmark's included; and what the URL named that the data do not hold, each in words
  * such as "month 2026-01". A month keeps the sessions whose start, in UTC, falls in that calendar month; the months to
- * choose from are every calendar month from the first week's Sunday to the last week's Saturday. `weeks` and
- * `harnesses` below are the arrays `weeks.json` and `harnesses.json` hold, as `shared/selection.js` describes them.
- * The default filter, every month and every harness, writes no key.
+ * choose from are every calendar month from the first week's Sunday to the last week's Saturday. `weeks` below is the
+ * array `weeks.json` holds, oldest first: `{ week, last_day, month, simulated }`; `harnesses` is the array
+ * `harnesses.json` holds, most sessions first: `{ harness, sessions, benchmark }`. The default filter, every month and
+ * every harness, writes no key.
  */
 
 import { monthName } from "../shared/format.js";
-import { EVERY_WEEK_VALUE, namesIn } from "../shared/selection.js";
 import { harnessText } from "./sessions_table_state.js";
 
 // The URL keys the filter is written in, one value each.
@@ -23,14 +22,17 @@ const HARNESSES_KEY = "harnesses";
 // whose months are meant (`all` for every month), `scope` is read as the default, `harness` names one harness.
 const OLDER_KEYS = Object.freeze(["month", "weeks", "scope", "harness"]);
 
+// A value of the older key `weeks` that names every week, and so every month.
+const EVERY_WEEK_VALUE = "all";
+
 // The length of a month's name in a date, "2026-07" of "2026-07-05": the month a date or a timestamp falls in.
 const MONTH_LENGTH = "YYYY-MM".length;
 
 // The text of the month drop-down's first choice, which filters nothing.
 const EVERY_MONTH_TEXT = "All months";
 
-/** The text of a harness drop-down's first choice, which filters nothing. */
-export const EVERY_HARNESS_TEXT = "All harnesses";
+// The text of the harness drop-down's first choice, which filters nothing.
+const EVERY_HARNESS_TEXT = "All harnesses";
 
 /**
  * The filter the URL names, older keys included. A key naming several months or harnesses keeps the first the data
@@ -173,6 +175,11 @@ function setOrDelete(params, key, value) {
   } else {
     params.set(key, value);
   }
+}
+
+/** The comma-separated names of a URL value, each trimmed, empty ones dropped. */
+function namesIn(value) {
+  return value.split(",").map((name) => name.trim()).filter((name) => name !== "");
 }
 
 /** Each of `named` that `known` does not hold, once, in words: "month 2026-01". */

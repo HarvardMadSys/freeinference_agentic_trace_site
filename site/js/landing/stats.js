@@ -2,13 +2,13 @@
  * The stats strip beside the hero: the whole trace as the paper's summary table counts it, the weeks, top-level
  * sessions, their requests, input tokens and tool calls, and the harnesses, the benchmark's written apart ("13 (+1)"),
  * and a line naming the span of its days. The counts come from the `explore/trace_totals` answer, which the data step
- * answers over every week and every harness, and from the selection's weeks (while the figures are frozen, every week);
- * none is typed.
+ * answers over every week and every harness, and from the weeks of `weeks.json`; none is typed.
  *
  * A section's `context` is what the page gives every section; see `explore/start.js`.
  */
 
 import { showError, showLoading } from "../shared/charts.js";
+import { runQuery } from "../shared/database.js";
 import { dateSpanText, formatCompactCount, formatCount } from "../shared/format.js";
 
 /** Show the loading state in `container`. */
@@ -16,18 +16,19 @@ export function layoutStats(container) {
   showLoading(container);
 }
 
-/** Draw the stats strip into `container` from the trace totals and the selection, or the error if the query fails. */
+/** Draw the stats strip into `container` from the trace totals and the weeks, or the error if the query fails. */
 export async function runStats(container, context) {
   await drawStats(container, context).catch((error) => showError(container, error));
 }
 
 /**
- * The strip's numbers `[{ value, label }]`: the selection's weeks, then the totals row's top-level sessions, requests,
- * input tokens and tool calls, and its harnesses. The three largest are written compactly.
+ * The strip's numbers `[{ value, label }]`: the number of `weeks` (the entries of `weeks.json`), then the totals row's
+ * top-level sessions, requests, input tokens and tool calls, and its harnesses. The three largest are written
+ * compactly.
  */
-export function statsRows(totalsRow, selection) {
+export function statsRows(totalsRow, weeks) {
   return [
-    { value: formatCount(selection.weeks.length), label: "weeks" },
+    { value: formatCount(weeks.length), label: "weeks" },
     { value: formatCount(totalsRow.sessions), label: "sessions" },
     { value: formatCompactCount(totalsRow.requests), label: "requests" },
     { value: formatCompactCount(totalsRow.input_tokens), label: "input tokens" },
@@ -46,14 +47,13 @@ export function harnessesText({ harnesses, benchmark_harnesses: benchmarkHarness
 }
 
 async function drawStats(container, context) {
-  const rows = await context.database.runQuery("explore/trace_totals");
-  const selectedWeeks = context.weeks.filter((entry) => context.selection.weeks.includes(entry.week));
-  const items = statsRows(rows[0], context.selection).map(
+  const rows = await runQuery("explore/trace_totals");
+  const items = statsRows(rows[0], context.weeks).map(
     (stat) => `<li><strong>${stat.value}</strong><span>${stat.label}</span></li>`,
   );
   container.innerHTML = `
     <ul class="stats-grid" aria-label="The trace in numbers">${items.join("")}</ul>
-    <p class="stats-dates">${datesLine(selectedWeeks)}</p>`;
+    <p class="stats-dates">${datesLine(context.weeks)}</p>`;
 }
 
 /**
