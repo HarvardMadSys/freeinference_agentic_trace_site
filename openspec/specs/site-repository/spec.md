@@ -52,12 +52,12 @@ serve.py          what make serve runs: a local server that answers range reques
 pyproject.toml    Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
 package.json      sets ES modules for node --test; no dependencies
 docs/             differences.md: where the site draws more simply than the paper
-site_data/        builds site/data/ from a release folder: a file per kind and week, the indexes, the answers
+site_data/        builds site/data/ from a release folder: a file per kind and week, the indexes, the answers, the session buckets
 site/             exactly the files that are deployed
   *.html          one file per page: index (Explore, the landing page), session
   style.css       tokens, layout and components
   js/shared/      the database, the selection, the libraries, formatting, charts, the histogram, the CDF, the table, the layout
-  js/engine/      DuckDB in the page
+  js/engine/      DuckDB in the page, behind the Explore page's switch
   js/axes/        the ticks of every chart's axes
   js/theme/       the site's colours as the style tokens give them
   js/pages/       one module per page
@@ -65,11 +65,11 @@ site/             exactly the files that are deployed
   js/explore/     the Explore page's sections and the session list
   js/figures/, js/simulation/, js/comparison/
                   the figure sections' modules
-  js/session/     the Session page's address, agent tree, facts card, legends, overlap grouping, token parts and chart frame
+  js/session/     the Session page's bucket loader, address, agent tree, facts card, legends, overlap grouping, token parts and chart frame
   js/session_requests/  the Requests view
   js/session_charts/    the Context and Timeline views, their series, bars, range slider and pointer
-  queries/        one .sql file per chart or table, in one folder per purpose: explore, figures, session, setup
-  data/           built by make data and tracked: a clone serves the site without building
+  queries/        one .sql file per chart or table, in one folder per purpose: explore, figures, buckets, setup
+  data/           built by make data and tracked, the session buckets included: a clone serves the site without building
 tests/            Python tests and node --test files
 openspec/
 ```
@@ -106,9 +106,10 @@ gap).
 
 ### Requirement: Navigation and the About page
 The site SHALL have two pages, Explore (the landing page) and Session.
-Both SHALL share one sticky header: the brand, the affiliation "Harvard
-SEAS · MadSys Lab" linking to the lab, the in-page links Overview,
-Figures, Session list and Cite, and the external links Dataset, Paper, Code
+Both SHALL share one sticky header: the brand "FreeInference Agentic
+Dataset", the affiliation "Harvard SEAS · MadSys Lab" linking to the lab,
+the in-page links Overview, Session Explorer, Insights and Cite, and the
+external links Dataset, Paper, Code
 and Open Data (on a phone, the brand and the four in-page links alone, on
 one row that scrolls sideways, its right edge faded while more links lie
 beyond it). The header SHALL stay at the top while the page scrolls,
@@ -118,8 +119,8 @@ from the paper in the repository's `docs/differences.md`, and the credits
 and citation on the landing page.
 
 #### Scenario: Moving between pages
-- **WHEN** the visitor opens a session from the list and follows the header's Session list link
-- **THEN** the Explore page SHALL open at the session list with the list's state kept
+- **WHEN** the visitor opens a session from the list and follows the header's Session Explorer link
+- **THEN** the Explore page SHALL open at the Session Explorer with the list's state kept
 
 #### Scenario: Scrolling
 - **WHEN** the visitor scrolls the Explore page
@@ -154,23 +155,24 @@ Session page SHALL work on such a host, reading its week's files whole. A push t
 
 ### Requirement: The built data ships with the repository
 Git SHALL track `site/data` as `make data` built it: the week files of every
-kind, the indexes, the answers and the query hashes. The shipped data SHALL
-be whole, with a tracked row file per kind for every week in `weeks.json`,
-and current, with every answer written from its query's current text;
-`make test` SHALL fail otherwise. Rebuilding the data remains `make data`
-from the pipeline repository, and the rebuilt data is committed with the
-change that needed it.
+kind, the indexes, the answers, the query hashes, and every week's session
+buckets and bucket index. The shipped data SHALL be whole, with a tracked
+row file per kind and a tracked bucket index for every week in
+`weeks.json`, and current, with every answer written from its query's
+current text; `make test` SHALL fail otherwise. Rebuilding the data
+remains `make data` from the pipeline repository, and the rebuilt data is
+committed with the change that needed it.
 
 #### Scenario: Serving a fresh clone
 - **WHEN** the repository is cloned and `make serve` runs
-- **THEN** every released week SHALL be shown without building anything
+- **THEN** every released week SHALL be shown, and every session opened, without building anything
 
 #### Scenario: A query edited without rebuilding
-- **WHEN** the text of an answered query changes and `make data` has not been rerun
+- **WHEN** the text of an answered or bucket query changes and `make data` has not been rerun
 - **THEN** `make test` SHALL fail naming the query
 
 #### Scenario: A week built but not added
-- **WHEN** `weeks.json` names a week whose row file is not tracked
+- **WHEN** `weeks.json` names a week whose row file or bucket index is not tracked
 - **THEN** the repository test SHALL fail naming the file
 
 ### Requirement: Type size
@@ -194,7 +196,9 @@ SHALL stay in the repository with its tests, behind one named constant in
 the Explore page's module, `FIGURES_ARE_FROZEN`, true. With it true, the
 Explore page SHALL load no DuckDB module and no Parquet file; with it
 false, the page SHALL behave as the archived change `one-page-all-weeks`
-specified.
+specified. The Session page SHALL have no DuckDB path: it reads its
+session from a bucket, and the database module SHALL keep no code only
+the Session page used.
 
 #### Scenario: The switch on
 - **WHEN** `FIGURES_ARE_FROZEN` is true and the Explore page is opened
@@ -203,6 +207,10 @@ specified.
 #### Scenario: The switch off
 - **WHEN** `FIGURES_ARE_FROZEN` is false
 - **THEN** the week and harness pickers SHALL be mounted and a narrowed selection SHALL recompute the figures in the browser
+
+#### Scenario: The Session page
+- **WHEN** any session is opened
+- **THEN** no `.wasm`, `.parquet` or `.sql` SHALL be fetched, whatever the switch
 
 ### Requirement: The look follows Open Data
 The site SHALL use Open Data's tokens: the paper background `#f8f7f5`,

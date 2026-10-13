@@ -8,39 +8,13 @@ text, so the page shows a session's structure, never its content.
 
 ## Requirements
 
-### Requirement: Opening a session
-The Session page SHALL open at `session.html?week=<sunday>&id=<session_id>`,
-optionally with `&step=<step>` and `&view=requests|context|timeline`
-(`requests` by default).
-- Before its queries it SHALL fetch the week's row files whole, one request
-  per file, into DuckDB's memory, so the queries read memory; a file whose
-  fetch fails SHALL be read over HTTP ranges instead.
-- It SHALL read only the rows of that session and of its subagents, at every
-  depth, through `selected_session`.
-- An id that is not a top-level session of that week SHALL show "session not
-  found in this week".
-- A subagent's id SHALL open its top-level session with the subagent's group
-  expanded.
-
-#### Scenario: One request per file
-- **WHEN** a session of week W is opened on a server that answers range requests
-- **THEN** each of W's four row files SHALL be requested once, in full, and no range of them afterwards
-
-#### Scenario: A shared link to a step
-- **WHEN** a visitor opens `session.html?week=2026-08-09&id=S&step=12`
-- **THEN** the page SHALL open the Requests view, scroll to step 12 and highlight it
-
-#### Scenario: A subagent's id
-- **WHEN** the id is a subagent session
-- **THEN** the page SHALL show its top-level session with that subagent's group expanded and scrolled into view
-
 ### Requirement: Session facts
 Beside the title, one card SHALL list the session's facts as labelled
 fields in three columns (one on a phone): harness;
 models, each with its requests; started (UTC); duration; turns; requests;
 input tokens; cached share with the cached tokens; output tokens;
-subagents; tool calls. A link SHALL lead back
-to the Explore page's session list with its state.
+subagents; tool calls. A link above the title, "← Session Explorer",
+SHALL lead back to the Explore page's Session Explorer with its state.
 
 #### Scenario: A session with subagents
 - **WHEN** a session has three subagent sessions
@@ -48,7 +22,7 @@ to the Explore page's session list with its state.
 
 #### Scenario: Back to the table
 - **WHEN** the visitor follows the back link
-- **THEN** the Explore page SHALL open at the session list with the same filters, sort and page
+- **THEN** the Explore page SHALL open at the Session Explorer with the same filters, sort and page
 
 ### Requirement: Requests view
 The Requests view SHALL list the requests in start order, one row per
@@ -133,3 +107,34 @@ the Context view SHALL set the time range and redraw.
 #### Scenario: Narrowing the time range
 - **WHEN** the visitor narrows the slider to one hour of a day-long session
 - **THEN** only the bars within that hour SHALL be drawn, clipped at the range's edges
+
+### Requirement: Opening a session from a bucket
+The Session page SHALL open at `session.html?week=<sunday>&id=<session_id>`,
+optionally with `&step=<step>` and `&view=requests|context|timeline`
+(`requests` by default).
+- It SHALL fetch the bucket `data/session_buckets/<week>/<xx>.json.gz`,
+  `xx` the first two characters of the id, decompress it in the browser
+  (or read it as text when the host already decompressed it), and draw
+  the session from the bucket's entry for that id.
+- An id the bucket does not hold SHALL be looked up in the week's
+  `index.json.gz`; a subagent's id SHALL thereby open its top-level
+  session with the subagent's group expanded.
+- An id in neither SHALL show "session not found in this week".
+- The page SHALL load no DuckDB module, no Parquet file and no SQL; it
+  SHALL show its loading line until the bucket is parsed.
+
+#### Scenario: One bucket per session
+- **WHEN** a top-level session of week W is opened by its id
+- **THEN** exactly one `session_buckets/W/…json.gz` file SHALL be fetched, and no `.wasm`, `.parquet` or `.sql`
+
+#### Scenario: A subagent's id
+- **WHEN** the id is a subagent session
+- **THEN** the page SHALL fetch its prefix's bucket, then the week's index, then the top-level session's bucket, and show the top-level session with that subagent's group expanded and scrolled into view
+
+#### Scenario: A shared link to a step
+- **WHEN** a visitor opens `session.html?week=2026-08-09&id=S&step=12`
+- **THEN** the page SHALL open the Requests view, scroll to step 12 and highlight it
+
+#### Scenario: A host that decompresses
+- **WHEN** the host serves the bucket with the gzip layer already removed
+- **THEN** the page SHALL read it as JSON and draw the session all the same
