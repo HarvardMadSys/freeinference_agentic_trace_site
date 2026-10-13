@@ -4,6 +4,8 @@
  * to the Session Explorer, which reopens the table as it was.
  */
 
+import { EXPLORE_FILE, queryString } from "../shared/layout.js";
+
 /** The views of the Session page, in the order of their tabs. */
 export const VIEW_NAMES = Object.freeze(["requests", "context", "timeline"]);
 
@@ -12,6 +14,9 @@ const SESSION_KEYS = Object.freeze(["week", "id", "view", "step"]);
 
 // The view a URL with no `view`, or an unknown one, opens.
 const DEFAULT_VIEW = "requests";
+
+// The anchor of the Explore page's Session Explorer, where the link back opens it.
+const SESSION_EXPLORER_ANCHOR = "#sessions";
 
 // A step as a URL writes it: a whole number, no sign.
 const STEP_PATTERN = /^\d+$/;
@@ -39,6 +44,14 @@ export function selectionParameters(params) {
     selection.delete(key);
   }
   return selection;
+}
+
+/**
+ * The link back to the Session Explorer from the Session page's `params`: the Explore page with the sessions table's
+ * keys, so the table reopens as it was, at the Session Explorer's anchor.
+ */
+export function backLinkHref(params) {
+  return `${EXPLORE_FILE}${queryString(selectionParameters(params))}${SESSION_EXPLORER_ANCHOR}`;
 }
 
 /** A copy of `params` that opens `view`, without a step to point at. */

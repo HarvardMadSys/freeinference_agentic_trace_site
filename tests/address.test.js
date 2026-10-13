@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { readAddress, requestParameters, selectionParameters, viewParameters } from "../site/js/session/address.js";
+import {
+  backLinkHref, readAddress, requestParameters, selectionParameters, viewParameters,
+} from "../site/js/session/address.js";
 
 test("the address names the week, the session, the view and the step", () => {
   const params = new URLSearchParams("week=2026-08-09&id=abc&view=timeline&step=12");
@@ -40,4 +42,14 @@ test("a request's parameters open the Requests view at that session's step, keep
   const opened = requestParameters(params, "child", 4);
   assert.equal(opened.toString(), "week=2026-08-09&id=child&view=requests&harnesses=codex&step=4");
   assert.deepEqual(readAddress(opened), { week: "2026-08-09", id: "child", view: "requests", step: 4 });
+});
+
+test("the link back opens the Session Explorer with the table's keys as given, and the Session page's dropped", () => {
+  const params = new URLSearchParams("week=2026-08-09&id=abc&view=context&step=3&harnesses=hermes,codex&sort=requests");
+  assert.equal(backLinkHref(params), "index.html?harnesses=hermes,codex&sort=requests#sessions");
+});
+
+test("with no table keys the link back opens the Session Explorer alone", () => {
+  assert.equal(backLinkHref(new URLSearchParams("week=2026-08-09&id=abc")), "index.html#sessions");
+  assert.equal(backLinkHref(new URLSearchParams()), "index.html#sessions");
 });

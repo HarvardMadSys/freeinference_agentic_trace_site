@@ -1,7 +1,7 @@
 /** The Session page: one session and its subagents, in the Requests, Context and Timeline views. */
 
 import {
-  readAddress, requestParameters, selectionParameters, viewParameters, VIEW_NAMES,
+  backLinkHref, readAddress, requestParameters, selectionParameters, viewParameters, VIEW_NAMES,
 } from "../session/address.js";
 import { mountContextView } from "../session_charts/context.js";
 import { factsList, sessionFacts } from "../session/facts_card.js";
@@ -27,7 +27,7 @@ mountHeader(document.querySelector("#site-header"), "session.html", selection);
 renderFooter(document.querySelector("#site-footer"), "session.html", selection, null);
 showWeekCountInFooter();
 // The link back opens the Explore page at its Session Explorer, with the table's search, filters, sort and page.
-document.querySelector("#back-link").href = `index.html${queryString(selection)}#sessions`;
+document.querySelector("#back-link").href = backLinkHref(parameters);
 
 const page = {
   title: document.querySelector("#session-title"),
