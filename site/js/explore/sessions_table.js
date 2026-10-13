@@ -54,7 +54,7 @@ export async function runSessionsTable(container, context) {
 
 /**
  * The table's columns for `context`: the session column links each row to its Session page, carrying
- * `exploreParams`, the Explore page's URL keys, so the link back to Explore reopens the table as it was.
+ * `exploreParams`, the Session Explorer page's URL keys, so the link back to it reopens the table as it was.
  */
 export function linkedColumns(context, exploreParams) {
   const columns = [];
@@ -71,8 +71,8 @@ export function linkedColumns(context, exploreParams) {
 /**
  * The Session page's address for `row`: its week and id, then every other key of `exploreParams` (the table's
  * filters, search, sort and page), then the keys of `context.selection`, written against `context.weeks` and
- * `context.harnesses`; while `context.filterInTable`, the Explore page's keys are the table's alone and pass as they
- * are. The Session page passes the keys it does not read on to its link back to Explore.
+ * `context.harnesses`; while `context.filterInTable`, the page's keys are the table's alone and pass as they are.
+ * The Session page passes the keys it does not read on to its link back to the Session Explorer.
  */
 export function sessionLink(row, exploreParams, context) {
   const params = new URLSearchParams({ week: row.week, id: row.session_id });

@@ -119,7 +119,17 @@ test("the Overview page runs Overview, Cite and Team, each of the three a headin
   assert.doesNotMatch(page, /class="eyebrow"/);
 });
 
-test("the Session page's link back reads Session Explorer and opens the Explore page at it", () => {
+test("the Session page's link back reads Session Explorer and opens the Session Explorer page", () => {
   const page = readFileSync(new URL("../site/session.html", import.meta.url), "utf8");
-  assert.match(page, /<a id="back-link" href="index\.html#sessions">← Session Explorer<\/a>/);
+  assert.match(page, /<a id="back-link" href="explorer\.html">← Session Explorer<\/a>/);
+});
+
+test("the Session Explorer page holds its heading, the table first under it, and no figure", () => {
+  const page = readFileSync(new URL("../site/explorer.html", import.meta.url), "utf8");
+  const main = page.slice(page.indexOf("<main"), page.indexOf("</main>"));
+  const ids = [...main.matchAll(/ id="([^"]+)"/g)].map((match) => match[1]);
+  assert.deepEqual(ids, ["explorer-title", "sessions-table"]);
+  assert.match(main, /<h1 id="explorer-title">Session Explorer<\/h1>/);
+  assert.doesNotMatch(main, /card-grid|class="eyebrow"/);
+  assert.match(page, /<script type="module" src="js\/pages\/explorer\.js"><\/script>/);
 });

@@ -169,7 +169,7 @@ test("the session column links each row to its Session page, as the row click do
   assert.equal(columns.filter((column) => column.href !== undefined).length, 1);
 });
 
-test("while the table filters itself, a row's link carries the Explore page's keys as they are", () => {
+test("while the table filters itself, a row's link carries the Session Explorer page's keys as they are", () => {
   const row = { week: "2026-07-05", session_id: "aaaa1111-x" };
   const context = { ...contextOf(["2026-08-09"], ["codex"]), filterInTable: true };
   const exploreParams = new URLSearchParams("months=2026-07&harnesses=codex&sort=requests&page=2");

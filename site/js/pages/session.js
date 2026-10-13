@@ -25,8 +25,8 @@ const parameters = new URLSearchParams(window.location.search);
 const selection = selectionParameters(parameters);
 mountHeader(document.querySelector("#site-header"), "session.html", selection);
 renderFooter(document.querySelector("#site-footer"), "session.html", selection);
-// The link back opens the Explore page at its Session Explorer, with the table's search, filters, sort and page.
-document.querySelector("#back-link").href = `index.html${selectionQuery(selection)}#sessions`;
+// The link back opens the Session Explorer page, with the table's search, filters, sort and page.
+document.querySelector("#back-link").href = `explorer.html${selectionQuery(selection)}`;
 
 const page = {
   title: document.querySelector("#session-title"),
@@ -45,7 +45,7 @@ openSession(readAddress(parameters)).catch(showFailure);
  */
 async function openSession(address) {
   if (address.week === null || address.id === null) {
-    showNotFound("This link names no session. Open one from the sessions table of the Explore page.");
+    showNotFound("This link names no session. Open one from the Session Explorer.");
     return;
   }
   const session = await loadSession(address);

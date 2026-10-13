@@ -1,6 +1,7 @@
 /**
  * The Session page's URL: `week` and `id` name the session, `view` the view shown, `step` a request to point at.
- * Every other key is the selection the visitor came from, carried by the header and the link back to Explore.
+ * Every other key is the selection the visitor came from, carried by the header and the link back to the Session
+ * Explorer.
  */
 
 /** The views of the Session page, in the order of their tabs. */

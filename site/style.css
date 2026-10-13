@@ -876,6 +876,7 @@ section[id] {
   margin-top: clamp(1.5rem, 4vw, 3rem);
 }
 
+.section-heading h1,
 .section-heading h2,
 .cite h2,
 .team h2 {
