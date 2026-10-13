@@ -85,12 +85,13 @@ site/             exactly the files that are deployed
   *.html          one file per page: index (Explore, the landing page), session
   style.css       tokens, layout and components
   favicon.svg     the brand mark, for the browser tab
-  js/shared/      the answers, formatting, charts, the histogram, the CDF, the table, the layout
+  js/shared/      the answers, the libraries, formatting, charts, series, the table, the layout
+  js/charts/      the seven chart kinds: cdf, stacked_bars, ranges, histogram, ranked, knee_lines, donut
   js/axes/        the ticks of every chart's axes
   js/theme/       the site's colours as the style tokens give them
   js/pages/       one module per page
   js/landing/     the hero, the stats strip, the donuts, the cite and team sections
-  js/explore/     the Explore page's start and its sections: the trends, the session list, the figure sections, the topic tabs
+  js/explore/     the Explore page's start and its sections: the trends, the session list, the figure runner and its row rules, the legend, the topic tabs
   js/figures/, js/simulation/, js/comparison/
                   the figure sections' modules
   js/session/     the Session page's bucket loader, address, agent tree, facts card, legends, token parts, and the views' chart start and request click

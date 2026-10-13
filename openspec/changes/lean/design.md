@@ -35,9 +35,10 @@ Not covered: the narrow-width branches of the charts (every state is at
 ticks and labels.
 
 ## 2. Chart kinds
-`js/charts/` holds one module per kind, each exporting
-`draw(rows, body, colours, options, hidden)` and, where the kind has
-series, `legend(rows, colours, options)`:
+`js/charts/` holds one module per kind, each exporting a draw function
+named for the kind (`drawCdf(rows, body, colours, parameters, hidden)`)
+and, where the kind has series, a legend function
+(`cdfLegend(rows, colours, parameters)`):
 - `cdf.js`: lines of share against value, log or linear x, optional
   median labels and a reference line.
 - `stacked_bars.js`: stacked bars over a named x column (the weeks, or
@@ -63,8 +64,8 @@ alternative is a near-copy of the kind (the histogram's `ticks`, the
 donut's `labels`), and frame sizes (`weeks`, `margins`, the CDF's
 `height`) are plain sizes, not behaviour. A figure that would need more
 keeps a plain draw function, built from the kind's exported helpers
-where they fit, which is the honest form for a one-off chart; the
-survey found thirteen such figures. A kind imports only from `shared/`,
+where they fit, which is the honest form for a one-off chart; ten of
+the thirty-one entries are such, and twenty-one call a kind. A kind imports only from `shared/`,
 `axes/` and `theme/`; the series helpers live in `shared/series.js`.
 
 Thin-bin hiding and the line of rows stay in the runner, because the
@@ -104,8 +105,8 @@ cutting to a count; untouched modules follow when next edited.
 ## 5. The specs
 After this change is archived, by hand in one commit: `site`
 (repository, data, deployment, look), `explore-page` and `session-page`;
-each requirement moved verbatim; `week-selection`'s one requirement
-folded into the sessions table; the rules that restate CONTRIBUTING
+each requirement moved verbatim; `week-selection`'s two requirements folded in, the filter's into the
+sessions table and the selection tables' into the data step; the rules that restate CONTRIBUTING
 dropped; `openspec/changes/archive/` deleted; `openspec validate --specs
 --strict` green.
 

@@ -93,4 +93,4 @@ Nothing on the page SHALL run a query in the browser.
 
 #### Scenario: Adding a figure
 - **WHEN** a maintainer adds a figure of an existing kind
-- **THEN** the change SHALL be one `.sql` file, one entry whose `draw` calls the kind, and `make data`
+- **THEN** the change SHALL be one `.sql` file, one entry whose `draw` calls the kind, its lines in the tests that list queries and figures, `make data` and `make snapshots`
