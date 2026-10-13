@@ -16,7 +16,7 @@
  */
 
 import { showError, showLoading, showNote } from "../shared/charts.js";
-import { runQuery } from "../shared/database.js";
+import { readAnswer } from "../shared/answers.js";
 import { queryString } from "../shared/layout.js";
 import { mountTable } from "../shared/table.js";
 import {
@@ -87,9 +87,9 @@ async function drawSessions(place, context, filter) {
   notePlace.className = "table-note";
   const view = { rows: [], tablePlace: document.createElement("div"), context, filter, notePlace };
   if (filter.month === "" && filter.harness === "" && isDefaultState(currentState())) {
-    drawFirstPage(place, view, await runQuery("explore/sessions_first_page"));
+    drawFirstPage(place, view, await readAnswer("explore/sessions_first_page"));
   }
-  const rows = await runQuery("explore/sessions_of_selection");
+  const rows = await readAnswer("explore/sessions_of_selection");
   view.rows = rows.map(withCachedShare);
   place.replaceChildren(controlsRow(view), view.notePlace, view.tablePlace);
   drawUnknownNote(view);

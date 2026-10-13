@@ -17,7 +17,7 @@
  */
 
 import { showError } from "../shared/charts.js";
-import { fetchHarnesses, fetchWeeks, runQuery } from "../shared/database.js";
+import { fetchHarnesses, fetchWeeks, readAnswer } from "../shared/answers.js";
 import { EXPLORE_FILE, mountHeader, renderFooter, queryString } from "../shared/layout.js";
 import {
   FIGURE_SECTIONS, layoutFigures, mountFigureSections, runFigures, showErrorInFigures, startFigures,
@@ -70,7 +70,7 @@ function sectionContext(weeks, harnesses) {
 
 /** The promised rows of the query `name`, asked for once for every section that reads them. */
 function promisedRows(name) {
-  const rows = runQuery(name);
+  const rows = readAnswer(name);
   // Each section that awaits the rows shows a failure in its own place, not here.
   rows.catch(() => undefined);
   return rows;

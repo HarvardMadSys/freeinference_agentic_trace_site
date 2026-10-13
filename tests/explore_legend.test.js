@@ -164,7 +164,7 @@ test("a chart whose every series is hidden shows a note instead of being drawn",
   assert.equal(body.children[0].className, "note");
 });
 
-test("a new drawing, as a new selection makes, starts with every series shown", async (context) => {
+test("a new drawing of the chart starts with every series shown", async (context) => {
   useFakeDocument(context);
   const earlierBody = new FakeElement("div");
   await drawWithLegend(earlierBody, LEGEND, () => undefined);

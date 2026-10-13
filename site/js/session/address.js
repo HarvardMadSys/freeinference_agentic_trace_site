@@ -35,12 +35,12 @@ export function readAddress(params) {
 }
 
 /** A copy of `params` without the Session page's own keys: the sessions table's, which a link to another page carries. */
-export function selectionParameters(params) {
-  const selection = new URLSearchParams(params);
+export function tableParameters(params) {
+  const tableKeys = new URLSearchParams(params);
   for (const key of SESSION_KEYS) {
-    selection.delete(key);
+    tableKeys.delete(key);
   }
-  return selection;
+  return tableKeys;
 }
 
 /**
@@ -48,7 +48,7 @@ export function selectionParameters(params) {
  * keys, so the table reopens as it was, at the Session Explorer's anchor.
  */
 export function backLinkHref(params) {
-  return `${EXPLORE_FILE}${queryString(selectionParameters(params))}${SESSION_EXPLORER_ANCHOR}`;
+  return `${EXPLORE_FILE}${queryString(tableParameters(params))}${SESSION_EXPLORER_ANCHOR}`;
 }
 
 /** A copy of `params` that opens `view`, without a step to point at. */

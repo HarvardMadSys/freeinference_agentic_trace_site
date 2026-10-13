@@ -189,7 +189,7 @@ export function legendPlace(body) {
  * calling. `format` writes a y value in the tooltip and, unless `yTickFormat` is given, on the axis; `yLabel` names a y
  * value in the tooltip and, unless `yAxisLabel` is given (null for none), titles the axis; `xTickFormat`, when given,
  * writes the x axis's ticks; `xDomain`, when given, lists every x value in order, so one with no rows keeps its place;
- * `margins`, when given, are Plot margins in place of the frame's. Returns the chart's element.
+ * `margins`, when given, are Plot margins in place of the frame's.
  */
 export async function drawBars(body, rows, options) {
   const { x, y, fill, colours, xLabel, yLabel, format = formatCount } = options;
@@ -222,7 +222,6 @@ export async function drawBars(body, rows, options) {
     ],
   });
   body.replaceChildren(chart);
-  return chart;
 }
 
 /** The sum of `row[column]` over `rows`. */

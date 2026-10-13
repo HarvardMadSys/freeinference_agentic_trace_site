@@ -6,7 +6,7 @@
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Every row of their queries is one rank bin:
  * its `percentile` (the bin's middle, in percent of the sessions ranked), one column per part holding the bin's mean
  * share of it, and `bin_sessions`, the bin's sessions. Every row also holds the same `ranked_bin` and `rows`, the
- * sessions ranked: the page counts the figure's rows as one bin, so the figure is hidden only when the whole selection
+ * sessions ranked: the page counts the figure's rows as one bin, so the figure is hidden only when the whole answer
  * has too few sessions, not when its rank bins are small. The parts are columns, not rows, so a figure's draw function
  * is given the parts its legend hides.
  */

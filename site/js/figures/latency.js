@@ -1,6 +1,6 @@
 /**
  * The Latency section of the Explore page's figures: per model, the CDFs of a request's time to first token and of its
- * decode time, each for the five models with most requests in the selection that are among the eight with most
+ * decode time, each for the five models with most requests in the answer that are among the eight with most
  * requests over every week, over requests whose TTFT is trusted; how a session's time splits between its parts, drawn
  * in `sessions_ranked.js`; and the speed-up of the sessions' machine time if one of its parts alone ran twice as fast.
  *

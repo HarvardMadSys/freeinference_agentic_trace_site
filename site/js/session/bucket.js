@@ -2,11 +2,9 @@
  * The Session page's data, as the data step precomputed it: a session's rows from its week's bucket, the order of the
  * tool categories, and the number of weeks.
  *
- * A bucket is `session_buckets/<week>/<xx>.json.gz` in the data folder, `xx` the first two characters of a top-level
- * session's id: an object from each top-level id whose id starts with `xx` to its entry, `{ tree, requests,
- * tool_calls }`, each part `{ columns, rows }` with a row's values in column order (`site_data/buckets.py`). Beside the
- * buckets, the week's `index.json.gz` maps every session id of the week, subagents included, to its top-level id. A
- * prefix with no top-level session in the week has no bucket.
+ * A week's buckets, `session_buckets/<week>/<xx>.json.gz` in the data folder, and its index of session ids,
+ * `index.json.gz`, are defined in `site_data/buckets.py`'s docstring. A session is read from the bucket its id's first
+ * two characters name first, and from the week's index only when that bucket does not hold it.
  *
  * Every function is given the data folder as `dataUrl`: an absolute URL ending in a slash, so that a file's path
  * resolves inside the folder.
@@ -34,8 +32,8 @@ const WEEKS_FILE = "weeks.json";
 // file with its gzip layer removed, and is read as it is.
 const GZIP_MAGIC = Object.freeze([0x1f, 0x8b]);
 
-// The status of a file that does not exist: a bucket of a prefix no top-level session of the week has, or a week the
-// data does not hold.
+// The status of a file that does not exist: a bucket of a prefix no session id of the week starts with, or a week
+// the data does not hold.
 const NOT_FOUND = 404;
 
 /**

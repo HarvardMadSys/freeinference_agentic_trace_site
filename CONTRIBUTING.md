@@ -114,13 +114,13 @@ at most nine modules; `make test` counts them.
   `index.html` with the URL's keys, which are the table's. Pages link one
   another by their `.html` names; the host serves each at its clean path
   with the query kept.
-- `shared/database.js` fetches `weeks.json` and `harnesses.json` and reads a
-  query's answer by name: `runQuery("explore/trace_totals")` reads
+- `shared/answers.js` fetches `weeks.json` and `harnesses.json` and reads a
+  query's answer by name: `readAnswer("explore/trace_totals")` reads
   `data/all_weeks/explore/trace_totals.json`, which `make data` wrote by
   running `queries/explore/trace_totals.sql`. Every Explore and figure
   query, and every colour order (`setup/*_order`), has its answer file; the
   page runs no query itself.
-- The Session page imports nothing from `shared/database.js`, and
+- The Session page imports nothing from `shared/answers.js`, and
   `tests/test_repository.py` checks it; how it reads a session is below.
 - The URL keys `months` and `harnesses` belong
   to the session list: `explore/sessions_filter.js` reads them (and the
@@ -148,8 +148,7 @@ at most nine modules; `make test` counts them.
   anchor the page opened on. A
   chart reads its width from its card, and a hidden card has none, so
   `figure_sections.js` starts only a shown topic's figures, and showing a
-  topic runs the same start step a card coming into view does. Nothing is
-  drawn into a hidden topic.
+  topic starts its figures. Nothing is drawn into a hidden topic.
 
 **Adding a section to the Explore page.** Give it a place in the page's HTML,
 an element with an id, under a heading if it is a part of its own; write its
@@ -261,7 +260,7 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
   where the site draws more simply than the paper, README's "Where the
   numbers come from" says how, not the definition; shown behind the
   Definition control.
-- `query`: the query whose answer it draws, as `runQuery` names it
+- `query`: the query whose answer it draws, as `readAnswer` names it
   (`"figures/<name>"`).
 - `binColumn`: the column naming the bin or series each row belongs to, every
   row of a bin carrying the bin's count in `rows`; a bin under
@@ -317,15 +316,16 @@ summary and the tooltip), `tickFormat` (optional, a value on the axis),
 Object.freeze({
   name: "tokens_per_request_cdf",
   title: "Tokens per request",
-  insight: "Each request adds little to a large context.",
-  definition: "Share of requests with at most each number of input tokens, uncached input tokens (where the provider reports cache reads) and output tokens (where there are more than one).",
-  caption: "Input, uncached input and output tokens of each request.",
+  insight: "Huge inputs don't necessarily mean huge computation.",
+  definition: "Each line shows the percentage of requests with this many tokens or fewer, for total input, uncached input, and output. Uncached input counts only requests with reported cache usage. Output excludes responses with one token or fewer.",
+  caption: "A median request carries 129K input tokens, but only about 500 are uncached and require fresh processing. Outputs contain just a few hundred tokens.",
   drawsLines: true,
   query: "figures/tokens_per_request_cdf",
   binColumn: "series",
   seriesColumn: "series",
   seriesOverSameRows: true,
-  legend: tokensPerRequestLegend,
+  legend: (rows, colours, seriesColumn) =>
+    seriesLegend(rows, seriesColumn, new Map(Object.entries(TOKEN_SERIES_COLOURS)), TOKEN_SERIES),
   draw: drawTokensPerRequest,
 }),
 ```
@@ -401,8 +401,8 @@ words, and their tests. Nothing about it runs in the browser.
   wires listeners. State lives in the URL or in the arguments; no module
   keeps mutable state beyond what the page owns.
 - Loading and error states come from `shared/charts.js`: a section shows
-  `loading` until its query returns and `is-error` with the message if it
-  throws. One failed query never stops the others.
+  `loading` until its answer arrives and `is-error` with the message if it
+  throws. One failed answer never stops the others.
 - Numbers go through `shared/format.js`.
 
 ## Charts

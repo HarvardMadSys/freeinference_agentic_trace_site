@@ -8,7 +8,7 @@
  */
 
 import { showError, showLoading } from "../shared/charts.js";
-import { runQuery } from "../shared/database.js";
+import { readAnswer } from "../shared/answers.js";
 import { dateSpanText, formatCompactCount, formatCount } from "../shared/format.js";
 
 /**
@@ -46,7 +46,7 @@ export function harnessesText({ harnesses, benchmark_harnesses: benchmarkHarness
 }
 
 async function drawStats(container, context) {
-  const rows = await runQuery("explore/trace_totals");
+  const rows = await readAnswer("explore/trace_totals");
   const items = statsRows(rows[0], context.weeks).map(
     (stat) => `<li><strong>${stat.value}</strong><span>${stat.label}</span></li>`,
   );

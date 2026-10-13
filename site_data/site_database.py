@@ -4,7 +4,7 @@ queries.
 It is opened by registering each of the four frames as the table of its name,
 `requests`, `tool_calls`, `sessions` and `simulation`, then running the
 `site/queries/setup/create_*.sql` statements in this order: the selection
-tables, then the views over the selection, then the benchmark harness table,
+tables, then the one view over the selection, then the benchmark harness table,
 which is filled with the harnesses the harness index marks as the benchmark's.
 The selection tables are filled through the `clear_*` and `insert_*`
 statements, one parameterised insert per value. A query's name is its path
@@ -20,7 +20,7 @@ import pandas
 from site_data import harnesses
 
 QUERIES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site" / "queries"
-SETUP_FOLDER = QUERIES_FOLDER / "setup"  # the statements that create and fill the views and tables
+SETUP_FOLDER = QUERIES_FOLDER / "setup"  # the statements that create and fill the view and the tables
 # One thread, so that a sum of floats adds its rows in the same order on every run and a rebuilt answer is the same to
 # the last bit.
 THREADS = 1
@@ -31,7 +31,7 @@ SELECTION_TABLE_STATEMENTS = [
     "setup/create_selected_harnesses",
 ]
 
-# The statements that make the views over the selected rows, run after the selection tables they read.
+# The statement that makes the one view over the selected rows, run after the selection tables it reads.
 SELECTION_VIEW_STATEMENTS = [
     "setup/create_view_session_time",
 ]
@@ -67,7 +67,7 @@ def statement_text(name: str) -> str:
 
 def open_site_database(frames: SiteFrames,
                        harness_entries: list[harnesses.HarnessEntry]) -> duckdb.DuckDBPyConnection:
-    """A new in-memory database on `THREADS` threads: the four frames as tables, the empty selection tables, the views
+    """A new in-memory database on `THREADS` threads: the four frames as tables, the empty selection tables, the view
     over them, and the benchmark harness table filled with the entries marked benchmark."""
     connection = duckdb.connect(config={"threads": THREADS})
     connection.register("requests", frames.requests)

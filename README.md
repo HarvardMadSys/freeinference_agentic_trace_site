@@ -151,7 +151,7 @@ site/              exactly the files that are deployed
   *.html           one file per page: index (Explore, the landing page) and session
   style.css        tokens, layout and components
   favicon.svg      the brand mark, for the browser tab
-  js/shared/       database (the indexes, and the answer files by query name), libraries, format, charts, histogram
+  js/shared/       answers (the indexes, and the answer files by query name), libraries, format, charts, histogram
                    (the histogram figures), cdf (the CDF figures), table, layout (the header and footer)
   js/landing/      the landing page's own parts: hero (the title, lede and buttons), stats (the stats strip beside
                    it), donuts (the model and harness mixes), arcs (a donut's shares and ring segments), cite (the
@@ -172,7 +172,8 @@ site/              exactly the files that are deployed
                    user prompt size and the tool mix are listed in the Session-structure and Tools sections), and
                    scopes, the two scopes they compare
   js/session/      the Session page's bucket (a session's rows from its week's bucket, and the category order),
-                   address, agent tree, facts, legends, token parts and chart frame
+                   address, agent tree, facts, legends, token parts and view_chart (the Context and Timeline
+                   views' chart start and request click)
   js/session_requests/  the Requests view: a row per request, its details (each call's programs and argument
                         skeleton), the brackets that group overlapping requests, and its legend
   js/session_charts/    the Context and Timeline views, the series and bars they draw, and their range slider

@@ -19,7 +19,7 @@
  */
 
 import { MIN_ROWS_PER_BIN, nameChart, renderFigure, showError, showLoading, showNote } from "../shared/charts.js";
-import { runQuery } from "../shared/database.js";
+import { readAnswer } from "../shared/answers.js";
 import { figureColours } from "../theme/colours.js";
 import { drawHistogram, histogramCard, rowsText } from "../shared/histogram.js";
 import { dropThinGroups, figureRowsText, unsimulatedWeeks } from "../figures/figure_rows.js";
@@ -128,8 +128,8 @@ async function drawFigure(figure, place, context) {
 
 /** Run a histogram figure's bins and stats queries and draw its histogram into `place`, its count as its line of rows. */
 async function drawHistogramFigure(figure, place) {
-  const binRows = await runQuery(figure.query);
-  const statsRows = await runQuery(figure.statsQuery);
+  const binRows = await readAnswer(figure.query);
+  const statsRows = await readAnswer(figure.statsQuery);
   const card = histogramCard(figure, binRows, statsRows[0]);
   place.rows.textContent = rowsText(card);
   await drawHistogram(place.body, card);
@@ -139,7 +139,7 @@ async function drawHistogramFigure(figure, place) {
 /** Run one figure's query and draw its rows into `place`, its thin bins hidden, with its line of rows. */
 async function drawQueryFigure(figure, place, context) {
   const colours = await figureColours(context.orders);
-  let rows = await runQuery(figure.query);
+  let rows = await readAnswer(figure.query);
   if (figure.drawnRows !== undefined) {
     rows = figure.drawnRows(rows, colours);
   }

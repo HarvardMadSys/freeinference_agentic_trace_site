@@ -12,7 +12,7 @@
  */
 
 import { chartName, columnTotal, renderFigure, showError, showLoading } from "../shared/charts.js";
-import { runQuery } from "../shared/database.js";
+import { readAnswer } from "../shared/answers.js";
 import { formatCompactCount, formatCount, formatQuantity, formatShare } from "../shared/format.js";
 import { barColours, HARNESS_FIRST_SLOT, OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
 import { drawWithLegend } from "../explore/legend.js";
@@ -73,7 +73,7 @@ export function donutSlices(rows, nameColumn, countColumn, order) {
 
 async function drawModelMix(place, context) {
   const orderRows = await context.orders.models;
-  const rows = await runQuery("explore/model_mix");
+  const rows = await readAnswer("explore/model_mix");
   const order = orderRows.map((row) => row.model);
   await drawMix(place, donutSlices(rows, "model", "requests", order), barColours(order), {
     title: "Model mix",

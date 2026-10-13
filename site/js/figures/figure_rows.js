@@ -90,8 +90,7 @@ export function unsimulatedWeeks(figure, weekEntries) {
 
 /**
  * A figure's line of rows, shown with its definition: the rows it rests on, the weeks `notSimulated`, and how many bins
- * were hidden: "1,234 rows · not simulated: 2026-08-16 · 2 bins hidden (fewer than 50 rows each)". The harnesses and
- * weeks every figure draws are stated once, under the page's title.
+ * were hidden: "1,234 rows · not simulated: 2026-08-16 · 2 bins hidden (fewer than 50 rows each)".
  */
 export function figureRowsText(figure, shownRows, hidden, notSimulated) {
   const parts = [restingCountText(shownRows, figure)];

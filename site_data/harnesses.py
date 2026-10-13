@@ -4,8 +4,8 @@ whether it is the benchmark's.
 A top-level session is one with no parent. A harness is the benchmark's when
 the pipeline's population puts its sessions in the SWE-Bench scope; every
 other harness is the paper's population. The index lists the harness with most
-top-level sessions first, ties by name, and is read by every page before
-DuckDB loads.
+top-level sessions first, ties by name, and is read by the Explore page with
+the weeks' index, before any answer.
 """
 
 import dataclasses

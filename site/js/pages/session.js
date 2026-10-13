@@ -1,7 +1,7 @@
 /** The Session page: one session and its subagents, in the Requests, Context and Timeline views. */
 
 import {
-  backLinkHref, readAddress, requestParameters, selectionParameters, viewParameters, VIEW_NAMES,
+  backLinkHref, readAddress, requestParameters, tableParameters, viewParameters, VIEW_NAMES,
 } from "../session/address.js";
 import { mountContextView } from "../session_charts/context.js";
 import { factsList, sessionFacts } from "../session/facts_card.js";
@@ -22,9 +22,9 @@ const VIEW_TITLES = Object.freeze({ requests: "Requests", context: "Context", ti
 const DATA_URL = new URL("data/", window.location.href).href;
 
 const parameters = new URLSearchParams(window.location.search);
-const selection = selectionParameters(parameters);
-mountHeader(document.querySelector("#site-header"), "session.html", selection);
-renderFooter(document.querySelector("#site-footer"), "session.html", selection, null);
+const tableKeys = tableParameters(parameters);
+mountHeader(document.querySelector("#site-header"), "session.html", tableKeys);
+renderFooter(document.querySelector("#site-footer"), "session.html", tableKeys, null);
 showWeekCountInFooter();
 // The link back opens the Explore page at its Session Explorer, with the table's search, filters, sort and page.
 document.querySelector("#back-link").href = backLinkHref(parameters);
@@ -123,7 +123,7 @@ function showView(view, session, address) {
 async function showWeekCountInFooter() {
   try {
     const weekCount = await fetchWeekCount(DATA_URL);
-    renderFooter(document.querySelector("#site-footer"), "session.html", selection, weekCount);
+    renderFooter(document.querySelector("#site-footer"), "session.html", tableKeys, weekCount);
   } catch (error) {
     console.error(error);
   }

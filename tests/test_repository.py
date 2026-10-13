@@ -15,7 +15,7 @@ JAVASCRIPT_FOLDER = ROOT / "site" / "js"
 LIBRARIES_MODULE = ROOT / "site" / "js" / "shared" / "libraries.js"  # the only file that names a library URL
 QUERIES_FOLDER = ROOT / "site" / "queries"  # the only place SQL is written
 SESSION_PAGE_MODULE = JAVASCRIPT_FOLDER / "pages" / "session.js"  # the Session page, which reads one bucket
-DATABASE_MODULE = JAVASCRIPT_FOLDER / "shared" / "database.js"  # the Explore page's indexes and answers
+ANSWERS_MODULE = JAVASCRIPT_FOLDER / "shared" / "answers.js"  # the Explore page's indexes and answers
 PAGES = ("index.html", "session.html")  # the site's pages: Explore, the landing page, and Session
 DATA_FOLDER = "site/data"  # built by `make data` and tracked, so a clone serves the site without building
 BUCKETS_FOLDER = "session_buckets"  # every week's folder of session buckets, beside its index `index.json.gz`
@@ -139,14 +139,14 @@ def statically_imported_modules(page_module: pathlib.Path) -> set[pathlib.Path]:
     return found
 
 
-def test_the_session_page_does_not_load_the_database_module() -> None:
+def test_the_session_page_does_not_load_the_answers_module() -> None:
     for module in statically_imported_modules(SESSION_PAGE_MODULE):
-        assert module != DATABASE_MODULE.resolve(), f"the Session page imports {DATABASE_MODULE.relative_to(ROOT)}"
+        assert module != ANSWERS_MODULE.resolve(), f"the Session page imports {ANSWERS_MODULE.relative_to(ROOT)}"
 
 
-def test_the_explore_page_s_start_imports_the_database() -> None:
-    # The check above is only as good as the import pattern: the Explore page's start does import the database module.
-    assert DATABASE_MODULE.resolve() in statically_imported_modules(JAVASCRIPT_FOLDER / "explore" / "start.js")
+def test_the_explore_page_s_start_imports_the_answers_module() -> None:
+    # The check above is only as good as the import pattern: the Explore page's start does import the answers module.
+    assert ANSWERS_MODULE.resolve() in statically_imported_modules(JAVASCRIPT_FOLDER / "explore" / "start.js")
 
 
 def test_the_site_has_two_pages_each_with_its_module() -> None:

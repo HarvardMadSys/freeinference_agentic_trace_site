@@ -10,7 +10,7 @@
 import {
   columnTotal, drawBars, foldToOther, nameChart, renderFigure, showError, showLoading, sumFolded,
 } from "../shared/charts.js";
-import { runQuery } from "../shared/database.js";
+import { readAnswer } from "../shared/answers.js";
 import { monthTickFormat } from "../axes/ticks.js";
 import { barColours, HARNESS_FIRST_SLOT, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { seriesLegend } from "../figures/figure_rows.js";
@@ -92,7 +92,7 @@ async function drawSessionsPerWeek(place, context) {
 
 async function drawRequestsPerWeek(place, context) {
   const modelRows = await context.orders.models;
-  const rows = await runQuery("explore/requests_per_week_by_model");
+  const rows = await readAnswer("explore/requests_per_week_by_model");
   const body = renderFigure(place, {
     title: "Requests per week",
     caption: "Requests each week, by model.",
@@ -106,7 +106,7 @@ async function drawRequestsPerWeek(place, context) {
 }
 
 async function drawInputTokensPerWeek(place, context) {
-  const rows = await runQuery("explore/input_tokens_per_week");
+  const rows = await readAnswer("explore/input_tokens_per_week");
   const body = renderFigure(place, {
     title: "Input tokens per week",
     caption: "Input tokens each week, by cache status.",

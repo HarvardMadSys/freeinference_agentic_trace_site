@@ -33,7 +33,7 @@ from site_data import buckets, harnesses, paths, site_database, weeks
 
 ANSWERED_PAGES = ["explore", "figures"]  # the folders whose queries are answered; `buckets/` fills the buckets instead
 # The setup queries that fix each harness's, model's, category's and provider's colour from every week and harness;
-# answered so a page draws its colours without DuckDB.
+# answered so a page reads its colours from a file, as it reads every answer.
 COLOUR_ORDER_QUERIES = ["setup/category_order", "setup/harness_order", "setup/model_order", "setup/provider_order"]
 # The queries answered with every harness selected, the benchmark's too: the Overview, the session list and the stats
 # strip show the whole trace. The sessions table filters its answer in the browser, so the answer holds every row any

@@ -26,8 +26,7 @@ setup-browser:
 data:
 	$(PYTHON) -m site_data --release $(RELEASE) --simulation $(SIMULATION) --out site/data
 
-# Serve the site locally at http://localhost:8000 with Python's own file server. It ignores range requests and sends
-# whole files, which is all the site needs: no page reads part of a file.
+# Serve the site locally at http://localhost:8000 with Python's own file server.
 serve:
 	python3 -m http.server -d site -b 127.0.0.1 8000
 
