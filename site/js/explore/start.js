@@ -1,5 +1,5 @@
 /**
- * The start every Explore page shares: it draws the page's header, footer and every section's loading state from
+ * The Explore page's start: it draws the page's header, footer and every section's loading state from
  * `weeks.json` and `harnesses.json`, then gives the database the selection and runs the page's sections.
  *
  * A page names its sections (`{ id, layout, run }`, the id of its place in the page's HTML, the function that draws its

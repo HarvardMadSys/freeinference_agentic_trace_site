@@ -1,5 +1,5 @@
 /**
- * The sessions table's filter by month and harness, used while the Explore pages' figures are frozen: the URL keys
+ * The sessions table's filter by month and harness, used while the Explore page's figures are frozen: the URL keys
  * `months` and `harnesses` that hold it, the keys of older links read as it, the rows it keeps, and the choices of the
  * month and harness drop-downs that change it.
  *

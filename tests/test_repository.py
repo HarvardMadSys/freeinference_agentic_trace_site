@@ -15,8 +15,9 @@ JAVASCRIPT_FOLDER = ROOT / "site" / "js"
 LIBRARIES_MODULE = ROOT / "site" / "js" / "shared" / "libraries.js"  # the only file that names a library URL
 QUERIES_FOLDER = ROOT / "site" / "queries"  # the only place SQL is written
 SESSION_PAGE_MODULE = JAVASCRIPT_FOLDER / "pages" / "session.js"  # the Session page, which reads one bucket
-DATABASE_MODULE = JAVASCRIPT_FOLDER / "shared" / "database.js"  # the Explore pages' answers and queries
-ENGINE_FOLDER = JAVASCRIPT_FOLDER / "engine"  # DuckDB in the page, which only the Explore pages' switch can start
+DATABASE_MODULE = JAVASCRIPT_FOLDER / "shared" / "database.js"  # the Explore page's answers and queries
+ENGINE_FOLDER = JAVASCRIPT_FOLDER / "engine"  # DuckDB in the page, which only the Explore page's switch can start
+PAGES = ("index.html", "session.html")  # the site's pages: Explore, the landing page, and Session
 DATA_FOLDER = "site/data"  # built by `make data` and tracked, so a clone serves the site without building
 ROW_KINDS = ("requests", "sessions", "tool_calls")  # the kinds of row every week has a file of; the simulation has fewer weeks
 BUCKETS_FOLDER = "session_buckets"  # every week's folder of session buckets, beside its index `index.json.gz`
@@ -146,9 +147,15 @@ def test_the_session_page_loads_neither_the_database_nor_duckdb() -> None:
         assert ENGINE_FOLDER.resolve() not in module.parents, f"the Session page imports {module.relative_to(ROOT)}"
 
 
-def test_the_explore_pages_start_imports_the_database() -> None:
-    # The check above is only as good as the import pattern: the Explore pages' start does import the database module.
+def test_the_explore_page_s_start_imports_the_database() -> None:
+    # The check above is only as good as the import pattern: the Explore page's start does import the database module.
     assert DATABASE_MODULE.resolve() in statically_imported_modules(JAVASCRIPT_FOLDER / "explore" / "start.js")
+
+
+def test_the_site_has_two_pages_each_with_its_module() -> None:
+    assert tuple(sorted(path.name for path in (ROOT / "site").glob("*.html"))) == PAGES
+    page_modules = sorted(path.name for path in (JAVASCRIPT_FOLDER / "pages").glob("*.js"))
+    assert page_modules == ["explore.js", "session.js"]
 
 
 def tracked_text_files() -> list[pathlib.Path]:

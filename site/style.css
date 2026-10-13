@@ -877,13 +877,6 @@ section[id] {
   margin-top: clamp(1.5rem, 4vw, 3rem);
 }
 
-/* A page that opens on its heading, as the Session Explorer and the Insights do, keeps only the page's own room above
-   it, as the Session page does. */
-.page > .section-heading:first-child {
-  margin-top: 0;
-}
-
-.section-heading h1,
 .section-heading h2,
 .cite h2,
 .team h2 {
@@ -1147,6 +1140,13 @@ section[id] {
   gap: 1rem;
 }
 
+/* The figure sections, one after the other, spaced as the page spaces its parts. */
+.figure-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 /* The Insights page's topic bar: one row of the six topics that sticks under the site header, on the header's
    translucent paper and across the page's gutters; the topic in view is marked as the header marks the current page.
    Its row of links scrolls sideways where it does not fit, as the header's do on a phone, and the bar holds the
@@ -1240,6 +1240,13 @@ section[id] {
   font-size: 1rem;
   line-height: 1.45;
   color: var(--color-text);
+}
+
+/* The line under a section's heading that says what a click on it does, in the figure captions' size and ink. */
+.section-guide {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
 }
 
 /* The one short line of what a figure draws: under its chart where the card has an insight, else under its title. */
@@ -1552,13 +1559,6 @@ section[id] {
 
 .control-field select {
   width: 100%;
-}
-
-/* What a month holds, under the session list's controls. */
-.table-month-note {
-  margin: 0 0 0.75rem;
-  font-size: var(--font-size-smallest);
-  color: var(--color-text-faint);
 }
 
 .control-field-name {

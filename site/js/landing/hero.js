@@ -1,7 +1,7 @@
 /**
- * The Overview page's hero: the dataset's name as its title, a lede whose first clause counts the weeks of
- * `weeks.json` and whose rest says what the trace holds, and the buttons to the Session Explorer and Insights pages,
- * the dataset, the paper and the code.
+ * The Explore page's hero: the dataset's name as its title, a lede whose first clause counts the weeks of `weeks.json`
+ * and whose rest says what the trace holds, and the buttons to the page's Session Explorer and Insights, the dataset,
+ * the paper and the code.
  */
 
 import { URLS } from "../shared/layout.js";
@@ -20,11 +20,11 @@ const TITLE_ACCENT = "Agentic Dataset";
 // The lede after its first clause, which counts the weeks.
 const LEDE_REST = "anonymised: every request, tool call and subagent of the agent sessions FreeInference served.";
 
-// The buttons under the lede: the first two lead to the site's other Explore pages, the first of them the primary one;
-// the others leave the site.
+// The buttons under the lede: the first two scroll to the page's own sections, the first of them the primary one; the
+// others leave the site.
 const SITE_BUTTONS = Object.freeze([
-  Object.freeze({ title: "Session Explorer", href: "explorer.html", className: "button button--primary" }),
-  Object.freeze({ title: "Insights", href: "insights.html", className: "button" }),
+  Object.freeze({ title: "Session Explorer", href: "#sessions", className: "button button--primary" }),
+  Object.freeze({ title: "Insights", href: "#insights", className: "button" }),
 ]);
 const EXTERNAL_BUTTONS = Object.freeze([
   Object.freeze({ title: "Dataset", url: URLS.dataset }),

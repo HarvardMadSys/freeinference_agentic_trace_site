@@ -2,8 +2,8 @@
  * The sessions table: every top-level session of the answer, searched by id, filtered by month, harness, main model
  * and a minimum of requests, sorted and paged in the browser. Its state lives in the URL
  * (`explore/sessions_table_state.js`), read back on every change. Above it, one row of form controls: the month and
- * harness drop-downs, the model drop-down, the minimum of requests and the search box, and under them what a month
- * holds. A row click opens the Session page.
+ * harness drop-downs, the model drop-down, the minimum of requests and the search box. A row click opens the Session
+ * page.
  *
  * While `context.filterInTable`, there is no selection to choose: the answer holds every week's sessions of every
  * harness and the table filters them itself by month and harness (`explore/sessions_filter.js`). It then owns the keys
@@ -31,9 +31,6 @@ import {
 // The text of the model drop-down's first choice, which filters nothing.
 const EVERY_MODEL_TEXT = "All models";
 
-// The line under the controls of the table that filters itself by month: what a month holds.
-const MONTH_NOTE = "A month holds the weeks whose Sunday falls in it.";
-
 /** Show the loading state in `container`. */
 export function layoutSessionsTable(container) {
   showLoading(container);
@@ -53,8 +50,8 @@ export async function runSessionsTable(container, context) {
 }
 
 /**
- * The table's columns for `context`: the session column links each row to its Session page, carrying
- * `exploreParams`, the Session Explorer page's URL keys, so the link back to it reopens the table as it was.
+ * The table's columns for `context`: the session column links each row to its Session page, carrying `exploreParams`,
+ * the Explore page's URL keys, so the link back to its Session Explorer reopens the table as it was.
  */
 export function linkedColumns(context, exploreParams) {
   const columns = [];
@@ -104,7 +101,7 @@ async function drawSessions(place, context, filter) {
     notePlace: document.createElement("div"),
   };
   view.notePlace.className = "table-note";
-  place.replaceChildren(controlsRow(view), ...monthNote(filter), view.notePlace, view.tablePlace);
+  place.replaceChildren(controlsRow(view), view.notePlace, view.tablePlace);
   drawUnknownNote(view);
   drawTable(view);
 }
@@ -199,17 +196,6 @@ function controlsRow(view) {
   // In this order, two to a row on a phone: month and harness, model and minimum, then the search alone.
   row.append(...harnessFields, labelledField("Model", model), labelledField("Min requests", minimum), searchField);
   return row;
-}
-
-/** The line saying what a month holds, under the controls of the table that filters itself; none otherwise. */
-function monthNote(filter) {
-  if (filter === null) {
-    return [];
-  }
-  const line = document.createElement("p");
-  line.className = "table-month-note";
-  line.textContent = MONTH_NOTE;
-  return [line];
 }
 
 /** The month and harness drop-downs of the table that filters itself; a choice names nothing unknown. */

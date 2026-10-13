@@ -28,8 +28,8 @@ test("the hero holds the dataset's name as its title, the lede counting the week
   assert.match(container.innerHTML, /<p class="hero-lede">Sixteen weeks of coding agents, anonymised: /);
   const buttons = [...container.innerHTML.matchAll(/<a class="button[^"]*" href="([^"]*)"[^>]*>([^<]*)<\/a>/g)];
   assert.deepEqual(buttons.map((match) => [match[2], match[1]]), [
-    ["Session Explorer", "explorer.html"],
-    ["Insights", "insights.html"],
+    ["Session Explorer", "#sessions"],
+    ["Insights", "#insights"],
     ["Dataset", "https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace"],
     ["Paper", "https://data.freeinference.org/pdf/paper/from-requests-to-sessions.pdf"],
     ["Code", "https://github.com/HarvardMadSys/freeinference_agentic_trace"],

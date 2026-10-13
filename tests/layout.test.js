@@ -4,8 +4,8 @@ import { test } from "node:test";
 
 import { renderFooter, renderHeader, SECTIONS } from "../site/js/shared/layout.js";
 
-// The Overview page, the landing page, which holds the Cite section the header and footer link by anchor.
-const OVERVIEW_PAGE = new URL("../site/index.html", import.meta.url);
+// The Explore page, whose sections the header and footer link by anchor.
+const EXPLORE_PAGE = new URL("../site/index.html", import.meta.url);
 
 // The URL keys of the sessions table, as a page gives them to the header and footer.
 const TABLE_KEYS = "months=2026-07&harnesses=codex&sort=requests&page=2";
@@ -17,7 +17,8 @@ function rendered(render, activeFile, query) {
   return container.innerHTML;
 }
 
-// The header's links to the site's pages and sections as `[title, href, marked]`; a marked link is the current page.
+// The header's links to the Explore page's sections as `[title, href, marked]`; a marked link names where the page
+// was opened from.
 function sectionLinks(activeFile, query) {
   const links = [];
   const markup = rendered(renderHeader, activeFile, query);
@@ -45,45 +46,27 @@ function footerList(heading) {
   return [...list.matchAll(/>([^<]+)<\/a>/g)].map((match) => match[1]);
 }
 
-test("on the Overview page the header links the pages by file and Cite by its anchor alone, Overview marked", () => {
-  assert.deepEqual(sectionLinks("index.html", ""), [
-    ["Overview", "index.html", true],
-    ["Session Explorer", "explorer.html", false],
-    ["Insights", "insights.html", false],
+test("on the Explore page the header links its four sections by anchor alone, none marked", () => {
+  assert.deepEqual(sectionLinks("index.html", TABLE_KEYS), [
+    ["Overview", "#overview", false],
+    ["Session Explorer", "#sessions", false],
+    ["Insights", "#insights", false],
     ["Cite", "#cite", false],
   ]);
 });
 
-test("on the Session Explorer page its own link is marked and carries the table's keys, and no other link does", () => {
-  assert.deepEqual(sectionLinks("explorer.html", TABLE_KEYS), [
-    ["Overview", "index.html", false],
-    ["Session Explorer", `explorer.html?${TABLE_KEYS}`, true],
-    ["Insights", "insights.html", false],
-    ["Cite", "index.html#cite", false],
-  ]);
-});
-
-test("on the Insights page its own link is marked, and Cite leads to the Overview page's Cite section", () => {
-  assert.deepEqual(sectionLinks("insights.html", ""), [
-    ["Overview", "index.html", false],
-    ["Session Explorer", "explorer.html", false],
-    ["Insights", "insights.html", true],
-    ["Cite", "index.html#cite", false],
-  ]);
-});
-
-test("on the Session page the Session Explorer link carries the table's keys back, and is marked", () => {
+test("on the Session page the header's section links carry the table's keys, and Session Explorer is marked", () => {
   assert.deepEqual(sectionLinks("session.html", TABLE_KEYS), [
-    ["Overview", "index.html", false],
-    ["Session Explorer", `explorer.html?${TABLE_KEYS}`, true],
-    ["Insights", "insights.html", false],
-    ["Cite", "index.html#cite", false],
+    ["Overview", `index.html?${TABLE_KEYS}#overview`, false],
+    ["Session Explorer", `index.html?${TABLE_KEYS}#sessions`, true],
+    ["Insights", `index.html?${TABLE_KEYS}#insights`, false],
+    ["Cite", `index.html?${TABLE_KEYS}#cite`, false],
   ]);
 });
 
-test("the brand links the Overview page, without the URL keys", () => {
+test("the brand links the Explore page with the URL keys", () => {
   const markup = rendered(renderHeader, "session.html", "months=2026-07");
-  assert.match(markup, /<a class="brand" href="index\.html">/);
+  assert.match(markup, /<a class="brand" href="index\.html\?months=2026-07">/);
   assert.match(markup, /FreeInference <em>Agentic Dataset<\/em>/);
 });
 
@@ -101,21 +84,21 @@ test("the header links no About page", () => {
   assert.doesNotMatch(rendered(renderHeader, "index.html", ""), /about\.html|>About</);
 });
 
-test("the footer lists the pages on this site and the places elsewhere", () => {
+test("the footer lists the sections on this site and the places elsewhere", () => {
   assert.deepEqual(footerList("On this site"), ["Overview", "Session Explorer", "Insights", "Cite"]);
   assert.deepEqual(footerList("Elsewhere"), [
     "Dataset", "Paper", "Code (this trace)", "Open Data", "FreeInference", "MadSys on GitHub",
   ]);
 });
 
-test("the footer's links lead where the header's do, the Session Explorer link alone with the URL keys", () => {
+test("the footer's section links lead where the header's do, with the URL keys from the Session page", () => {
   const markup = rendered(renderFooter, "session.html", "months=2026-07");
   const links = [...markup.matchAll(/<a class="footer-link" href="([^"]*)">([^<]*)<\/a>/g)];
   assert.deepEqual(links.map((match) => [match[2], match[1]]), [
-    ["Overview", "index.html"],
-    ["Session Explorer", "explorer.html?months=2026-07"],
-    ["Insights", "insights.html"],
-    ["Cite", "index.html#cite"],
+    ["Overview", "index.html?months=2026-07#overview"],
+    ["Session Explorer", "index.html?months=2026-07#sessions"],
+    ["Insights", "index.html?months=2026-07#insights"],
+    ["Cite", "index.html?months=2026-07#cite"],
   ]);
 });
 
@@ -127,45 +110,44 @@ test("the footer holds the brand, its line and the two lists of links, and nothi
   assert.doesNotMatch(markup, /Copyright|Accessibility|footer-legal/);
 });
 
-test("every page the header and footer link is a page of the site, with its own module and title", () => {
-  const titles = {
-    "index.html": "FreeInference Agentic Dataset",
-    "explorer.html": "Session Explorer · FreeInference Agentic Dataset",
-    "insights.html": "Insights · FreeInference Agentic Dataset",
-  };
-  const modules = { "index.html": "overview.js", "explorer.html": "explorer.js", "insights.html": "insights.js" };
+test("the Explore page is the site's one page of sections, titled with the dataset's name and run by its module", () => {
+  const page = readFileSync(EXPLORE_PAGE, "utf8");
+  assert.match(page, /<title>FreeInference Agentic Dataset<\/title>/);
+  assert.match(page, /<script type="module" src="js\/pages\/explore\.js"><\/script>/);
   for (const section of SECTIONS) {
-    const page = readFileSync(new URL(`../site/${section.file}`, import.meta.url), "utf8");
-    assert.match(page, new RegExp(`<title>${titles[section.file]}</title>`), section.file);
-    assert.match(page, new RegExp(`<script type="module" src="js/pages/${modules[section.file]}"></script>`));
-    if (section.anchor !== "") {
-      assert.match(page, new RegExp(`<section id="${section.anchor.slice(1)}"`), `${section.file} has no ${section.anchor}`);
-    }
+    assert.match(page, new RegExp(`<section id="${section.anchor.slice(1)}"`), `index.html has no section ${section.anchor}`);
   }
 });
 
-test("the Overview page runs the hero, Overview, Cite and Team, and neither the table nor the figures", () => {
-  const page = readFileSync(OVERVIEW_PAGE, "utf8");
+test("the Explore page runs Overview, Session Explorer, Insights, Cite and Team, each of the four a heading alone", () => {
+  const page = readFileSync(EXPLORE_PAGE, "utf8");
   const order = [...page.matchAll(/<section (?:id="([a-z-]+)" )?class="([a-z -]+)"/g)].map((match) => match[1] ?? match[2]);
-  assert.deepEqual(order, ["hero", "selection", "overview", "cite", "team"]);
-  for (const [id, title] of [["overview", "Overview"], ["cite", "Cite"]]) {
-    const start = page.indexOf(`<section id="${id}"`);
-    assert.equal(page.slice(start).match(/<h2 id="[^"]+">([^<]+)<\/h2>/)[1], title, id);
+  assert.deepEqual(order, [
+    "hero", "selection", "overview", "sessions", "insights", "insights-sessions", "insights-tokens", "insights-latency",
+    "insights-tools", "insights-caching", "insights-comparison", "cite", "team",
+  ]);
+  for (const section of SECTIONS) {
+    const start = page.indexOf(`<section id="${section.anchor.slice(1)}"`);
+    const firstHeading = page.slice(start).match(/<h2 id="[^"]+">([^<]+)<\/h2>/)[1];
+    assert.equal(firstHeading, section.title, section.anchor);
   }
-  assert.doesNotMatch(page, /sessions-table|card-grid|class="eyebrow"/);
+  assert.doesNotMatch(page, /class="eyebrow"/);
 });
 
-test("the Session page's link back reads Session Explorer and opens the Session Explorer page", () => {
+test("the Session Explorer's line under its heading says what a click does, and no line says what a month holds", () => {
+  const page = readFileSync(EXPLORE_PAGE, "utf8");
+  const section = page.slice(page.indexOf('<section id="sessions"'), page.indexOf('<section id="insights"'));
+  const heading = '<h2 id="session-list-heading">Session Explorer</h2>';
+  const guide = '<p class="section-guide">Click a session to open its requests, context and timeline.</p>';
+  assert.ok(section.includes(`${heading}\n        ${guide}`), "the guide line is not under the heading");
+  assert.ok(section.indexOf(guide) < section.indexOf('<div id="sessions-table"'));
+  const table = readFileSync(new URL("../site/js/explore/sessions_table.js", import.meta.url), "utf8");
+  assert.doesNotMatch(page + table, /A month holds/);
+});
+
+test("the Session page's link back reads Session Explorer and opens the Explore page at it", () => {
   const page = readFileSync(new URL("../site/session.html", import.meta.url), "utf8");
-  assert.match(page, /<a id="back-link" href="explorer\.html">← Session Explorer<\/a>/);
-});
-
-test("the Session Explorer page holds its heading, the table first under it, and no figure", () => {
-  const page = readFileSync(new URL("../site/explorer.html", import.meta.url), "utf8");
-  const main = page.slice(page.indexOf("<main"), page.indexOf("</main>"));
-  const ids = [...main.matchAll(/ id="([^"]+)"/g)].map((match) => match[1]);
-  assert.deepEqual(ids, ["explorer-title", "sessions-table"]);
-  assert.match(main, /<h1 id="explorer-title">Session Explorer<\/h1>/);
-  assert.doesNotMatch(main, /card-grid|class="eyebrow"/);
-  assert.match(page, /<script type="module" src="js\/pages\/explorer\.js"><\/script>/);
+  assert.match(page, /<a id="back-link" href="index\.html#sessions">← Session Explorer<\/a>/);
+  const module = readFileSync(new URL("../site/js/pages/session.js", import.meta.url), "utf8");
+  assert.ok(module.includes("`index.html${selectionQuery(selection)}#sessions`"), "the link back drops the table's keys");
 });
