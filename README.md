@@ -194,6 +194,7 @@ site_data/         builds site/data/ from a release, and opens a database over i
 site/              exactly the files that are deployed
   *.html           one file per page: index (Explore, the landing page) and session
   style.css        tokens, layout and components
+  favicon.svg      the brand mark, for the browser tab
   js/shared/       database (answer files and queries by name), selection (the selection
                    and its notes), libraries, format, charts, histogram (the histogram figures), cdf (the CDF
                    figures), table, layout (the header and footer)
