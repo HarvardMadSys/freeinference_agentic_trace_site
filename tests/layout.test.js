@@ -70,13 +70,8 @@ test("the brand links the Explore page with the URL keys", () => {
   assert.match(markup, /FreeInference <em>Agentic Dataset<\/em>/);
 });
 
-test("the header links the four places off the site, each in a new tab, and not the lab", () => {
-  assert.deepEqual(externalLinks(rendered(renderHeader, "index.html", "")), [
-    ["Dataset", "https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace"],
-    ["Paper", "https://data.freeinference.org/pdf/paper/from-requests-to-sessions.pdf"],
-    ["Code", "https://github.com/HarvardMadSys/freeinference_agentic_trace"],
-    ["Open Data", "https://data.freeinference.org/"],
-  ]);
+test("the header links nothing off the site", () => {
+  assert.deepEqual(externalLinks(rendered(renderHeader, "index.html", "")), []);
 });
 
 test("the header links no About page", () => {

@@ -449,24 +449,11 @@ code,
   transform: scaleX(1);
 }
 
-/* A link that leaves the site says so with an arrow after its text; a header link uses its underline's place for it. */
-a[target="_blank"]:not(.nav-link):not(.brand)::after,
-.nav-link.is-external::after {
+/* A link that leaves the site says so with an arrow after its text. */
+a[target="_blank"]:not(.brand)::after {
   content: "\2197";
-  position: static;
-  height: auto;
   margin-left: 0.3em; /* a margin, not a space: a flex item such as a button trims a leading space */
-  background: none;
-  transform: none;
   font-size: 0.85em;
-}
-
-/* Parts the links to the site's pages from the links off the site. */
-.nav-divider {
-  flex-shrink: 0;
-  width: 1px;
-  height: 1.05rem;
-  background: var(--color-border);
 }
 
 .site-footer {
@@ -549,9 +536,8 @@ a[target="_blank"]:not(.nav-link):not(.brand)::after,
 }
 
 /*
- * On a narrow screen the header is one row: the brand and the four links to the site's pages, which scroll sideways
- * under a fade at the right edge while more lie beyond it. The links off the site are left out, since the hero and the
- * footer carry them. The footer's link lists sit side by side under the brand.
+ * On a narrow screen the header is one row: the brand and the four links to the site's sections, which scroll sideways
+ * under a fade at the right edge while more lie beyond it. The footer's link lists sit side by side under the brand.
  */
 @media (max-width: 46rem) {
   :root {
@@ -563,11 +549,6 @@ a[target="_blank"]:not(.nav-link):not(.brand)::after,
     gap: 0.9rem;
     min-height: var(--header-height);
     padding-top: 0;
-  }
-
-  .nav-divider,
-  .nav-link.is-external {
-    display: none;
   }
 
   .site-nav {

@@ -36,16 +36,8 @@ export const SECTIONS = Object.freeze([
 // Session Explorer. The Explore page marks none, since all four are on it.
 const MARKED_SECTIONS = Object.freeze({ "session.html": "#sessions" });
 
-// The places off the site the header links, after its sections.
-const EXTERNAL_LINKS = Object.freeze([
-  Object.freeze({ title: "Dataset", url: URLS.dataset }),
-  Object.freeze({ title: "Paper", url: URLS.paper }),
-  Object.freeze({ title: "Code", url: URLS.code }),
-  Object.freeze({ title: "Open Data", url: URLS.openData }),
-]);
-
-// The footer's "Elsewhere": the header's places off the site, the code told apart from the lab's GitHub, then the
-// projects around it.
+// The footer's "Elsewhere": the dataset, the paper, the code told apart from the lab's GitHub, then the projects
+// around it. The header links nothing off the site; the hero and the footer do.
 const ELSEWHERE_LINKS = Object.freeze([
   Object.freeze({ title: "Dataset", url: URLS.dataset }),
   Object.freeze({ title: "Paper", url: URLS.paper }),
@@ -60,22 +52,18 @@ export const AFFILIATION = "Harvard SEAS · MadSys Lab";
 const FOOTER_LINE = "Sixteen weeks worth of coding agent traces from FreeInference.";
 
 /**
- * Fill `container` with the site header: the brand, the links to the Explore page's sections, the one
- * the page was opened from marked, and the links off the site.
+ * Fill `container` with the site header: the brand and the links to the Explore page's sections, the one the page
+ * was opened from marked.
  * `activeFile` is the page's own file name; `carried` is the URLSearchParams every link to the Explore page carries.
  */
 export function renderHeader(container, activeFile, carried) {
   const query = selectionQuery(carried);
   const sectionLinks = SECTIONS.map((section) => headerSectionLink(section, activeFile, query));
-  // The links off the site are left out at phone width, where the hero and the footer carry them.
-  const externalLinks = EXTERNAL_LINKS.map((link) => externalLink(link, "nav-link is-external"));
   container.innerHTML = `
     <div class="header-inner">
       ${brand(query)}
       <nav class="site-nav" aria-label="Site">
         ${sectionLinks.join("")}
-        <span class="nav-divider" aria-hidden="true"></span>
-        ${externalLinks.join("")}
       </nav>
     </div>`;
 }

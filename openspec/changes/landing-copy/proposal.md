@@ -17,9 +17,11 @@ link that leaves the site looked like one that does not.
 - **The lab's name moves.** "Harvard SEAS · MadSys Lab" leaves the
   header; it is written under the hero's buttons and under the footer's
   line, linking to the lab both times.
+- **The header links only the page's sections.** Dataset, Paper, Code
+  and Open Data leave it; the hero's buttons and the footer carry them.
 - **Arrows on links that leave the site.** Every link that opens in a
-  new tab shows an arrow after its text: the header's external links,
-  the hero's Dataset, Paper and Code buttons, the footer's Elsewhere
+  new tab shows an arrow after its text: the hero's Dataset, Paper and
+  Code buttons, the footer's Elsewhere
   links, the citation's paper link, the lab and the authors' pages.
 - **The footer line** reads "Sixteen weeks worth of coding agent traces
   from FreeInference."
