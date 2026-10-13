@@ -8,7 +8,6 @@
  */
 
 import { selectionQuery } from "./selection.js";
-import { bringIntoRow, markMoreBeyondEdge } from "./table.js";
 
 /** Every address outside the site that a page links, each written once. */
 export const URLS = Object.freeze({
@@ -80,28 +79,28 @@ export function renderHeader(container, activeFile, carried) {
     </div>`;
 }
 
-// The header containers whose links row is already wired, so a redraw of the header adds no second listener.
-const WIRED_HEADERS = new WeakSet();
+// The header containers whose height is already measured, so a redraw of the header adds no second observer.
+const MEASURED_HEADERS = new WeakSet();
+
+// The custom property that holds the header's height as drawn, which the sections' scroll margin and the session
+// list's sticky header row read (`style.css`): the header takes a second row, and its links wrap, as the width needs.
+const HEADER_HEIGHT_PROPERTY = "--header-measured-height";
 
 /**
- * Draw the site header into `container` as `renderHeader` does, and wire its links: on a phone they scroll sideways in
- * one row, whose right edge fades while more links lie beyond it, scrolled so that the marked link is in it. A redraw
- * into the same container keeps the wiring.
+ * Draw the site header into `container` as `renderHeader` does, and keep the page's `--header-measured-height` at the
+ * header's height whenever it changes. A redraw into the same container keeps the measuring.
  */
 export function mountHeader(container, activeFile, carried) {
-  if (!WIRED_HEADERS.has(container)) {
-    WIRED_HEADERS.add(container);
-    // A scroll does not bubble, so the container hears the row's in the capture phase.
-    container.addEventListener("scroll", (event) => markMoreBeyondEdge(event.target), true);
-    new ResizeObserver(() => markMoreBeyondEdge(container.querySelector(".site-nav"))).observe(container);
+  if (!MEASURED_HEADERS.has(container)) {
+    MEASURED_HEADERS.add(container);
+    new ResizeObserver(() => measureHeader(container)).observe(container);
   }
   renderHeader(container, activeFile, carried);
-  const links = container.querySelector(".site-nav");
-  const marked = links.querySelector(".nav-link.is-active");
-  if (marked !== null) {
-    bringIntoRow(links, marked);
-  }
-  markMoreBeyondEdge(links);
+}
+
+// Write the header's height, as drawn now, to the page's `--header-measured-height`.
+function measureHeader(container) {
+  document.documentElement.style.setProperty(HEADER_HEIGHT_PROPERTY, `${container.offsetHeight}px`);
 }
 
 /**

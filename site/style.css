@@ -41,7 +41,7 @@
   --radius-small: 0.375rem;
   --radius-button: 0.65rem;
   --page-width: 76rem; /* Open Data's width: the header's links fit one row in it, and the header, page and footer align */
-  --header-height: 4.5rem; /* the sticky header's height on one row, or a little more where its links wrap below */
+  --header-height: 4.5rem; /* the sticky header's height on one row; where its links wrap below, the page measures it */
   --loading-card-height: 26rem; /* about a drawn figure card's height, so a loading card holds the place of one */
   --gutter: clamp(1rem, 4vw, 3.5rem); /* Open Data's gutter, with the phone's 1rem kept so 360 px still fits */
 
@@ -537,13 +537,10 @@ a[target="_blank"]::after {
   color: var(--color-accent-strong);
 }
 
-/* Below this width the header's links take a second row of their own, under the brand: the one row needs about
-   1,120 px besides the gutters. */
-@media (max-width: 78rem) {
-  :root {
-    --header-height: 7.5rem;
-  }
-
+/* Below this width the header's links take a second row of their own, under the brand: one row needs the brand's
+   300 px, the four links' 338 px, the gap between them and the gutters, about 52rem in all. The second row wraps as
+   its links need, and the page measures the header's height for the sections that land below it. */
+@media (max-width: 52rem) {
   .header-inner {
     min-height: 0;
     padding-top: 0.85rem;
@@ -559,32 +556,18 @@ a[target="_blank"]::after {
   }
 }
 
-/*
- * On a narrow screen the header is one row: the brand and the four links to the site's sections, which scroll sideways
- * under a fade at the right edge while more lie beyond it. The footer's link lists sit side by side under the brand.
- */
+/* On a phone the header keeps its two rows, closer: the brand, then the four links, wrapping as they need. The
+   footer's link lists sit side by side under the brand. */
 @media (max-width: 46rem) {
-  :root {
-    --header-height: 3.25rem;
-  }
-
   .header-inner {
-    flex-wrap: nowrap;
-    gap: 0.9rem;
-    min-height: var(--header-height);
-    padding-top: 0;
+    padding-top: 0.5rem;
   }
 
   .site-nav {
-    flex: 1 1 auto;
-    min-width: 0;
-    flex-wrap: nowrap;
-    width: auto;
-    margin-top: 0;
-    padding-block: 0.4rem;
-    border-top: none;
-    overflow-x: auto;
-    scrollbar-width: none;
+    column-gap: 1rem;
+    row-gap: 0.3rem;
+    margin-top: 0.4rem;
+    padding-block: 0.45rem;
   }
 
   .footer-inner {
@@ -596,17 +579,10 @@ a[target="_blank"]::after {
   }
 }
 
-/* On the narrowest screens the header's brand is the name alone, its "Agentic Dataset" kept in the footer's, so that
-   the first links show beside it and the fade at the row's edge reads as more to scroll to. */
-@media (max-width: 30rem) {
-  .site-header .brand em {
-    display: none;
-  }
-}
-
-/* Every anchored section lands below the sticky header, with a little room above it. */
+/* Every anchored section lands below the sticky header, with a little room above it: the header's height as the page
+   measures it (`--header-measured-height`, from js/shared/layout.js), or its one row before it is measured. */
 section[id] {
-  scroll-margin-top: calc(var(--header-height) + 1rem);
+  scroll-margin-top: calc(var(--header-measured-height, var(--header-height)) + 1rem);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1162,8 +1138,8 @@ section[id] {
 }
 
 /* The Insights' topic tabs: one row of the six topics under the Insights heading, set as the header's links are, the
-   shown topic marked as the header marks its link, over a rule. The row scrolls sideways where it does not fit, as the
-   header's does on a phone, its right edge faded while more tabs lie beyond it. */
+   shown topic marked as the header marks its link, over a rule. The row scrolls sideways where it does not fit, its
+   right edge faded while more tabs lie beyond it. */
 .topic-tabs {
   display: flex;
   gap: 1.4rem;
@@ -1694,8 +1670,8 @@ button:disabled:hover {
   }
 }
 
-/* A table, or the header's row of links, with more beyond its right edge fades that edge, to say it scrolls sideways
-   (`markMoreBeyondEdge` in js/shared/table.js). */
+/* A table, or the Insights' row of tabs, with more beyond its right edge fades that edge, to say it scrolls sideways
+   (`mountScrollingRow` in js/shared/table.js). */
 .has-more-beyond-edge {
   mask-image: linear-gradient(90deg, #000 calc(100% - 2.5rem), transparent);
 }
@@ -1710,7 +1686,7 @@ button:disabled:hover {
 
   #sessions-table .data-table th {
     position: sticky;
-    top: var(--header-height);
+    top: var(--header-measured-height, var(--header-height));
     z-index: 1;
     background: var(--color-surface);
     border-bottom: none;
