@@ -32,7 +32,6 @@ serve:
 	python3 -m http.server -d site -b 127.0.0.1 8000
 
 # The paper-parity test reads the pipeline's numbers.json; it is told where the pipeline is and skips when it is absent.
-# tests/test_answers.py fails on an answer or bucket whose query was edited since make data last ran.
 test:
 	FREEINFERENCE_PIPELINE=$(PIPELINE) $(PYTHON) -m pytest
 	node --test "tests/*.test.js"

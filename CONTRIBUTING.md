@@ -70,9 +70,9 @@ binding, and `make test` checks the countable ones.
   (the TTLs, the prices, the normalising TTL, the knee and the lowest-cost
   rules) and `figures/mutations_by_cause.sql` (the table's rows and which
   sessions count as appends), checked by `tests/test_pipeline_mirrors_caching.py`
-  and `tests/test_paper_parity_caching.py`. This is the one list of the
-  restating queries; the code's own is `RESTATING_QUERIES` in
-  `tests/test_pipeline_mirrors.py`. Otherwise a query filters, groups,
+  and `tests/test_paper_parity_caching.py`. README and `CLAUDE.md` point
+  here; `RESTATING_QUERIES` in `tests/test_pipeline_mirrors.py` is the copy
+  the tests read, and a new restating query is added to both. Otherwise a query filters, groups,
   counts, sums and takes quantiles, and neither a query nor the browser
   decides what a turn, a wait or a cache hit is; `site_data` computes those
   by calling the pipeline's functions.
@@ -171,11 +171,8 @@ selects one week at a time and runs the three bucket queries,
 `queries/buckets/week_tree.sql` (the facts card's and the agent tree's
 columns), `week_requests.sql` and `week_tool_calls.sql`, each returning
 `root_session_id` first and ordered by it, and writes the week's buckets and
-its index of session ids. The files' format, and why a rebuild of the same
-rows writes the same bytes, are specified once, in
-`openspec/specs/site-data/spec.md` under "Session buckets". Each bucket
-query's hash is recorded in `all_weeks/queries.json`, so a bucket query
-edited since fails `make test` until `make data` runs.
+its index of session ids. The format, and why a rebuild of the same rows
+writes the same bytes, are defined in `site_data/buckets.py`'s docstring.
 
 `js/session/bucket.js` reads them: `fetchSession(dataUrl, week, id)` fetches
 the bucket the id's first two characters name, gunzips it in the browser
@@ -356,8 +353,7 @@ words, and their tests. Nothing about it runs in the browser.
    `queries.json`, and commit `site/data` with the change. `tests/test_answers.py`
    runs every figure query live on the fixture and compares it with the answer
    written for it, and fails on a query with no rows there, so the fixture must
-   hold a case of the figure; it also fails while the shipped answer is older
-   than the query's text.
+   hold a case of the figure.
 3. **The entry and the draw function**, in its section's module or a module
    it takes entries from (`js/figures/`, `js/simulation/`, `js/comparison/`):
    a frozen figure entry with its `title`, an `insight` of one sentence and

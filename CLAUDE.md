@@ -25,10 +25,7 @@ The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
 
 ## Verifying a change
 
-```bash
-make test PIPELINE=<the pipeline's checkout>   # pytest, with paper parity, and node --test; green at every commit
-make serve   # look at every touched page at 360 px and desktop, light and dark
-```
+As `CONTRIBUTING.md`'s "Verifying a change" says.
 
 ## Git
 

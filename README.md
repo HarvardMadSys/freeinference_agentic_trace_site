@@ -20,8 +20,10 @@ browser. There is no server code and no bundler.
 
 ## Where the pages get their data
 
-Every number the pages show is computed ahead of time by `make data`; the
-browser only draws. Every figure of the Insights is drawn
+Every number the pages show is computed ahead of time by `make data`. The
+browser runs no query: it fetches the indexes (`weeks.json`,
+`harnesses.json`), the answers and the session buckets, filters the session
+list, hides thin bins and draws. Every figure of the Insights is drawn
 over every week and the paper's harnesses (every harness but the benchmark
 replay `eval:swe-bench`, which appears only where a figure's legend names
 it); the stats strip, the Overview's mixes and trends and the Session
@@ -29,12 +31,9 @@ Explorer, which count the whole trace, are answered over every harness, the
 benchmark replay among them as `swe-bench`. `make data` runs every query
 under `site/queries/explore/` and `site/queries/figures/` and the colour
 orders under `site/queries/setup/` once with that selection, and writes each
-answer as `site/data/all_weeks/<page>/<query>.json`; the Explore page reads
-those files and nothing else. A topic of the Insights fetches its answers
-and draws its figures when its tab is first shown, so every chart is drawn
-at its card's width. **Rerun `make data` after editing any of those
-queries**: the page reads the answer, not the query, and `make test` fails
-on a query edited since (`tests/test_answers.py`).
+answer as `site/data/all_weeks/<page>/<query>.json`. A topic of the
+Insights fetches its answers and draws its figures when its tab is first
+shown, so every chart is drawn at its card's width.
 
 The one thing a visitor narrows is the Session Explorer's list. Its answer holds every
 harness's sessions, the benchmark's marked, and the list filters it in the
@@ -52,8 +51,7 @@ sessions into gzipped JSON buckets, the top-level sessions whose ids share
 their first two characters in one file, with an index per week from every
 session id to its top-level id; the page fetches the one bucket its id
 names, or, for a subagent's id, the index and then its top-level session's
-bucket. The buckets' format is specified in
-`openspec/specs/site-data/spec.md`, under "Session buckets".
+bucket. The format is defined in `site_data/buckets.py`'s docstring.
 
 ## Running it
 
@@ -63,7 +61,7 @@ The built data ships with the repository, so a clone serves the site as it is:
 make serve           # http://localhost:8000
 make test            # the Python tests and the node tests (after make setup, below)
 make setup-browser   # a headless Chromium and Playwright, for checking pages by hand; make test does not need it
-make deploy          # publish site/ to Cloudflare as the Worker's static assets (after npm install and a Cloudflare login)
+make deploy          # publish site/ to Cloudflare as the Worker's static assets (see Hosting)
 ```
 
 Rebuilding the data is the maintainer's step, when the release gains a
@@ -107,9 +105,9 @@ token made from the dashboard's "Edit Cloudflare Workers" template) and
 for the Explore page (`/`), `weeks.json` and the newest week's bucket index,
 and fails on any answer but 200. `make deploy` publishes the same way from
 a machine with `npm install` done and the token in `CLOUDFLARE_API_TOKEN`;
-run `make test` first, which fails on an answer older than its query. Static
-assets allow 20,000 files of 25 MiB each; the counts and the largest bucket
-that `make data` prints show how near the data is to either limit.
+run `make test` first. Static assets allow 20,000 files of 25 MiB each:
+`find site -type f | wc -l` counts the files deployed, and the largest is the
+session list's answer, `site/data/all_weeks/explore/sessions_of_selection.json`.
 
 Two things the host does differently from `make serve`. It may serve a
 `.json.gz` file with its gzip layer removed, which the Session page reads as
@@ -125,11 +123,15 @@ the rules, how the pieces fit together, and the patterns to copy.
 
 ```
 README.md          this file
-CONTRIBUTING.md    the rules, the patterns, and how to add a query, a figure or a page
+CONTRIBUTING.md    the rules, the patterns, and how to add a query, a section, a figure or a Session page column
 CLAUDE.md          a pointer to the two files above, the rules that matter most and the git rules
 Makefile           setup · setup-browser · data · serve · test · deploy
+.github/workflows/deploy.yml
+                   deploys site/ on every push to main, then asks the published site for three files
+.nvmrc             the Node version the workflow installs
 wrangler.jsonc     the Cloudflare Worker that serves site/ as static assets: its name, its hostnames
 package.json       sets ES modules for node --test; wrangler, the one dev dependency, deploys the site
+package-lock.json  wrangler's exact version and its dependencies', which npm ci installs
 pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
 site_data/         builds site/data/ from a release, running the queries over its rows in memory
   __main__.py      the step make data runs: loads and checks every week, builds the frames, writes the indexes, the
