@@ -7,13 +7,13 @@ choice is kept in the URL across pages, and how it reaches every query.
 ## Requirements
 
 ### Requirement: The selection lives in the URL
-The session list's filter SHALL be written to the Session Explorer page's
+The session list's filter SHALL be written to the Explore page's
 URL query string as
 `months=<YYYY-MM>` and `harnesses=<name>` (one of each, as the drop-downs
 choose), and SHALL be read from it when the page opens; it SHALL change
 nothing but the list. The default (every month, every harness) SHALL
-write no key. The Session page SHALL carry the keys back to the Session
-Explorer page. A
+write no key. The Session page SHALL carry the keys back to the Explore
+page's Session Explorer. A
 month or harness in the URL that the data do not hold SHALL be ignored,
 and the list SHALL say which. A key naming several months or harnesses
 SHALL keep its first; a `month=` key SHALL be read as that month, a
@@ -21,7 +21,7 @@ SHALL keep its first; a `month=` key SHALL be read as that month, a
 as the default; each SHALL be rewritten.
 
 #### Scenario: Sharing a view
-- **WHEN** a visitor opens a link with `explorer.html?months=2026-07&harnesses=hermes,codex`
+- **WHEN** a visitor opens a link with `index.html?months=2026-07&harnesses=hermes,codex`
 - **THEN** the session list SHALL list July 2026's `hermes` sessions, the URL SHALL be rewritten as `?months=2026-07&harnesses=hermes`, and every figure SHALL be as without the keys
 
 #### Scenario: An unknown week

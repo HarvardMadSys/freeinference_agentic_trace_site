@@ -42,16 +42,16 @@ package.json      sets ES modules for node --test; wrangler, the one dev depende
 docs/             differences.md: where the site draws more simply than the paper
 site_data/        builds site/data/ from a release folder: a file per kind and week, the indexes, the answers, the session buckets
 site/             exactly the files that are deployed
-  *.html          one file per page: index (Overview, the landing page), explorer (Session Explorer), insights, session
+  *.html          one file per page: index (Explore, the landing page), session
   style.css       tokens, layout and components
   favicon.svg     the brand mark, for the browser tab
   js/shared/      the database, the selection, the libraries, formatting, charts, the histogram, the CDF, the table, the layout
-  js/engine/      DuckDB in the page, behind the Explore pages' switch
+  js/engine/      DuckDB in the page, behind the Explore page's switch
   js/axes/        the ticks of every chart's axes
   js/theme/       the site's colours as the style tokens give them
   js/pages/       one module per page
   js/landing/     the hero, the stats strip, the donuts, the cite and team sections
-  js/explore/     the Explore pages' shared start and their sections: the trends, the session list, the figure sections, the pickers
+  js/explore/     the Explore page's start and its sections: the trends, the session list, the figure sections, the topic tabs, the pickers
   js/figures/, js/simulation/, js/comparison/
                   the figure sections' modules
   js/session/     the Session page's bucket loader, address, agent tree, facts card, legends, overlap grouping, token parts and chart frame

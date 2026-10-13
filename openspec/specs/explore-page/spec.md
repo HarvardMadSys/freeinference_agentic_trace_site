@@ -31,21 +31,22 @@ else; no separate tile strip and no population line SHALL be drawn.
 - **THEN** the stats strip SHALL show the counts over every week and the paper's harnesses
 
 ### Requirement: Sessions table
-The Session Explorer page (`explorer.html`, that heading, no eyebrow)
-SHALL list every top-level session of
+Directly after the Overview, a Session Explorer section (that heading,
+no eyebrow, anchor `#sessions`, and under the heading the line "Click a
+session to open its requests, context and timeline.") SHALL list every
+top-level session of
 every harness, the benchmark replay marked in its harness cell, sorted by
 start date descending by default, 20 rows a page, with the columns Session
 (a shortened id, linked), Started (UTC), Harness, Requests, Model, Turns,
 Duration, Input tokens, Cached share. Above it, one row of plain form
-controls and a line saying that a month holds the weeks whose Sunday falls
-in it: a month drop-down ("All months" and one entry per month), a harness
+controls: a month drop-down ("All months" and one entry per month), a harness
 drop-down ("All harnesses" and one entry per harness, the benchmark replay
 named "swe-bench (benchmark)"), a model drop-down, a minimum number of
-requests and a search box. There SHALL be no pills and no buttons. The
+requests and a search box; no line explaining the months. There SHALL be no pills and no buttons. The
 visitor SHALL be able to sort by any column. The table SHALL NOT scroll
 inside its card: the page scrolls, and where the table fits its card its
 header row SHALL stay in view under the site header. It SHALL keep the
-filters, sort and page in the page's URL. Clicking a row SHALL open the
+filters, sort and page in the URL. Clicking a row SHALL open the
 Session page.
 
 #### Scenario: Searching for a session
@@ -58,7 +59,7 @@ Session page.
 
 #### Scenario: Filtering to a month and a harness
 - **WHEN** the visitor picks July 2026 in the month drop-down and `codex` in the harness drop-down
-- **THEN** the table SHALL list July 2026's `codex` sessions, the URL SHALL read `explorer.html?months=2026-07&harnesses=codex`, and every figure SHALL be unchanged
+- **THEN** the table SHALL list July 2026's `codex` sessions, the URL SHALL read `?months=2026-07&harnesses=codex`, and every figure SHALL be unchanged
 
 #### Scenario: The benchmark
 - **WHEN** the table draws
@@ -66,49 +67,56 @@ Session page.
 
 #### Scenario: Coming back from a session
 - **WHEN** the visitor follows the Session page's link back
-- **THEN** the Session Explorer page SHALL open with the same filters, sort and page
+- **THEN** the page SHALL open at the Session Explorer with the same filters, sort and page
 
 #### Scenario: Where the list sits
-- **WHEN** the visitor follows the header's Session Explorer link from any page
-- **THEN** the Session Explorer page SHALL open, its table the first thing under the heading
+- **WHEN** the visitor scrolls past the Overview
+- **THEN** the next section SHALL be the Session Explorer, and the Insights SHALL follow it
+
+#### Scenario: The guide line
+- **WHEN** the Session Explorer draws
+- **THEN** the line under its heading SHALL say that clicking a session opens it, and no line SHALL explain what a month holds
 
 ### Requirement: The page appears before the data
-Each Explore page SHALL draw its layout and pickers from `weeks.json` and
+The Explore page SHALL draw its layout and pickers from `weeks.json` and
 `harnesses.json` first. With the default selection it SHALL then draw every
-number, card, figure and the table it holds from the precomputed answers, without
+number, card, the table and the shown topic's figures from the precomputed answers, without
 waiting for DuckDB. With any other selection it SHALL show a loading state
 in place of each part until its query returns. A failed query SHALL show its
 error in its own place without stopping the others.
 
 #### Scenario: The default view
-- **WHEN** a visitor opens a page with no selection in the URL
-- **THEN** every number, card, figure and the table it holds SHALL be drawn from `data/all_weeks/` before any DuckDB module or Parquet file is fetched
+- **WHEN** a visitor opens the page with no selection in the URL
+- **THEN** every number, card, the table and the shown topic's figures SHALL be drawn from `data/all_weeks/` before any DuckDB module or Parquet file is fetched
 
 #### Scenario: A slow connection
 - **WHEN** the selection is one week and DuckDB-WASM takes several seconds to download
 - **THEN** the page SHALL already show the pickers and a loading state for each part
 
 ### Requirement: Insights
-The Insights page (`insights.html`, that heading, no eyebrow) SHALL draw
-the figures and the two kept histograms from the shipped answers, in six
-numbered topics, each with a heading, a takeaway sentence of at most
-twenty words under it, and no other intro text; each card with a title,
-an insight of at most twelve words under the title (one sentence saying
-what the chart means, a number in it only where the number is the
-point), a caption of at most twelve words under the chart, and its
-definition (at most forty words) and row count behind a control. Under
-the site header a topic bar SHALL stay in view: one row of the six
-numbered topic titles linking to their anchors, the topic in view marked,
-the row scrolling sideways on a phone.
+After the Session Explorer, an Insights section (that heading, no
+eyebrow, anchor `#insights`) SHALL hold the figures and the two kept
+histograms, drawn from the shipped answers, in six numbered topics shown
+one at a time behind a row of tabs under the heading: each topic with
+its heading, a takeaway sentence of at most twenty words under it, and
+no other intro text; each card with a title, an insight of at most
+twelve words under the title (one sentence saying what the chart means,
+a number in it only where the number is the point), a caption of at most
+twelve words under the chart, and its definition (at most forty words)
+and row count behind a control. A click on a tab SHALL show its topic
+and hide the others, and SHALL write the topic's anchor to the URL's
+hash, so that a link with that hash opens the Insights on that topic and
+the browser's Back returns to the topic before. A topic's figures SHALL
+be drawn when its tab is first shown, at the width the card has then.
 
 | Topic | Figures, in order |
 |---|---|
-| 01 Session structure (`#structure`) | `requests_per_session_cdf`, `duration_cdf`, `subagents_per_session` (histogram), `user_prompt_tokens_by_scope` |
-| 02 Tokens and cost (`#tokens`) | `tokens_per_request_cdf`, `token_split_by_week`, `token_growth_by_messages`, `context_share_by_role`, `cached_fraction_per_request` (histogram), `cost_share_by_session` |
-| 03 Latency (`#latency`) | `ttft_cdf_by_model`, `decode_cdf_by_model`, `session_time_by_part` (the paper's four parts: prefill, decode, tool, user idle, sessions ranked by user-idle share), `speedup_if_twice_as_fast` |
-| 04 Tools (`#tools`) | `latency_by_category`, `result_tokens_by_category`, `calls_per_request_by_category`, `latency_by_batch_width`, `tool_mix_by_turn_position` |
-| 05 Prefix caching (`#caching`) | `hit_ratio_cdf_by_gap_bin`, `hit_ratio_by_idle_gap`, `gap_cdf_by_cause`, `mean_hit_ratio_by_cause`, `hit_ratio_cdf_by_transition`, `mutations_by_cause`, `prefill_against_storage`, `api_cost_by_ttl`, `infrastructure_cost_by_ttl` |
-| 06 Human-driven against benchmark (`#comparison`) | `turn_duration_by_scope`, `session_duration_by_scope`, `input_per_request_by_scope` |
+| 01 Session structure (`#insights-sessions`) | `requests_per_session_cdf`, `duration_cdf`, `subagents_per_session` (histogram), `user_prompt_tokens_by_scope` |
+| 02 Tokens and cost (`#insights-tokens`) | `tokens_per_request_cdf`, `token_split_by_week`, `token_growth_by_messages`, `context_share_by_role`, `cached_fraction_per_request` (histogram), `cost_share_by_session` |
+| 03 Latency (`#insights-latency`) | `ttft_cdf_by_model`, `decode_cdf_by_model`, `session_time_by_part` (the paper's four parts: prefill, decode, tool, user idle, sessions ranked by user-idle share), `speedup_if_twice_as_fast` |
+| 04 Tools (`#insights-tools`) | `latency_by_category`, `result_tokens_by_category`, `calls_per_request_by_category`, `latency_by_batch_width`, `tool_mix_by_turn_position` |
+| 05 Prefix caching (`#insights-caching`) | `hit_ratio_cdf_by_gap_bin`, `hit_ratio_by_idle_gap`, `gap_cdf_by_cause`, `mean_hit_ratio_by_cause`, `hit_ratio_cdf_by_transition`, `mutations_by_cause`, `prefill_against_storage`, `api_cost_by_ttl`, `infrastructure_cost_by_ttl` |
+| 06 Human-driven against benchmark (`#insights-comparison`) | `turn_duration_by_scope`, `session_duration_by_scope`, `input_per_request_by_scope` |
 
 Each figure SHALL stay one query
 file answered by `make data` and one chart function, with the definitions,
@@ -117,7 +125,7 @@ Nothing on the page SHALL run a query in the browser.
 
 #### Scenario: Opening the page
 - **WHEN** a visitor opens the page
-- **THEN** every figure SHALL be drawn from its answer file, and no DuckDB module and no Parquet file SHALL be fetched
+- **THEN** the first topic SHALL be shown and its figures drawn from their answer files, and no DuckDB module and no Parquet file SHALL be fetched
 
 #### Scenario: A figure for one month
 - **WHEN** the URL carries `months=2026-07`
@@ -140,8 +148,16 @@ Nothing on the page SHALL run a query in the browser.
 - **THEN** the node test that counts them SHALL fail
 
 #### Scenario: The topic bar
-- **WHEN** the visitor scrolls to the Prefix caching topic
-- **THEN** the topic bar SHALL still be in view under the header with "05 Prefix caching" marked, and clicking "02 Tokens and cost" SHALL scroll to that topic's heading below the bar
+- **WHEN** the visitor clicks "05 Prefix caching"
+- **THEN** that topic alone SHALL be shown, its nine figures drawn at their cards' width, and the URL's hash SHALL read `#insights-caching`
+
+#### Scenario: A link to a topic
+- **WHEN** a visitor opens `index.html#insights-tokens`
+- **THEN** the page SHALL scroll to the Insights with "02 Tokens and cost" shown
+
+#### Scenario: Back
+- **WHEN** the visitor has switched from the first topic to the fourth and presses the browser's Back
+- **THEN** the first topic SHALL be shown again
 
 ### Requirement: Same definitions as the paper
 With the default selection, every number a figure shares with the paper's
@@ -195,12 +211,16 @@ without horizontal scrolling of the page.
 - **THEN** figures SHALL stack in one column and the page SHALL not scroll sideways
 
 ### Requirement: Hero and stats strip
-The Overview page SHALL open with a hero: the title "FreeInference Agentic
+The page SHALL open with a hero: the title "FreeInference Agentic
 Dataset" with "Agentic Dataset" in the accent colour and no eyebrow above
-it, a lede whose first clause counts the weeks, and five buttons:
-"Session Explorer" to the Session Explorer page, "Insights" to the
-Insights page, "Dataset" (the Hugging Face dataset),
-the paper and the code. Beside it a stats strip SHALL show, computed from
+it, the lede "16 weeks worth of production agent traces from FreeInference
+across diverse agent harnesses, with latency, tool, and KV block
+information." whose week count is read from `weeks.json` and written in
+digits, five buttons:
+"Session Explorer" to the Session Explorer section, "Insights" to the
+Insights section, "Dataset" (the Hugging Face dataset),
+the paper and the code, and under them the lab's name "Harvard SEAS ·
+MadSys Lab" linking to the lab. Beside it a stats strip SHALL show, computed from
 the `trace_totals` answer and never typed, the whole trace as the paper's
 summary table counts it: the weeks, sessions, requests, input tokens, tool
 calls and harnesses written "13 (+1)", and a line naming the span of
@@ -216,7 +236,11 @@ dates. The strip SHALL NOT mention the benchmark.
 
 #### Scenario: The site buttons
 - **WHEN** the visitor presses "Session Explorer" or "Insights"
-- **THEN** that page SHALL open at its top
+- **THEN** the page SHALL scroll to that section
+
+#### Scenario: The lede counts the weeks
+- **WHEN** the data gains a week
+- **THEN** the lede SHALL open "17 weeks worth of" without an edit to the page
 
 ### Requirement: Overview donuts
 Below the hero, two cards SHALL show the model mix (the share of requests
@@ -230,14 +254,16 @@ trend cards.
 - **THEN** the model-mix donut's shares SHALL equal the `explore/model_mix` answer and its colours SHALL match the models' colours elsewhere
 
 ### Requirement: Cite, Team and footer
-The Overview page SHALL end with a Cite section holding the paper's BibTeX in a
+The page SHALL end with a Cite section holding the paper's BibTeX in a
 block with a copy button; a Team section naming Harvard MadSys and
-collaborators, the paper's authors with their affiliations, and an About
-paragraph saying what the site is, whose links the header, the hero and
-the footer carry; and every page SHALL end with a footer with the brand
+collaborators and the paper's authors with their affiliations, and no
+About paragraph; and a footer with the brand
 line "FreeInference Agentic
-Dataset", its blurb, and the on-site and elsewhere links, and nothing
-else: no copyright line and no policy links.
+Dataset", the line "Sixteen weeks worth of coding agent traces from
+FreeInference.", the lab's name "Harvard SEAS · MadSys Lab" linking to the
+lab, and the on-site and elsewhere links, and nothing
+else: no copyright line and no policy links. Every link that leaves the
+site, on any page, SHALL show an arrow after its text.
 
 #### Scenario: Copying the citation
 - **WHEN** the visitor presses the copy button
@@ -245,31 +271,12 @@ else: no copyright line and no policy links.
 
 #### Scenario: The footer
 - **WHEN** the visitor reaches the end of the page
-- **THEN** the footer SHALL show the brand, its blurb and the two groups of links, and no copyright or policy text
+- **THEN** the footer SHALL show the brand, its line, the lab's name and the two groups of links, and no copyright or policy text
 
 #### Scenario: Cite from another page
-- **WHEN** the visitor follows the header's Cite link on the Insights page
-- **THEN** the Overview page SHALL open at the Cite section
+- **WHEN** the visitor follows the header's Cite link on the Session page
+- **THEN** the Explore page SHALL open at the Cite section
 
-### Requirement: Three Explore pages
-The Explore side of the site SHALL be three pages sharing one look, one
-header and one footer: Overview, `index.html`, the landing page, with the
-hero and stats strip, the mixes and trends, Cite and Team; Session
-Explorer, `explorer.html`, with the sessions table and its filter;
-Insights, `insights.html`, with the six topics under a topic bar. Each
-page SHALL fetch only the answers its own sections draw. The Overview
-page SHALL send a link to its old anchors on: `#sessions` to
-`explorer.html` with the query kept, `#insights` to `insights.html`, and
-`#insights-<topic>` to that topic on the Insights page.
-
-#### Scenario: Opening the Session Explorer
-- **WHEN** a visitor opens `explorer.html`
-- **THEN** the page SHALL show the header, the Session Explorer heading and the table, and SHALL fetch no figure answer
-
-#### Scenario: An old link
-- **WHEN** a visitor opens `index.html?months=2026-07#sessions`
-- **THEN** the browser SHALL land on `explorer.html?months=2026-07` with the table filtered to July 2026
-
-#### Scenario: An old link to a topic
-- **WHEN** a visitor opens `index.html#insights-tokens`
-- **THEN** the browser SHALL land on `insights.html#tokens`
+#### Scenario: A link off the site
+- **WHEN** the visitor looks at the hero's Paper button or the footer's Dataset link
+- **THEN** each SHALL end in an arrow, and the Session Explorer link SHALL not
