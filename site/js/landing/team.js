@@ -1,6 +1,6 @@
 /**
- * The Team section: the lab and its collaborators, the paper's authors with their affiliations, and a paragraph on
- * what the site is. The header, the hero and the footer carry the links to the dataset, the code and the rest.
+ * The Team section: the lab and its collaborators, and the paper's authors with their affiliations. The header, the
+ * hero and the footer carry the links to the dataset, the code and the rest.
  */
 
 import { URLS } from "../shared/layout.js";
@@ -18,10 +18,7 @@ const AUTHORS = Object.freeze([
   Object.freeze({ name: "Juncheng Yang", affiliation: "Harvard", url: "https://juncheng.seas.harvard.edu/" }),
 ]);
 
-const ABOUT = "We study LLM and agent serving to improve efficiency and broaden access to AI. This site draws the "
-  + "trace's insights and opens any session in it.";
-
-/** Fill `container` with the Team section's content: its heading, the authors, and the About paragraph. */
+/** Fill `container` with the Team section's content: its heading and the authors. */
 export function renderTeam(container) {
   const authors = AUTHORS.map((author) => `<li>${authorName(author)}<span>${author.affiliation}</span></li>`);
   container.innerHTML = `
@@ -32,11 +29,7 @@ export function renderTeam(container) {
       </div>
       <p><a href="${URLS.lab}" target="_blank" rel="noopener">Harvard MadSys</a> and collaborators.</p>
     </div>
-    <ul class="team-list">${authors.join("")}</ul>
-    <div class="team-about">
-      <p class="eyebrow"><span class="eyebrow-mark" aria-hidden="true"></span>About</p>
-      <p>${ABOUT}</p>
-    </div>`;
+    <ul class="team-list">${authors.join("")}</ul>`;
 }
 
 // An author's name in bold, linking to their page where they have one.

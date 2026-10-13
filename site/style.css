@@ -386,9 +386,13 @@ code,
   box-shadow: 0.32rem 0.32rem 0 color-mix(in srgb, var(--color-accent) 40%, transparent);
 }
 
-/* The affiliation pushes the nav to the right edge. */
-.affiliation {
+/* The brand pushes the nav to the right edge. */
+.header-inner .brand {
   margin-right: auto;
+}
+
+/* The lab's name, under the hero and in the footer. */
+.affiliation {
   font-family: var(--font-serif);
   font-size: 1rem;
   color: var(--color-text-faint);
@@ -443,6 +447,18 @@ code,
 .nav-link:hover::after,
 .nav-link.is-active::after {
   transform: scaleX(1);
+}
+
+/* A link that leaves the site says so with an arrow after its text; a header link uses its underline's place for it. */
+a[target="_blank"]:not(.nav-link):not(.brand)::after,
+.nav-link.is-external::after {
+  content: "\2197";
+  position: static;
+  height: auto;
+  margin-left: 0.3em; /* a margin, not a space: a flex item such as a button trims a leading space */
+  background: none;
+  transform: none;
+  font-size: 0.85em;
 }
 
 /* Parts the links to the site's pages from the links off the site. */
@@ -510,8 +526,8 @@ code,
   color: var(--color-accent-strong);
 }
 
-/* Below this width the header's links take a second row of their own, under the brand and the affiliation: the one row
-   needs about 1,120 px besides the gutters. */
+/* Below this width the header's links take a second row of their own, under the brand: the one row needs about
+   1,120 px besides the gutters. */
 @media (max-width: 78rem) {
   :root {
     --header-height: 7.5rem;
@@ -549,7 +565,6 @@ code,
     padding-top: 0;
   }
 
-  .affiliation,
   .nav-divider,
   .nav-link.is-external {
     display: none;
@@ -661,6 +676,10 @@ section[id] {
   flex-wrap: wrap;
   gap: 0.7rem;
   margin-top: 1.75rem;
+}
+
+.hero-affiliation {
+  margin: 1.5rem 0 0;
 }
 
 /* The stats strip: a white card of six numbers parted by hairlines, with no frame of their own inside the card's, and
@@ -992,15 +1011,6 @@ section[id] {
   font-size: var(--font-size-smallest);
   letter-spacing: 0.03em;
   color: var(--color-text-faint);
-}
-
-.team-about {
-  max-width: 44rem;
-  margin-top: 2rem;
-}
-
-.team-about p:not(.eyebrow) {
-  color: var(--color-text-muted);
 }
 
 /* On a narrow screen the heading goes above the copy, and each author takes a line of their own. */

@@ -64,9 +64,10 @@ const NO_HARNESS_NOTE = "Pick at least one harness to see its numbers.";
 
 /**
  * Start the Explore page whose file is `file`: draw its header and footer, its `sections` and its `figureSections`
- * (none by default). Settles once the first run of the sections has drawn.
+ * (none by default), and, once `weeks.json` is read, call `showWeekCount` (optional) with the number of weeks, or with
+ * null when the indexes cannot be read. Settles once the first run of the sections has drawn.
  */
-export async function startPage({ file, sections, figureSections = [] }) {
+export async function startPage({ file, sections, figureSections = [], showWeekCount = () => undefined }) {
   renderFooter(document.querySelector("#site-footer"), file, new URLSearchParams());
   const selectionCard = document.querySelector("#selection");
   if (selectionCard !== null) {
@@ -79,11 +80,13 @@ export async function startPage({ file, sections, figureSections = [] }) {
     [weeks, harnesses] = await Promise.all([fetchWeeks(), fetchHarnesses()]);
   } catch (error) {
     mountHeader(document.querySelector("#site-header"), file, new URLSearchParams());
+    showWeekCount(null);
     // Every section shows the error in its own place; the hidden card shows nothing.
     showErrorInEverySection(sections, error);
     showErrorInFigureSections(figureSections, error);
     return;
   }
+  showWeekCount(weeks.length);
   const params = new URLSearchParams(window.location.search);
   const page = openPage(file, sections, weeks, harnesses, params);
   showSelectionAndHeader(page, params);

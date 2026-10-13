@@ -55,11 +55,12 @@ const ELSEWHERE_LINKS = Object.freeze([
   Object.freeze({ title: "MadSys on GitHub", url: URLS.github }),
 ]);
 
-const AFFILIATION = "Harvard SEAS · MadSys Lab";
+/** The lab's name, written under the hero and in the footer, linking to the lab. */
+export const AFFILIATION = "Harvard SEAS · MadSys Lab";
 const FOOTER_LINE = "Sixteen weeks worth of coding agent traces from FreeInference.";
 
 /**
- * Fill `container` with the site header: the brand, the affiliation, the links to the Explore page's sections, the one
+ * Fill `container` with the site header: the brand, the links to the Explore page's sections, the one
  * the page was opened from marked, and the links off the site.
  * `activeFile` is the page's own file name; `carried` is the URLSearchParams every link to the Explore page carries.
  */
@@ -71,7 +72,6 @@ export function renderHeader(container, activeFile, carried) {
   container.innerHTML = `
     <div class="header-inner">
       ${brand(query)}
-      <a class="affiliation" href="${URLS.lab}" target="_blank" rel="noopener">${AFFILIATION}</a>
       <nav class="site-nav" aria-label="Site">
         ${sectionLinks.join("")}
         <span class="nav-divider" aria-hidden="true"></span>
@@ -118,6 +118,7 @@ export function renderFooter(container, activeFile, carried) {
       <div class="footer-brand">
         ${brand(query)}
         <p>${FOOTER_LINE}</p>
+        <p><a class="affiliation" href="${URLS.lab}" target="_blank" rel="noopener">${AFFILIATION}</a></p>
       </div>
       ${footerLinkList("On this site", sectionLinks)}
       ${footerLinkList("Elsewhere", elsewhereLinks)}

@@ -26,8 +26,12 @@ const SECTIONS = Object.freeze([
   Object.freeze({ id: "sessions-table", layout: layoutSessionsTable, run: runSessionsTable }),
 ]);
 
-renderHero(document.querySelector("#hero"));
 renderTeam(document.querySelector("#team"));
 renderCiteLine(document.querySelector("#cite-line"));
 mountCopyButtons(document, navigator.clipboard);
-startPage({ file: PAGE_FILE, sections: SECTIONS, figureSections: FIGURE_SECTIONS });
+startPage({
+  file: PAGE_FILE,
+  sections: SECTIONS,
+  figureSections: FIGURE_SECTIONS,
+  showWeekCount: (weekCount) => renderHero(document.querySelector("#hero"), weekCount),
+});

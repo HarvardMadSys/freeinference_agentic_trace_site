@@ -73,12 +73,10 @@ test("the team lists the five authors in the paper's order, with their affiliati
   ]);
 });
 
-test("the About paragraph says what the site is, with no links the header and footer already carry", () => {
+test("the team has no About paragraph", () => {
   const container = { innerHTML: "" };
   renderTeam(container);
-  const about = container.innerHTML.split('class="team-about"')[1];
-  assert.match(about, /This site draws the trace's insights and opens any session in it\./);
-  assert.doesNotMatch(about, /href=/);
+  assert.doesNotMatch(container.innerHTML, /team-about|>About</);
 });
 
 test("the citation's sentence names the paper and links it", () => {

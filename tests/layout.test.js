@@ -70,9 +70,8 @@ test("the brand links the Explore page with the URL keys", () => {
   assert.match(markup, /FreeInference <em>Agentic Dataset<\/em>/);
 });
 
-test("the header links the lab and the four places off the site, each in a new tab", () => {
+test("the header links the four places off the site, each in a new tab, and not the lab", () => {
   assert.deepEqual(externalLinks(rendered(renderHeader, "index.html", "")), [
-    ["Harvard SEAS · MadSys Lab", "https://madsys.seas.harvard.edu/"],
     ["Dataset", "https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace"],
     ["Paper", "https://data.freeinference.org/pdf/paper/from-requests-to-sessions.pdf"],
     ["Code", "https://github.com/HarvardMadSys/freeinference_agentic_trace"],
@@ -82,6 +81,11 @@ test("the header links the lab and the four places off the site, each in a new t
 
 test("the header links no About page", () => {
   assert.doesNotMatch(rendered(renderHeader, "index.html", ""), /about\.html|>About</);
+});
+
+test("the footer names the lab under its line, linking to it", () => {
+  const markup = rendered(renderFooter, "index.html", "");
+  assert.match(markup, /<a class="affiliation" href="https:\/\/madsys\.seas\.harvard\.edu\/" target="_blank" rel="noopener">Harvard SEAS · MadSys Lab<\/a>/);
 });
 
 test("the footer lists the sections on this site and the places elsewhere", () => {

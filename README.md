@@ -199,7 +199,7 @@ site/              exactly the files that are deployed
                    figures), table, layout (the header and footer)
   js/landing/      the landing page's own parts: hero (the title, lede and buttons), stats (the stats strip beside
                    it), donuts (the model and harness mixes), arcs (a donut's shares and ring segments), cite (the
-                   citation's copy button) and team (the authors and the About paragraph)
+                   citation's copy button) and team (the authors)
   js/engine/       DuckDB in the page, kept behind the switch: duckdb_start (starting it), duckdb_views (its views and
                    setup), duckdb_files (the week files' names, and the stream of every week's files)
   js/theme/        colours, the site's colours as the style tokens give them, and the colours every figure shares
