@@ -17,7 +17,8 @@ not write it SHALL be able to follow any module on a first read.
   most 300 lines.
 - **Docstrings and comments.** A module header says what the module holds
   and the shape of what crosses its boundary; an export's docstring states
-  its definition; a comment inside a function says why. None refers to
+  its definition; a comment inside a function says why, in one line. None
+  refers to
   history, people or paper figure numbers, and none is cut to a count: a
   header over ten lines is reviewed for sentences a reader does not need.
 - **SQL is a literal.** Each query, and the statements that create the views
