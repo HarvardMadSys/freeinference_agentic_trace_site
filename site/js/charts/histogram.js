@@ -57,10 +57,13 @@ export function cardTicks(card, maxTicks = MAX_TICKS) {
   return card.ticks === undefined ? logAxisTicks(domain, maxTicks) : card.ticks(domain, maxTicks);
 }
 
-/** The histogram card of `parameters`, its bins query's rows and its stats query's one row, as the drawing reads it. */
-export function histogramCard(parameters, binRows, statsRow) {
+/**
+ * The histogram card of `drawing` (the parameters of the drawing: what it counts, its formats and axes), its bins
+ * query's rows and its stats query's one row, as the drawing reads it.
+ */
+export function histogramCard(drawing, binRows, statsRow) {
   return {
-    ...parameters,
+    ...drawing,
     bins: binsFromRows(binRows),
     percentiles: { p50: statsRow.p50, p95: statsRow.p95 },
     count: statsRow.count,
@@ -98,8 +101,11 @@ export function drawableBins(card) {
  *   of ten.
  */
 export async function drawHistogram(rows, body, colours, parameters) {
-  const [statsRow] = await readAnswer(parameters.statsQuery);
-  const card = histogramCard(parameters, rows, statsRow);
+  const { statsQuery, countLabel, xLabel, valueFormat, xTickFormat } = parameters;
+  const { logScale, logCounts, showsMaximum, ticks } = parameters;
+  const [statsRow] = await readAnswer(statsQuery);
+  const drawing = { countLabel, xLabel, valueFormat, xTickFormat, logScale, logCounts, showsMaximum, ticks };
+  const card = histogramCard(drawing, rows, statsRow);
   rowsPlace(body).textContent = rowsText(card);
   if (card.count === 0) {
     body.replaceChildren(emptyNote());

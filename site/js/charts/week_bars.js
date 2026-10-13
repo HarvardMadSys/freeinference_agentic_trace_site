@@ -8,8 +8,7 @@
 
 import { drawBars, foldToOther, sumFolded } from "../shared/charts.js";
 import { monthTickFormat, weekTickFormat } from "../axes/ticks.js";
-import { seriesLegend } from "../figures/figure_rows.js";
-import { shownRows } from "../explore/legend.js";
+import { seriesLegend, shownRows } from "../shared/series.js";
 
 const WEEK_COLUMN = "week"; // the column of every week-bars query naming each row's week
 

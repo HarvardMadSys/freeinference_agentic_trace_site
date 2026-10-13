@@ -23,6 +23,7 @@ CACHING_GAPS_MODULE = SITE_FOLDER / "js" / "figures" / "caching_gaps.js"  # the 
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the causes' colours
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the causes a wait bar names
 RETENTION_MODULE = SITE_FOLDER / "js" / "simulation" / "prefill.js"  # the scopes' names, the labelled TTLs
+FORMAT_MODULE = SITE_FOLDER / "js" / "shared" / "format.js"  # how a TTL's name is written, the TTL none's too
 COSTS_KIND_MODULE = SITE_FOLDER / "js" / "charts" / "knee_lines.js"  # how high a cost figure's callout rises
 PREFILL_QUERY = SITE_FOLDER / "queries" / "figures" / "prefill_against_storage.sql"  # orders the TTLs
 API_COST_QUERY = SITE_FOLDER / "queries" / "figures" / "api_cost_by_ttl.sql"  # the API's prices, the knee
@@ -97,7 +98,8 @@ def test_the_retention_figures_name_the_scopes_and_the_ttl_none_as_the_pipeline_
     assert test_pipeline_mirrors.javascript_object_keys(COLOURS_MODULE, "SCOPE_COLOURS") == [
         population.AGENTIC, population.SWE_BENCH]
     assert javascript_string(RETENTION_MODULE, "NO_TTL") == cache_retention.NO_TTL
-    assert javascript_string(RETENTION_MODULE, "NO_TTL_LABEL") == cache_retention.TTL_LABELS[cache_retention.NO_TTL]
+    assert javascript_string(FORMAT_MODULE, "NO_TTL_NAME") == cache_retention.NO_TTL
+    assert javascript_string(FORMAT_MODULE, "NO_TTL_LABEL") == cache_retention.TTL_LABELS[cache_retention.NO_TTL]
 
 
 def test_the_prefill_figure_labels_the_ttls_the_paper_labels_beside_the_benchmark() -> None:

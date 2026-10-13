@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  dropThinGroups, figureRowsText, hiddenText, partsLegend, restingCountText, restingRowCount,
-  rowsWithSeriesColour, seriesLegend, unsimulatedWeeks,
+  dropThinGroups, figureRowsText, hiddenText, restingCountText, restingRowCount, rowsWithSeriesColour,
+  unsimulatedWeeks,
 } from "../site/js/figures/figure_rows.js";
 
 // Two CDF series of two points each: `requests` over 120 sessions, `tool_steps` over 30.
@@ -60,13 +60,6 @@ test("the hidden note names what was hidden, in the singular or the plural", () 
   assert.equal(hiddenText(2, "waited_for"), "2 causes hidden (fewer than 50 rows each)");
 });
 
-test("a legend lists the series the rows hold, in the colours' order, each labelled where it has a label", () => {
-  const colours = new Map([["requests", "red"], ["user_steps", "blue"], ["tool_steps", "green"]]);
-  const legend = seriesLegend(CDF_ROWS, "series", colours, { tool_steps: "Tool steps" });
-  assert.deepEqual(legend.series, [{ name: "requests", label: "requests" }, { name: "tool_steps", label: "Tool steps" }]);
-  assert.equal(legend.colours, colours);
-});
-
 test("with no bin column every row is a bin of its own, hidden alone and counted alone", () => {
   const rows = [
     { provider: "A", idle_gap_bin: 0, rows: 400 },
@@ -104,13 +97,3 @@ test("a figure's line of rows counts its rows, names the weeks not simulated and
     "60 rows · 2 weeks hidden (fewer than 50 rows each)");
 });
 
-test("a legend of parts lists each part with its label, in order, with the colours given", () => {
-  const colours = new Map([["cached", "green"], ["uncached", "orange"], ["output", "blue"]]);
-  const legend = partsLegend({ cached: "Cached input", uncached: "Uncached input", output: "Output" }, colours);
-  assert.deepEqual(legend.series, [
-    { name: "cached", label: "Cached input" },
-    { name: "uncached", label: "Uncached input" },
-    { name: "output", label: "Output" },
-  ]);
-  assert.equal(legend.colours, colours);
-});

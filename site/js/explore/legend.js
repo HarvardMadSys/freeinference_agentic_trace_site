@@ -76,11 +76,6 @@ export function hasLegend(series) {
   return series.length >= MIN_SERIES_IN_LEGEND;
 }
 
-/** The rows whose series, `row[seriesColumn]`, is not in `hidden`, in their order. */
-export function shownRows(rows, seriesColumn, hidden) {
-  return rows.filter((row) => !hidden.has(row[seriesColumn]));
-}
-
 /**
  * Place `legend`'s buttons in the legend's place above `body` (`legendPlace`), their swatches shaped `swatch` ("square" or "line"), and draw the chart
  * into `body` with `drawChart(hidden)`, nothing hidden at first. Each click on a button hides or shows its series and calls `drawChart` again with the new hidden set; a

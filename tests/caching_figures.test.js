@@ -6,7 +6,7 @@ import { GAP_FIGURES, gapBinColours, meanHitRatioBars, mutationTableLines } from
 import {
   API_COST_BY_TTL, costColours, INFRASTRUCTURE_COST_BY_TTL, kneeText, lowestText,
 } from "../site/js/simulation/costs.js";
-import { prefillPoints, retainedDomain, ttlLabel } from "../site/js/simulation/prefill.js";
+import { prefillPoints, retainedDomain } from "../site/js/simulation/prefill.js";
 import { scopeLegend } from "../site/js/comparison/scopes.js";
 import { decadeTicks } from "../site/js/axes/ticks.js";
 import { assignColours, OTHER_SERIES } from "../site/js/theme/colours.js";
@@ -97,7 +97,6 @@ test("a prefill point per row, in the query's order, its TTL named, and placed w
     { scope: "SWE-Bench", ttl: "10s", label: "10 s", retained: 7_300, prefill: 3.2, placement: "below" },
     { scope: "SWE-Bench", ttl: "15m", label: "15 min", retained: 42_000, prefill: 1.02, placement: null },
   ]);
-  assert.equal(ttlLabel("1d"), "1 d");
 });
 
 test("the retained-tokens axis runs from half the fewest to three times the most, ticked at powers of ten", () => {

@@ -5,7 +5,7 @@
  * `SCOPE_COLOURS` in `theme/colours.js`.
  */
 
-import { seriesLegend } from "../figures/figure_rows.js";
+import { seriesLegend } from "../shared/series.js";
 import { SCOPE_COLOURS } from "../theme/colours.js";
 
 /** Each scope's label, as the paper names it, in the order the figures draw the scopes. */

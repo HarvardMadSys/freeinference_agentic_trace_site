@@ -157,8 +157,9 @@ site/              exactly the files that are deployed
   style.css        tokens, layout and components
   favicon.svg      the brand mark, for the browser tab
   js/shared/       answers (the indexes, and the answer files by query name), libraries, format, charts (what every
-                   chart shares: the frame, the ink, the colour scale, the card), cdf (the CDF drawing of the figures
-                   the CDF kind does not draw yet), table, layout (the header and footer)
+                   chart shares: the frame, the ink, the colour scale, the card), series (a chart's shown rows and its
+                   legend), cdf (the CDF drawing of the figures the CDF kind does not draw yet), table, layout (the
+                   header and footer)
   js/charts/       the chart kinds, each a draw function with named parameters that several figures call: cdf (CDF
                    lines), week_bars (stacked bars per week), ranges (quantile ranges per category), histogram,
                    ranked (stacked shares over ranked sessions), knee_lines (cost against cache TTL, the knee

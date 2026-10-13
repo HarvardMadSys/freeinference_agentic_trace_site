@@ -19,7 +19,7 @@ import {
   formatBinaryThousands, formatCompactCount, formatCount, formatCountTick, formatPercent, formatShare,
 } from "../shared/format.js";
 import { INPUT_ROLES, TOKEN_PART_NAMES } from "../session/token_parts.js";
-import { partsLegend, seriesLegend } from "./figure_rows.js";
+import { partsLegend, seriesLegend } from "../shared/series.js";
 import { COST_SHARE_BY_SESSION } from "./sessions_ranked.js";
 
 // The series of the tokens-per-request CDF, by their name in the query, with the name each is drawn under.
@@ -44,6 +44,9 @@ const GROWTH_COLUMNS = Object.freeze({
 const MIN_TOKENS_DRAWN = 1; // a token count below one (a request with nothing uncached) is drawn at one, on the log axis
 const MARKER_RADIUS = 3; // pixels; the small markers on the token growth lines
 const MAX_BAR_LABELS = 5; // a bar chart's axis labels at most this many bars, so the labels fit a phone's width
+
+// The cached-share histogram's stats query: the median, 95th percentile and count its bins are summarised by.
+const CACHED_FRACTION_STATS_QUERY = "explore/cached_fraction_stats";
 
 /** The Tokens-and-cost topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
 export const TAKEAWAY = "Most input tokens are cached, and cache reads account for most API cost at the stated prices.";
@@ -109,8 +112,9 @@ export const FIGURES = Object.freeze([
     definition: "The percentage of each request’s input tokens read from cache, grouped into 5% ranges. Only main-session requests with reported cache usage are included. The vertical axis counts requests on a log scale.",
     caption: "Requests typically reuse nearly all their input tokens. Across requests with reported cache usage, cached tokens account for more than 97% of total token volume.",
     query: "explore/cached_fraction_bins",
+    statsQuery: CACHED_FRACTION_STATS_QUERY,
     draw: (rows, body, colours) => drawHistogram(rows, body, colours, {
-      statsQuery: "explore/cached_fraction_stats",
+      statsQuery: CACHED_FRACTION_STATS_QUERY,
       countLabel: "Requests",
       xLabel: null,
       valueFormat: formatShare,

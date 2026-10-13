@@ -12,10 +12,8 @@ import {
   AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH, X_INSET,
 } from "../shared/charts.js";
 import { axisWithTicks, TICK_COUNT } from "../axes/ticks.js";
-import { formatMultiple } from "../shared/format.js";
-import { seriesLegend } from "../figures/figure_rows.js";
-import { shownRows } from "../explore/legend.js";
-import { MULTIPLE_DECIMALS, multipleTick, ttlLabel } from "../simulation/prefill.js";
+import { formatMultiple, formatMultipleTick, formatTtlName, MULTIPLE_DECIMALS } from "../shared/format.js";
+import { seriesLegend, shownRows } from "../shared/series.js";
 
 const PART_COLUMN = "part"; // the column of a cost query naming each row's part
 const AXIS_TTLS = Object.freeze(["1s", "1m", "1h", "1d"]); // the TTLs the axis names, with room between them
@@ -52,7 +50,7 @@ export async function drawKneeLines(rows, body, colours, { parts, calloutColumn,
       axisWithTicks(Plot.axisX, [...ttlTicks.keys()], {
         ...AXIS_STYLE, label: "Cache TTL", tickFormat: (seconds) => ttlTicks.get(seconds),
       }),
-      Plot.axisY({ ...AXIS_STYLE, label: null, ticks: TICK_COUNT, tickFormat: multipleTick }),
+      Plot.axisY({ ...AXIS_STYLE, label: null, ticks: TICK_COUNT, tickFormat: formatMultipleTick }),
       Plot.areaY(shown, { x: "ttl_seconds", y: "cost_multiple", fill: PART_COLUMN, order: drawnParts }),
       Plot.ruleY([ONE_MINUTE_COST], { ...AXIS_STYLE, strokeDasharray: DASH }),
       ...calloutMarks(Plot, callout, highestCost),
@@ -85,7 +83,7 @@ export function costStacks(rows, parts) {
   }
   const stacks = [];
   for (const [ttl, ttlRows] of rowsByTtl) {
-    const lines = [`TTL ${ttlLabel(ttl)}`];
+    const lines = [`TTL ${formatTtlName(ttl)}`];
     let top = 0;
     for (const part of Object.keys(parts).reverse()) {
       const row = ttlRows.find((one) => one[PART_COLUMN] === part);
@@ -110,7 +108,7 @@ export function calloutPoint(rows, stacks, calloutColumn, calloutText) {
     return null;
   }
   const stack = stacks.find((one) => one.ttl === marked.ttl);
-  const text = calloutText(formatMultiple(marked.total_multiple, MULTIPLE_DECIMALS), ttlLabel(marked.ttl));
+  const text = calloutText(formatMultiple(marked.total_multiple, MULTIPLE_DECIMALS), formatTtlName(marked.ttl));
   return { seconds: stack.seconds, top: stack.top, text };
 }
 
@@ -119,7 +117,7 @@ export function axisTtls(stacks) {
   const names = new Map();
   for (const stack of stacks) {
     if (AXIS_TTLS.includes(stack.ttl)) {
-      names.set(stack.seconds, ttlLabel(stack.ttl));
+      names.set(stack.seconds, formatTtlName(stack.ttl));
     }
   }
   return names;

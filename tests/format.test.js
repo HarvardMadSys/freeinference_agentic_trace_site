@@ -5,7 +5,7 @@ import {
   cachedShare, elapsedSeconds, formatCount, formatDurationTick, formatElapsed, formatHours, formatMultiple,
   formatOptionalShare, formatQuantity, formatSeconds, formatShare, monthName, shortSessionId, utcMinute,
   elapsedTickFormat, formatBinaryThousands, formatCompactCount, formatPercent, formatTtlName, monthAndDay,
-  dateSpanText, formatCountTick, longMinute, shortMinute, shortMonth, formatWholeCount,
+  dateSpanText, formatCountTick, formatMultipleTick, longMinute, shortMinute, shortMonth, formatWholeCount,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
@@ -129,11 +129,17 @@ test("an axis's percentage has no decimals", () => {
   assert.equal(formatPercent(0.632), "63%");
 });
 
-test("a TTL's name is written as every duration is, never m for a minute", () => {
+test("a TTL's name is written as every duration is, never m for a minute, and no TTL as ∞", () => {
   assert.equal(formatTtlName("1m"), "1 min");
   assert.equal(formatTtlName("10s"), "10 s");
   assert.equal(formatTtlName("6h"), "6 h");
   assert.equal(formatTtlName("1d"), "1 d");
+  assert.equal(formatTtlName("none"), "∞");
+});
+
+test("a multiple on an axis is written as it is, whatever else Plot passes", () => {
+  assert.equal(formatMultipleTick(2, 3), "2×");
+  assert.equal(formatMultipleTick(0.5), "0.5×");
 });
 
 test("an elapsed axis writes h:mm from an hour on, else m:ss", () => {

@@ -11,7 +11,7 @@ import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE } from "../shared/chart
 import { isNarrowChart, percentTick } from "../axes/ticks.js";
 import { TOOL_GROUP_COLOURS } from "../theme/colours.js";
 import { formatPercent, formatShare } from "../shared/format.js";
-import { seriesLegend } from "../figures/figure_rows.js";
+import { seriesLegend } from "../shared/series.js";
 import { SCOPE_LABELS, SCOPES } from "./scopes.js";
 
 /** The tenths a turn is cut into; each tenth's share is drawn flat across it, from 0% to 100% of the turn. */

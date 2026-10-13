@@ -1,7 +1,7 @@
 /**
  * The Session-structure section of the Explore page's figures: how many requests and steps a session holds, how long
  * its turns and the session last, how many subagents it spawns, and how long its user prompts are, human-driven
- * against benchmark, drawn in `comparison/scope_cdfs.js`.
+ * against benchmark, a figure listed in `comparison/scope_cdfs.js` and drawn by the CDF kind.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines, drawn by one call to its chart kind
  * (`charts/`). A figure of more than one series colours each from its legend's colours, `colours.series`, so its chart
@@ -32,6 +32,9 @@ const DURATION_TICKS_S = Object.freeze([1, 60, 3600, 86400]); // a second, a min
 // The factor from one subagent bin's start to the next: the bins query's bins double (base 2), so the axis ticks at
 // their edges, 1, 2, 4, 8, and each bar starts and ends at a labelled tick.
 const SUBAGENT_BIN_FACTOR = 2;
+
+// The subagents histogram's stats query: the median, 95th percentile, maximum and count its bins are summarised by.
+const SUBAGENTS_STATS_QUERY = "explore/subagents_per_session_stats";
 
 /** The Session-structure topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
 export const TAKEAWAY = "Sessions have a few user prompts, dozens of model requests, and long waits between prompts.";
@@ -90,8 +93,9 @@ export const FIGURES = Object.freeze([
     definition: "The number of subagents started by each main session, including subagents started by other subagents. Sessions with no subagents count toward the summary statistics but are not shown on the log scale.",
     caption: "Nearly 90% of sessions never invoke subagents. Even when used, most subagent calls spawn just one child rather than multiple agents in parallel. Sessions with zero subagents are excluded from the bars.",
     query: "explore/subagents_per_session_bins",
+    statsQuery: SUBAGENTS_STATS_QUERY,
     draw: (rows, body, colours) => drawHistogram(rows, body, colours, {
-      statsQuery: "explore/subagents_per_session_stats",
+      statsQuery: SUBAGENTS_STATS_QUERY,
       countLabel: "Sessions",
       xLabel: "Subagents",
       valueFormat: formatWholeCount,

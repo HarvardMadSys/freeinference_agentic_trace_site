@@ -16,7 +16,7 @@ import { CAUSE_COLOURS, GAP_BIN_SLOTS, TIME_PART_NAMES, TRANSITION_COLOURS } fro
 import {
   formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare, MISSING_TEXT,
 } from "../shared/format.js";
-import { seriesLegend } from "./figure_rows.js";
+import { seriesLegend } from "../shared/series.js";
 
 // The gap bins' labels, shortest gap first, as the pipeline's `gaps.GAP_BINS` names them. tests/
 // test_pipeline_mirrors_caching.py checks them, the causes and the two gap limits below against the pipeline.

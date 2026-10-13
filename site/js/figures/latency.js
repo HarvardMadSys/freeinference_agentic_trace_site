@@ -16,7 +16,8 @@ import { cdfPoints, cdfSeries } from "../charts/cdf.js";
 import { durationTicks, extent, fewerOnNarrow, tickCountFor } from "../axes/ticks.js";
 import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
 import { slottedColours, TIME_PART_COLOURS, TIME_PART_NAMES } from "../theme/colours.js";
-import { rowsWithSeriesColour, seriesLegend } from "./figure_rows.js";
+import { rowsWithSeriesColour } from "./figure_rows.js";
+import { seriesLegend } from "../shared/series.js";
 import { SESSION_TIME_BY_PART } from "./sessions_ranked.js";
 
 // The parts of the machine time, by their name in the speed-up query, top down, with the name each bar is drawn under.

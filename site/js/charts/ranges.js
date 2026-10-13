@@ -36,11 +36,11 @@ const ASTERISK_NOTE = "* a shell command, by its purpose";
  * - `valueFormat`: how a value is written in the tooltip; `xTickFormat`: how a power of ten is written on the axis.
  */
 export async function drawRanges(rows, body, colours, parameters) {
-  const { xLabel, xTickFormat } = parameters;
+  const { unitFactor, floor, xLabel, valueFormat, xTickFormat } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const categories = drawnCategories(rows, colours.categories);
-  const ranges = drawnRanges(rows, parameters);
+  const ranges = drawnRanges(rows, unitFactor, floor);
   const ticks = rangeTicks(ranges);
   legendPlace(body).replaceChildren(asteriskNote());
   const chart = Plot.plot({
@@ -63,7 +63,7 @@ export async function drawRanges(rows, body, colours, parameters) {
         insetTop: MEDIAN_TICK_INSET,
         insetBottom: MEDIAN_TICK_INSET,
       }),
-      Plot.tip(ranges, Plot.pointerY({ y: "category", x: "p50", title: (drawn) => rangeTipText(drawn, parameters) })),
+      Plot.tip(ranges, Plot.pointerY({ y: "category", x: "p50", title: (drawn) => rangeTipText(drawn, unitFactor, valueFormat) })),
     ],
   });
   body.replaceChildren(chart);
@@ -79,7 +79,7 @@ export function drawnCategories(rows, categoryColours) {
  * Each row's percentiles in the drawn unit, times `unitFactor` and at least `floor`: `{ category, row, p5, …, p95 }`,
  * with the row they came from.
  */
-export function drawnRanges(rows, { unitFactor, floor }) {
+export function drawnRanges(rows, unitFactor, floor) {
   const ranges = [];
   for (const row of rows) {
     const drawn = { category: row.category, row };
@@ -99,7 +99,7 @@ export function rangeTicks(ranges) {
 }
 
 /** A category's tooltip: its name, its calls, and each percentile in the drawn unit, as `valueFormat` writes it. */
-export function rangeTipText(drawn, { unitFactor, valueFormat }) {
+export function rangeTipText(drawn, unitFactor, valueFormat) {
   const lines = [drawn.category, `${formatCount(drawn.row.rows)} calls`];
   for (const { column, label } of PERCENTILES) {
     lines.push(`${label}: ${valueFormat(drawn.row[column] * unitFactor)}`);

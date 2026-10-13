@@ -8,9 +8,8 @@ import {
 } from "./charts.js";
 import { formatPercent, formatShare } from "./format.js";
 import { axisWithTicks, extent, logAxisTicks, TICK_COUNT } from "../axes/ticks.js";
-import { cdfPoints } from "../charts/cdf.js";
+import { cdfPoints, MEDIAN_SHARE } from "../charts/cdf.js";
 
-const MEDIAN_SHARE = 0.5; // the share of rows at which a CDF crosses its median
 const LABEL_ABOVE_OFFSET = -9; // pixels from a point up to a label written above it on its line
 const LABEL_END_OFFSET = 6; // pixels from a line's right end across to a label written beside it
 // Pixels the right margin grows by to hold a label written beside a line's right end, "Under 1 min".

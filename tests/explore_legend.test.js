@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  drawWithLegend, hasLegend, isEverySeriesHidden, legendIndexForKey, mountLegend, shownRows, toggledSeries,
+  drawWithLegend, hasLegend, isEverySeriesHidden, legendIndexForKey, mountLegend, toggledSeries,
 } from "../site/js/explore/legend.js";
 
 /**
@@ -84,12 +84,6 @@ test("toggling a series hides it when shown and shows it when hidden, leaving th
   assert.deepEqual([...toggledSeries(hidden, "hermes")].sort(), ["hermes", "pi"]);
   assert.deepEqual([...toggledSeries(hidden, "pi")], []);
   assert.deepEqual([...hidden], ["pi"]);
-});
-
-test("a long-format figure keeps the rows of the series not hidden, in their order", () => {
-  const rows = [{ model: "a", x: 1 }, { model: "b", x: 2 }, { model: "a", x: 3 }];
-  assert.deepEqual(shownRows(rows, "model", new Set(["b"])), [{ model: "a", x: 1 }, { model: "a", x: 3 }]);
-  assert.deepEqual(shownRows(rows, "model", new Set()), rows);
 });
 
 test("every series is hidden only when each of the legend's series is", () => {

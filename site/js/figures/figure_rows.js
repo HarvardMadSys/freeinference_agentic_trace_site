@@ -1,7 +1,6 @@
 /**
  * What the Explore page does to a figure's rows before drawing them: the rows of a series with a colour of its own,
- * thin bins hidden, its line of rows (the rows it rests on, the weeks not simulated and the bins hidden), and the series
- * its legend lists.
+ * thin bins hidden, and its line of rows (the rows it rests on, the weeks not simulated and the bins hidden).
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
  * a CDF series), or, when `binColumn` is null, each row alone. Every row of a bin carries the bin's count, the number
@@ -112,28 +111,6 @@ export function hiddenText(hidden, binColumn) {
   const [singular, plural] = HIDDEN_NOUNS[binColumn] ?? DEFAULT_HIDDEN_NOUN;
   const noun = hidden === 1 ? singular : plural;
   return `${hidden} ${noun} hidden (fewer than ${MIN_ROWS_PER_BIN} rows each)`;
-}
-
-/**
- * The legend of a figure whose rows each name their series in `seriesColumn`: `{ series, colours }`, the series of
- * `colours` (a Map from series name to colour, in the order the legend lists them) that the rows hold, each
- * `{ name, label }` with its label from `labels` where it has one, else its name, and `colours` itself.
- */
-export function seriesLegend(rows, seriesColumn, colours, labels = {}) {
-  const present = new Set(rows.map((row) => row[seriesColumn]));
-  const series = [];
-  for (const name of colours.keys()) {
-    if (present.has(name)) {
-      series.push({ name, label: Object.hasOwn(labels, name) ? labels[name] : name });
-    }
-  }
-  return { series, colours };
-}
-
-/** The legend of a figure whose parts are columns: each part of `labels` (part to label), in its colour of `colours`. */
-export function partsLegend(labels, colours) {
-  const series = Object.entries(labels).map(([name, label]) => ({ name, label }));
-  return { series, colours };
 }
 
 // Each bin's name and count, `[{ name, count }]`, in the order the bins first appear in the rows.

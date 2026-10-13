@@ -13,7 +13,7 @@ import {
 import { TICK_COUNT, tickCountFor } from "../axes/ticks.js";
 import { BATCH_COLOURS } from "../theme/colours.js";
 import { formatCount, formatDurationTick, formatSeconds } from "../shared/format.js";
-import { partsLegend } from "./figure_rows.js";
+import { partsLegend } from "../shared/series.js";
 
 /** The widest width the batch-width query draws on its own; requests of more calls are drawn with it. */
 export const WIDEST_DRAWN = 8;

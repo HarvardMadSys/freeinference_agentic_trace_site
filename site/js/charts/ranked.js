@@ -10,7 +10,7 @@
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE } from "../shared/charts.js";
 import { percentTick } from "../axes/ticks.js";
 import { formatCount, formatPercent, formatShare } from "../shared/format.js";
-import { partsLegend } from "../figures/figure_rows.js";
+import { partsLegend } from "../shared/series.js";
 
 const PERCENTILE_DOMAIN = Object.freeze([0, 100]); // the x axis spans every ranked session, whatever bins are hidden
 const SHARE_DOMAIN = Object.freeze([0, 1]); // the y axis spans a whole share, whatever parts are hidden

@@ -15,7 +15,8 @@ import { formatCount, formatDurationTick, formatPercent, formatSeconds, formatSh
 import { GAP_FIGURES } from "./caching_gaps.js";
 import { API_COST_BY_TTL, INFRASTRUCTURE_COST_BY_TTL } from "../simulation/costs.js";
 import { PREFILL_AGAINST_STORAGE } from "../simulation/prefill.js";
-import { rowsWithSeriesColour, seriesLegend } from "./figure_rows.js";
+import { rowsWithSeriesColour } from "./figure_rows.js";
+import { seriesLegend } from "../shared/series.js";
 
 // The idle-gap bins mirror the pipeline's `gaps.IDLE_GAP_EDGES_S`: 26 bins between 27 geometric edges from 10 s to
 // one hour, each 1.25 times as wide as the one before. tests/test_pipeline_mirrors.py checks these three constants

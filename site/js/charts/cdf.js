@@ -11,11 +11,11 @@
 import { AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, X_INSET } from "../shared/charts.js";
 import { formatPercent, formatShare } from "../shared/format.js";
 import { axisWithTicks, extent, isNarrowChart, logAxisTicks, TICK_COUNT } from "../axes/ticks.js";
-import { seriesLegend } from "../figures/figure_rows.js";
-import { shownRows } from "../explore/legend.js";
+import { seriesLegend, shownRows } from "../shared/series.js";
 
 const SERIES_COLUMN = "series"; // the column of a CDF query naming each point's series
-const MEDIAN_SHARE = 0.5; // the share of rows at which a CDF crosses its median
+/** The share of rows at which a CDF crosses its median. */
+export const MEDIAN_SHARE = 0.5;
 const MEDIAN_RADIUS = 3; // pixels; the dot on each median
 const MEDIAN_LABEL_OFFSET = 8; // pixels from a median's dot to its value, along each axis
 // A median's value: in the chart's ink, ringed in the card's colour so that a line it crosses does not cut its text.
@@ -32,23 +32,25 @@ const MEDIAN_LABEL_STYLE = Object.freeze({
  * - `xDomain`: the x axis's `[low, high]`, the lines cut at its ends; else the values' own range.
  * - `xTicks`: the x axis's ticks; else a log axis's powers of ten, a linear axis's Plot's own.
  * - `narrowXTicks`: the ticks on a narrow chart, where `xTicks` would crowd; else `xTicks`.
- * - `xTickFormat`: how a tick is written; `xLabel` and `yLabel`: the axes' titles, none when null.
+ * - `xTickFormat`: how a tick is written; `xLabel` and `yLabel`: the axes' titles, none when null or not given.
  * - `valueFormat`: how a value is written in the tooltip and a median's label.
  * - `medianColumn`: the column holding each series' median, marked with a dot and its value; without it, a dashed
  *   rule marks 50%.
  * - `shareNoun`: what a share is of in the tooltip, "45.0% of prompts"; without it, "45.0% at or below".
- * - `callout(Plot, rows)`: the marks of a note the kind does not draw, from the rows drawn, laid over the lines.
+ * - `callout(Plot, rows, medians)`: the marks of a note the kind does not draw, from the rows drawn and the medians
+ *   marked (`seriesMedians`), laid over the lines.
  */
 export async function drawCdf(rows, body, colours, parameters, hidden) {
-  const { labels = {}, floor = -Infinity, logScale, xDomain, xTickFormat, xLabel, yLabel } = parameters;
-  const { valueFormat, medianColumn, shareNoun, callout } = parameters;
+  const { labels = {}, floor = -Infinity, logScale, xDomain, xTicks, narrowXTicks, xTickFormat } = parameters;
+  const { xLabel = null, yLabel = null, valueFormat, medianColumn, shareNoun, callout } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const shown = shownRows(rows, SERIES_COLUMN, hidden);
   const series = cdfSeries(shown, [...colours.series.keys()], { labels, floor });
   const points = cdfPoints(series);
+  const medians = seriesMedians(shown, series.map((one) => one.name), medianColumn, floor);
   const frame = chartFrame(body);
-  const ticks = drawnTicks(parameters, points, frame.width);
+  const ticks = drawnTicks({ logScale, xDomain, xTicks, narrowXTicks }, points, frame.width);
   const chart = Plot.plot({
     ...frame,
     x: { type: logScale ? "log" : "linear", domain: xDomain, inset: X_INSET },
@@ -61,8 +63,8 @@ export async function drawCdf(rows, body, colours, parameters, hidden) {
       axisWithTicks(Plot.axisX, ticks, { ...AXIS_STYLE, label: xLabel, tickFormat: xTickFormat }),
       Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: formatPercent, label: yLabel }),
       Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH, clip: xDomain !== undefined }),
-      ...medianMarks(Plot, seriesMedians(shown, series, medianColumn, floor), valueFormat),
-      ...(callout === undefined ? [] : callout(Plot, shown)),
+      ...medianMarks(Plot, medians, valueFormat),
+      ...(callout === undefined ? [] : callout(Plot, shown, medians)),
       Plot.tip(points, Plot.pointerX({
         x: "x", y: "share", title: (point) => cdfTipText(point, valueFormat, shareNoun),
       })),
@@ -112,17 +114,19 @@ export function cdfPoints(series) {
 }
 
 /**
- * The median of each of `series` in `rows`, read from `medianColumn`, smallest first: `[{ series, median, x }]`, `x`
- * where it is drawn, raised to `floor` as its line is; none without a median column.
+ * The median of each series of `names` that the rows hold, read from `medianColumn`, smallest first:
+ * `[{ series, median, x }]`, `x` where it is drawn, raised to `floor` as its line is; none without a median column.
  */
-export function seriesMedians(rows, series, medianColumn, floor = -Infinity) {
+export function seriesMedians(rows, names, medianColumn, floor = -Infinity) {
   if (medianColumn === undefined) {
     return [];
   }
   const medians = [];
-  for (const { name } of series) {
+  for (const name of names) {
     const row = rows.find((candidate) => candidate[SERIES_COLUMN] === name);
-    medians.push({ series: name, median: row[medianColumn], x: Math.max(row[medianColumn], floor) });
+    if (row !== undefined) {
+      medians.push({ series: name, median: row[medianColumn], x: Math.max(row[medianColumn], floor) });
+    }
   }
   return medians.sort((first, second) => first.median - second.median);
 }

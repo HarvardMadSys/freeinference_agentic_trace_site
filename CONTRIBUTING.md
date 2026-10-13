@@ -311,19 +311,26 @@ out) and `donut`. Each exports a draw function, `drawCdf(rows, body, colours,
 { named parameters }, hidden)`, and, where it has series, a legend function,
 `cdfLegend(rows, colours, { named parameters })`, `colours` there being the
 Map of its series' colours in the legend's order; its module says what rows
-it takes and its draw function what each parameter decides. A kind takes only
-parameters two or more figures use. A note the kind does not draw, such as
-the scope CDFs' ratio of medians, is a short named function in the figure's
-module, given to the kind as its `callout`. A figure that would need a
-parameter no other figure uses keeps a plain draw function of its own.
+it takes and its draw function what each parameter decides. A kind imports
+only from `shared/`, `axes/` and `theme/`. A kind takes only parameters two
+or more figures use, with two exceptions: a kind kept whole may take a
+parameter one figure uses when the alternative is a near-copy of the kind
+(the histogram's `ticks`, the donut's `labels`), and a frame size (the week
+bars' `weeks` and `margins`, the CDF's `height`) is a plain size, not
+behaviour. A note the kind does not draw, such as the scope CDFs' ratio of
+medians, is a short named function in the figure's module, given to the kind
+as its `callout`. A figure that would need any other parameter no other
+figure uses keeps a plain draw function of its own.
 
 A **histogram figure** has no `binColumn`: its `query` is a bins query,
 `explore/<prefix>_bins` (each row a bin's `bin_start`, `bin_end` and `rows`),
-and its `draw` calls `drawHistogram` with the matching stats query,
-`explore/<prefix>_stats` (one row of `count`, `max` and the 50th, 75th, 90th
-and 95th percentiles), as its `statsQuery`. The kind draws every bin, one
-line above them of the median, the 95th percentile and, with `showsMaximum`,
-the maximum, and writes the count as the figure's line of rows.
+and it declares `statsQuery`, the matching `explore/<prefix>_stats` (one row
+of `count`, `max` and the 50th, 75th, 90th and 95th percentiles), which the
+page reads as the sign of a histogram and its `draw` gives `drawHistogram`
+as its `statsQuery`, both from one named constant. The kind draws every bin,
+one line above them of the median, the 95th percentile and, with
+`showsMaximum`, the maximum, and writes the count as the figure's line of
+rows.
 
 ```js
 Object.freeze({
@@ -385,7 +392,7 @@ the browser.
    definition, and of each section's takeaway.
 4. **The legend**, for a figure of more than one series: `legend(rows,
    colours, seriesColumn)`, a call to its kind's legend function (or, beside
-   a plain draw, `seriesLegend` in `figures/figure_rows.js`, which builds one
+   a plain draw, `seriesLegend` in `shared/series.js`, which builds one
    from rows that name their series), and either a `seriesColumn` or a
    `draw` that leaves out the series named in `hidden`. A series that is a
    model, category, cause, transition or gap bin takes that thing's colour.

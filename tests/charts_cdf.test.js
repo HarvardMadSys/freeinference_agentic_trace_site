@@ -47,17 +47,18 @@ test("the points of every series form one list, each naming its series and label
 });
 
 test("the medians are each series' own, smallest first, each drawn no lower than the floor", () => {
-  const series = cdfSeries(MEDIAN_ROWS, ["Agentic", "SWE-Bench"]);
+  const series = ["Agentic", "SWE-Bench"];
   assert.deepEqual(seriesMedians(MEDIAN_ROWS, series, "median", 1), [
     { series: "Agentic", median: 0.5, x: 1 },
     { series: "SWE-Bench", median: 188.3, x: 188.3 },
   ]);
   const reversed = MEDIAN_ROWS.map((row) => ({ ...row, median: row.series === "SWE-Bench" ? 0.1 : row.median }));
   assert.deepEqual(seriesMedians(reversed, series, "median", 1).map((median) => median.series), ["SWE-Bench", "Agentic"]);
+  assert.deepEqual(seriesMedians(MEDIAN_ROWS.slice(2), series, "median").map((median) => median.series), ["SWE-Bench"]);
 });
 
 test("a CDF without a median column marks no median on its lines", () => {
-  assert.deepEqual(seriesMedians(CDF_ROWS, cdfSeries(CDF_ROWS, ["requests"]), undefined), []);
+  assert.deepEqual(seriesMedians(CDF_ROWS, ["requests"], undefined), []);
 });
 
 test("the tooltip names the series, its value, and the share at or below it, or of what the CDF counts", () => {

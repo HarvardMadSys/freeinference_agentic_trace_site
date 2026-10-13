@@ -15,7 +15,7 @@
 import {
   AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH, X_INSET,
 } from "../shared/charts.js";
-import { cdfPoints, cdfSeries, drawCdf } from "../charts/cdf.js";
+import { cdfPoints, cdfSeries, drawCdf, MEDIAN_SHARE, seriesMedians } from "../charts/cdf.js";
 import { axisWithTicks, isNarrowChart } from "../axes/ticks.js";
 import {
   formatCompactCount, formatCountTick, formatDurationTick, formatMultiple, formatPercent, formatSeconds, formatShare,
@@ -26,7 +26,6 @@ const MIN_DURATION_DRAWN_S = 1; // the pipeline's comparison.MIN_DURATION_DRAWN_
 const MIN_INPUT_DRAWN = 1000; // comparison.MIN_INPUT_DRAWN: the input axis starts at 1k
 const MIN_PROMPT_DRAWN = 1; // comparison.MIN_PROMPT_DRAWN: the user prompt axis starts at one token
 
-const MEDIAN_SHARE = 0.5; // the share at which a CDF crosses its median
 const MEDIAN_RADIUS = 3; // pixels; the dot on each median
 const MEDIAN_LABEL_OFFSET = 8; // pixels from a median's dot to its label, along each axis
 const RATIO_DECIMALS = 1; // the ratio of the medians as the paper writes it: 3.1×
@@ -147,38 +146,20 @@ export const USER_PROMPT_TOKENS_BY_SCOPE = Object.freeze({
     valueFormat: formatCompactCount,
     medianColumn: "median",
     shareNoun: "prompts",
-    callout: (Plot, drawn) => medianComparison(Plot, drawn, MIN_PROMPT_DRAWN, "longer"),
+    callout: (Plot, drawn, medians) => medianComparison(Plot, drawn, medians, "longer"),
   }, hidden),
 });
 
 /**
- * The medians of the scopes the rows hold, smallest first: `[{ series, median, x }]`, `median` the scope's own and `x`
- * where it is drawn, raised to `floor` as its CDF is.
+ * The chart's note comparing the medians it labels (`seriesMedians`, smallest first): the scope whose median is the
+ * larger, the ratio and `comparative`, "benchmark 3.1× longer"; "" unless the rows hold both scopes and a ratio.
  */
-export function scopeMedians(rows, floor) {
-  const medians = new Map();
-  for (const row of rows) {
-    medians.set(row.series, row.median);
-  }
-  const drawn = [];
-  for (const series of SCOPES) {
-    if (medians.has(series)) {
-      drawn.push({ series, median: medians.get(series), x: Math.max(medians.get(series), floor) });
-    }
-  }
-  return drawn.sort((first, second) => first.median - second.median);
-}
-
-/**
- * The chart's note comparing the medians it labels: the scope whose median is the larger, the ratio and
- * `comparative`, "benchmark 3.1× longer"; "" unless the rows hold both scopes and a ratio.
- */
-export function medianSummary(rows, comparative) {
+export function medianSummary(rows, medians, comparative) {
   const ratio = medianRatioText(rows);
   if (ratio === null) {
     return "";
   }
-  const larger = scopeMedians(rows, 0).at(-1).series;
+  const larger = medians.at(-1).series;
   return `${SCOPE_LABELS[larger].toLowerCase()} ${ratio} ${comparative}`;
 }
 
@@ -203,6 +184,7 @@ async function drawScopeCdf(rows, body, colours, axis) {
   const { Plot } = await import("../shared/libraries.js");
   const series = cdfSeries(rows, SCOPES, { labels: SCOPE_LABELS, floor: axis.floor });
   const points = cdfPoints(series);
+  const medians = seriesMedians(rows, SCOPES, "median", axis.floor);
   const frame = chartFrame(body);
   const ticks = isNarrowChart(frame.width) ? (axis.narrowTicks ?? axis.ticks) : axis.ticks;
   const chart = Plot.plot({
@@ -216,8 +198,8 @@ async function drawScopeCdf(rows, body, colours, axis) {
       axisWithTicks(Plot.axisX, ticks, { ...AXIS_STYLE, tickFormat: axis.tickFormat, label: axis.xLabel }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: `Share of ${axis.noun}` }),
       Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH, clip: true }),
-      ...medianMarks(Plot, rows, axis),
-      ...medianComparison(Plot, rows, axis.floor, axis.comparative),
+      ...medianMarks(Plot, medians, axis),
+      ...medianComparison(Plot, rows, medians, axis.comparative),
       Plot.tip(points, Plot.pointerX({ x: "x", y: "share", title: (point) => tipText(point, axis) })),
     ],
   });
@@ -225,8 +207,7 @@ async function drawScopeCdf(rows, body, colours, axis) {
 }
 
 /** The marks of the medians: a dot on each, the smaller's value above it to the left, the larger's below to the right. */
-function medianMarks(Plot, rows, axis) {
-  const medians = scopeMedians(rows, axis.floor);
+function medianMarks(Plot, medians, axis) {
   return [
     Plot.dot(medians, { x: "x", y: MEDIAN_SHARE, fill: "series", r: MEDIAN_RADIUS }),
     Plot.text(medians.slice(0, 1), {
@@ -241,19 +222,18 @@ function medianMarks(Plot, rows, axis) {
 }
 
 /**
- * A scope CDF's callout, the marks comparing its medians from the rows drawn: with both scopes, a dotted line between
- * their medians, each raised to `floor` as its line is, and the note in the lower right corner, "benchmark 3.1×
- * longer", `comparative` saying how the larger compares.
+ * A scope CDF's callout, the marks comparing the medians the CDF marked (`seriesMedians`, smallest first) from the
+ * rows drawn: with both scopes, a dotted line between the medians where they are drawn, and the note in the lower
+ * right corner, "benchmark 3.1× longer", `comparative` saying how the larger compares.
  */
-export function medianComparison(Plot, rows, floor, comparative) {
+export function medianComparison(Plot, rows, medians, comparative) {
   const marks = [];
   if (medianRatioText(rows) !== null) {
-    const medians = scopeMedians(rows, floor);
     marks.push(Plot.ruleY([MEDIAN_SHARE], {
       ...AXIS_STYLE, x1: medians[0].x, x2: medians[1].x, strokeDasharray: MEDIAN_LINK_DASH,
     }));
   }
-  marks.push(summaryMark(Plot, medianSummary(rows, comparative)));
+  marks.push(summaryMark(Plot, medianSummary(rows, medians, comparative)));
   return marks;
 }
 
