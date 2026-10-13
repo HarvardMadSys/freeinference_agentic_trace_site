@@ -40,7 +40,8 @@ ticks and labels.
 series, `legend(rows, colours, options)`:
 - `cdf.js`: lines of share against value, log or linear x, optional
   median labels and a reference line.
-- `week_bars.js`: stacked bars per week, series folded past eight.
+- `stacked_bars.js`: stacked bars over a named x column (the weeks, or
+  the input-size bins), series folded past eight.
 - `ranges.js`: a box of two quantiles with whiskers per category.
 - `histogram.js`: bins and counts, the existing one moved.
 - `ranked.js`: stacked areas over sessions ranked by a share.
