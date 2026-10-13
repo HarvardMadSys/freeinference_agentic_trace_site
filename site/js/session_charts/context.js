@@ -11,7 +11,7 @@ import {
 } from "./context_series.js";
 import { alignToChart, rangeSlider } from "./range_slider.js";
 import { legendLine } from "../session/legend.js";
-import { listenForRequestClick, startChartView, viewChartWidth } from "../session/view_chart.js";
+import { listenForRequestClick, startChartView } from "../session/view_chart.js";
 import { elapsedAxis } from "../axes/ticks.js";
 import {
   AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, nameChart, renderFigure, TIP_STYLE, X_INSET,
@@ -113,10 +113,10 @@ function drawChart({ Plot, tree, requests, body, chartBox, legend, slider, view 
   const parts = areaParts(split);
   const points = requestPoints(tree, requests).filter((point) => isWithin(point.elapsed, range));
   const marks = transitionMarks(points);
-  const width = viewChartWidth(body);
+  const frame = chartFrame(body);
+  const turnRules = spacedStarts(turnStarts(tree, requests), range, frame.width);
   const plot = Plot.plot({
-    ...chartFrame(body),
-    width,
+    ...frame,
     x: { domain: [range.start, range.end], inset: X_INSET },
     y: { nice: true },
     color: colourScale(new Map(parts.map((part) => [part.name, part.colour])), parts.map((part) => part.name)),
@@ -125,10 +125,10 @@ function drawChart({ Plot, tree, requests, body, chartBox, legend, slider, view 
       Plot.areaY(stepsWithin(areaRows(tree, requests, split), "part", range), {
         x: "elapsed", y: "tokens", fill: "part", z: "part", order: parts.map((part) => part.name), curve: "step-after",
       }),
-      Plot.ruleX(spacedStarts(turnStarts(tree, requests), range, width), { ...AXIS_STYLE, strokeDasharray: TURN_DASH }),
+      Plot.ruleX(turnRules, { ...AXIS_STYLE, strokeDasharray: TURN_DASH }),
       agentLines(Plot, stepsWithin(trajectoryPoints(tree, requests), "sessionId", range)),
       transitionDots(Plot, marks),
-      Plot.axisX({ ...AXIS_STYLE, ...elapsedAxis([range.start, range.end], width) }),
+      Plot.axisX({ ...AXIS_STYLE, ...elapsedAxis([range.start, range.end], frame.width) }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatCountTick, label: "Input tokens" }),
       Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "elapsed", y: "inputTokens", title: pointTip })),
     ],

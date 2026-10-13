@@ -4,13 +4,13 @@
  *
  * Turns, requests and tool calls are the top-level session's own, with its subagents' given apart; token totals
  * cover every agent of the tree, and the cached share is their cached tokens over their cache-reporting input.
- * `tree` holds rows of `buckets/week_tree` (the top-level session has depth 0) and `requests` rows of
- * `buckets/week_requests`.
+ * `tree` holds rows of `buckets/week_tree` and `requests` rows of `buckets/week_requests`.
  */
 
 import {
-  cachedShare, formatCount, formatOptionalShare, formatQuantity, formatSeconds, formatTokens, longMinute,
+  cachedShare, formatCompactCount, formatCount, formatOptionalShare, formatQuantity, formatSeconds, longMinute,
 } from "../shared/format.js";
+import { topLevelSession } from "./tree.js";
 
 // The cached share's hover text: its definition, which differs from the drawn parts', where unreported input is
 // uncached.
@@ -22,7 +22,7 @@ const CACHED_SHARE_DEFINITION = "cached tokens over the input of requests whose 
  * `definition`, on the cached share alone, is the field's hover text.
  */
 export function sessionFacts(tree, requests) {
-  const topLevel = tree.find((session) => session.depth === 0);
+  const topLevel = topLevelSession(tree);
   const totals = treeTotals(tree);
   const subagentTurns = totals.turns - topLevel.user_steps;
   const subagentToolCalls = totals.toolCalls - topLevel.tool_calls;
@@ -35,14 +35,14 @@ export function sessionFacts(tree, requests) {
     { label: "Duration", value: formatSeconds(topLevel.duration_s), detail: "" },
     { label: "Turns", value: formatCount(topLevel.user_steps), detail: inSubagents(subagentTurns) },
     { label: "Requests", value: formatCount(topLevel.requests), detail: inSubagents(topLevel.subagent_requests) },
-    { label: "Input tokens", value: formatTokens(totals.inputTokens), detail: "" },
+    { label: "Input tokens", value: formatCompactCount(totals.inputTokens), detail: "" },
     {
       label: "Cached share (reported)",
       value: treeCachedShare(totals),
-      detail: `${formatTokens(totals.cachedTokens)} cached`,
+      detail: `${formatCompactCount(totals.cachedTokens)} cached`,
       definition: CACHED_SHARE_DEFINITION,
     },
-    { label: "Output tokens", value: formatTokens(totals.outputTokens), detail: "" },
+    { label: "Output tokens", value: formatCompactCount(totals.outputTokens), detail: "" },
     { label: "Subagents", value: formatCount(topLevel.subagents), detail: "" },
     { label: "Tool calls", value: formatCount(topLevel.tool_calls), detail: inSubagents(subagentToolCalls) },
   ];

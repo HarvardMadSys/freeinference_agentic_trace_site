@@ -56,14 +56,9 @@ export const LATENCY_BY_BATCH_WIDTH = Object.freeze({
   drawsLines: true,
   query: "figures/latency_by_batch_width",
   binColumn: "width",
-  legend: batchLegend,
+  legend: () => partsLegend(BATCH_LINES, new Map(Object.entries(BATCH_COLOURS))),
   draw: drawLatencyByWidth,
 });
-
-/** The batch-width figure's legend: the batched calls in the colour of a tool wait, the serial line in ink. */
-export function batchLegend() {
-  return partsLegend(BATCH_LINES, new Map(Object.entries(BATCH_COLOURS)));
-}
 
 /** A width as its axis and tooltip write it: "3", or "8+" for the widest, which holds every wider request too. */
 export function widthLabel(width) {

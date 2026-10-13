@@ -6,9 +6,11 @@
  * Their figure entries, whose fields CONTRIBUTING.md defines, are listed in `figures/caching.js` with the others.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TIP_STYLE, X_INSET } from "../shared/charts.js";
+import {
+  AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH, TIP_STYLE, X_INSET,
+} from "../shared/charts.js";
 import { axisWithTicks, TICK_COUNT } from "../axes/ticks.js";
-import { SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
+import { TOKEN_PART_COLOURS, VIOLET_SLOT } from "../theme/colours.js";
 import { formatMultiple } from "../shared/format.js";
 import { TOKEN_PART_NAMES } from "../session/token_parts.js";
 import { seriesLegend } from "../figures/figure_rows.js";
@@ -24,17 +26,16 @@ const API_PARTS = Object.freeze({
 const API_LEGEND_ORDER = Object.freeze(["cache_read", "input", "output"]);
 const INFRASTRUCTURE_PARTS = Object.freeze({ recompute: "Recompute", storage: "Storage" });
 // Each cost part's colour: the API's parts in the colours of the tokens they price, recomputing in the uncached
-// input's, as it prefills the missed tokens again, and storage in violet, the one slot neither a token part nor a part
-// of a session's time uses.
+// input's, as it prefills the missed tokens again, and storage, which is neither a token part nor a part of a session's
+// time, in violet.
 const COST_PART_COLOURS = Object.freeze({
   output: TOKEN_PART_COLOURS.output, cache_read: TOKEN_PART_COLOURS.cached, input: TOKEN_PART_COLOURS.uncached,
-  recompute: TOKEN_PART_COLOURS.uncached, storage: SERIES_SLOTS[6],
+  recompute: TOKEN_PART_COLOURS.uncached, storage: VIOLET_SLOT,
 });
 const COST_AXIS_TTLS = Object.freeze(["1s", "1m", "1h", "1d"]); // the TTLs a cost figure's axis names, room between
 const COST_AXIS_HEADROOM = 1.1; // a cost axis ends a tenth above the highest stack, as the paper's does
 const CALLOUT_RADIUS = 5; // pixels; the hollow marker on the TTL a cost figure calls out
 const CALLOUT_RISE_SHARE = 0.45; // its text sits this share of the cost axis above it, as the paper's does
-const CALLOUT_HALO = 4; // pixels of the card's colour around the callout's text, so no area crosses it
 
 /** The figure of what an API customer pays per TTL, stacked by part, the knee called out. */
 export const API_COST_BY_TTL = Object.freeze({
@@ -189,12 +190,10 @@ function calloutMarks(Plot, callout, highestCost) {
   }
   const placed = [{ ...callout, textAt: callout.top + CALLOUT_RISE_SHARE * highestCost }];
   const ink = { stroke: "var(--chart-label)", fill: "var(--color-surface)" };
-  const halo = {
-    fill: "var(--chart-label)", stroke: "var(--color-surface)", strokeWidth: CALLOUT_HALO, paintOrder: "stroke",
-  };
   return [
     Plot.ruleX(placed, { x: "seconds", y1: "top", y2: "textAt", stroke: "var(--chart-label)" }),
     Plot.dot(placed, { x: "seconds", y: "top", r: CALLOUT_RADIUS, strokeWidth: LINE_WIDTH, ...ink }),
-    Plot.text(placed, { x: "seconds", y: "textAt", text: "text", lineAnchor: "bottom", ...halo }),
+    // On a halo of the card's colour, so that no area crosses the text.
+    Plot.text(placed, { x: "seconds", y: "textAt", text: "text", lineAnchor: "bottom", ...LINE_LABEL_STYLE }),
   ];
 }

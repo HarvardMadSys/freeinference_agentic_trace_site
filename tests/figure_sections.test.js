@@ -162,36 +162,17 @@ test("every chart has a bin column and a draw function", async () => {
 });
 
 // A figure entry holds more than one series when it names a series column (long format: its rows each name their
-// series) or has a legend; a wide-format figure, whose series are columns, has a legend and a draw function that takes
-// the hidden set as a fourth argument.
-function isLongFormat(figure) {
-  return figure.seriesColumn !== undefined;
-}
-
+// series) or has a legend; a wide-format figure, whose series are columns, has a legend and leaves out of its marks
+// the hidden set every draw function is given.
 function hasLegend(figure) {
   return typeof figure.legend === "function";
 }
 
-// A draw function's `length` counts its parameters before the first default, so a wide-format draw function declares
-// `hidden` as a plain fourth parameter: given a default, it would not be counted and the figure would not be seen as
-// wide format.
-function isWideFormat(figure) {
-  return figure.draw.length === 4;
-}
-
-test("a figure of more than one series has a legend, and a series column unless its series are columns", async () => {
+test("a figure that names a series column has a legend", async () => {
   for (const figure of await chartFigures()) {
-    if (isLongFormat(figure)) {
+    if (figure.seriesColumn !== undefined) {
       assert.ok(hasLegend(figure), `${figure.name}: names a series column, so it needs a legend`);
       assert.equal(typeof figure.seriesColumn, "string", figure.name);
-      assert.ok(!isWideFormat(figure), `${figure.name}: a long-format figure is drawn from the shown rows alone`);
-    }
-    if (hasLegend(figure)) {
-      assert.ok(isLongFormat(figure) || isWideFormat(figure),
-        `${figure.name}: has a legend, so it needs a series column or a draw function that takes the hidden set`);
-    }
-    if (isWideFormat(figure)) {
-      assert.ok(hasLegend(figure), `${figure.name}: takes the hidden set, so it needs a legend`);
     }
   }
 });

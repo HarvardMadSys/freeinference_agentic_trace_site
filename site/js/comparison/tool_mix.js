@@ -8,7 +8,7 @@
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
-import { isNarrowChart } from "../axes/ticks.js";
+import { isNarrowChart, percentTick } from "../axes/ticks.js";
 import { TOOL_GROUP_COLOURS } from "../theme/colours.js";
 import { formatPercent, formatShare } from "../shared/format.js";
 import { seriesLegend } from "../figures/figure_rows.js";
@@ -41,14 +41,10 @@ export const TOOL_MIX_BY_TURN_POSITION = Object.freeze({
   binColumn: "scope",
   seriesNouns: Object.freeze({ Agentic: "human-driven calls", "SWE-Bench": "benchmark calls" }),
   seriesColumn: "tool_group",
-  legend: toolGroupLegend,
+  legend: (rows, colours, seriesColumn) =>
+    seriesLegend(rows, seriesColumn, new Map(Object.entries(TOOL_GROUP_COLOURS))),
   draw: drawToolMix,
 });
-
-/** The tool mix's legend: the groups of the rows, in the pipeline's order and their own colours. */
-export function toolGroupLegend(rows, colours, seriesColumn) {
-  return seriesLegend(rows, seriesColumn, new Map(Object.entries(TOOL_GROUP_COLOURS)));
-}
 
 /**
  * The points of the stacked areas: one `{ scope, tenth, turnPercent, group, share }` per scope of the rows, tenth and
@@ -165,10 +161,6 @@ function tenthKey(scope, tenth) {
 
 function scopeLabel(scope) {
   return SCOPE_LABELS[scope];
-}
-
-function percentTick(percent) {
-  return `${percent}%`;
 }
 
 function tenthText(tenth) {

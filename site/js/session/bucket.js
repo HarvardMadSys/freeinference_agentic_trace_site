@@ -37,9 +37,9 @@ const NOT_FOUND = 404;
 
 /**
  * `{ tree, requests, toolCalls }`, the rows of the top-level session that holds the session `id` of the week `week`
- * (a Sunday), from the data folder at `dataUrl` (an absolute URL), each row an object from column name to value; null
- * when the week holds no session `id`. The id's bucket is fetched first; an id it does not hold, a subagent's, is
- * looked up in the week's index, and its top-level session's bucket fetched unless it is the same one.
+ * (a Sunday), from the data folder at `dataUrl` (an absolute URL ending in a slash), each row an object from column
+ * name to value; null when the week holds no session `id`. The id's bucket is fetched first; an id it does not hold, a
+ * subagent's, is looked up in the week's index, and its top-level session's bucket fetched unless it is the same one.
  */
 export async function fetchSession(dataUrl, week, id) {
   const bucket = await fetchJsonOrNull(bucketUrl(dataUrl, week, id));
@@ -125,11 +125,9 @@ function weekFileUrl(dataUrl, week, name) {
   return fileUrl(dataUrl, `${BUCKETS_FOLDER}/${encodeURIComponent(week)}/${name}`);
 }
 
-/** The absolute URL of the file `path` in the data folder at `dataUrl`, with or without its trailing slash. */
+/** The absolute URL of the file `path` in the data folder at `dataUrl`, which ends in a slash. */
 function fileUrl(dataUrl, path) {
-  // Without the slash, the URL resolution would put the file beside the data folder instead of in it.
-  const folderUrl = dataUrl.endsWith("/") ? dataUrl : `${dataUrl}/`;
-  return new URL(path, folderUrl).href;
+  return new URL(path, dataUrl).href;
 }
 
 /** The JSON value of the file at `url`, gzipped or not; null when it does not exist; throws on any other failure. */

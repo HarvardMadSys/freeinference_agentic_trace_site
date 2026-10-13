@@ -7,17 +7,8 @@
  * its `arguments_skeleton` is a JSON string of its arguments with every value replaced by its type.
  */
 
-import { tokenParts } from "../session/token_parts.js";
+import { INPUT_ROLES, tokenParts } from "../session/token_parts.js";
 import { formatCount, formatSeconds, MILLISECONDS_PER_SECOND, MISSING_TEXT } from "../shared/format.js";
-
-// The input token roles, in the order the details list them, with their column in the requests.
-const ROLE_COLUMNS = Object.freeze([
-  ["System", "system_tokens"],
-  ["User", "user_tokens"],
-  ["Assistant", "assistant_tokens"],
-  ["Tool results", "tool_tokens"],
-  ["Tool definitions", "tool_definition_tokens"],
-]);
 
 // The columns of the tool-call table: heading, and whether its cells are numbers.
 const CALL_HEADINGS = Object.freeze([
@@ -81,8 +72,8 @@ export function detailFacts(request) {
     { label: "Model", value: `${request.model} at provider ${request.provider}` },
     { label: "Input tokens", value: inputText(request) },
   ];
-  for (const [label, column] of ROLE_COLUMNS) {
-    facts.push({ label, value: countOrMissing(request[column]) });
+  for (const role of INPUT_ROLES) {
+    facts.push({ label: role.name, value: countOrMissing(request[role.column]) });
   }
   facts.push(
     { label: "Output tokens", value: formatCount(request.completion_tokens) },

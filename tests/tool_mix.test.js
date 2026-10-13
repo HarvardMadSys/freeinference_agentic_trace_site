@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  stepPoints, TENTHS, TOOL_MIX_BY_TURN_POSITION, toolGroupLegend, toolMixPoints, toolMixTips, turnTicks,
+  stepPoints, TENTHS, TOOL_MIX_BY_TURN_POSITION, toolMixPoints, toolMixTips, turnTicks,
 } from "../site/js/comparison/tool_mix.js";
 import { dropThinGroups, restingCountText } from "../site/js/figures/figure_rows.js";
 import { TOOL_GROUP_COLOURS } from "../site/js/theme/colours.js";
@@ -45,7 +45,7 @@ test("a tenth's tooltip points at the top of its stack and lists its groups top 
 });
 
 test("the legend lists the rows' groups in the pipeline's order, each in its own colour", () => {
-  const { series, colours } = toolGroupLegend(ROWS, {}, "tool_group");
+  const { series, colours } = TOOL_MIX_BY_TURN_POSITION.legend(ROWS, {}, "tool_group");
   assert.deepEqual(series, [{ name: "Read", label: "Read" }, { name: "Search", label: "Search" }]);
   assert.equal(colours.get("Read"), TOOL_GROUP_COLOURS.Read);
 });

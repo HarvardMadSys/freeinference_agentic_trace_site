@@ -25,3 +25,7 @@ test("categories that share a colour are one entry, named after their tool group
     { name: "Write/Edit", colour: "var(--tool-group-write-edit)" },
   ]);
 });
+
+test("a session without tool calls has no category entries", () => {
+  assert.deepEqual(categoryEntries([], toolCategoryColours(SITE_ORDER)), []);
+});

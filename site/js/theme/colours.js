@@ -20,6 +20,12 @@ export const SERIES_SLOTS = Object.freeze([
   "var(--series-8)",
 ]);
 
+/**
+ * Violet, the seventh series slot and the one neither a token part nor a part of a session's time uses: the colour of
+ * a series that is neither, such as the whole input beside its token parts, or the subagents' line.
+ */
+export const VIOLET_SLOT = SERIES_SLOTS[6];
+
 /** The colour of every series past the eighth, folded together as "Other". */
 export const OTHER_SERIES = "var(--series-other)";
 
@@ -152,20 +158,12 @@ export const TOOL_GROUP_OF_CATEGORY = Object.freeze({
 });
 
 /**
- * The colour of each tool category of the release, the same in every chart: a category with a tool group takes the
- * group's, and the six without one each a colour of their own (`--tool-category-*` in `style.css`), so that the Other
- * grey is the category Other's alone.
+ * The colour of each tool category of the release, the same in every chart: a category with a tool group
+ * (`TOOL_GROUP_OF_CATEGORY`) takes the group's, and the six without one each a colour of their own
+ * (`--tool-category-*` in `style.css`), so that the Other grey is the category Other's alone.
  */
 export const TOOL_CATEGORY_COLOURS = Object.freeze({
-  "Read": TOOL_GROUP_COLOURS.Read,
-  "*Search": TOOL_GROUP_COLOURS.Search,
-  "Edit": TOOL_GROUP_COLOURS["Write/Edit"],
-  "Write": TOOL_GROUP_COLOURS["Write/Edit"],
-  "*Interpreter": TOOL_GROUP_COLOURS.Execute,
-  "*Build/Test": TOOL_GROUP_COLOURS["Build/Test"],
-  "*Git/VCS": TOOL_GROUP_COLOURS["Git/VCS"],
-  "Browser": TOOL_GROUP_COLOURS["Browser/Web"],
-  "*Network": TOOL_GROUP_COLOURS["Browser/Web"],
+  ...groupColourOfEachCategory(),
   "MCP": "var(--tool-category-mcp)",
   "Subagent": "var(--tool-category-subagent)",
   "Ask User": "var(--tool-category-ask-user)",
@@ -257,11 +255,6 @@ export function toolCategoryColour(category) {
   return TOOL_CATEGORY_COLOURS[category] ?? OTHER_SERIES;
 }
 
-/** A map from each wait cause, by its `waited_for` value in the paper's order, to its colour. */
-export function causeColours() {
-  return new Map(Object.entries(CAUSE_COLOURS));
-}
-
 /**
  * The colours every figure shares, `{ models, categories, providers }`, each a Map from name to colour, from the colour
  * orders, which cover every week and harness: a tool category in its own colour, the category Other last.
@@ -275,4 +268,13 @@ export async function figureColours(orders) {
     categories: toolCategoryColours(categories.map((row) => row.category)),
     providers: assignColours(providers.map((row) => row.provider)),
   });
+}
+
+// The colour of each tool category of `TOOL_GROUP_OF_CATEGORY`: its tool group's.
+function groupColourOfEachCategory() {
+  const colours = {};
+  for (const [category, group] of Object.entries(TOOL_GROUP_OF_CATEGORY)) {
+    colours[category] = TOOL_GROUP_COLOURS[group];
+  }
+  return colours;
 }

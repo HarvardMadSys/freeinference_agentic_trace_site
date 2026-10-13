@@ -15,7 +15,7 @@ import { formatCount, formatDurationTick, formatPercent, formatSeconds, formatSh
 import { GAP_FIGURES } from "./caching_gaps.js";
 import { API_COST_BY_TTL, INFRASTRUCTURE_COST_BY_TTL } from "../simulation/costs.js";
 import { PREFILL_AGAINST_STORAGE } from "../simulation/prefill.js";
-import { seriesLegend } from "./figure_rows.js";
+import { rowsWithSeriesColour, seriesLegend } from "./figure_rows.js";
 
 // The idle-gap bins mirror the pipeline's `gaps.IDLE_GAP_EDGES_S`: 26 bins between 27 geometric edges from 10 s to
 // one hour, each 1.25 times as wide as the one before. tests/test_pipeline_mirrors.py checks these three constants
@@ -45,7 +45,7 @@ export const FIGURES = Object.freeze([
     query: "figures/hit_ratio_by_idle_gap",
     binColumn: null,
     seriesColumn: "provider",
-    drawnRows: drawnProviderRows,
+    drawnRows: (rows, colours) => rowsWithSeriesColour(rows, "provider", colours.providers),
     legend: idleGapLegend,
     draw: drawIdleGapRetention,
   }),
@@ -77,12 +77,6 @@ export function idleGapLegend(rows, colours, seriesColumn) {
     labels[provider] = providerLabel(provider);
   }
   return seriesLegend(rows, seriesColumn, drawnColours, labels);
-}
-
-/** The idle-gap rows the figure draws: those of a provider among the eight with most requests over every week. */
-export function drawnProviderRows(rows, colours) {
-  const drawnProviders = slottedColours(colours.providers);
-  return rows.filter((row) => drawnProviders.has(row.provider));
 }
 
 /** Draw one line per provider of the rows, its median hit ratio per idle-gap bin, on a log axis of seconds. */

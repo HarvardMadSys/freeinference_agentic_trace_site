@@ -1,20 +1,21 @@
 /**
  * The Requests view: every request of a session's tree as a row of plain HTML, the top-level session's rows first,
- * each subagent's rows in a collapsed group under the row of the step that spawned it, nested to any depth.
+ * each subagent's rows in a collapsed group under the row of the step that spawned it, nested to any depth; above
+ * them, the legend of a bar's parts and of the chips' tool categories.
  *
  * A click on a row opens its details under it; a click on a group header expands or collapses that group. Brackets in
  * the left gutter join the rows of requests that ran at overlapping times; they are redrawn whenever the list
  * changes size, since expanding a group or opening details moves the rows.
  */
 
-import { drawBrackets, MAX_LANES } from "./request_brackets.js";
+import { drawBrackets, MAX_LANES, overlapGroups } from "./request_brackets.js";
 import { requestDetails } from "./request_details.js";
-import { overlapGroups } from "../session/overlaps.js";
 import { requestRow } from "./request_row.js";
-import { requestLegend } from "./request_legend.js";
-import { agentTree, callsByRequest, largestRequestTokens, requestKey } from "../session/tree.js";
+import { categoryEntries, legendLine } from "../session/legend.js";
+import { tokenPartEntries } from "../session/token_parts.js";
+import { agentTree, callsByRequest, largestRequestTokens, requestKey, topLevelSession } from "../session/tree.js";
 import { figureDefinition } from "../shared/charts.js";
-import { formatCount, formatSeconds, formatTokens, shortSessionId } from "../shared/format.js";
+import { formatCompactCount, formatCount, formatSeconds, shortSessionId } from "../shared/format.js";
 
 // How long a row the URL points at stays highlighted, in milliseconds.
 const HIGHLIGHT_MS = 2500;
@@ -39,7 +40,7 @@ const DEFINITION =
 export function mountRequestsView(container, tree, requests, toolCalls, options) {
   const calls = callsByRequest(toolCalls);
   const categoryColours = options.categoryColours;
-  const topLevel = tree.find((session) => session.depth === 0);
+  const topLevel = topLevelSession(tree);
   const layout = { originMs: topLevel.first_start_ms, largestTokens: largestRequestTokens(requests), categoryColours };
   const list = document.createElement("div");
   list.className = "request-list";
@@ -97,7 +98,7 @@ function subagentGroup(agent, drawing) {
 /** "↳ subagent 5478226a · 12 requests · 3m 04s · 120.4k tokens": its own requests, duration and input plus output. */
 function groupTitle(session) {
   const requestWord = session.requests === 1 ? "request" : "requests";
-  const tokens = formatTokens(session.input_tokens + session.output_tokens);
+  const tokens = formatCompactCount(session.input_tokens + session.output_tokens);
   const requests = `${formatCount(session.requests)} ${requestWord}`;
   const duration = formatSeconds(session.duration_s);
   return `↳ subagent ${shortSessionId(session.session_id)} · ${requests} · ${duration} · ${tokens} tokens`;
@@ -107,6 +108,20 @@ function groupTitle(session) {
 function setExpanded(group, isExpanded) {
   group.firstElementChild.setAttribute("aria-expanded", String(isExpanded));
   group.lastElementChild.hidden = !isExpanded;
+}
+
+/**
+ * The legend of the bars and chips: the three parts of a bar, then the categories of `toolCalls` in the site-wide
+ * order of `categoryColours`, the ones folded into the Other colour as one entry; no category line without a call.
+ */
+function requestLegend(toolCalls, categoryColours) {
+  const legend = document.createElement("div");
+  legend.append(legendLine("Tokens", tokenPartEntries()));
+  const categories = categoryEntries(toolCalls, categoryColours);
+  if (categories.length > 0) {
+    legend.append(legendLine("Tool calls", categories));
+  }
+  return legend;
 }
 
 /** The Expand all and Collapse all buttons, when the tree has subagents; an empty bar otherwise. */
