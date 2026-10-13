@@ -23,15 +23,15 @@ const KEY_SEPARATOR = "\u0000";
  * - `valueLabel`: what a value is, named in the tooltip, "Sessions: 412".
  * - `yLabel`: the value axis's title, none when null, where the card's title already says what the bars count.
  * - `valueFormat`: how a value is written in the tooltip; `yTickFormat`: on the value axis.
- * - `xLabel` and `xTickFormat`: the x axis's title and how a tick is written, for bars that are not weeks; without
- *   them, the x values are weeks, the axis has no title and its months are labelled (`weekTicks`).
+ * - `xLabel`: the x axis's title, none when null; `xTickFormat`: how a tick is written, "" for an unlabelled one, such
+ *   as `weekTicks` gives for an axis of weeks.
  * - `weeks`: every week the axis spans, `weeks.json`'s entries, each a bar's place even without rows and its months
  *   labelled once; without it, the bars of the rows' x values.
  * - `margins`: Plot margins in place of the frame's, where the bars should take more of the card's width.
  */
 export async function drawStackedBars(rows, body, colours, parameters, hidden) {
-  const { xColumn, seriesColumn, valueColumn, valueLabel, yLabel, valueFormat, yTickFormat } = parameters;
-  const { xLabel = null, xTickFormat, weeks, margins } = parameters;
+  const { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat } = parameters;
+  const { xLabel, yLabel, xTickFormat, yTickFormat, weeks, margins } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const folded = foldedRows(rows, colours.series, { xColumn, seriesColumn, valueColumn });
@@ -43,7 +43,7 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
     color: colourScale(colours.series, stacked),
     marks: [
       Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT }),
-      Plot.axisX({ ...AXIS_STYLE, tickFormat: xTickFormat ?? weekTicks(rows, xColumn, weeks), label: xLabel }),
+      Plot.axisX({ ...AXIS_STYLE, tickFormat: xTickFormat, label: xLabel }),
       Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: yTickFormat, label: yLabel }),
       Plot.barY(shown, {
         x: xColumn,
@@ -51,7 +51,7 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
         fill: seriesColumn,
         order: stacked, // the stacking order, bottom up
         inset: BAR_INSET,
-        title: (row) => barTipText(row, parameters),
+        title: (row) => barTipText(row, { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat }),
         tip: true,
       }),
       Plot.ruleY([0], AXIS_STYLE),
@@ -62,11 +62,11 @@ export async function drawStackedBars(rows, body, colours, parameters, hidden) {
 
 /**
  * The legend of stacked bars: `{ series, colours }`, the series of `colours` (a Map from series name to colour, in the
- * order the legend lists them) that the folded rows hold, "Other" among them, each labelled by `labels` where it has a
- * label there, else by its name.
+ * order the legend lists them) that the rows hold once folded, "Other" among them, each labelled by `labels` where it
+ * has a label there, else by its name.
  */
-export function stackedBarsLegend(rows, colours, { xColumn, seriesColumn, valueColumn, labels = {} }) {
-  const folded = foldedRows(rows, colours, { xColumn, seriesColumn, valueColumn });
+export function stackedBarsLegend(rows, colours, { seriesColumn, labels = {} }) {
+  const folded = foldToOther(rows, seriesColumn, [...colours.keys()]);
   return seriesLegend(folded, seriesColumn, colours, labels);
 }
 

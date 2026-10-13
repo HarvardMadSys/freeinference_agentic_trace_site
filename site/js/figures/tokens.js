@@ -10,7 +10,7 @@
 
 import { AXIS_STYLE, chartFrame, colourScale, distinct, GRID_STYLE, LINE_WIDTH } from "../shared/charts.js";
 import { cdfLegend, drawCdf } from "../charts/cdf.js";
-import { drawStackedBars, stackedBarsLegend } from "../charts/stacked_bars.js";
+import { drawStackedBars, stackedBarsLegend, weekTicks } from "../charts/stacked_bars.js";
 import { drawHistogram } from "../charts/histogram.js";
 import { axisWithTicks, decadeDomain, decadeTicks, sparseTickFormat } from "../axes/ticks.js";
 import { ROLE_COLOURS, TOKEN_PART_COLOURS, VIOLET_SLOT } from "../theme/colours.js";
@@ -89,10 +89,12 @@ export const FIGURES = Object.freeze([
     binColumn: "week",
     seriesColumn: "part",
     legend: (rows) => stackedBarsLegend(rows, new Map(Object.entries(TOKEN_PART_COLOURS)), {
-      xColumn: "week", seriesColumn: "part", valueColumn: "share", labels: TOKEN_PART_NAMES,
+      seriesColumn: "part", labels: TOKEN_PART_NAMES,
     }),
     draw: (rows, body, colours, hidden) => drawStackedBars(rows, body, colours, {
       xColumn: "week",
+      xLabel: null,
+      xTickFormat: weekTicks(rows, "week"),
       seriesColumn: "part",
       valueColumn: "share",
       valueLabel: "Share of tokens",
@@ -122,9 +124,7 @@ export const FIGURES = Object.freeze([
     query: "figures/context_share_by_role",
     binColumn: "bin_start",
     seriesColumn: "role",
-    legend: (rows) => stackedBarsLegend(rows, INPUT_ROLE_COLOURS, {
-      xColumn: "bin_start", seriesColumn: "role", valueColumn: "share", labels: ROLE_NAMES,
-    }),
+    legend: (rows) => stackedBarsLegend(rows, INPUT_ROLE_COLOURS, { seriesColumn: "role", labels: ROLE_NAMES }),
     draw: (rows, body, colours, hidden) => drawStackedBars(rows, body, colours, {
       xColumn: "bin_start",
       seriesColumn: "role",

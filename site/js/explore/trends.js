@@ -12,7 +12,7 @@ import { readAnswer } from "../shared/answers.js";
 import { barColours, HARNESS_FIRST_SLOT, OTHER_SERIES, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { formatCompactCount, formatCount, formatCountTick, formatQuantity } from "../shared/format.js";
 import { TOKEN_PART_NAMES } from "../session/token_parts.js";
-import { drawStackedBars, stackedBarsLegend } from "../charts/stacked_bars.js";
+import { drawStackedBars, stackedBarsLegend, weekTicks } from "../charts/stacked_bars.js";
 import { drawWithLegend } from "./legend.js";
 import { harnessText } from "./sessions_table_state.js";
 
@@ -139,8 +139,8 @@ async function drawInputTokensPerWeek(place, context) {
  * or, with `legendTopDown`, in the order the stack draws them from the top down.
  */
 async function drawTrend(body, rows, context, trend) {
-  const { seriesColumn, valueColumn, colours, labels, legendTopDown = false } = trend;
-  const legend = stackedBarsLegend(rows, colours, { xColumn: "week", seriesColumn, valueColumn, labels });
+  const { seriesColumn, colours, labels, legendTopDown = false } = trend;
+  const legend = stackedBarsLegend(rows, colours, { seriesColumn, labels });
   if (legendTopDown) {
     legend.series.reverse();
   }
@@ -152,6 +152,8 @@ async function drawTrend(body, rows, context, trend) {
 async function drawTrendBars(rows, body, context, trend, hidden) {
   await drawStackedBars(rows, body, { series: trend.colours }, {
     xColumn: "week",
+    xLabel: null,
+    xTickFormat: weekTicks(rows, "week", context.weeks),
     seriesColumn: trend.seriesColumn,
     valueColumn: trend.valueColumn,
     valueLabel: trend.valueLabel,

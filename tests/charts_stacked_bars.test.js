@@ -75,9 +75,7 @@ test("a figure of fewer series than colours folds none", () => {
 
 test("the legend lists the folded series in the colours' order, Other among them, each by its label", () => {
   const colours = barColours(ORDER);
-  const legend = stackedBarsLegend(ROWS, colours, {
-    xColumn: "week", seriesColumn: "harness", valueColumn: "sessions", labels: { h1: "One" },
-  });
+  const legend = stackedBarsLegend(ROWS, colours, { seriesColumn: "harness", labels: { h1: "One" } });
   assert.deepEqual(legend.series, [{ name: "h1", label: "One" }, { name: "Other", label: "Other" }]);
   assert.equal(legend.colours, colours);
 });

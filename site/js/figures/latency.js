@@ -47,15 +47,7 @@ export const TTFT_CDF_BY_MODEL = Object.freeze({
   seriesColumn: "series",
   drawnRows: (rows, colours) => rowsWithSeriesColour(rows, "series", colours.models),
   legend: modelCdfLegend,
-  draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
-    logScale: true,
-    xTicks: durationTicksOf(rows),
-    narrowXTicks: everyOther(durationTicksOf(rows)),
-    xTickFormat: formatDurationTick,
-    xLabel: null,
-    yLabel: "Share of requests",
-    valueFormat: formatSeconds,
-  }, hidden),
+  draw: drawModelCdf,
 });
 
 /** The decode time figure: the CDF of latency minus TTFT per model, for the models and requests of the TTFT figure. */
@@ -71,15 +63,7 @@ export const DECODE_CDF_BY_MODEL = Object.freeze({
   seriesColumn: "series",
   drawnRows: (rows, colours) => rowsWithSeriesColour(rows, "series", colours.models),
   legend: modelCdfLegend,
-  draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
-    logScale: true,
-    xTicks: durationTicksOf(rows),
-    narrowXTicks: everyOther(durationTicksOf(rows)),
-    xTickFormat: formatDurationTick,
-    xLabel: null,
-    yLabel: "Share of requests",
-    valueFormat: formatSeconds,
-  }, hidden),
+  draw: drawModelCdf,
 });
 
 /** The speed-up figure: the sessions' machine time over the same with prefill, decode or tool time alone halved. */
@@ -134,6 +118,20 @@ export function speedupAxisEnd(bars) {
  */
 export function modelCdfLegend(rows, colours) {
   return cdfLegend(rows, slottedColours(colours.models));
+}
+
+/** Draw a model CDF: one line per model, in seconds on a log axis ticked at the durations within its rows' range. */
+function drawModelCdf(rows, body, colours, hidden) {
+  const ticks = durationTicksOf(rows);
+  return drawCdf(rows, body, colours, {
+    logScale: true,
+    xTicks: ticks,
+    narrowXTicks: everyOther(ticks),
+    xTickFormat: formatDurationTick,
+    xLabel: null,
+    yLabel: "Share of requests",
+    valueFormat: formatSeconds,
+  }, hidden);
 }
 
 /** A model CDF's x ticks: the durations people count time in (`durationTicks`) within the rows' range of seconds. */
