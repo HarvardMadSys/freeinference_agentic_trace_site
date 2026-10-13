@@ -31,7 +31,7 @@ const ASTERISK_NOTE = "* a shell command, by its purpose";
  * shares, Other last), each in its category's colour, and the asterisk's note in the figure's legend place. It has no
  * series to hide. Its named parameters:
  * - `unitFactor`: the factor from the query's unit to the drawn one, `1 / 1000` for milliseconds drawn in seconds.
- * - `floor`: the smallest value drawn, in the drawn unit; a smaller one is drawn at it, on the log axis; else none.
+ * - `floor`: the smallest value drawn, in the drawn unit; a smaller one is drawn at it, on the log axis.
  * - `xLabel`: the value axis's title.
  * - `valueFormat`: how a value is written in the tooltip; `xTickFormat`: how a power of ten is written on the axis.
  * Required: `unitFactor`, `floor` (a log axis has no place for 0, and a 0 percentile without a floor never ends its
