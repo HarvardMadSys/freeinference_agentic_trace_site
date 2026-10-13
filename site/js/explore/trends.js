@@ -12,7 +12,7 @@ import {
   columnTotal, drawBars, foldToOther, renderFigure, showError, showLoading, sumFolded,
 } from "../shared/charts.js";
 import { weekTickFormat } from "../axes/ticks.js";
-import { barColours, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
+import { barColours, HARNESS_FIRST_SLOT, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { seriesLegend } from "../figures/figure_rows.js";
 import { formatCountTick, formatQuantity, formatTokens } from "../shared/format.js";
 import { TOKEN_PART_NAMES } from "../session/token_parts.js";
@@ -96,7 +96,7 @@ async function drawSessionsPerWeek(place, context) {
     rows: formatQuantity(columnTotal(rows, "sessions"), "session", "sessions"),
   });
   const order = harnessRows.map((row) => row.harness);
-  const colours = barColours(order);
+  const colours = barColours(order, HARNESS_FIRST_SLOT);
   await drawTrend(body, rows, context, { y: "sessions", fill: "harness", order, colours, yLabel: "Sessions" });
 }
 

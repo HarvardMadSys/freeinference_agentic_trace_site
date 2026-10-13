@@ -98,10 +98,11 @@
   --wait-user: color-mix(in srgb, var(--part-user) 45%, var(--wait-tint-base));
   --wait-subagent: color-mix(in srgb, var(--cause-subagent) 45%, var(--wait-tint-base));
 
-  /* The roles of a request's input, in slots no token part uses, since the Context view splits one area either way:
-     system violet, and the three others in the colour of the part of a session's time they come from, the user's
-     red, the assistant's (what the model decoded) orange and tool results green; tool definitions grey. */
-  --role-system: var(--series-7);
+  /* The roles of a request's input, in hues no token part uses, since the Context view splits one area either way:
+     system a cerulean (OKLCH hue 224°) that no token part, no part of a session's time and no other series takes, and
+     the three others in the colour of the part of a session's time they come from, the user's red, the assistant's
+     (what the model decoded) orange and tool results green; tool definitions grey. */
+  --role-system: #0992b7;
   --role-user: var(--part-user);
   --role-assistant: var(--part-decode);
   --role-tool-results: var(--part-tool);
@@ -122,6 +123,16 @@
   --tool-group-git-vcs: var(--series-8);
   --tool-group-browser-web: var(--series-5);
   --tool-group-other: var(--series-other);
+
+  /* The six tool categories that have no tool group, each in a colour of its own, so that grey is Other alone: hues
+     between the groups' (OKLCH MCP indigo 274°, Subagent purple 316°, Ask User rose 359°, *Wait/Poll olive 112°,
+     *File Ops sea green 167°) and *Packages in the orange slot, which no group takes; each at 3.3 to 4.6:1 on the card. */
+  --tool-category-mcp: #5f6fee;
+  --tool-category-subagent: #b962da;
+  --tool-category-ask-user: #cf3b7a;
+  --tool-category-packages: var(--series-2);
+  --tool-category-wait-poll: #888c02;
+  --tool-category-file-ops: #08946f;
 
   /* The six gap bins, shortest gap lightest: the first series' blue (OKLCH hue 255°) from 64% to 32% lightness in even
      steps, so the lightest keeps 3:1 on the card and the darkest stays blue. */
@@ -174,6 +185,14 @@
     --series-7: #a386fa;
     --series-8: #fb6874;
     --series-other: #8c8480;
+
+    /* The role and the tool categories of their own hues, at 4.6 to 6:1 on the dark card. */
+    --role-system: #03a6cf;
+    --tool-category-mcp: #7588ff;
+    --tool-category-subagent: #cd75ee;
+    --tool-category-ask-user: #e95590;
+    --tool-category-wait-poll: #a2a705;
+    --tool-category-file-ops: #02ae82;
 
     /* The gap bins on the dark card: the same blue from 90% to 62% lightness, so the darkest keeps 3:1 on it. */
     --gap-bin-1: #cae0fd;

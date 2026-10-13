@@ -4,7 +4,7 @@ import { OTHER_NAME, OTHER_SERIES, TOOL_GROUP_OF_CATEGORY } from "../theme/colou
 
 /**
  * The legend entries `[{ name, colour }]` of the categories of `toolCalls`, one per colour, in the site-wide order of
- * `categoryColours` (a map from each category to its tool group's colour): named after the category when it is the
+ * `categoryColours` (a map from each category to its colour): named after the category when it is the
  * only one called in its colour, after its tool group when several are (a chip's tooltip names its category); the
  * ones in the Other grey, the category Other among them, as one entry "Other", last.
  */

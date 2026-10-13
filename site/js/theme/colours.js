@@ -3,7 +3,7 @@
  *
  * Every colour is a CSS variable from `style.css`, so a chart follows the page into dark mode with no JavaScript.
  * Names get colours from one fixed order, so the same model or provider has the same colour in every chart; a tool
- * category takes its tool group's colour; and a token part, a part of a session's time, a wait cause, a transition, a
+ * category has one colour of its own, its tool group's where it has one; and a token part, a part of a session's time, a wait cause, a transition, a
  * gap bin and a simulated population always take their own tokens. These are plain constants and functions, tested
  * with `node --test`.
  */
@@ -25,6 +25,12 @@ export const OTHER_SERIES = "var(--series-other)";
 
 /** The name a series past the eighth takes once folded; it is here because `barColours` gives it `OTHER_SERIES`. */
 export const OTHER_NAME = "Other";
+
+/**
+ * The series slot the harnesses' colours start from, where the models' start from the first: the harness mix and the
+ * model mix side by side then open on different colours, so the largest harness is not taken for the largest model.
+ */
+export const HARNESS_FIRST_SLOT = 4;
 
 /**
  * The colour of each part of a request's tokens, the same in every chart: slots no part of a session's time uses, so
@@ -146,6 +152,30 @@ export const TOOL_GROUP_OF_CATEGORY = Object.freeze({
 });
 
 /**
+ * The colour of each tool category of the release, the same in every chart: a category with a tool group takes the
+ * group's, and the six without one each a colour of their own (`--tool-category-*` in `style.css`), so that the Other
+ * grey is the category Other's alone.
+ */
+export const TOOL_CATEGORY_COLOURS = Object.freeze({
+  "Read": TOOL_GROUP_COLOURS.Read,
+  "*Search": TOOL_GROUP_COLOURS.Search,
+  "Edit": TOOL_GROUP_COLOURS["Write/Edit"],
+  "Write": TOOL_GROUP_COLOURS["Write/Edit"],
+  "*Interpreter": TOOL_GROUP_COLOURS.Execute,
+  "*Build/Test": TOOL_GROUP_COLOURS["Build/Test"],
+  "*Git/VCS": TOOL_GROUP_COLOURS["Git/VCS"],
+  "Browser": TOOL_GROUP_COLOURS["Browser/Web"],
+  "*Network": TOOL_GROUP_COLOURS["Browser/Web"],
+  "MCP": "var(--tool-category-mcp)",
+  "Subagent": "var(--tool-category-subagent)",
+  "Ask User": "var(--tool-category-ask-user)",
+  "*Packages": "var(--tool-category-packages)",
+  "*Wait/Poll": "var(--tool-category-wait-poll)",
+  "*File Ops": "var(--tool-category-file-ops)",
+  "Other": OTHER_SERIES,
+});
+
+/**
  * The colour of each scope, by the pipeline's name of it, as the simulation's rows and the scope queries give it: the
  * paper's harnesses (human-driven) blue and the benchmark replay red, as the paper draws them.
  */
@@ -164,15 +194,19 @@ export const GAP_BIN_SLOTS = Object.freeze([
   "var(--gap-bin-6)",
 ]);
 
-/** A map from each distinct name, in the given order, to its series colour; the ninth and beyond to `OTHER_SERIES`. */
-export function assignColours(names) {
+/**
+ * A map from each distinct name, in the given order, to its series colour, the first taking the slot `firstSlot` (0,
+ * the first, by default) and the next ones the slots after it, round to the first; the ninth and beyond to
+ * `OTHER_SERIES`.
+ */
+export function assignColours(names, firstSlot = 0) {
   const colours = new Map();
   for (const name of names) {
     if (colours.has(name)) {
       continue;
     }
-    const slot = colours.size < SERIES_SLOTS.length ? SERIES_SLOTS[colours.size] : OTHER_SERIES;
-    colours.set(name, slot);
+    const slot = (firstSlot + colours.size) % SERIES_SLOTS.length;
+    colours.set(name, colours.size < SERIES_SLOTS.length ? SERIES_SLOTS[slot] : OTHER_SERIES);
   }
   return colours;
 }
@@ -191,17 +225,17 @@ export function slottedColours(colours) {
   return slotted;
 }
 
-/** A bar chart's colours: the first eight of `names` in their series colours, and "Other", which the rest fold into. */
-export function barColours(names) {
-  const colours = assignColours(names.slice(0, SERIES_SLOTS.length));
+/**
+ * A bar chart's colours: the first eight of `names` in their series colours from the slot `firstSlot` (as
+ * `assignColours` gives them), and "Other", which the rest fold into.
+ */
+export function barColours(names, firstSlot = 0) {
+  const colours = assignColours(names.slice(0, SERIES_SLOTS.length), firstSlot);
   colours.set(OTHER_NAME, OTHER_SERIES);
   return colours;
 }
 
-/**
- * A map from each tool category of `categories`, in their order but with the category Other last, to its tool group's
- * colour; a category with no group, Other included, takes the grey of a folded series.
- */
+/** A map from each tool category of `categories`, in their order but with the category Other last, to its colour. */
 export function toolCategoryColours(categories) {
   const colours = new Map();
   for (const category of categories) {
@@ -215,10 +249,12 @@ export function toolCategoryColours(categories) {
   return colours;
 }
 
-/** The colour of the tool category `category`: its tool group's, or the Other grey when it has none. */
+/**
+ * The colour of the tool category `category` (`TOOL_CATEGORY_COLOURS`); a category the release does not name, which
+ * has no colour yet, the Other grey.
+ */
 export function toolCategoryColour(category) {
-  const group = TOOL_GROUP_OF_CATEGORY[category];
-  return group === undefined ? OTHER_SERIES : TOOL_GROUP_COLOURS[group];
+  return TOOL_CATEGORY_COLOURS[category] ?? OTHER_SERIES;
 }
 
 /** A map from each wait cause, by its `waited_for` value in the paper's order, to its colour. */
@@ -228,7 +264,7 @@ export function causeColours() {
 
 /**
  * The colours every figure shares, `{ models, categories, providers }`, each a Map from name to colour, from the colour
- * orders, which do not depend on the selection: a tool category in its tool group's colour, the category Other last.
+ * orders, which do not depend on the selection: a tool category in its own colour, the category Other last.
  */
 export async function figureColours(orders) {
   const models = await orders.models;

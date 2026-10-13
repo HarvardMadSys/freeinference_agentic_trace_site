@@ -12,7 +12,7 @@
 
 import { columnTotal, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { formatCompactCount, formatCount, formatQuantity, formatShare } from "../shared/format.js";
-import { barColours, OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
+import { barColours, HARNESS_FIRST_SLOT, OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
 import { drawWithLegend } from "../explore/legend.js";
 import { donutArcs } from "./arcs.js";
 
@@ -88,7 +88,8 @@ async function drawHarnessMix(place, context) {
   const orderRows = await context.orders.harnesses;
   const rows = await context.sessionsPerWeekByHarness; // the page asks for them once, for this and the sessions trend
   const order = orderRows.map((row) => row.harness);
-  await drawMix(place, donutSlices(rows, "harness", "sessions", order), barColours(order), {
+  const colours = barColours(order, HARNESS_FIRST_SLOT);
+  await drawMix(place, donutSlices(rows, "harness", "sessions", order), colours, {
     title: "Harness mix",
     caption: "Each harness's share of the human-driven sessions.",
     definition: "Top-level sessions of the paper's harnesses over every week, by harness. The harnesses among the eight "

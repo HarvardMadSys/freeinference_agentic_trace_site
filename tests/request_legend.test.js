@@ -27,10 +27,12 @@ test("only the session's categories are listed, in the site-wide order with its 
   ]);
 });
 
-test("categories with no tool group are one grey Other entry", () => {
-  const entries = legendEntries(calls("Subagent", "Edit", "MCP"), toolCategoryColours(SITE_ORDER)).categories;
-  assert.deepEqual(entries.map((entry) => entry.name), ["Edit", "Other"]);
-  assert.equal(entries[1].colour, "var(--series-other)");
+test("categories with no tool group each have an entry in their own colour, and Other alone is grey", () => {
+  const order = [...SITE_ORDER, "Other"];
+  const entries = legendEntries(calls("Subagent", "Edit", "MCP", "Other"), toolCategoryColours(order)).categories;
+  assert.deepEqual(entries.map((entry) => entry.name), ["MCP", "Edit", "Subagent", "Other"]);
+  assert.equal(entries[0].colour, "var(--tool-category-mcp)");
+  assert.equal(entries[3].colour, "var(--series-other)");
 });
 
 test("a session without tool calls has no category entries", () => {
