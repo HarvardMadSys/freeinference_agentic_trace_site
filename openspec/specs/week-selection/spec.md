@@ -11,7 +11,7 @@ The session list's filter SHALL be written to the Explore page's
 URL query string as
 `months=<YYYY-MM>` and `harnesses=<name>` (one of each, as the drop-downs
 choose), and SHALL be read from it when the page opens; it SHALL change
-nothing but the list. The default (every month, every harness) SHALL
+nothing but the list. A month SHALL keep the sessions whose start, in UTC, falls in that calendar month, and the month drop-down SHALL list every calendar month from the first week's Sunday to the last week's Saturday. The default (every month, every harness) SHALL
 write no key. The Session page SHALL carry the keys back to the Explore
 page's Session Explorer. A
 month or harness in the URL that the data do not hold SHALL be ignored,
@@ -36,10 +36,17 @@ as the default; each SHALL be rewritten.
 - **WHEN** a visitor opens a link with `?weeks=2026-07-05,2026-07-12&scope=All`
 - **THEN** the list SHALL filter to July 2026 and the URL SHALL be rewritten as `months=2026-07`
 
+#### Scenario: A session at a week's end
+- **WHEN** the visitor picks May 2026
+- **THEN** a session started June 6 in the week of May 31 SHALL NOT be listed, and September 2026 SHALL be an option that lists the sessions started September 1 to 5
+
 ### Requirement: The selection reaches queries as tables
 The data step SHALL fill `selected_weeks` with every week and
 `selected_harnesses` with every harness but the benchmark's before it
-answers the Explore and figure queries, and `benchmark_harness` from
+answers the figure queries, and with every harness, the benchmark's
+included, before it answers the Explore queries (the Overview's mixes
+and trends, the sessions table's, its first page's and the trace
+totals'), and `benchmark_harness` from
 `harnesses.json`; the queries SHALL read their population from those
 tables and from nothing else. For the session buckets it SHALL fill
 `selected_weeks` with one week at a time. The Explore page SHALL answer
@@ -58,3 +65,7 @@ fill no selection table.
 #### Scenario: The Session page
 - **WHEN** a session is opened
 - **THEN** no selection table SHALL be filled and no query SHALL run
+
+#### Scenario: An Overview query
+- **WHEN** `make data` answers `explore/model_mix`
+- **THEN** it SHALL have run with every harness, the benchmark's included, in `selected_harnesses`

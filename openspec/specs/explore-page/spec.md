@@ -9,9 +9,12 @@ sessions that leads into any one of them.
 
 ### Requirement: Weekly trends
 Three cards in the Overview SHALL show per week the sessions by harness,
-the requests by model and the input tokens cached and uncached, as stacked
+the requests by model and the input tokens cached and uncached, over
+every harness, the benchmark's included, as stacked
 bars, the series the donuts name (those holding the eight series colours)
-named and the rest folded into Other, with legends that toggle. With the figures frozen, a bar SHALL NOT narrow the
+named and the rest folded into Other, with legends that toggle, each
+chart as wide as its card's body, its x axis ticked at every month the
+weeks span, the first and the last included. With the figures frozen, a bar SHALL NOT narrow the
 page.
 
 #### Scenario: Clicking a bar
@@ -21,6 +24,10 @@ page.
 #### Scenario: Models per week
 - **WHEN** the requests-per-week card draws
 - **THEN** each week's bar SHALL be split by model, the models the model-mix donut names named and the rest Other
+
+#### Scenario: The benchmark's weeks
+- **WHEN** the sessions-per-week card draws
+- **THEN** the benchmark replay's sessions SHALL be in their weeks' bars as the `swe-bench` series
 
 ### Requirement: Headline numbers
 The headline numbers SHALL be the stats strip of the hero and nothing
@@ -42,12 +49,17 @@ Duration, Input tokens, Cached share. Above it, one row of plain form
 controls: a month drop-down ("All months" and one entry per month), a harness
 drop-down ("All harnesses" and one entry per harness, the benchmark replay
 named "swe-bench (benchmark)"), a model drop-down, a minimum number of
-requests and a search box; no line explaining the months. There SHALL be no pills and no buttons. The
-visitor SHALL be able to sort by any column. The table SHALL NOT scroll
+requests and a search box; no line explaining the months. There SHALL be no pills and no buttons but
+the sort buttons in the column headers. The
+visitor SHALL be able to sort by any column from the keyboard as well as
+the mouse, each header a button that announces its sort state. The table SHALL NOT scroll
 inside its card: the page scrolls, and where the table fits its card its
 header row SHALL stay in view under the site header. It SHALL keep the
 filters, sort and page in the URL. Clicking a row SHALL open the
-Session page.
+Session page. On the default view the table SHALL draw its first page
+from the small answer `explore/sessions_first_page` (the 20 newest
+sessions and the total count) before the full list is fetched, and
+enable its controls once the full list has arrived.
 
 #### Scenario: Searching for a session
 - **WHEN** the visitor types the first eight characters of a session's id
@@ -77,17 +89,25 @@ Session page.
 - **WHEN** the Session Explorer draws
 - **THEN** the line under its heading SHALL say that clicking a session opens it, and no line SHALL explain what a month holds
 
+#### Scenario: The first page before the list
+- **WHEN** a visitor opens the page with no table key in the URL on a slow connection
+- **THEN** the first 20 rows and the total SHALL be drawn from the first-page answer before `sessions_of_selection.json` has arrived, and the filters SHALL be enabled once it has
+
+#### Scenario: Sorting from the keyboard
+- **WHEN** the visitor tabs to the Requests header and presses Enter
+- **THEN** the table SHALL sort by requests and the header SHALL announce the direction
+
 ### Requirement: The page appears before the data
 The Explore page SHALL draw its layout and pickers from `weeks.json` and
 `harnesses.json` first. With the default selection it SHALL then draw every
-number, card, the table and the shown topic's figures from the precomputed answers, without
-waiting for DuckDB. With any other selection it SHALL show a loading state
+number, card, the table's first page and the shown topic's figures from the precomputed answers, without
+waiting for DuckDB or for the full session list. With any other selection it SHALL show a loading state
 in place of each part until its query returns. A failed query SHALL show its
 error in its own place without stopping the others.
 
 #### Scenario: The default view
 - **WHEN** a visitor opens the page with no selection in the URL
-- **THEN** every number, card, the table and the shown topic's figures SHALL be drawn from `data/all_weeks/` before any DuckDB module or Parquet file is fetched
+- **THEN** every number, card, the table's first page and the shown topic's figures SHALL be drawn from `data/all_weeks/` before any DuckDB module or Parquet file is fetched
 
 #### Scenario: A slow connection
 - **WHEN** the selection is one week and DuckDB-WASM takes several seconds to download
@@ -106,8 +126,12 @@ twelve words under the chart, and its definition (at most forty words)
 and row count behind a control. A click on a tab SHALL show its topic
 and hide the others, and SHALL write the topic's anchor to the URL's
 hash, so that a link with that hash opens the Insights on that topic and
-the browser's Back returns to the topic before. A topic's figures SHALL
+the browser's Back returns to the topic before, whatever anchor the page
+opened on. The tab row SHALL follow the ARIA tabs pattern: one tab stop,
+the arrow keys, Home and End moving between topics, each topic a tab
+panel labelled by its tab. A topic's figures SHALL
 be drawn when its tab is first shown, at the width the card has then.
+Every series a chart draws SHALL be in its legend.
 
 | Topic | Figures, in order |
 |---|---|
@@ -159,6 +183,18 @@ Nothing on the page SHALL run a query in the browser.
 - **WHEN** the visitor has switched from the first topic to the fourth and presses the browser's Back
 - **THEN** the first topic SHALL be shown again
 
+#### Scenario: Back from the Session page's link
+- **WHEN** the page was opened at `#sessions`, the visitor clicks "03 Latency" and presses Back
+- **THEN** the first topic SHALL be shown again
+
+#### Scenario: The arrow keys
+- **WHEN** the shown tab has focus and the visitor presses ArrowRight
+- **THEN** the next topic SHALL be shown and its tab focused, and Tab SHALL leave the row
+
+#### Scenario: A series in the legend
+- **WHEN** the API cost figure draws
+- **THEN** its legend SHALL list every part the stack draws, the output part included
+
 ### Requirement: Same definitions as the paper
 With the default selection, every number a figure shares with the paper's
 `numbers.json` (for example the median input tokens per request, the pooled
@@ -190,7 +226,8 @@ for the selection SHALL say so instead of drawing empty axes.
 In a figure or trend with more than one series, each legend entry SHALL be a
 button that hides or shows its series, redrawing the chart from the rows it
 already has without a query. A hidden series SHALL be shown struck through
-in the legend. The hidden set SHALL NOT be kept in the URL and SHALL reset
+in the legend. The legend SHALL be one tab stop, the arrow keys moving
+between its buttons. The hidden set SHALL NOT be kept in the URL and SHALL reset
 when the selection changes.
 
 #### Scenario: Hiding a harness in the trend
@@ -201,14 +238,31 @@ when the selection changes.
 - **WHEN** the visitor clicks one model in the TTFT figure's legend
 - **THEN** that model's line SHALL disappear and the figure's caption SHALL still give the rows the figure rests on
 
+#### Scenario: Tabbing past a legend
+- **WHEN** the visitor presses Tab on a legend's focused button
+- **THEN** focus SHALL leave the legend, and ArrowRight SHALL have moved it to the next button instead
+
 ### Requirement: Readable in both colour schemes and on a phone
-Charts SHALL use one colour per series, consistent across figures, SHALL
+Charts SHALL use one colour per series, consistent across figures: a
+tool category SHALL have the same colour in every chart and only Other
+SHALL be grey; no role of a request's input SHALL share a hue with a
+part of its tokens or a part of a session's time. Every chart SHALL carry
+an accessible name made of its title and its insight (or caption). Charts SHALL
 be legible in both colour schemes, and SHALL fit a 360-pixel-wide screen
-without horizontal scrolling of the page.
+without horizontal scrolling of the page. Every bar chart SHALL start its
+bars at zero, and no line label SHALL cross its line.
 
 #### Scenario: A phone
 - **WHEN** the page is opened 360 pixels wide
 - **THEN** figures SHALL stack in one column and the page SHALL not scroll sideways
+
+#### Scenario: Grey means Other
+- **WHEN** the tool latency figure draws
+- **THEN** MCP, Subagent, Ask User, `*Packages`, `*Wait/Poll` and `*File Ops` SHALL each have a colour of their own and Other alone SHALL be grey
+
+#### Scenario: A screen reader
+- **WHEN** a screen reader reaches a figure's chart
+- **THEN** it SHALL read the figure's title and insight
 
 ### Requirement: Hero and stats strip
 The page SHALL open with a hero: the title "FreeInference Agentic
@@ -245,22 +299,29 @@ dates. The strip SHALL NOT mention the benchmark.
 ### Requirement: Overview donuts
 Below the hero, two cards SHALL show the model mix (the share of requests
 per model, the eight most frequent named, the rest as Other) and the
-harness mix (the share of sessions per harness) as donuts with legends
-that toggle, in the site's colour orders, followed by the three weekly
-trend cards.
+harness mix (the share of sessions per harness), both over every
+harness, the benchmark's included, so that the donuts' centre counts
+equal the stats strip's, as donuts with legends
+that toggle, in the site's colour orders, the harnesses' colours starting
+from a different slot than the models', followed by the three weekly
+trend cards. On a phone a donut's legend SHALL be one column.
 
 #### Scenario: The model mix
 - **WHEN** the page draws
 - **THEN** the model-mix donut's shares SHALL equal the `explore/model_mix` answer and its colours SHALL match the models' colours elsewhere
 
+#### Scenario: The harness mix
+- **WHEN** the page draws
+- **THEN** the harness-mix donut SHALL name `swe-bench` among the harnesses, its centre SHALL read the stats strip's session count, and its first slice SHALL NOT share the model mix's first colour
+
 ### Requirement: Cite, Team and footer
 The page SHALL end with a Cite section holding the paper's BibTeX in a
-block with a copy button; a Team section naming Harvard MadSys and
+block with a copy button, its lines wrapping rather than scrolling; a Team section naming Harvard MadSys and
 collaborators and the paper's authors with their affiliations, and no
 About paragraph; and a footer with the brand
 line "FreeInference Agentic
-Dataset", the line "Sixteen weeks worth of coding agent traces from
-FreeInference.", the lab's name "Harvard SEAS · MadSys Lab" linking to the
+Dataset", the line "<N> weeks worth of coding agent traces from
+FreeInference." with N the count of `weeks.json` in digits, the lab's name "Harvard SEAS · MadSys Lab" linking to the
 lab, and the on-site and elsewhere links, and nothing
 else: no copyright line and no policy links. Every link that leaves the
 site, on any page, SHALL show an arrow after its text.
@@ -280,3 +341,7 @@ site, on any page, SHALL show an arrow after its text.
 #### Scenario: A link off the site
 - **WHEN** the visitor looks at the hero's Paper button or the footer's Dataset link
 - **THEN** each SHALL end in an arrow, and the Session Explorer link SHALL not
+
+#### Scenario: The footer counts the weeks
+- **WHEN** the data gains a week
+- **THEN** the footer's line SHALL open "17 weeks" as the hero's lede does, without an edit to the page
