@@ -72,8 +72,7 @@ Thin-bin hiding and the line of rows stay in the runner, because the
 counting rules vary by figure, not by kind. After 3.3 an entry keeps
 the fields that describe its rows: `binColumn` (a column, or null when
 every row is its own bin), `seriesColumn`, `seriesOverSameRows`,
-`seriesNouns`, `drawnRows`, `drawsLines` (which picks the legend's
-swatch), and `readsSimulation` (formerly `isSimulation`); a histogram
+`seriesNouns`, `drawnRows`, and `readsSimulation` (formerly `isSimulation`); a histogram
 declares its `statsQuery`, which is what the runner checks. The week
 bars kind generalises to stacked bars over a named x column
 (`stacked_bars.js`, `xColumn`, `weeks` and `margins` optional), so the
