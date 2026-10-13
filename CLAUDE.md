@@ -3,8 +3,9 @@
 This is the FreeInference trace site: a static, public visualizer and explorer
 for the agentic trace. Start with `README.md` (what it is, how to run it, the
 map of the folders) and `CONTRIBUTING.md` (the rules, the patterns to copy,
-how to verify a change). The specifications are in `openspec/`; a change being
-built is a folder of `openspec/changes/` other than `archive/`.
+how to verify a change). The specifications are in `openspec/specs/`; a change being
+built is a folder of `openspec/changes/`, and a finished one lives in git
+history.
 
 The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
 

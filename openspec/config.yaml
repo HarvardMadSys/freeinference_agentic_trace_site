@@ -11,7 +11,7 @@ context: |
   every definition; this site imports them and only filters, counts and
   draws.
 
-  Engineering rules (binding; see openspec/specs/site-repository):
+  Engineering rules (binding; see openspec/specs/site):
   - It MUST NOT be complicated. Simple, readable and maintainable first.
   - No premature optimisation: plainest correct code; speed up only after a
     measured run shows it is too slow, and record the measurement.

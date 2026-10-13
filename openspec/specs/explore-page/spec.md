@@ -1,9 +1,9 @@
 # explore-page Specification
 
 ## Purpose
-The site's landing page: what the trace holds for the selected weeks and
-scope, how it is distributed, how it changed week to week, and the table of
-sessions that leads into any one of them.
+The site's landing page: what the trace holds over every week, how it is
+distributed, how it changed week to week, the table of sessions that leads
+into any one of them, and the figures behind the paper's findings.
 
 ## Requirements
 
@@ -32,7 +32,7 @@ weeks span, the first and the last included. A bar SHALL take no click.
 The headline numbers SHALL be the stats strip of the hero and nothing
 else; no separate tile strip and no population line SHALL be drawn.
 
-#### Scenario: Every week, scope All
+#### Scenario: Every week and every harness
 - **WHEN** the page draws
 - **THEN** the stats strip SHALL show the counts over every week and every harness, the benchmark's included
 
@@ -95,6 +95,32 @@ enable its controls once the full list has arrived.
 #### Scenario: Sorting from the keyboard
 - **WHEN** the visitor tabs to the Requests header and presses Enter
 - **THEN** the table SHALL sort by requests and the header SHALL announce the direction
+
+### Requirement: The filter lives in the URL
+The session list's filter SHALL be written to the Explore page's
+URL query string as
+`months=<YYYY-MM>` and `harnesses=<name>` (one of each, as the drop-downs
+choose), and SHALL be read from it when the page opens; it SHALL change
+nothing but the list. A month SHALL keep the sessions whose start, in UTC, falls in that calendar month, and the month drop-down SHALL list every calendar month from the first week's Sunday to the last week's Saturday. The default (every month, every harness) SHALL
+write no key. The Session page SHALL carry the keys back to the Explore
+page's Session Explorer. A
+month or harness in the URL that the data do not hold SHALL be ignored,
+and the list SHALL say which. A key naming several months or harnesses
+SHALL keep its first and be rewritten. No other key SHALL be read or
+rewritten: the filter's keys are `months`, `harnesses`, `model`,
+`min_requests`, `search`, `sort`, `direction` and `page`.
+
+#### Scenario: Sharing a view
+- **WHEN** a visitor opens a link with `index.html?months=2026-07&harnesses=hermes,codex`
+- **THEN** the session list SHALL list July 2026's `hermes` sessions, the URL SHALL be rewritten as `?months=2026-07&harnesses=hermes`, and every figure SHALL be as without the keys
+
+#### Scenario: A session at a week's end
+- **WHEN** the visitor picks May 2026
+- **THEN** a session started June 6 in the week of May 31 SHALL NOT be listed, and September 2026 SHALL be an option that lists the sessions started September 1 to 5
+
+#### Scenario: An old key
+- **WHEN** a visitor opens a link with `?weeks=2026-07-05&scope=All`
+- **THEN** the page SHALL open with the list unfiltered and leave the keys in the URL as they are
 
 ### Requirement: The page appears before the data
 The Explore page SHALL draw its layout from `weeks.json` and
@@ -210,39 +236,40 @@ Nothing on the page SHALL run a query in the browser.
 - **THEN** the change SHALL be one `.sql` file, one entry whose `draw` calls the kind, its lines in the tests that list queries and figures, `make data` and `make snapshots`
 
 ### Requirement: Same definitions as the paper
-With the default selection, every number a figure shares with the paper's
+Every number a figure shares with the paper's
 `numbers.json` (for example the median input tokens per request, the pooled
 cost shares, the median gap by cause, the mean hit ratio by cause, the
 median hit ratio after an append and after a mutation) SHALL equal the
 paper's value. Where the site draws a figure more simply than the paper
 (fixed bins instead of bins fitted to the data, thin bins hidden instead of
 merged, model time not split into prefill and decode, no queueing estimate),
-the figure's definition SHALL say so.
+README's "Where the numbers come from" SHALL say so, and no figure's
+definition SHALL name the paper.
 
 #### Scenario: The median input tokens per request
-- **WHEN** the selection is the default
+- **WHEN** the answers are built
 - **THEN** the median of `tokens_per_request_cdf`'s input series SHALL equal `sessions.tokens_per_request.median_input` in the paper's `numbers.json`
 
 #### Scenario: The median gap after a tool
-- **WHEN** the selection is the default
+- **WHEN** the answers are built
 - **THEN** the median of `gap_cdf_by_cause`'s tool series SHALL equal the paper's `median_gap_s_tool`
 
 ### Requirement: Thin data is not drawn
 A bin, category or model with fewer rows than a named threshold SHALL NOT be
-drawn, and the figure SHALL say how many were hidden. A figure with no rows
-for the selection SHALL say so instead of drawing empty axes.
+drawn, and the figure's line of rows SHALL say how many were hidden. A
+figure whose answer holds no rows SHALL say so instead of drawing empty axes.
 
-#### Scenario: One small week
-- **WHEN** the selection is one early week with few sessions
-- **THEN** sparse bins SHALL be hidden and each figure SHALL either draw what remains or say it has too few rows
+#### Scenario: A thin bin
+- **WHEN** a bin, category or model of a figure's answer has fewer rows than the threshold
+- **THEN** it SHALL be hidden and the figure's line of rows SHALL count what was hidden
 
 ### Requirement: Legends toggle series
 In a figure or trend with more than one series, each legend entry SHALL be a
 button that hides or shows its series, redrawing the chart from the rows it
 already has without a query. A hidden series SHALL be shown struck through
 in the legend. The legend SHALL be one tab stop, the arrow keys moving
-between its buttons. The hidden set SHALL NOT be kept in the URL and SHALL reset
-when the selection changes.
+between its buttons. The hidden set SHALL NOT be kept in the URL and SHALL
+start empty at every drawing.
 
 #### Scenario: Hiding a harness in the trend
 - **WHEN** the visitor clicks `hermes` in the sessions-per-week legend
@@ -250,7 +277,7 @@ when the selection changes.
 
 #### Scenario: Hiding a model in a CDF
 - **WHEN** the visitor clicks one model in the TTFT figure's legend
-- **THEN** that model's line SHALL disappear and the figure's caption SHALL still give the rows the figure rests on
+- **THEN** that model's line SHALL disappear and the figure's line of rows, behind its Definition control, SHALL still give the rows the figure rests on
 
 #### Scenario: Tabbing past a legend
 - **WHEN** the visitor presses Tab on a legend's focused button
@@ -264,7 +291,8 @@ part of its tokens or a part of a session's time. Every chart SHALL carry
 an accessible name made of its title and its insight (or caption). Charts SHALL
 be legible in both colour schemes, and SHALL fit a 360-pixel-wide screen
 without horizontal scrolling of the page. Every bar chart SHALL start its
-bars at zero, and no line label SHALL cross its line.
+bars at zero, but the speed-up figure, whose bars start at 1× because 1×
+is no change; and no line label SHALL cross its line.
 
 #### Scenario: A phone
 - **WHEN** the page is opened 360 pixels wide
