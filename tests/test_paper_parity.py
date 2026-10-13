@@ -1,10 +1,10 @@
 """The site's figures give the paper's numbers: every number a figure shares with the paper's `numbers.json` is equal.
 
-The queries run as the browser runs them, on the full site data with every week and the harnesses of the paper's
-scope selected: every harness for `All` (the trace summary), the benchmark's for `SWE-Bench` (its medians), every
-other for `Agentic`. It is skipped when the full site data (`make data`) or `numbers.json` in
+The numbers are read from the shipped answers, `site/data/all_weeks/<query>.json`, which `make data` wrote with every
+week and the harnesses of the paper's scope selected: every harness for `All` (the trace totals), every harness but the
+benchmark's for `Agentic` (every figure). It is skipped when the shipped answers or `numbers.json` in
 `$FREEINFERENCE_PIPELINE` (by default the sibling pipeline repository the Makefile builds from) is missing. The
-fixtures `paper_numbers` and `agentic`, which other parity modules share, are in `conftest.py`.
+fixture `paper_numbers`, which other parity modules share, is in `conftest.py`.
 
 A number counted the same way is compared; a count must be equal and a median, share or ratio equal up to
 `RELATIVE_TOLERANCE`. These figures draw a number the paper also reports, but define it differently on purpose, so
@@ -25,18 +25,17 @@ import os
 import pathlib
 import typing
 
-import duckdb
 import pandas
 import pytest
 
 import site_database
 
-SITE_DATA_FOLDER = site_database.QUERIES_FOLDER.parent / "data"  # built by `make data` from the full release
-SITE_DATA_FILES = ["weeks.json", "harnesses.json", "requests", "sessions", "tool_calls", "simulation"]  # what it holds
+ANSWERS_FOLDER = site_database.QUERIES_FOLDER.parent / "data" / "all_weeks"  # written by `make data`, tracked
 PIPELINE_VARIABLE = "FREEINFERENCE_PIPELINE"  # names the pipeline repository's folder, when it is not the default
 # Unset, it is `../freeinference-agentic-pipeline` from this repository's root, the Makefile's `PIPELINE` default.
 DEFAULT_PIPELINE_FOLDER = site_database.QUERIES_FOLDER.parent.parent / ".." / "freeinference-agentic-pipeline"
 NUMBERS_PATH = pathlib.Path("figures") / "v1" / "numbers.json"  # where the pipeline writes the paper's numbers
+RELEASE_PATH = pathlib.Path("data") / "v1" / "release"  # where the pipeline writes the release, the Makefile's `RELEASE`
 
 EXACT = 0  # a count matches only when it is equal
 RELATIVE_TOLERANCE = 1e-6  # a median, share or ratio may differ by DuckDB's and numpy's float rounding, no more
@@ -67,45 +66,31 @@ def assert_match(paper_numbers: dict, comparisons: list[Comparison]) -> None:
         pytest.fail("the site differs from the paper:\n" + "\n".join(mismatches))
 
 
+def pipeline_folder() -> pathlib.Path:
+    """The pipeline folder `$FREEINFERENCE_PIPELINE`, or the default one."""
+    return pathlib.Path(os.environ.get(PIPELINE_VARIABLE, str(DEFAULT_PIPELINE_FOLDER)))
+
+
 def numbers_file() -> pathlib.Path:
-    """The paper's `numbers.json` in the pipeline folder `$FREEINFERENCE_PIPELINE`, or in the default one."""
-    pipeline_folder = os.environ.get(PIPELINE_VARIABLE, str(DEFAULT_PIPELINE_FOLDER))
-    return pathlib.Path(pipeline_folder) / NUMBERS_PATH
+    """The paper's `numbers.json` in the pipeline folder."""
+    return pipeline_folder() / NUMBERS_PATH
+
+
+def release_folder() -> pathlib.Path:
+    """The release folder in the pipeline folder, one folder per week."""
+    return pipeline_folder() / RELEASE_PATH
 
 
 def skip_unless_inputs_exist() -> None:
-    """Skip the calling test when a file of the full site data or `numbers.json` is missing, naming it."""
-    required = [SITE_DATA_FOLDER / name for name in SITE_DATA_FILES] + [numbers_file()]
-    for path in required:
+    """Skip the calling test when the shipped answers or `numbers.json` is missing, naming it."""
+    for path in [ANSWERS_FOLDER, numbers_file()]:
         if not path.exists():
             pytest.skip(f"the paper-parity test needs {path}, which is missing")
 
 
-def selected_database(benchmark: bool | None) -> duckdb.DuckDBPyConnection:
-    """The full site data with every week and the harnesses whose `benchmark` is `benchmark` (all, if None) selected."""
-    skip_unless_inputs_exist()
-    weeks = [entry["week"] for entry in json.loads((SITE_DATA_FOLDER / "weeks.json").read_text())]
-    harnesses = [entry["harness"] for entry in json.loads((SITE_DATA_FOLDER / "harnesses.json").read_text())
-                 if benchmark is None or entry["benchmark"] == benchmark]
-    connection = site_database.open_site_database(SITE_DATA_FOLDER.resolve())
-    site_database.select_weeks(connection, weeks, harnesses)
-    return connection
-
-
-@pytest.fixture(scope="session")
-def whole_trace() -> typing.Iterator[duckdb.DuckDBPyConnection]:
-    """The full data with every week and every harness selected."""
-    connection = selected_database(benchmark=None)
-    yield connection
-    connection.close()
-
-
-@pytest.fixture(scope="session")
-def benchmark() -> typing.Iterator[duckdb.DuckDBPyConnection]:
-    """The full data with every week and the benchmark harness alone selected."""
-    connection = selected_database(benchmark=True)
-    yield connection
-    connection.close()
+def answer(name: str) -> pandas.DataFrame:
+    """The shipped answer of the query `name`, `<folder>/<query>`, as a frame with the query's columns."""
+    return pandas.DataFrame(json.loads((ANSWERS_FOLDER / f"{name}.json").read_text()))
 
 
 def cdf_point(rows: pandas.DataFrame, series: str, share: float) -> float:
@@ -115,8 +100,8 @@ def cdf_point(rows: pandas.DataFrame, series: str, share: float) -> float:
     return float(point.x.iloc[0])
 
 
-# The scope `numbers.json` records with each compared item, by section and item. The tests select its harnesses,
-# except that each `median_benchmark` is compared over `SWE-Bench`, the benchmark's half of "Agentic and SWE-Bench".
+# The scope `numbers.json` records with each compared item, by section and item: the answers were written over its
+# harnesses.
 PAPER_SCOPES = {
     ("dataset", "trace_summary"): "All",
     ("sessions", "counts_per_session"): "Agentic",
@@ -128,9 +113,6 @@ PAPER_SCOPES = {
     ("tools", "result_tokens_by_category"): "Agentic",
     ("tools", "latency_by_batch_width"): "Agentic",
     ("tools", "calls_per_request_by_category"): "Agentic",
-    ("benchmark_vs_production", "turn_duration"): "Agentic and SWE-Bench",
-    ("benchmark_vs_production", "session_duration"): "Agentic and SWE-Bench",
-    ("benchmark_vs_production", "input_per_request"): "Agentic and SWE-Bench",
 }
 
 
@@ -139,54 +121,45 @@ def test_the_paper_counts_each_compared_item_in_the_scope_the_test_selects(paper
         assert paper_numbers[section][item]["scope"] == scope, f"{section}.{item}"
 
 
-# `explore/headline_numbers` over `All` against `dataset.trace_summary`: `sessions`, `requests`, `tool_calls`,
-# `input_tokens`, `output_tokens` and `cached_tokens`, each the column of the same name. The paper gives no accounts.
+# `explore/trace_totals` over `All` against `dataset.trace_summary`: `sessions`, `requests`, `tool_calls`,
+# `input_tokens`, `output_tokens` and `cached_tokens`, each the column of the same name, and the paper's `harnesses`,
+# which leaves the benchmark's out, the answer's harnesses less its benchmark harnesses. The paper gives no accounts.
 TRACE_SUMMARY_TOTALS = ["sessions", "requests", "tool_calls", "input_tokens", "output_tokens", "cached_tokens"]
 
 
-def test_the_headline_totals_are_the_trace_summary(whole_trace: duckdb.DuckDBPyConnection,
-                                                   paper_numbers: dict) -> None:
-    totals = site_database.run_query(whole_trace, "explore/headline_numbers").iloc[0]
-    assert_match(paper_numbers, [Comparison("dataset", "trace_summary", name, float(totals[name]), EXACT)
-                                 for name in TRACE_SUMMARY_TOTALS])
-
-
-# `explore/trace_totals` over `All` against `dataset.trace_summary`, as the stats strip shows it: `sessions`,
-# `requests`, `tool_calls` and `input_tokens`, each the column of the same name, and the paper's `harnesses`, which
-# leaves the benchmark's out, the answer's harnesses less its benchmark harnesses.
-def test_the_trace_totals_are_the_trace_summary(whole_trace: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
-    totals = site_database.run_query(whole_trace, "explore/trace_totals").iloc[0]
+def test_the_trace_totals_are_the_trace_summary(paper_numbers: dict) -> None:
+    totals = answer("explore/trace_totals").iloc[0]
     comparisons = [Comparison("dataset", "trace_summary", name, float(totals[name]), EXACT)
-                   for name in ["sessions", "requests", "tool_calls", "input_tokens"]]
+                   for name in TRACE_SUMMARY_TOTALS]
     human_driven_harnesses = float(totals["harnesses"] - totals["benchmark_harnesses"])
     comparisons.append(Comparison("dataset", "trace_summary", "harnesses", human_driven_harnesses, EXACT))
     assert_match(paper_numbers, comparisons)
 
 
-def test_the_median_counts_per_session(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+def test_the_median_counts_per_session(paper_numbers: dict) -> None:
     # `figures/requests_per_session_cdf`'s `x` at share 0.5 of the series `requests`, `user_steps` and `tool_steps`
     # against `sessions.counts_per_session.median_requests`, `.median_user_steps` and `.median_tool_steps`.
-    rows = site_database.run_query(agentic, "figures/requests_per_session_cdf")
+    rows = answer("figures/requests_per_session_cdf")
     assert_match(paper_numbers, [
         Comparison("sessions", "counts_per_session", f"median_{series}", cdf_point(rows, series, MEDIAN_SHARE),
                    RELATIVE_TOLERANCE)
         for series in ["requests", "user_steps", "tool_steps"]])
 
 
-def test_the_median_tokens_per_request(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+def test_the_median_tokens_per_request(paper_numbers: dict) -> None:
     # `figures/tokens_per_request_cdf`'s `x` at share 0.5 of the series `input`, `uncached` and `output` against
     # `sessions.tokens_per_request.median_input`, `.median_uncached` and `.median_output`.
-    rows = site_database.run_query(agentic, "figures/tokens_per_request_cdf")
+    rows = answer("figures/tokens_per_request_cdf")
     assert_match(paper_numbers, [
         Comparison("sessions", "tokens_per_request", f"median_{series}", cdf_point(rows, series, MEDIAN_SHARE),
                    RELATIVE_TOLERANCE)
         for series in ["input", "uncached", "output"]])
 
 
-def test_the_turn_and_session_durations(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+def test_the_turn_and_session_durations(paper_numbers: dict) -> None:
     # `figures/duration_cdf`'s `x` against `sessions.turn_and_session_duration`: the series `turn` at share 0.5
     # against `turn_median_s`, and `session` at 0.5 and 0.9 against `session_median_s` and `session_p90_s`.
-    rows = site_database.run_query(agentic, "figures/duration_cdf")
+    rows = answer("figures/duration_cdf")
     item = "turn_and_session_duration"
     assert_match(paper_numbers, [
         Comparison("sessions", item, "turn_median_s", cdf_point(rows, "turn", MEDIAN_SHARE), RELATIVE_TOLERANCE),
@@ -197,11 +170,10 @@ def test_the_turn_and_session_durations(agentic: duckdb.DuckDBPyConnection, pape
     ])
 
 
-def test_the_median_trusted_ttft_of_the_paper_s_models(agentic: duckdb.DuckDBPyConnection,
-                                                       paper_numbers: dict) -> None:
+def test_the_median_trusted_ttft_of_the_paper_s_models(paper_numbers: dict) -> None:
     # `figures/ttft_median_by_model`'s `median_ttft_s` of each model against
     # `sessions.ttft_decomposition_<model>.median_ttft_s`.
-    medians = site_database.run_query(agentic, "figures/ttft_median_by_model").set_index("model").median_ttft_s
+    medians = answer("figures/ttft_median_by_model").set_index("model").median_ttft_s
     assert_match(paper_numbers, [
         Comparison("sessions", f"ttft_decomposition_{model}", "median_ttft_s", float(medians[model]),
                    RELATIVE_TOLERANCE)
@@ -219,13 +191,13 @@ def paper_tool_categories(paper_numbers: dict) -> list[str]:
     return categories
 
 
-def test_the_tool_latency_and_result_size_ranges(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+def test_the_tool_latency_and_result_size_ranges(paper_numbers: dict) -> None:
     # Per category, `figures/latency_by_category`'s `p50` and `p95` (in seconds) against
     # `tools.latency_by_category.<category>_median_latency_s` and `.<category>_p95_latency_s`, and
     # `figures/result_tokens_by_category`'s `p50` against
     # `tools.result_tokens_by_category.<category>_median_result_tokens`.
-    latency = site_database.run_query(agentic, "figures/latency_by_category").set_index("category")
-    result_tokens = site_database.run_query(agentic, "figures/result_tokens_by_category").set_index("category")
+    latency = answer("figures/latency_by_category").set_index("category")
+    result_tokens = answer("figures/result_tokens_by_category").set_index("category")
     comparisons = []
     for category in paper_tool_categories(paper_numbers):
         comparisons += [
@@ -239,11 +211,11 @@ def test_the_tool_latency_and_result_size_ranges(agentic: duckdb.DuckDBPyConnect
     assert_match(paper_numbers, comparisons)
 
 
-def test_the_tool_wait_by_batch_width(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+def test_the_tool_wait_by_batch_width(paper_numbers: dict) -> None:
     # `figures/latency_by_batch_width`'s `rows` per width against `tools.latency_by_batch_width.requests_per_width`,
     # and the lowest and highest `p90` of the widths over one against `.batched_p90_s_lowest` and
     # `.batched_p90_s_highest`.
-    widths = site_database.run_query(agentic, "figures/latency_by_batch_width")
+    widths = answer("figures/latency_by_batch_width")
     paper = paper_numbers["tools"]["latency_by_batch_width"]
     assert dict(zip(widths.width.astype(str), widths.rows)) == paper["requests_per_width"]
     batched = widths[widths.width > 1]
@@ -253,27 +225,10 @@ def test_the_tool_wait_by_batch_width(agentic: duckdb.DuckDBPyConnection, paper_
     ])
 
 
-def test_the_calls_per_request_by_category(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+def test_the_calls_per_request_by_category(paper_numbers: dict) -> None:
     # `figures/calls_per_request_by_category`'s `mean_calls` per category, in its order, against
     # `tools.calls_per_request_by_category.mean_calls_per_request`, which lists the categories most calls first.
-    rows = site_database.run_query(agentic, "figures/calls_per_request_by_category")
+    rows = answer("figures/calls_per_request_by_category")
     paper = paper_numbers["tools"]["calls_per_request_by_category"]["mean_calls_per_request"]
     assert rows.category.tolist() == list(paper)
     assert rows.mean_calls.tolist() == pytest.approx(list(paper.values()), rel=RELATIVE_TOLERANCE)
-
-
-def test_the_benchmark_s_medians(benchmark: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
-    # Over `SWE-Bench`, the `x` at share 0.5 of `figures/duration_cdf`'s `turn` and `session` against
-    # `benchmark_vs_production.turn_duration.median_benchmark` and `.session_duration.median_benchmark`, and of
-    # `figures/tokens_per_request_cdf`'s `input` against `benchmark_vs_production.input_per_request.median_benchmark`.
-    durations = site_database.run_query(benchmark, "figures/duration_cdf")
-    tokens = site_database.run_query(benchmark, "figures/tokens_per_request_cdf")
-    section = "benchmark_vs_production"
-    assert_match(paper_numbers, [
-        Comparison(section, "turn_duration", "median_benchmark", cdf_point(durations, "turn", MEDIAN_SHARE),
-                   RELATIVE_TOLERANCE),
-        Comparison(section, "session_duration", "median_benchmark", cdf_point(durations, "session", MEDIAN_SHARE),
-                   RELATIVE_TOLERANCE),
-        Comparison(section, "input_per_request", "median_benchmark", cdf_point(tokens, "input", MEDIAN_SHARE),
-                   RELATIVE_TOLERANCE),
-    ])

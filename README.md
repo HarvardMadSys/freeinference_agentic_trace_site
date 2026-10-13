@@ -9,8 +9,7 @@ over the paper's data, each with the one sentence it shows.
 
 Everything runs in the browser. The site is a folder of HTML pages, ES
 modules, JSON answers and gzipped JSON session buckets, with Observable Plot
-drawing the charts; the Parquet files the data step reads ship beside them,
-and no page fetches them. There is no server and no bundler.
+drawing the charts. There is no server and no bundler.
 
 ## Pages
 
@@ -106,12 +105,10 @@ make setup-browser   # a headless Chromium and Playwright, for checking pages by
 make deploy          # publish site/ to Cloudflare as the Worker's static assets (after npm install and a Cloudflare login)
 ```
 
-`site/data/` is 3,364 files and 168.4 MB: one Parquet file per kind of row
-and week (requests 61.2 MB, tool calls 21.4 MB with each call's programs and
-argument skeleton, sessions 1.3 MB, the cache simulation 0.1 MB), the two
-indexes, 48 JSON files of answers and query hashes, 4.8 MB, and the session
-buckets: 3,234 buckets and 16 week indexes, 79.6 MB gzipped, the median
-bucket 15 KB and the largest 0.39 MB.
+`site/data/` is 3,385 files and 83.2 MB: the two indexes, 47 JSON files of
+answers and query hashes, 4.8 MB, and the session buckets: 3,320 buckets and
+16 week indexes, 78.4 MB gzipped, the median bucket 14 KB and the largest
+0.38 MB.
 
 Rebuilding the data is the maintainer's step, when the release gains a
 week, a column changes, or a query under `explore/`, `figures/` or
@@ -123,7 +120,7 @@ replay. Name it with `PIPELINE=` on the command line:
 
 ```bash
 make setup PIPELINE=~/freeinference-agentic-pipeline   # a virtual environment with the pipeline's package and the test tools
-make data PIPELINE=~/freeinference-agentic-pipeline    # site/data/ from its release: a Parquet file per kind of row and week, the indexes, the answers, the session buckets
+make data PIPELINE=~/freeinference-agentic-pipeline    # site/data/ from its release: the indexes, the answers, the session buckets
 make test PIPELINE=~/freeinference-agentic-pipeline    # with the paper-parity tests, which read its numbers.json and skip without it
 make check-answers   # check that no query changed since make data wrote its answer; make test and make deploy run it
 ```
@@ -152,7 +149,7 @@ token made from the dashboard's "Edit Cloudflare Workers" template) and
 `CLOUDFLARE_ACCOUNT_ID`; set the repository variable
 `CLOUDFLARE_ACCOUNT_SUBDOMAIN` and the workflow also asks the deployed site
 for the Explore page (`/`), `weeks.json`
-and a Parquet file, and fails on any answer but 200. `make deploy` does the same from a machine with `npm install` done and
+and the newest week's bucket index, and fails on any answer but 200. `make deploy` does the same from a machine with `npm install` done and
 the token in `CLOUDFLARE_API_TOKEN`. Static assets allow 20,000 files of
 25 MiB each; the site is about 3,400 files, the largest under 10 MB, and a
 new week adds about 210.
@@ -179,14 +176,14 @@ serve.py           what make serve runs: a local server that answers byte-range 
 pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
 package.json       sets ES modules for node --test; no dependencies
 docs/              differences.md: where the site draws more simply than the paper
-site_data/         builds site/data/ from a release, and opens a database over it as the browser does
-  __main__.py      the step make data runs: loads and checks every week, writes the files, the indexes, the answers,
-                   the session buckets
+site_data/         builds site/data/ from a release, running the queries over its rows in memory
+  __main__.py      the step make data runs: loads and checks every week, builds the frames, writes the indexes, the
+                   answers, the session buckets
   loading.py, weeks.py, harnesses.py
                    reading the release week by week; the indexes weeks.json and harnesses.json
   requests.py, tool_calls.py, sessions.py, session_tree.py, simulation.py
                    one module per kind of row, each column from the pipeline's functions
-  site_database.py the browser's database in Python DuckDB: the views over the week files, the selection tables
+  site_database.py the site's database in Python DuckDB: the four frames of rows as tables, the selection tables
   answers.py       the answers: every Explore and figure query and colour order, run once over every week and the
                    paper's harnesses; the Overview's, the session list's and its first page's over every harness
   buckets.py       the session buckets: every week's sessions, gzipped JSON by the first two characters of the
@@ -223,13 +220,10 @@ site/              exactly the files that are deployed
                         skeleton), brackets and legend
   js/session_charts/    the Context and Timeline views, the series and bars they draw, their range slider and
                         the Timeline's pointer
-  queries/         one .sql file per chart or table, in one folder per purpose: explore (13), figures (31: the 29
+  queries/         one .sql file per chart or table, in one folder per purpose: explore (11), figures (31: the 29
                    figures, and two per-model medians only the paper-parity test reads), buckets (3: the session
-                   buckets' tree, requests and tool calls, run per week by make data), setup (17)
+                   buckets' tree, requests and tool calls, run per week by make data), setup (13)
   data/            built by make data and tracked, so a clone serves the site without building
-    requests/, tool_calls/, sessions/, simulation/
-                   one folder per kind of row, with one file per week, week=<sunday>/rows.parquet; the simulation,
-                   of both the paper's harnesses and the benchmark replay, only for the weeks it covers
     harnesses.json, weeks.json
                    the indexes of harnesses and weeks, read before anything else
     all_weeks/     the answers, <page>/<query>.json, and queries.json, each answered and bucket query's text hash

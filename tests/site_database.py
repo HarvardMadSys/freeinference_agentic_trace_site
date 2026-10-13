@@ -1,9 +1,9 @@
-"""The site's database for the tests: `site_data.site_database`, which sets the database up as the browser does,
-under the names the tests use, and the list of every query a page runs.
+"""The site's database for the tests: `site_data.site_database`, which sets the database up as the data step does,
+under the names the tests use, and the list of every query outside `setup/`.
 
-A test opens the database over the fixture's data folder, fills the selection
-tables and runs a query by name, exactly as a page runs it; or, for a case the
-fixture does not hold, over a few rows of its own.
+A test opens the database over the fixture's frames, fills the selection
+tables and runs a query by name, exactly as the data step runs it; or, for a
+case the fixture does not hold, over a few rows of its own.
 """
 
 import duckdb
@@ -13,8 +13,6 @@ import site_data.site_database
 
 QUERIES_FOLDER = site_data.site_database.QUERIES_FOLDER  # every query file, under its page's folder
 SETUP_FOLDER = site_data.site_database.SETUP_FOLDER  # the statements that create and fill the views and tables
-VIEW_STATEMENTS_BY_KIND = site_data.site_database.VIEW_STATEMENTS  # each kind of row's view statement, in order
-VIEW_STATEMENTS = list(VIEW_STATEMENTS_BY_KIND.values())  # in the order the views are made
 SELECTION_TABLE_STATEMENTS = site_data.site_database.SELECTION_TABLE_STATEMENTS
 SELECTION_VIEW_STATEMENTS = site_data.site_database.SELECTION_VIEW_STATEMENTS
 BENCHMARK_TABLE_STATEMENT = site_data.site_database.BENCHMARK_TABLE_STATEMENT

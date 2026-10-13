@@ -1,1 +1,1 @@
-"""Builds the site's data folder from a release (the request, tool-call, session and simulation rows as a Parquet file per week, and the indexes of weeks and harnesses), and opens a database over it as the browser does."""
+"""Builds the site's data folder from a release: the indexes of weeks and harnesses, the answers and the session buckets, each from a database over the release's rows held in memory."""

@@ -1,6 +1,6 @@
 """The site's simulation rows: the cache simulation's tallies of both scopes, the paper's Agentic population and the
 benchmark's, under the TTL-only policy in every simulated week, unchanged, with `week` and the scope's
-`active_token_seconds`, `span_seconds` and `output_tokens` of the week added.
+`span_seconds` and `output_tokens` of the week added.
 
 A simulated week's folder holds the tallies per scope, policy and TTL, and the
 totals per scope; the site keeps the tallies of the TTL-only policy, without
@@ -22,7 +22,7 @@ from simulation import weekly_files
 from site_data import weeks
 
 KEPT_POLICY = "ttl_only"  # the one eviction policy the site keeps: a block leaves the cache only when its TTL runs out
-TOTALS_KEPT = ["active_token_seconds", "span_seconds", "output_tokens"]  # the scope's totals each tally row carries
+TOTALS_KEPT = ["span_seconds", "output_tokens"]  # the scope's totals each tally row carries
 # The frame's columns in order, with the types the simulation writes them in.
 COLUMN_TYPES = {
     "week": "str",
@@ -32,7 +32,6 @@ COLUMN_TYPES = {
     "miss_tokens": "int64",
     "reusable_token_seconds": "float64",
     "dead_token_seconds": "float64",
-    "active_token_seconds": "float64",
     "span_seconds": "float64",
     "output_tokens": "float64",
 }
@@ -54,8 +53,8 @@ def simulation_frame(simulation_directory: pathlib.Path, entries: list[weeks.Wee
 
 
 def no_rows(column_types: dict[str, str]) -> pandas.DataFrame:
-    """A frame without rows, with the columns and types given, so a data folder without a simulated week still has
-    them."""
+    """A frame without rows, with the columns and types given, so that without a simulated week the queries still
+    find every column they read."""
     empty_columns = {}
     for column, column_type in column_types.items():
         empty_columns[column] = pandas.Series(dtype=column_type)
@@ -63,8 +62,8 @@ def no_rows(column_types: dict[str, str]) -> pandas.DataFrame:
 
 
 def week_tallies(simulated_week: pathlib.Path, week: str) -> pandas.DataFrame:
-    """One simulated week's TTL-only tallies of every scope, each with the week and its scope's active
-    token-seconds, span and output tokens of the week; every scope with tallies must have exactly one row of totals."""
+    """One simulated week's TTL-only tallies of every scope, each with the week and its scope's span and output
+    tokens of the week; every scope with tallies must have exactly one row of totals."""
     tallies = pandas.read_parquet(simulated_week / weekly_files.TALLIES_FILE)
     totals = pandas.read_parquet(simulated_week / weekly_files.TOTALS_FILE)
     repeated = totals.scope[totals.scope.duplicated()].unique()
@@ -72,7 +71,7 @@ def week_tallies(simulated_week: pathlib.Path, week: str) -> pandas.DataFrame:
         raise ValueError(f"{simulated_week.name} has more than one row of totals of {', '.join(repeated)}")
     kept_tallies = tallies[tallies.policy == KEPT_POLICY]
     rows = kept_tallies.merge(totals[["scope", *TOTALS_KEPT]], on="scope", how="left", validate="many_to_one")
-    without_totals = rows.scope[rows.active_token_seconds.isna()].unique()
+    without_totals = rows.scope[rows.span_seconds.isna()].unique()
     if len(without_totals) > 0:
         raise ValueError(f"{simulated_week.name} has tallies but no totals of {', '.join(without_totals)}")
     return rows.assign(week=week)[COLUMNS]

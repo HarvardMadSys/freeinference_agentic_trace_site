@@ -6,12 +6,12 @@ The fixture's top-level sessions are `tree-root` (claude-code), `swe-bench` (eva
 two eval:swe-bench sessions are the benchmark's, the rest the paper's population.
 """
 
-import pathlib
 import statistics
 
 import duckdb
-import pandas
 import pytest
+
+import site_data.site_database
 
 import fixture_release
 import site_database
@@ -99,58 +99,33 @@ def test_input_tokens_per_week_split_into_cached_uncached_and_unreported(connect
 
 
 def release_top_level_totals() -> dict:
-    """Sessions, accounts, requests and tool calls of the fixture release's top-level sessions, counted from its rows."""
+    """Sessions, requests and tool calls of the fixture release's top-level sessions, counted from its rows."""
     top_level = [session for session in fixture_release.SESSIONS if session.parent_session_id is None]
     top_level_ids = {session.session_id for session in top_level}
     requests = [request for request in fixture_release.REQUESTS if request.session_id in top_level_ids]
     tool_calls = 0
     for request in requests:
         tool_calls += len(request.calls)
-    return {
-        "sessions": len(top_level),
-        "accounts": len({session.user_id for session in top_level}),
-        "requests": len(requests),
-        "tool_calls": tool_calls,
-    }
+    return {"sessions": len(top_level), "requests": len(requests), "tool_calls": tool_calls}
 
 
-def test_the_headline_counts_equal_the_release_s_top_level_totals_with_every_harness(
-        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
-    select(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
-    headline = records(connection, "explore/headline_numbers")[0]
-    assert {column: headline[column] for column in ("sessions", "accounts", "requests", "tool_calls")} == {
-        "sessions": 6, "accounts": 4, "requests": 16, "tool_calls": 12}
-    assert {column: headline[column] for column in ("sessions", "accounts", "requests", "tool_calls")} == \
-        release_top_level_totals()
-
-
-# `tree-root` spawns three subagents, at depths 1 and 2; the input, cached and reported input are the sums of the
-# top-level requests' prompt and cache-read tokens, every request answering with 100 completion tokens.
-def test_the_headline_token_totals_and_subagents(connection: duckdb.DuckDBPyConnection,
-                                                  fixture_weeks: list[str]) -> None:
-    select(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
-    headline = records(connection, "explore/headline_numbers")[0]
-    assert headline["input_tokens"] == 28_500
-    assert headline["output_tokens"] == 1_600
-    assert headline["subagents"] == 3
-    assert headline["reported_input_tokens"] == 28_500 - 1_800  # `swe-bench`'s provider reports no cache reads
-    assert headline["cached_tokens"] == 12_100 + 3_300
-
-
-def test_the_headline_of_a_selection_with_no_sessions_is_zero(connection: duckdb.DuckDBPyConnection) -> None:
-    select(connection, ["2000-01-02"], fixture_release.EVERY_HARNESS)
-    headline = records(connection, "explore/headline_numbers")[0]
-    assert set(headline.values()) == {0}
-
-
-# With every harness: the six top-level sessions with their 16 requests, 28,500 input tokens and 12 tool calls, as the
-# headline counts them, and four harnesses, `eval:swe-bench` the benchmark's.
+# With every harness: the six top-level sessions with their 16 requests and 12 tool calls, 28,500 input tokens, of
+# which 12,100 + 3,300 cached, every request answering with 100 completion tokens, and four harnesses,
+# `eval:swe-bench` the benchmark's.
 def test_the_trace_totals_count_every_harness_and_the_benchmark_s_apart(connection: duckdb.DuckDBPyConnection,
                                                                          fixture_weeks: list[str]) -> None:
     select(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
-    assert records(connection, "explore/trace_totals") == [{
-        "sessions": 6, "requests": 16, "input_tokens": 28_500, "tool_calls": 12, "harnesses": 4,
-        "benchmark_harnesses": 1}]
+    totals = records(connection, "explore/trace_totals")
+    assert totals == [{
+        "sessions": 6, "requests": 16, "input_tokens": 28_500, "output_tokens": 1_600, "cached_tokens": 12_100 + 3_300,
+        "tool_calls": 12, "harnesses": 4, "benchmark_harnesses": 1}]
+    counted = {column: totals[0][column] for column in ("sessions", "requests", "tool_calls")}
+    assert counted == release_top_level_totals()
+
+
+def test_the_trace_totals_of_a_selection_with_no_sessions_are_zero(connection: duckdb.DuckDBPyConnection) -> None:
+    select(connection, ["2000-01-02"], fixture_release.EVERY_HARNESS)
+    assert set(records(connection, "explore/trace_totals")[0].values()) == {0}
 
 
 def test_the_trace_totals_of_the_paper_s_harnesses_count_no_benchmark_harness(
@@ -177,38 +152,37 @@ def test_the_model_order_counts_every_week_and_harness(connection: duckdb.DuckDB
     ]
 
 
-# Each pair of histogram queries, by their prefix: the folder of the rows they read, requests or sessions, and the column
-# they take.
+# Each pair of histogram queries, by their prefix: the kind of rows they read, requests or sessions, and the column they
+# take.
 HISTOGRAM_QUERIES = {
     "cached_fraction": ("requests", "hit_ratio"),
     "subagents_per_session": ("sessions", "subagents"),
 }
 
 
-def top_level_values(data_directory: pathlib.Path, histogram: str, weeks: list[str], harnesses: list[str]) -> list[float]:
-    """The histogram's values over the top-level rows of `weeks` and `harnesses`, read with pandas from each week's file;
-    missing values left out."""
-    kind_folder, column = HISTOGRAM_QUERIES[histogram]
-    values = []
-    for week in weeks:
-        rows = pandas.read_parquet(data_directory / kind_folder / f"week={week}" / "rows.parquet")
-        if kind_folder == "requests":
-            top_level = rows.is_top_level
-        else:
-            top_level = rows.parent_session_id.isna()
-        values.extend(rows[top_level & rows.harness.isin(harnesses)][column].dropna().tolist())
-    return values
+def top_level_values(frames: site_data.site_database.SiteFrames, histogram: str, weeks: list[str],
+                     harnesses: list[str]) -> list[float]:
+    """The histogram's values over the top-level rows of `weeks` and `harnesses`, read with pandas from the fixture's
+    frames; missing values left out."""
+    kind, column = HISTOGRAM_QUERIES[histogram]
+    if kind == "requests":
+        rows = frames.requests
+        top_level = rows.is_top_level
+    else:
+        rows = frames.sessions
+        top_level = rows.parent_session_id.isna()
+    selected = rows[top_level & rows.harness.isin(harnesses) & rows.week.isin(weeks)]
+    return selected[column].dropna().tolist()
 
 
 @pytest.mark.parametrize("harnesses", [fixture_release.EVERY_HARNESS, fixture_release.PAPER_HARNESSES])
 @pytest.mark.parametrize("histogram", sorted(HISTOGRAM_QUERIES))
-def test_a_histogram_s_median_count_and_maximum_are_those_of_its_values(connection: duckdb.DuckDBPyConnection,
-                                                                    data_directory: pathlib.Path,
-                                                                    fixture_weeks: list[str], histogram: str,
-                                                                    harnesses: list[str]) -> None:
+def test_a_histogram_s_median_count_and_maximum_are_those_of_its_values(
+        connection: duckdb.DuckDBPyConnection, fixture_frames: site_data.site_database.SiteFrames,
+        fixture_weeks: list[str], histogram: str, harnesses: list[str]) -> None:
     select(connection, fixture_weeks, harnesses)
     stats = records(connection, f"explore/{histogram}_stats")[0]
-    values = top_level_values(data_directory, histogram, fixture_weeks, harnesses)
+    values = top_level_values(fixture_frames, histogram, fixture_weeks, harnesses)
     assert stats["p50"] == pytest.approx(statistics.median(values))
     assert stats["count"] == len(values)
     assert stats["max"] == pytest.approx(max(values))

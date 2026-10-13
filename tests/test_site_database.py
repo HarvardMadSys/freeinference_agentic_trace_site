@@ -1,15 +1,13 @@
-"""The database over the fixture's data folder, set up as the browser sets it up: each view reads its kind's week
-files with the week taken from the folder name, and the benchmark harness table holds the index's benchmark."""
+"""The database over the fixture's frames, set up as the data step sets it up: each frame is the table of its name,
+and the benchmark harness table holds the index's benchmark."""
 
-import json
 import pathlib
 
 import duckdb
-import pandas
-import pytest
 
 import site_data.__main__
-import site_data.site_database
+import site_data.loading
+import site_data.weeks
 
 import fixture_release
 
@@ -29,15 +27,16 @@ FIXTURE_IDLE_GAPS = {
 }
 
 
-def test_the_week_is_read_from_the_folder_name_as_a_string(connection: duckdb.DuckDBPyConnection) -> None:
-    for view in ["requests", "tool_calls", "sessions", "simulation"]:
-        rows = connection.table(view)
-        assert dict(zip(rows.columns, rows.types))["week"] == "VARCHAR", view
+def test_each_table_s_week_is_a_string(connection: duckdb.DuckDBPyConnection) -> None:
+    for table in ["requests", "tool_calls", "sessions", "simulation"]:
+        rows = connection.table(table)
+        assert dict(zip(rows.columns, rows.types))["week"] == "VARCHAR", table
     weeks = connection.table("requests").df().week
     assert sorted(weeks.unique().tolist()) == [FIRST_SUNDAY, SECOND_SUNDAY]
 
 
-def test_each_view_holds_the_rows_of_every_week_that_has_its_file(connection: duckdb.DuckDBPyConnection) -> None:
+def test_each_table_holds_the_rows_of_every_week_and_the_simulation_those_of_the_simulated_week(
+        connection: duckdb.DuckDBPyConnection) -> None:
     sessions = connection.table("sessions").df()
     assert sessions.groupby("week").size().to_dict() == {FIRST_SUNDAY: 6, SECOND_SUNDAY: 3}
     assert connection.table("requests").df().groupby("week").size().to_dict() == {FIRST_SUNDAY: 15, SECOND_SUNDAY: 6}
@@ -51,6 +50,14 @@ def test_the_benchmark_session_s_rows_are_in_the_views(connection: duckdb.DuckDB
     assert sessions[sessions.harness == "eval:swe-bench"].session_id.tolist() == ["swe-bench", "idle-benchmark"]
 
 
+def test_nullable_integers_and_booleans_keep_their_types(connection: duckdb.DuckDBPyConnection) -> None:
+    requests = connection.table("requests")
+    types = dict(zip(requests.columns, [str(column_type) for column_type in requests.types]))
+    assert [types[column] for column in ["ttft_ms", "idle_gap_bin", "user_prompt_tokens", "missed_tokens_no_ttl"]] == [
+        "BIGINT"] * 4
+    assert types["is_top_level"] == "BOOLEAN"
+
+
 def test_the_benchmark_harness_table_holds_the_index_s_benchmark(connection: duckdb.DuckDBPyConnection) -> None:
     assert connection.table("benchmark_harness").fetchall() == [("eval:swe-bench",)]
 
@@ -61,24 +68,13 @@ def test_the_idle_gaps_are_those_counted_by_hand(connection: duckdb.DuckDBPyConn
     assert with_gap.idle_gap_s.to_dict() == FIXTURE_IDLE_GAPS
 
 
-def test_a_data_folder_without_a_simulated_week_has_no_simulation_view_and_its_other_views(tmp_path: pathlib.Path) -> None:
+def test_without_a_simulated_week_the_simulation_is_an_empty_table_with_every_column(
+        tmp_path: pathlib.Path, connection: duckdb.DuckDBPyConnection) -> None:
     fixture_release.write_fixture_release(tmp_path / "release", tmp_path / "simulation")
-    (tmp_path / "simulation" / fixture_release.SIMULATED_WEEK / "sources.json").write_text(json.dumps({}))
-    site_data.__main__.main(["--release", str(tmp_path / "release"), "--simulation", str(tmp_path / "simulation"),
-                             "--out", str(tmp_path / "data")])
-    connection = site_data.site_database.open_site_database(tmp_path / "data")
-    assert len(connection.table("requests").df()) == 21
-    with pytest.raises(duckdb.CatalogException, match="simulation"):
-        connection.table("simulation")
-    connection.close()
-
-
-def test_a_quote_in_a_file_name_is_doubled() -> None:
-    assert site_data.site_database.quoted_list(["a/week=1/rows.parquet", "it's"]) == "'a/week=1/rows.parquet', 'it''s'"
-
-
-def test_the_files_listed_are_the_kind_s_week_files_in_week_order(data_directory: pathlib.Path) -> None:
-    files = site_data.site_database.week_files(data_directory, "requests", [FIRST_SUNDAY, SECOND_SUNDAY])
-    assert files == [str(data_directory / "requests" / f"week={week}" / "rows.parquet")
-                     for week in [FIRST_SUNDAY, SECOND_SUNDAY]]
-    assert all(pandas.read_parquet(name).shape[0] > 0 for name in files)
+    (tmp_path / "simulation" / fixture_release.SIMULATED_WEEK / "sources.json").write_text("{}")
+    entries = site_data.weeks.weeks_index(tmp_path / "release", tmp_path / "simulation")
+    release = site_data.loading.load_release(tmp_path / "release", entries)
+    frames = site_data.__main__.site_frames(release, tmp_path / "simulation", entries)
+    assert len(frames.requests) == 21
+    assert len(frames.simulation) == 0
+    assert list(frames.simulation.columns) == connection.table("simulation").columns

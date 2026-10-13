@@ -14,7 +14,7 @@ import fixture_release
 
 SITE_COLUMNS = [
     "week", "scope", "ttl", "hit_tokens", "miss_tokens", "reusable_token_seconds", "dead_token_seconds",
-    "active_token_seconds", "span_seconds", "output_tokens",
+    "span_seconds", "output_tokens",
 ]
 
 
@@ -50,7 +50,6 @@ def test_the_simulated_week_s_ttl_only_tallies_of_both_scopes_appear_unchanged(t
 
 def test_each_row_carries_its_scope_s_totals_of_the_week(tmp_path: pathlib.Path) -> None:
     rows = fixture_rows(tmp_path)
-    assert rows.active_token_seconds.tolist() == [20_000.0] * 4 + [2_000.0] * 4
     assert rows.span_seconds.tolist() == [603_200.0] * 4 + [25.0] * 4
     assert rows.output_tokens.tolist() == [1_300.0] * 4 + [200.0] * 4
 

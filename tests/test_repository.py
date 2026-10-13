@@ -18,7 +18,6 @@ SESSION_PAGE_MODULE = JAVASCRIPT_FOLDER / "pages" / "session.js"  # the Session 
 DATABASE_MODULE = JAVASCRIPT_FOLDER / "shared" / "database.js"  # the Explore page's indexes and answers
 PAGES = ("index.html", "session.html")  # the site's pages: Explore, the landing page, and Session
 DATA_FOLDER = "site/data"  # built by `make data` and tracked, so a clone serves the site without building
-ROW_KINDS = ("requests", "sessions", "tool_calls")  # the kinds of row every week has a file of; the simulation has fewer weeks
 BUCKETS_FOLDER = "session_buckets"  # every week's folder of session buckets, beside its index `index.json.gz`
 CDN_HOSTS = ("cdn.jsdelivr.net", "unpkg.com", "cdnjs.cloudflare.com", "esm.sh")
 
@@ -179,8 +178,8 @@ def test_no_tracked_file_names_a_machine_path() -> None:
 
 
 def test_shipped_data_is_whole() -> None:
-    """Git tracks the indexes, the query hashes, every week's row files and every week's session buckets with their
-    index, so a clone serves every week and opens every session."""
+    """Git tracks the indexes, the query hashes and every week's session buckets with their index, so a clone serves
+    every week and opens every session; it tracks no row file."""
     tracked = subprocess.run(["git", "ls-files", DATA_FOLDER], cwd=ROOT, capture_output=True, text=True, check=True)
     tracked_files = set(tracked.stdout.split())
     for name in ("weeks.json", "harnesses.json", "all_weeks/queries.json"):
@@ -188,10 +187,9 @@ def test_shipped_data_is_whole() -> None:
     weeks = json.loads((ROOT / DATA_FOLDER / "weeks.json").read_text())
     assert weeks, "no weeks in the shipped data"
     for entry in weeks:
-        for kind in ROW_KINDS:
-            path = f"{DATA_FOLDER}/{kind}/week={entry['week']}/rows.parquet"
-            assert path in tracked_files, f"{path} is not tracked"
         index = f"{DATA_FOLDER}/{BUCKETS_FOLDER}/{entry['week']}/index.json.gz"
         assert index in tracked_files, f"{index} is not tracked"
         buckets = [name for name in tracked_files if name.startswith(f"{DATA_FOLDER}/{BUCKETS_FOLDER}/{entry['week']}/")]
         assert len(buckets) > 1, f"{DATA_FOLDER}/{BUCKETS_FOLDER}/{entry['week']}/ holds no tracked bucket"
+    row_files = sorted(name for name in tracked_files if name.endswith(".parquet"))
+    assert row_files == [], f"row files are tracked: {', '.join(row_files)}"

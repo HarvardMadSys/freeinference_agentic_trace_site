@@ -126,8 +126,7 @@ NO_TTL_CHEAPEST = pandas.DataFrame({
 def test_the_knee_is_chosen_among_every_ttl_so_no_drawn_ttl_is_it_when_only_no_ttl_is_near_the_lowest(
         connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
     # No TTL costs 19,000; the hour, 21,700, is more than 5% above it, though it would be the knee among the drawn TTLs.
-    connection.register("no_ttl_cheapest", NO_TTL_CHEAPEST)
-    connection.execute("CREATE OR REPLACE VIEW simulation AS SELECT * FROM no_ttl_cheapest")
+    connection.register("simulation", NO_TTL_CHEAPEST)  # in place of the fixture's simulation rows
     site_database.select_weeks(connection, fixture_weeks, fixture_release.PAPER_HARNESSES)
     rows = site_database.run_query(connection, "figures/api_cost_by_ttl")
     assert part_rows(rows, "input").total_multiple["1h"] == pytest.approx(21_700 / 55_000)

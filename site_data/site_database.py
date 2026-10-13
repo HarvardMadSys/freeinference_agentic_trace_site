@@ -1,43 +1,31 @@
-"""The site's database in DuckDB over a local data folder, in which `make data` and the tests run the site's queries.
+"""The site's database in DuckDB over the site's frames in memory, in which `make data` and the tests run the site's
+queries.
 
-It is opened by running the `site/queries/setup/create_*.sql` statements in
-this order: the four views of the files, then the selection tables, then the
-views over the selection, then the benchmark harness table. A view statement's
-`{files}` placeholder is replaced by the files of the weeks that have that kind
-of row, as `weeks.json` lists them, each single-quoted and separated by commas;
-the benchmark harness table is filled with the harnesses `harnesses.json` marks
-as the benchmark's. The selection tables are filled through the `clear_*` and
-`insert_*` statements, one parameterised insert per value. A query's name is its
-path under `site/queries/` without `.sql`.
-
-A kind no week has a file of (the simulation, when no week is simulated) gets
-no view, since DuckDB cannot read an empty list of files; a query of it then
-fails with DuckDB's message that the view does not exist.
+It is opened by registering each of the four frames as the table of its name,
+`requests`, `tool_calls`, `sessions` and `simulation`, then running the
+`site/queries/setup/create_*.sql` statements in this order: the selection
+tables, then the views over the selection, then the benchmark harness table,
+which is filled with the harnesses the harness index marks as the benchmark's.
+The selection tables are filled through the `clear_*` and `insert_*`
+statements, one parameterised insert per value. A query's name is its path
+under `site/queries/` without `.sql`.
 """
 
+import dataclasses
 import pathlib
 
 import duckdb
 import pandas
 
-from site_data import harnesses, paths, weeks
+from site_data import harnesses
 
 QUERIES_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site" / "queries"
 SETUP_FOLDER = QUERIES_FOLDER / "setup"  # the statements that create and fill the views and tables
-FILES_PLACEHOLDER = "{files}"  # stands for a view's list of quoted file names
 # One thread, so that a sum of floats adds its rows in the same order on every run and a rebuilt answer is the same to
 # the last bit.
 THREADS = 1
 
-# The statement that registers each kind of row as a view, by the kind's folder.
-VIEW_STATEMENTS = {
-    paths.REQUESTS_FOLDER: "setup/create_view_requests",
-    paths.TOOL_CALLS_FOLDER: "setup/create_view_tool_calls",
-    paths.SESSIONS_FOLDER: "setup/create_view_sessions",
-    paths.SIMULATION_FOLDER: "setup/create_view_simulation",
-}
-
-# The statements that make the empty selection tables, run after the views.
+# The statements that make the empty selection tables, run after the frames are registered.
 SELECTION_TABLE_STATEMENTS = [
     "setup/create_selected_weeks",
     "setup/create_selected_harnesses",
@@ -54,42 +42,45 @@ BENCHMARK_TABLE_STATEMENT = "setup/create_benchmark_harness"
 BENCHMARK_INSERT_STATEMENT = "setup/insert_benchmark_harness"
 
 
+@dataclasses.dataclass(frozen=True)
+class SiteFrames:
+    """The site's four kinds of row, each frame with its `week` column; each is the table of its field's name."""
+
+    requests: pandas.DataFrame  # one row per request (`site_data/requests.py`)
+    tool_calls: pandas.DataFrame  # one row per tool call (`site_data/tool_calls.py`)
+    sessions: pandas.DataFrame  # one row per session (`site_data/sessions.py`)
+    simulation: pandas.DataFrame  # one row per scope and TTL of a simulated week; none when no week is simulated
+
+
+@dataclasses.dataclass(frozen=True)
+class QueryRows:
+    """A query's result: its column names, and each row's values in their order."""
+
+    columns: list[str]
+    rows: list[list]
+
+
 def statement_text(name: str) -> str:
     """The text of the statement `name`: the file `site/queries/<name>.sql`."""
     return (QUERIES_FOLDER / f"{name}.sql").read_text()
 
 
-def open_site_database(data_directory: pathlib.Path) -> duckdb.DuckDBPyConnection:
-    """A new in-memory database on `THREADS` threads over `data_directory`: the views of its week files, the empty
-    selection tables, the views over them, and the benchmark harness table filled from its `harnesses.json`."""
+def open_site_database(frames: SiteFrames,
+                       harness_entries: list[harnesses.HarnessEntry]) -> duckdb.DuckDBPyConnection:
+    """A new in-memory database on `THREADS` threads: the four frames as tables, the empty selection tables, the views
+    over them, and the benchmark harness table filled with the entries marked benchmark."""
     connection = duckdb.connect(config={"threads": THREADS})
-    entries = weeks.read_weeks_file(data_directory)
-    for kind_folder, name in VIEW_STATEMENTS.items():
-        week_list = weeks.weeks_with_file(entries, kind_folder)
-        if week_list:
-            files = week_files(data_directory, kind_folder, week_list)
-            connection.execute(statement_text(name).replace(FILES_PLACEHOLDER, quoted_list(files)))
+    connection.register("requests", frames.requests)
+    connection.register("tool_calls", frames.tool_calls)
+    connection.register("sessions", frames.sessions)
+    connection.register("simulation", frames.simulation)
     for name in [*SELECTION_TABLE_STATEMENTS, *SELECTION_VIEW_STATEMENTS]:
         connection.execute(statement_text(name))
     connection.execute(statement_text(BENCHMARK_TABLE_STATEMENT))
-    for entry in harnesses.read_harnesses_file(data_directory):
+    for entry in harness_entries:
         if entry.benchmark:
             connection.execute(statement_text(BENCHMARK_INSERT_STATEMENT), [entry.harness])
     return connection
-
-
-def week_files(data_directory: pathlib.Path, kind_folder: str, week_list: list[str]) -> list[str]:
-    """The paths of the kind's files of the listed weeks, under `data_directory`, in the weeks' order."""
-    return [str(data_directory / paths.week_file(kind_folder, week)) for week in week_list]
-
-
-def quoted_list(names: list[str]) -> str:
-    """The names as SQL string literals separated by commas: each in single quotes, a quote inside doubled."""
-    quoted = []
-    for name in names:
-        doubled = name.replace("'", "''")
-        quoted.append(f"'{doubled}'")
-    return ", ".join(quoted)
 
 
 def select_weeks(connection: duckdb.DuckDBPyConnection, week_list: list[str], harness_list: list[str]) -> None:
@@ -100,6 +91,13 @@ def select_weeks(connection: duckdb.DuckDBPyConnection, week_list: list[str], ha
     connection.execute(statement_text("setup/clear_selected_harnesses"))
     for harness in harness_list:
         connection.execute(statement_text("setup/insert_selected_harness"), [harness])
+
+
+def query_rows(connection: duckdb.DuckDBPyConnection, name: str) -> QueryRows:
+    """The rows of the query `name`, its columns and each row's values in their order."""
+    result = connection.execute(statement_text(name))
+    columns = [column[0] for column in result.description]
+    return QueryRows(columns=columns, rows=[list(row) for row in result.fetchall()])
 
 
 def run_query(connection: duckdb.DuckDBPyConnection, name: str) -> pandas.DataFrame:

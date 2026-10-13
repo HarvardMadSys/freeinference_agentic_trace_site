@@ -9,8 +9,6 @@ SELECT
   spawned_by_step,
   depth,
   harness,
-  main_model,
-  user_id,
   requests,
   user_steps,
   tool_calls,

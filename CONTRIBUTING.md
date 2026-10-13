@@ -41,11 +41,9 @@ binding, and `make test` checks the countable ones.
   A setup statement that fills a table takes its row as `?` parameters
   (`setup/insert_*.sql`); no query takes one. The bucket queries
   (`buckets/*.sql`) read `selected_weeks` too: `make data` selects one week
-  at a time and runs them. The view statements of
-  the week files, `setup/create_view_*.sql` but `create_view_session_time`,
-  hold the placeholder `{files}`, which the opener
-  replaces with the names of that kind's week files, each single-quoted and
-  separated by commas (`site_data/site_database.py`). One view reads the selection:
+  at a time and runs them. The tables `requests`, `tool_calls`, `sessions`
+  and `simulation` are the data step's frames of rows, held in memory
+  (`site_data/site_database.py`). One view reads the selection:
   `setup/create_view_session_time.sql`, each selected top-level session's
   time in prefill, decode, tool and user idle, made after the selection
   tables; both figures of a session's time read it, so the breakdown has one
@@ -86,8 +84,8 @@ binding, and `make test` checks the countable ones.
 ## How the site is put together
 
 ```
-make data:     queries/explore/, queries/figures/, setup/*_order  →  run over site/data/*.parquet  →  data/all_weeks/<page>/<query>.json
-               queries/buckets/, one week at a time                →  run over site/data/*.parquet  →  data/session_buckets/<week>/<xx>.json.gz
+make data:     queries/explore/, queries/figures/, setup/*_order  →  run over the rows in memory  →  data/all_weeks/<page>/<query>.json
+               queries/buckets/, one week at a time                →  run over the rows in memory  →  data/session_buckets/<week>/<xx>.json.gz
 Explore:       index.html  →  js/pages/explore.js  →  js/explore/start.js, section modules and js/shared/  →  data/all_weeks/<page>/<query>.json
 Session:       session.html  →  js/pages/session.js  →  js/session/bucket.js  →  data/session_buckets/<week>/<xx>.json.gz
 ```
@@ -142,9 +140,9 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   another by their `.html` names; the host serves each at its clean path
   with the query kept.
 - `shared/database.js` fetches `weeks.json` and `harnesses.json` and reads a
-  query's answer by name: `runQuery("explore/request_count")` reads
-  `data/all_weeks/explore/request_count.json`, which `make data` wrote by
-  running `queries/explore/request_count.sql`. Every Explore and figure
+  query's answer by name: `runQuery("explore/trace_totals")` reads
+  `data/all_weeks/explore/trace_totals.json`, which `make data` wrote by
+  running `queries/explore/trace_totals.sql`. Every Explore and figure
   query, and every colour order (`setup/*_order`), has its answer file; the
   page runs no query itself.
 - The Session page imports nothing from `shared/database.js`, and
@@ -240,14 +238,25 @@ fixture.
 
 ## Patterns to copy
 
-**A query** (`site/queries/explore/request_count.sql`):
+**A query** (`site/queries/explore/trace_totals.sql`):
 
 ```sql
--- The number of requests of the top-level sessions in the selected weeks and harnesses. No page runs it: it is the
--- example query of CONTRIBUTING.md, and tests/test_queries.py checks the count against the fixture.
-SELECT count(*) AS requests
-FROM requests
-WHERE is_top_level
+-- One row: the trace in the selected weeks and harnesses as the paper's summary table counts it; the data step answers
+-- it with every week and every harness, the benchmark's too, so it counts the whole trace, as the session list lists it.
+-- A top-level session is one no other session spawned, so it has no parent; its requests, tokens and tool calls are
+-- its own, a subagent's counted in neither. `benchmark_harnesses` counts the harnesses that are the benchmark's,
+-- which the stats strip writes apart from the others ("13 (+1)"). The strip does not show `output_tokens` and
+-- `cached_tokens`; tests/test_paper_parity.py compares them, with the rest, with the paper's summary.
+SELECT count(*) AS sessions,
+       coalesce(sum(requests), 0) AS requests,
+       coalesce(sum(input_tokens), 0) AS input_tokens,
+       coalesce(sum(output_tokens), 0) AS output_tokens,
+       coalesce(sum(cached_tokens), 0) AS cached_tokens,
+       coalesce(sum(tool_calls), 0) AS tool_calls,
+       count(DISTINCT harness) AS harnesses,
+       count(DISTINCT harness) FILTER (WHERE harness IN (SELECT harness FROM benchmark_harness)) AS benchmark_harnesses
+FROM sessions
+WHERE parent_session_id IS NULL
   AND week IN (SELECT week FROM selected_weeks)
   AND harness IN (SELECT harness FROM selected_harnesses);
 ```
