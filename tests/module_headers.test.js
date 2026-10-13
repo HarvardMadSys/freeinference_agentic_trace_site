@@ -71,10 +71,10 @@ test("a header's lines are counted from its opening line to its closing one", ()
 });
 
 test("module headers over ten lines are listed for review, never failed", (context) => {
-  const long = moduleHeaders().filter((header) => header.headerLines > MAX_HEADER_LINES);
-  for (const header of long) {
+  const longHeaders = moduleHeaders().filter((header) => header.headerLines > MAX_HEADER_LINES);
+  for (const header of longHeaders) {
     context.diagnostic(`warning: ${header.path} has a header of ${header.headerLines} lines`);
   }
-  const summary = `${long.length} module headers over ${MAX_HEADER_LINES} lines, each to be looked at again`;
+  const summary = `${longHeaders.length} module headers over ${MAX_HEADER_LINES} lines, each to be looked at again`;
   context.diagnostic(`warning: ${summary}`);
 });

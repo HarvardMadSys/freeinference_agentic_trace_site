@@ -3,12 +3,12 @@
  * decode time, over requests whose TTFT is trusted; how a session's time splits between its parts, drawn in
  * `sessions_ranked.js`; and the speed-up of the sessions' machine time if one of its parts alone ran twice as fast.
  *
- * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. The CDFs are drawn by one call to the CDF kind
- * (`charts/cdf.js`); the speed-up, which no kind fits, has a plain draw function. Each CDF query's rows name their
- * model in `series`, one of the five models with most requests in the answer; every model has the colour every chart
- * gives it, and a model outside the eight with most requests over every week, whose colour is the Other grey, is not
- * drawn. Each row of the speed-up query is one part of the machine time, every row holding the same `rows`, the
- * sessions it rests on.
+ * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. The CDFs are drawn by one call to the CDF
+ * kind (`charts/cdf.js`); the speed-up, which no kind fits, has a plain draw function. Each CDF query's rows name
+ * their model in `series`, one of the five models with most requests in the answer; every model has the colour every
+ * chart gives it, and a model outside the eight with most requests over every week and every harness, whose colour
+ * is the Other grey, is not drawn. Each row of the speed-up query is one part of the machine time, every row holding
+ * the same `rows`, the sessions it rests on.
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE } from "../shared/charts.js";

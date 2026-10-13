@@ -1,7 +1,7 @@
 /**
- * The legend of a chart of more than one series, as one button per series: a click hides the series, or shows it
- * again, and the chart is drawn anew from the rows it already has, with no query. A hidden series' button is struck
- * through and not pressed. A chart of fewer than two series has no legend.
+ * The legend of a chart of more than one series, as one button per series: a click hides the series, or shows it again,
+ * and the chart is drawn anew from the rows it already has, with no query. A hidden series' button is struck through
+ * and not pressed.
  *
  * A legend is `{ series, colours }`: the series it lists, `[{ name, label }]`, `name` being the series' value in the
  * rows and `label` the text its button shows, and their colours, a Map from name to colour. The hidden series are a
@@ -77,10 +77,11 @@ export function hasLegend(series) {
 }
 
 /**
- * Place `legend`'s buttons in the legend's place above `body` (`legendPlace`), their swatches shaped `swatch` ("square" or "line"), and draw the chart
- * into `body` with `drawChart(hidden)`, nothing hidden at first. Each click on a button hides or shows its series and calls `drawChart` again with the new hidden set; a
- * chart whose every series is hidden shows a note instead, and a drawing after a click that fails shows its error in
- * `body`. A legend of fewer than two series is not placed. Settles when the first drawing has.
+ * Place `legend`'s buttons in the legend's place above `body` (`legendPlace`), their swatches shaped `swatch` ("square"
+ * or "line"), and draw the chart into `body` with `drawChart(hidden)`, nothing hidden at first. Each click on a button
+ * hides or shows its series and calls `drawChart` again with the new hidden set; a chart whose every series is hidden
+ * shows a note instead, and a drawing after a click that fails shows its error in `body`. A legend of fewer than two
+ * series is not placed. Settles when the first drawing has.
  */
 export async function drawWithLegend(body, legend, drawChart, swatch = "square") {
   let hidden = new Set();

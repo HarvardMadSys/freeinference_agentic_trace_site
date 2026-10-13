@@ -127,8 +127,8 @@ function currentState() {
 }
 
 /**
- * Read the URL's filter and write it back in its own form: a key naming several months or harnesses keeps the first the
- * data hold, and one naming none of them is removed; the filter read.
+ * Read the URL's filter and write back the month and harness it kept: a key naming several months or harnesses keeps
+ * the first the data hold, and one naming none of them is removed; the filter read.
  */
 function rewriteFilter(context) {
   const params = currentParams();
