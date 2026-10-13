@@ -4,7 +4,7 @@
  */
 
 import {
-  AXIS_STYLE, CHART_HEIGHT, chartFrame, colourScale, DASH, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH, TIP_STYLE, X_INSET,
+  AXIS_STYLE, CHART_HEIGHT, chartFrame, colourScale, DASH, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH, X_INSET,
 } from "./charts.js";
 import { formatPercent, formatShare } from "./format.js";
 import { axisWithTicks, extent, logAxisTicks, TICK_COUNT } from "../axes/ticks.js";
@@ -55,7 +55,7 @@ export async function drawCdf(body, series, options) {
       Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: formatPercent, label: yLabel }),
       Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH }),
       ...lineLabelMarks(Plot, labels),
-      Plot.tip(points, Plot.pointerX({ ...TIP_STYLE, x: "x", y: "share", title: (point) => cdfTipText(point, format) })),
+      Plot.tip(points, Plot.pointerX({ x: "x", y: "share", title: (point) => cdfTipText(point, format) })),
     ],
   });
   body.replaceChildren(chart);

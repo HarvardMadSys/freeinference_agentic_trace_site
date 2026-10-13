@@ -7,7 +7,7 @@
  * with too few calls is hidden whole. A group a tenth has no call of has no row and is drawn as a share of zero.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE } from "../shared/charts.js";
 import { isNarrowChart, percentTick } from "../axes/ticks.js";
 import { TOOL_GROUP_COLOURS } from "../theme/colours.js";
 import { formatPercent, formatShare } from "../shared/format.js";
@@ -118,7 +118,7 @@ async function drawToolMix(rows, body, colours) {
         fx: "scope", x: "turnPercent", y: "share", fill: "group", order: groups, curve: "step-after",
       }),
       Plot.tip(toolMixTips(points), Plot.pointerX({
-        ...TIP_STYLE, fx: "scope", x: "turnPercent", y: "top", title: "text",
+        fx: "scope", x: "turnPercent", y: "top", title: "text",
       })),
     ],
   });

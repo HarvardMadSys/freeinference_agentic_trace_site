@@ -154,10 +154,9 @@ at most nine modules; `make test` counts them.
 
 **Adding a section to the Explore page.** Give it a place in the page's HTML,
 an element with an id, under a heading if it is a part of its own; write its
-module with `layout<Thing>(container)`, which shows the loading state, and
-`async run<Thing>(container, context)`, which lays out a fresh place in the
-container and draws its answer into it (`context` is described in
-`explore/start.js`); and add `{ id, layout, run }` to the page module's
+module with `async run<Thing>(container, context)`, which shows the loading
+state in the container at once and then draws its answer into it (`context` is
+described in `explore/start.js`); and add `{ id, run }` to the page module's
 `SECTIONS`. The answer of sessions per week by harness, which the harness
 mix and the sessions trend both draw, is asked for once a run and given as
 `context.sessionsPerWeekByHarness`. A new topic of figures is a section module of figure

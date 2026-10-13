@@ -1,12 +1,12 @@
 /**
- * The Explore page's start: it draws the header, the footer, the Insights' topic tabs and every section's loading state,
- * reads `weeks.json` and `harnesses.json`, then runs the page's sections and the figures of `FIGURE_SECTIONS`
+ * The Explore page's start: it draws the Insights' topic tabs, reads `weeks.json` and `harnesses.json`, draws the
+ * header and the footer, then runs the page's sections and the figures of `FIGURE_SECTIONS`
  * (`explore/figure_sections.js`), once, from their answer files. The figures are shown one topic at a time behind the
  * tabs of the `#topic-tabs` row (`explore/topic_tabs.js`), a topic's figures drawn when it is shown.
  *
- * The page's module names its sections, each `{ id, layout, run }`: the id of its place in `index.html`, the function
- * that draws its loading state and the one that runs it. A section runs as `run(container, context)` with
- * `context = { orders, sessionsPerWeekByHarness, weeks, harnesses, replaceQuery }`:
+ * The page's module names its sections, each `{ id, run }`: the id of its place in `index.html` and the function that
+ * runs it, which shows its loading state at once and then draws its answer. A section runs as `run(container,
+ * context)` with `context = { orders, sessionsPerWeekByHarness, weeks, harnesses, replaceQuery }`:
  * - `orders`, `{ harnesses, models, categories, providers }`, the promised rows of `setup/harness_order`,
  *   `setup/model_order`, `setup/category_order` and `setup/provider_order`, asked for once;
  * - `sessionsPerWeekByHarness`, the promised rows of `explore/sessions_per_week_by_harness`, asked for once, since the
@@ -25,12 +25,11 @@ import {
 import { mountTopicTabs } from "./topic_tabs.js";
 
 /**
- * Start the Explore page: draw its header, footer and topic tabs, its `sections` and its figures, and, once
+ * Start the Explore page: draw its topic tabs, header and footer, its `sections` and its figures, and, once
  * `weeks.json` is read, call `showWeekCount` with the number of weeks, or with null when the indexes cannot be read.
  * Settles once the sections have drawn.
  */
 export async function startPage({ sections, showWeekCount }) {
-  renderFooter(document.querySelector("#site-footer"), EXPLORE_FILE, new URLSearchParams(), null);
   // The figure modules load and the tabs are drawn while the indexes are read, so a tab shows its topic at once.
   const figures = mountFigureSections();
   mountTabs(figures);
@@ -40,6 +39,7 @@ export async function startPage({ sections, showWeekCount }) {
     [weeks, harnesses] = await Promise.all([fetchWeeks(), fetchHarnesses()]);
   } catch (error) {
     mountHeader(document.querySelector("#site-header"), EXPLORE_FILE, new URLSearchParams());
+    renderFooter(document.querySelector("#site-footer"), EXPLORE_FILE, new URLSearchParams(), null);
     showWeekCount(null);
     // Every section and figure shows the error in its own place.
     showErrorInEverySection(sections, error);
@@ -76,9 +76,8 @@ function promisedRows(name) {
   return rows;
 }
 
-/** Lay out every section and figure, each loading, then run them all. */
+/** Lay out every figure, each loading, then run the sections, each showing its own loading state, and the figures. */
 async function runEverySection(sections, figures, context) {
-  layoutEverySection(sections);
   layoutFigures(figures);
   const sectionRuns = sections.map((section) => section.run(sectionElement(section), context));
   await Promise.all([...sectionRuns, runFigures(figures, context)]);
@@ -128,12 +127,6 @@ function renderPageHeader() {
 
 function sectionElement(section) {
   return document.querySelector(`#${section.id}`);
-}
-
-function layoutEverySection(sections) {
-  for (const section of sections) {
-    section.layout(sectionElement(section));
-  }
 }
 
 function showErrorInEverySection(sections, error) {

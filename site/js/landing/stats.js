@@ -11,13 +11,12 @@ import { showError, showLoading } from "../shared/charts.js";
 import { runQuery } from "../shared/database.js";
 import { dateSpanText, formatCompactCount, formatCount } from "../shared/format.js";
 
-/** Show the loading state in `container`. */
-export function layoutStats(container) {
-  showLoading(container);
-}
-
-/** Draw the stats strip into `container` from the trace totals and the weeks, or the error if the query fails. */
+/**
+ * Show the loading state in `container`, then draw the stats strip into it from the trace totals and the weeks, or the
+ * error if the query fails.
+ */
 export async function runStats(container, context) {
+  showLoading(container);
   await drawStats(container, context).catch((error) => showError(container, error));
 }
 

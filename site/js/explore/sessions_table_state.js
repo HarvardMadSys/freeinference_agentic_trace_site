@@ -6,10 +6,10 @@
  */
 
 import {
-  cachedShare, formatCount, formatOptionalShare, formatQuantity, formatSeconds, formatTokens, MISSING_TEXT, shortMinute,
-  shortSessionId,
+  cachedShare, formatCompactCount, formatCount, formatOptionalShare, formatQuantity, formatSeconds, MISSING_TEXT,
+  shortMinute, shortSessionId,
 } from "../shared/format.js";
-import { filterRows, searchRows, sortRows } from "../shared/table.js";
+import { searchRows, sortRows } from "../shared/table.js";
 
 // The prefix the release gives the benchmark replay's harness, "eval:swe-bench", which the table leaves out.
 const EVAL_PREFIX = /^eval:/;
@@ -33,7 +33,7 @@ export const COLUMNS = Object.freeze([
   Object.freeze({ key: "main_model", title: "Model", format: textOrMissing }),
   Object.freeze({ key: "turns", title: "Turns", format: formatCount, isNumber: true }),
   Object.freeze({ key: "duration_s", title: "Duration", format: formatSeconds, isNumber: true }),
-  Object.freeze({ key: "input_tokens", title: "Input tokens", format: formatTokens, isNumber: true }),
+  Object.freeze({ key: "input_tokens", title: "Input tokens", format: formatCompactCount, isNumber: true }),
   Object.freeze({ key: "cached_share", title: "Cached share", format: formatOptionalShare, isNumber: true }),
 ]);
 
@@ -69,16 +69,17 @@ export function withFirstPage(params) {
 
 /** The rows the table lists for `state`: those whose id contains the search and that pass every filter, sorted. */
 export function shownSessions(rows, state) {
-  const conditions = [];
-  if (state.model !== "") {
-    conditions.push({ key: "main_model", equals: state.model });
-  }
-  if (state.minRequests !== null) {
-    conditions.push({ key: "requests", atLeast: state.minRequests });
-  }
   // Only the id is searched: a search over every column would match the text "null" of a missing value.
   const found = searchRows(rows, "session_id", state.search);
-  return sortRows(filterRows(found, conditions), state.sort.key, state.sort.direction);
+  const kept = [];
+  for (const row of found) {
+    const isOfModel = state.model === "" || row.main_model === state.model;
+    const hasEnoughRequests = state.minRequests === null || row.requests >= state.minRequests;
+    if (isOfModel && hasEnoughRequests) {
+      kept.push(row);
+    }
+  }
+  return sortRows(kept, state.sort.key, state.sort.direction);
 }
 
 /** The sort after a click on the column `key`: the same column reversed, or a new one, numbers largest first. */
@@ -168,7 +169,8 @@ export function wholeNumberOrNull(text) {
   return Number.isNaN(number) ? null : number;
 }
 
-function setOrDelete(params, key, value, defaultValue) {
+/** Write `value` to `params` under `key`, or remove the key when `value` is `defaultValue`: a default writes no key. */
+export function setOrDelete(params, key, value, defaultValue) {
   if (value === defaultValue) {
     params.delete(key);
   } else {

@@ -8,7 +8,7 @@
  */
 
 import {
-  AXIS_STYLE, chartFrame, colourScale, distinct, drawBars, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
+  AXIS_STYLE, chartFrame, colourScale, distinct, drawBars, GRID_STYLE, LINE_WIDTH,
 } from "../shared/charts.js";
 import { drawCdf } from "../shared/cdf.js";
 import { axisWithTicks, decadeDomain, decadeTicks, sparseTickFormat, weekTickFormat } from "../axes/ticks.js";
@@ -143,9 +143,7 @@ async function drawTokenSplit(rows, body, colours) {
     x: "week",
     y: "share",
     fill: "part",
-    order: TOKEN_PARTS,
     colours: colours.series,
-    stacked: true,
     xLabel: null,
     yLabel: "Share of tokens",
     format: formatShare,
@@ -160,9 +158,7 @@ async function drawContextShare(rows, body, colours) {
     x: "bin_start",
     y: "share",
     fill: "role",
-    order: INPUT_ROLES.map((inputRole) => inputRole.role),
     colours: colours.series,
-    stacked: true,
     xLabel: "Input tokens",
     yLabel: "Share of input",
     format: formatShare,
@@ -192,7 +188,7 @@ async function drawTokenGrowth(rows, body, colours, hidden) {
     axisWithTicks(Plot.axisY, decadeTicks(yDomain), { ...AXIS_STYLE, label: "Median tokens", tickFormat: formatCountTick }),
     Plot.line(points, { x: "messages", y: "tokens", stroke: "part", strokeWidth: LINE_WIDTH }),
     Plot.dot(points, { x: "messages", y: "tokens", fill: "part", r: MARKER_RADIUS }),
-    Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "messages", y: "tokens", title: growthTipText })),
+    Plot.tip(points, Plot.pointer({ x: "messages", y: "tokens", title: growthTipText })),
   ];
   const chart = Plot.plot({
     ...chartFrame(body),

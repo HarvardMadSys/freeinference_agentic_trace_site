@@ -7,7 +7,7 @@
  */
 
 import {
-  AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH, TIP_STYLE, X_INSET,
+  AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH, X_INSET,
 } from "../shared/charts.js";
 import { axisWithTicks, TICK_COUNT } from "../axes/ticks.js";
 import { TOKEN_PART_COLOURS, VIOLET_SLOT } from "../theme/colours.js";
@@ -174,7 +174,7 @@ async function drawCostByTtl(rows, body, colours, { labels, flag, describe }) {
       Plot.areaY(rows, { x: "ttl_seconds", y: "cost_multiple", fill: "part", order: parts }),
       Plot.ruleY([1], { ...AXIS_STYLE, strokeDasharray: DASH }),
       ...calloutMarks(Plot, callout, highestCost),
-      Plot.tip(stacks, Plot.pointerX({ ...TIP_STYLE, x: "seconds", y: "top", title: "text" })),
+      Plot.tip(stacks, Plot.pointerX({ x: "seconds", y: "top", title: "text" })),
     ],
   });
   body.replaceChildren(chart);

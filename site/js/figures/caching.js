@@ -8,7 +8,7 @@
  * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE, X_INSET } from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, X_INSET } from "../shared/charts.js";
 import { axisWithTicks } from "../axes/ticks.js";
 import { slottedColours } from "../theme/colours.js";
 import { formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare } from "../shared/format.js";
@@ -105,7 +105,7 @@ async function drawIdleGapRetention(rows, body, colours) {
       Plot.axisY({ ...AXIS_STYLE, label: "Median hit ratio", tickFormat: formatPercent }),
       Plot.line(points, { x: "seconds", y: "hitRatio", stroke: "provider", strokeWidth: LINE_WIDTH }),
       Plot.dot(points, { x: "seconds", y: "hitRatio", fill: "provider", r: MARKER_RADIUS }),
-      Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "seconds", y: "hitRatio", title: idleGapTipText })),
+      Plot.tip(points, Plot.pointer({ x: "seconds", y: "hitRatio", title: idleGapTipText })),
     ],
   });
   body.replaceChildren(chart);

@@ -30,11 +30,6 @@ import {
 // The text of the model drop-down's first choice, which filters nothing.
 const EVERY_MODEL_TEXT = "All models";
 
-/** Show the loading state in `container`. */
-export function layoutSessionsTable(container) {
-  showLoading(container);
-}
-
 /**
  * Lay out a fresh place in `container`, load the sessions and draw the controls and the table into it, or the error
  * if the query fails. The table's filter is read and rewritten in the URL first, before the answer is loaded.

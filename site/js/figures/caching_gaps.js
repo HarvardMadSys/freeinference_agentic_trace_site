@@ -8,7 +8,7 @@
  * figures. A cause, a transition and a gap bin have the same colour in every chart, from `theme/colours.js`.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, TALL_CHART_HEIGHT, TIP_STYLE } from "../shared/charts.js";
+import { AXIS_STYLE, BAR_INSET, chartFrame, colourScale, TALL_CHART_HEIGHT } from "../shared/charts.js";
 import { drawCdf } from "../shared/cdf.js";
 import { durationTicks, fewerOnNarrow } from "../axes/ticks.js";
 import { CAUSE_COLOURS, GAP_BIN_SLOTS, TIME_PART_NAMES, TRANSITION_COLOURS } from "../theme/colours.js";
@@ -55,7 +55,6 @@ const GAP_BIN_END_LABELS = Object.freeze([{ name: "<1m", at: 0.1, placement: "en
 const CAUSE_MARGIN_LEFT = 116; // pixels; room for the longest cause name, "Ask-user tool"
 const VALUE_MARGIN_RIGHT = 48; // pixels; room for a value written after a bar that reaches 1, "100%"
 const VALUE_OFFSET = 4; // pixels between a bar's end and its value
-const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars
 
 /** The gap figures of the Prefix-caching section, by name. */
 export const GAP_FIGURES = Object.freeze({
@@ -262,7 +261,7 @@ async function drawMeanHitRatioByCause(rows, body) {
       Plot.text(bars, {
         x: "mean", y: "cause", text: meanText, textAnchor: "start", dx: VALUE_OFFSET, fill: "var(--chart-label)",
       }),
-      Plot.tip(bars, Plot.pointerY({ ...TIP_STYLE, x: "mean", y: "cause", title: meanTipText })),
+      Plot.tip(bars, Plot.pointerY({ x: "mean", y: "cause", title: meanTipText })),
     ],
   });
   body.replaceChildren(chart);

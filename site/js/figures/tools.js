@@ -8,7 +8,7 @@
  */
 
 import {
-  AXIS_STYLE, categoryRowsFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, TIP_STYLE,
+  AXIS_STYLE, categoryRowsFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH,
 } from "../shared/charts.js";
 import { axisWithTicks, decadeTicks } from "../axes/ticks.js";
 import {
@@ -117,7 +117,7 @@ async function drawQuantileRanges(rows, body, categoryColours, range) {
         insetTop: MEDIAN_TICK_INSET,
         insetBottom: MEDIAN_TICK_INSET,
       }),
-      Plot.tip(ranges, Plot.pointerY({ ...TIP_STYLE, y: "category", x: "p50", title: (drawn) => rangeTipText(drawn, range) })),
+      Plot.tip(ranges, Plot.pointerY({ y: "category", x: "p50", title: (drawn) => rangeTipText(drawn, range) })),
     ],
   });
   body.replaceChildren(chart);

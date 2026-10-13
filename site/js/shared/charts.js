@@ -25,7 +25,8 @@ const CATEGORY_MARGIN_TOP = 8; // pixels above the first row: the rows have no t
 const CATEGORY_MARGINS_Y = 56; // pixels above and below the rows: the top margin and the x axis
 /** The width of every chart's lines, in pixels: thin lines. */
 export const LINE_WIDTH = 2;
-const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars and segments
+/** Pixels taken off each side of a bar: a 2px gap between neighbouring bars and segments. */
+export const BAR_INSET = 1;
 /** The dash and gap lengths of every dashed line, in pixels: a CDF's median, a percentile, a reference line. */
 export const DASH = "4 3";
 /** Pixels between the y axis and an x axis's first value, so its label and the y axis's lowest keep a gap. */
@@ -46,8 +47,6 @@ export const AXIS_STYLE = Object.freeze({ stroke: "var(--chart-axis)", labelArro
 export const LINE_LABEL_STYLE = Object.freeze({
   fill: "var(--chart-label)", stroke: "var(--color-surface)", strokeWidth: 4, paintOrder: "stroke",
 });
-/** The options of every chart's tooltip: Plot's white box would be unreadable in dark mode, so it takes the surface colour. */
-export const TIP_STYLE = Object.freeze({ fill: "var(--color-surface)" });
 
 /** The Plot options every chart starts from: its margins, its height, the width of `body`, and its ink. */
 export function chartFrame(body) {
@@ -184,43 +183,40 @@ export function legendPlace(body) {
 }
 
 /**
- * Draw into `body` one bar per row of `rows`: `row[x]` along the axis, `row[y]` its height, coloured by `row[fill]`
- * in its colour from `colours`, a Map from each fill value (and "Other") to its colour, in the order the series stack.
- * Series past the eighth of `order` (a fixed order of fill values, largest first) or of the rows' order fold into
- * "Other", summed into one bar per x. Bars stack when `stacked`; `format` writes a y value in the tooltip and, unless
- * `yTickFormat` is given, on the axis; `yLabel` names a y value in the tooltip and, unless `yAxisLabel` is given (null
- * for none), titles the axis; `xTickFormat`, when given, writes the x axis's ticks; `xDomain`, when given, lists every x value in order,
- * so one with no rows keeps its place; `margins`, when given, are Plot margins in place of the frame's. Returns the
- * chart's element.
+ * Draw into `body` one stacked bar per x value of `rows`: `row[x]` along the axis, `row[y]` the height of its segment,
+ * coloured by `row[fill]` in its colour from `colours`, a Map from each fill value to its colour, in the order the
+ * segments stack, bottom up. The caller folds series past the eighth into "Other" (`foldToOther`, `sumFolded`) before
+ * calling. `format` writes a y value in the tooltip and, unless `yTickFormat` is given, on the axis; `yLabel` names a y
+ * value in the tooltip and, unless `yAxisLabel` is given (null for none), titles the axis; `xTickFormat`, when given,
+ * writes the x axis's ticks; `xDomain`, when given, lists every x value in order, so one with no rows keeps its place;
+ * `margins`, when given, are Plot margins in place of the frame's. Returns the chart's element.
  */
 export async function drawBars(body, rows, options) {
-  const { x, y, fill, order, colours, stacked = false, xLabel, yLabel, format = formatCount } = options;
+  const { x, y, fill, colours, xLabel, yLabel, format = formatCount } = options;
   const { xTickFormat, xDomain, yTickFormat = format, yAxisLabel = yLabel } = options;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("./libraries.js");
-  const names = distinct(order ?? rows.map((row) => row[fill]));
-  const foldedRows = sumFolded(foldToOther(rows, fill, names), { x, y, fill });
-  const shown = [...colours.keys()].filter((name) => foldedRows.some((row) => row[fill] === name));
+  const shown = [...colours.keys()].filter((name) => rows.some((row) => row[fill] === name));
   const frame = { ...chartFrame(body), ...options.margins };
   if (yAxisLabel === null) {
     frame.marginTop = UNTITLED_MARGIN_TOP;
   }
   const chart = Plot.plot({
     ...frame,
-    x: { type: "band", domain: xDomain ?? distinct(foldedRows.map((row) => row[x])) },
+    x: { type: "band", domain: xDomain ?? distinct(rows.map((row) => row[x])) },
     color: colourScale(colours, shown),
     marks: [
       Plot.gridY({ ...GRID_STYLE, ticks: TICK_COUNT }),
       Plot.axisX({ ...AXIS_STYLE, tickFormat: xTickFormat, label: xLabel }),
       Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: yTickFormat, label: yAxisLabel }),
-      Plot.barY(foldedRows, {
+      Plot.barY(rows, {
         x,
-        ...barHeight(y, stacked),
+        y,
         fill,
-        order: shown, // the stacking order, bottom up; unused when the bars do not stack
+        order: shown, // the stacking order, bottom up
         inset: BAR_INSET,
         title: (row) => barTipText(row, { x, y, fill, yLabel, format }),
-        tip: TIP_STYLE,
+        tip: true,
       }),
       Plot.ruleY([0], AXIS_STYLE),
     ],
@@ -257,14 +253,6 @@ export function colourScale(colours, shown) {
     domain: shown,
     range: shown.map((name) => colours.get(name)),
   };
-}
-
-// A stacked bar starts where the bars below it end; an unstacked bar starts at zero.
-function barHeight(y, stacked) {
-  if (stacked) {
-    return { y };
-  }
-  return { y2: y };
 }
 
 function barTipText(row, { x, y, fill, yLabel, format }) {

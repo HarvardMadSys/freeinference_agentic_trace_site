@@ -12,7 +12,7 @@
  */
 
 import { monthName } from "../shared/format.js";
-import { harnessText } from "./sessions_table_state.js";
+import { harnessText, setOrDelete } from "./sessions_table_state.js";
 
 // The URL keys the filter is written in, one value each.
 const MONTHS_KEY = "months";
@@ -61,8 +61,8 @@ export function writeTableFilter(params, filter) {
   for (const key of OLDER_KEYS) {
     written.delete(key);
   }
-  setOrDelete(written, MONTHS_KEY, filter.month);
-  setOrDelete(written, HARNESSES_KEY, filter.harness);
+  setOrDelete(written, MONTHS_KEY, filter.month, "");
+  setOrDelete(written, HARNESSES_KEY, filter.harness, "");
   return written;
 }
 
@@ -166,15 +166,6 @@ function requestedHarnesses(params) {
     return namesIn(params.get(HARNESSES_KEY));
   }
   return namesIn(params.get("harness") ?? "");
-}
-
-/** Write `value` to `params` under `key`, or remove the key when `value` is "", every month or harness. */
-function setOrDelete(params, key, value) {
-  if (value === "") {
-    params.delete(key);
-  } else {
-    params.set(key, value);
-  }
 }
 
 /** The comma-separated names of a URL value, each trimmed, empty ones dropped. */

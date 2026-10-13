@@ -1,8 +1,8 @@
 /**
  * Numbers and names as every page shows them, a value with one decimal kept and an axis's tick with none it does not
- * need: counts, compact counts and their ticks, token totals, durations and duration ticks, elapsed time and its
- * ticks, shares and whole percentages, multiples, a session's short id, a UTC minute, a week's month and day and a
- * span of days; and the two definitions they rest on, elapsed seconds and the cached share.
+ * need: counts, compact counts and their ticks, power-of-two bins of tokens, durations and duration ticks, elapsed
+ * time and its ticks, shares and whole percentages, multiples, a session's short id, a UTC minute, a week's month and
+ * day and a span of days; and the two definitions they rest on, elapsed seconds and the cached share.
  */
 
 // A compact count is shown in the largest of these units it reaches.
@@ -97,11 +97,6 @@ export function formatCountTick(count) {
 /** A power-of-two count of tokens as such bins are named: 4096 → "4k", 262144 → "256k"; under 1,024, the count. */
 export function formatBinaryThousands(tokens) {
   return tokens < TOKENS_PER_BINARY_THOUSAND ? formatCount(tokens) : `${tokens / TOKENS_PER_BINARY_THOUSAND}k`;
-}
-
-/** A token total as a compact count: 129087 → "129.1k". */
-export function formatTokens(tokens) {
-  return formatCompactCount(tokens);
 }
 
 /**

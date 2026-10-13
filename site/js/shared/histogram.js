@@ -11,8 +11,8 @@
  * axis's ticks over its `[low, high]`.
  */
 
-import { AXIS_STYLE, chartFrame, GRID_STYLE, legendPlace, TIP_STYLE, X_INSET } from "./charts.js";
-import { axisWithTicks, extent, logAxisTicks, MAX_TICKS, maxTicksFor, TICK_COUNT } from "../axes/ticks.js";
+import { AXIS_STYLE, BAR_INSET, chartFrame, GRID_STYLE, legendPlace, X_INSET } from "./charts.js";
+import { axisWithTicks, extent, logAxisTicks, MAX_TICKS, TICK_COUNT, tickCountFor } from "../axes/ticks.js";
 import { formatCount, formatCountTick } from "./format.js";
 
 // The columns of a bins query's rows: where a bin starts, where it ends, and how many rows (requests or
@@ -23,8 +23,6 @@ const BIN_COUNT_COLUMN = "rows";
 
 // A card's chart differs from the shared frame in one margin: room left of it for a compact count, less than a share.
 const CARD_FRAME = Object.freeze({ marginLeft: 64 });
-const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between neighbouring bars
-const DEFAULT_COUNT_LABEL = "Rows"; // the y axis label when the card does not name what it counts
 
 /**
  * The line above the chart: the median and the 95th percentile in the card's format, then the maximum where the card
@@ -43,7 +41,7 @@ export function summaryText(card) {
 
 /** The card's line of rows, shown with its definition: "1,125,604 requests". */
 export function rowsText(card) {
-  const noun = (card.countLabel ?? DEFAULT_COUNT_LABEL).toLowerCase();
+  const noun = card.countLabel.toLowerCase();
   return `${formatCount(card.count)} ${noun}`;
 }
 
@@ -65,7 +63,7 @@ export function histogramCard(entry, binRows, statsRow) {
   return {
     ...entry,
     bins: binsFromRows(binRows),
-    percentiles: { p50: statsRow.p50, p75: statsRow.p75, p90: statsRow.p90, p95: statsRow.p95 },
+    percentiles: { p50: statsRow.p50, p95: statsRow.p95 },
     count: statsRow.count,
     max: statsRow.max,
   };
@@ -74,9 +72,9 @@ export function histogramCard(entry, binRows, statsRow) {
 /** The bins `{ x0, x1, count }` of a histogram's bins query's rows, in the rows' order. */
 export function binsFromRows(rows) {
   return rows.map((row) => ({
-    x0: Number(row[BIN_START_COLUMN]),
-    x1: Number(row[BIN_END_COLUMN]),
-    count: Number(row[BIN_COUNT_COLUMN]),
+    x0: row[BIN_START_COLUMN],
+    x1: row[BIN_END_COLUMN],
+    count: row[BIN_COUNT_COLUMN],
   }));
 }
 
@@ -107,9 +105,8 @@ export async function drawHistogram(body, card) {
 }
 
 function histogramChart(Plot, card, body) {
-  const countLabel = card.countLabel ?? DEFAULT_COUNT_LABEL;
   const frame = chartFrame(body);
-  const ticks = cardTicks(card, maxTicksFor(frame.width));
+  const ticks = cardTicks(card, tickCountFor(frame.width, MAX_TICKS));
   const counts = countAxis(card);
   return Plot.plot({
     ...frame,
@@ -121,13 +118,13 @@ function histogramChart(Plot, card, body) {
       axisWithTicks(Plot.axisX, ticks, {
         ...AXIS_STYLE, tickFormat: card.tickFormat ?? card.format, label: card.xLabel ?? null,
       }),
-      Plot.axisY({ ...AXIS_STYLE, ticks: counts.ticks, tickFormat: formatCountTick, label: countLabel }),
+      Plot.axisY({ ...AXIS_STYLE, ticks: counts.ticks, tickFormat: formatCountTick, label: card.countLabel }),
       Plot.rectY(drawableBins(card), {
         x1: "x0", x2: "x1", y1: counts.base, y2: "count", fill: "var(--series-1)", inset: BAR_INSET,
       }),
       Plot.ruleY([counts.base], AXIS_STYLE),
       Plot.tip(drawableBins(card), Plot.pointerX({
-        ...TIP_STYLE, x1: "x0", x2: "x1", y: "count", title: (bin) => binDescription(card, bin, countLabel),
+        x1: "x0", x2: "x1", y: "count", title: (bin) => binDescription(card, bin),
       })),
     ],
   });
@@ -148,8 +145,8 @@ export function countAxis(card) {
   return { type: "log", domain: [base, top], base, ticks: logAxisTicks([base, top]) };
 }
 
-function binDescription(card, bin, countLabel) {
-  return `${card.format(bin.x0)} – ${card.format(bin.x1)}\n${countLabel}: ${formatCount(bin.count)}`;
+function binDescription(card, bin) {
+  return `${card.format(bin.x0)} – ${card.format(bin.x1)}\n${card.countLabel}: ${formatCount(bin.count)}`;
 }
 
 function emptyNote() {

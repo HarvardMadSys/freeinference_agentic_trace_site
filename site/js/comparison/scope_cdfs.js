@@ -13,7 +13,7 @@
  */
 
 import {
-  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH, TIP_STYLE, X_INSET,
+  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH, X_INSET,
 } from "../shared/charts.js";
 import { cdfPoints } from "../shared/cdf.js";
 import { axisWithTicks, isNarrowChart } from "../axes/ticks.js";
@@ -216,7 +216,7 @@ async function drawScopeCdf(rows, body, colours, axis) {
       Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH, clip: true }),
       ...medianMarks(Plot, rows, axis),
       summaryMark(Plot, medianSummary(rows, axis.comparative)),
-      Plot.tip(points, Plot.pointerX({ ...TIP_STYLE, x: "x", y: "share", title: (point) => tipText(point, axis) })),
+      Plot.tip(points, Plot.pointerX({ x: "x", y: "share", title: (point) => tipText(point, axis) })),
     ],
   });
   body.replaceChildren(chart);

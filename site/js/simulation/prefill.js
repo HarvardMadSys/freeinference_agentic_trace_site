@@ -8,9 +8,9 @@
  */
 
 import {
-  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH, TIP_STYLE,
+  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH,
 } from "../shared/charts.js";
-import { axisWithTicks, isNarrowChart, logAxisTicks, maxTicksFor } from "../axes/ticks.js";
+import { axisWithTicks, isNarrowChart, logAxisTicks, MAX_TICKS, tickCountFor } from "../axes/ticks.js";
 import { formatCompactCount, formatCountTick, formatMultiple, formatTtlName } from "../shared/format.js";
 import { SCOPE_LABELS, scopeLegend } from "../comparison/scopes.js";
 
@@ -110,7 +110,7 @@ async function drawPrefillAgainstStorage(rows, body, colours) {
   const points = prefillPoints(rows, isNarrowChart(frame.width) ? NARROW_LABELLED_TTLS : LABELLED_TTLS);
   const scopes = [...colours.series.keys()].filter((scope) => points.some((point) => point.scope === scope));
   const domain = retainedDomain(points);
-  const retainedTicks = logAxisTicks(domain, maxTicksFor(frame.width));
+  const retainedTicks = logAxisTicks(domain, tickCountFor(frame.width, MAX_TICKS));
   const chart = Plot.plot({
     ...frame,
     x: { type: "log", domain },
@@ -126,7 +126,7 @@ async function drawPrefillAgainstStorage(rows, body, colours) {
       Plot.line(points, { x: "retained", y: "prefill", stroke: "scope", strokeWidth: LINE_WIDTH }),
       Plot.dot(points, { x: "retained", y: "prefill", fill: "scope", r: MARKER_RADIUS }),
       ...ttlNameMarks(Plot, points),
-      Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "retained", y: "prefill", title: prefillTipText })),
+      Plot.tip(points, Plot.pointer({ x: "retained", y: "prefill", title: prefillTipText })),
     ],
   });
   body.replaceChildren(chart);

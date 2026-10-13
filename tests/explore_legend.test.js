@@ -111,26 +111,26 @@ test("a legend of one series mounts no button", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("div");
   container.append(new FakeElement("button")); // a button of an earlier legend, which the mount clears
-  mountLegend(container, LEGEND.series.slice(0, 1), LEGEND.colours, new Set(), () => undefined);
+  mountLegend(container, LEGEND.series.slice(0, 1), LEGEND.colours, () => undefined);
   assert.deepEqual(container.children, []);
 });
 
-test("the legend is one button per series, labelled and coloured, pressed unless hidden", (context) => {
+test("the legend is one button per series, labelled, coloured and pressed", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("div");
-  mountLegend(container, LEGEND.series, LEGEND.colours, new Set(["pi"]), () => undefined);
+  mountLegend(container, LEGEND.series, LEGEND.colours, () => undefined);
   const buttons = container.children;
   assert.deepEqual(buttons.map((button) => button.tag), ["button", "button"]);
   assert.deepEqual(buttons.map((button) => button.label()), ["hermes", "Pi"]);
   assert.deepEqual(buttons.map((button) => button.children[0].style.background), ["var(--series-1)", "var(--series-2)"]);
-  assert.deepEqual(buttons.map((button) => button.getAttribute("aria-pressed")), ["true", "false"]);
+  assert.deepEqual(buttons.map((button) => button.getAttribute("aria-pressed")), ["true", "true"]);
 });
 
 test("a click on a legend button names its series and flips the button", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("div");
   const toggled = [];
-  mountLegend(container, LEGEND.series, LEGEND.colours, new Set(), (name) => toggled.push(name));
+  mountLegend(container, LEGEND.series, LEGEND.colours, (name) => toggled.push(name));
   container.children[1].click();
   assert.deepEqual(toggled, ["pi"]);
   assert.equal(container.children[1].getAttribute("aria-pressed"), "false");
@@ -219,7 +219,7 @@ test("the arrow keys move between a legend's buttons, stopping at its ends; any 
 test("a legend is one tab stop, a named group, and ArrowRight moves the stop and the focus to the next button", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("div");
-  mountLegend(container, LEGEND.series, LEGEND.colours, new Set(), () => undefined);
+  mountLegend(container, LEGEND.series, LEGEND.colours, () => undefined);
   assert.equal(container.getAttribute("role"), "group");
   assert.equal(container.getAttribute("aria-label"), "Series");
   assert.deepEqual(container.children.map((button) => button.tabIndex), [0, -1]);

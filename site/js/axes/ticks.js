@@ -54,10 +54,10 @@ export function logAxisTicks([low, high], maxTicks = MAX_TICKS) {
 
 /**
  * The ticks of a log axis of seconds over `[low, high]`: the durations of `DURATION_TICKS_S` within it, every second one
- * when there are more than `maxTicks`.
+ * when there are more than `MAX_TICKS`.
  */
-export function durationTicks([low, high], maxTicks = MAX_TICKS) {
-  return atMost(DURATION_TICKS_S.filter((seconds) => seconds >= low && seconds <= high), maxTicks);
+export function durationTicks([low, high]) {
+  return atMost(DURATION_TICKS_S.filter((seconds) => seconds >= low && seconds <= high), MAX_TICKS);
 }
 
 /** `ticks`, or every other one of them when there are more than `maxTicks`. */
@@ -70,7 +70,10 @@ export function fewerOnNarrow(ticks, width) {
   return isNarrowChart(width) ? everyOther(ticks) : ticks;
 }
 
-/** The tick count a linear axis of a chart `width` pixels wide asks Plot for: `count`, or fewer on a narrow chart. */
+/**
+ * The ticks an axis of a chart `width` pixels wide asks for or labels at most: `count`, or `NARROW_MAX_TICKS` on a
+ * narrow chart.
+ */
 export function tickCountFor(width, count) {
   return isNarrowChart(width) ? NARROW_MAX_TICKS : count;
 }
@@ -78,11 +81,6 @@ export function tickCountFor(width, count) {
 /** Whether a chart `width` pixels wide is narrow, so its axes take at most `NARROW_MAX_TICKS` ticks. */
 export function isNarrowChart(width) {
   return width < NARROW_CHART_WIDTH;
-}
-
-/** The most ticks an axis of a chart `width` pixels wide labels: `NARROW_MAX_TICKS` on a narrow one, else `MAX_TICKS`. */
-export function maxTicksFor(width) {
-  return isNarrowChart(width) ? NARROW_MAX_TICKS : MAX_TICKS;
 }
 
 /** The first, third, fifth… of `ticks`: half as many, from the first. */

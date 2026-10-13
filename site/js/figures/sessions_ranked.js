@@ -11,7 +11,7 @@
  * is given the parts its legend hides.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE } from "../shared/charts.js";
 import { percentTick } from "../axes/ticks.js";
 import { TIME_PART_COLOURS, TIME_PART_NAMES, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { formatCount, formatPercent, formatShare } from "../shared/format.js";
@@ -112,7 +112,7 @@ async function drawRankedShares(rows, body, { labels, colours, hidden, yLabel })
       Plot.axisX({ ...AXIS_STYLE, label: "Session percentile", tickFormat: percentTick }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: yLabel }),
       Plot.areaY(stackedSharePoints(rows, shown), { x: "percentile", y: "share", fill: "part", order: shown }),
-      Plot.tip(tips, Plot.pointerX({ ...TIP_STYLE, x: "percentile", y: "top", title: "text" })),
+      Plot.tip(tips, Plot.pointerX({ x: "percentile", y: "top", title: "text" })),
     ],
   });
   body.replaceChildren(chart);

@@ -10,7 +10,7 @@
  * `rows`, the sessions it rests on.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE } from "../shared/charts.js";
 import { cdfPoints, drawCdf } from "../shared/cdf.js";
 import { durationTicks, extent, fewerOnNarrow, tickCountFor } from "../axes/ticks.js";
 import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
@@ -157,7 +157,7 @@ async function drawSpeedups(rows, body) {
         y: "label",
         fill: "part",
         title: (bar) => speedupTipText(bar, sessions),
-        tip: TIP_STYLE,
+        tip: true,
       }),
       Plot.text(bars, { x: "speedup", y: "label", text: "text", textAnchor: "start", dx: BAR_LABEL_GAP }),
     ],

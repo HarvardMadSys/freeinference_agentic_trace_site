@@ -24,18 +24,18 @@ const LEGEND_GROUP_NAME = "Series";
 
 /**
  * Fill `container` with one button per series of `series` (`[{ name, label }]`), each with its colour from `colours`
- * (a Map from name to colour) in a swatch shaped as the chart draws it, `swatch` ("square" or "line"), pressed unless
- * its name is in `hidden`, the whole one tab stop with the arrow keys inside it. A click flips the button between
- * pressed and struck through and calls `onToggle(name)`. Fewer than two series leave `container` empty.
+ * (a Map from name to colour) in a swatch shaped as the chart draws it, `swatch` ("square" or "line"), each pressed,
+ * the whole one tab stop with the arrow keys inside it. A click flips the button between pressed and struck through
+ * and calls `onToggle(name)`. Fewer than two series leave `container` empty.
  */
-export function mountLegend(container, series, colours, hidden, onToggle, swatch = "square") {
+export function mountLegend(container, series, colours, onToggle, swatch = "square") {
   if (!hasLegend(series)) {
     container.replaceChildren();
     return;
   }
   const buttons = [];
   for (const { name, label } of series) {
-    buttons.push(legendButton({ label, colour: colours.get(name), swatch }, hidden.has(name), () => onToggle(name)));
+    buttons.push(legendButton({ label, colour: colours.get(name), swatch }, () => onToggle(name)));
   }
   for (const [index, button] of buttons.entries()) {
     button.tabIndex = index === 0 ? 0 : -1;
@@ -102,7 +102,7 @@ export async function drawWithLegend(body, legend, drawChart, swatch = "square")
       showError(body, error);
     }
   }
-  mountLegend(legendPlace(body), legend.series, legend.colours, hidden, onToggle, swatch);
+  mountLegend(legendPlace(body), legend.series, legend.colours, onToggle, swatch);
   await drawShownSeries(body, legend, hidden, drawChart);
 }
 
@@ -119,13 +119,13 @@ async function drawShownSeries(body, legend, hidden, drawChart) {
   await drawChart(hidden);
 }
 
-// A legend button for `entry`, `{ label, colour, swatch }`, its swatch a square or a short line.
-function legendButton(entry, isHidden, onClick) {
+// A legend button for `entry`, `{ label, colour, swatch }`, its swatch a square or a short line, pressed.
+function legendButton(entry, onClick) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "legend-button";
   // Pressed means shown: the button's state follows each click, as the hidden set does.
-  button.setAttribute("aria-pressed", String(!isHidden));
+  button.setAttribute("aria-pressed", "true");
   const swatch = document.createElement("span");
   swatch.className = entry.swatch === "line" ? "legend-swatch is-line" : "legend-swatch";
   swatch.style.background = entry.colour;

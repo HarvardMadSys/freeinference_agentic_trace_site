@@ -14,7 +14,7 @@ import { legendLine } from "../session/legend.js";
 import { listenForRequestClick, startChartView } from "../session/view_chart.js";
 import { elapsedAxis } from "../axes/ticks.js";
 import {
-  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, nameChart, renderFigure, TIP_STYLE, X_INSET,
+  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, legendPlace, LINE_WIDTH, nameChart, renderFigure, X_INSET,
 } from "../shared/charts.js";
 import { formatCountTick, formatQuantity } from "../shared/format.js";
 
@@ -130,7 +130,7 @@ function drawChart({ Plot, tree, requests, body, chartBox, legend, slider, view 
       transitionDots(Plot, marks),
       Plot.axisX({ ...AXIS_STYLE, ...elapsedAxis([range.start, range.end], frame.width) }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatCountTick, label: "Input tokens" }),
-      Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "elapsed", y: "inputTokens", title: pointTip })),
+      Plot.tip(points, Plot.pointer({ x: "elapsed", y: "inputTokens", title: pointTip })),
     ],
   });
   listenForRequestClick(body, plot);

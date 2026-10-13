@@ -14,7 +14,7 @@ import { runQuery } from "../shared/database.js";
 import { monthTickFormat } from "../axes/ticks.js";
 import { barColours, HARNESS_FIRST_SLOT, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { seriesLegend } from "../figures/figure_rows.js";
-import { formatCountTick, formatQuantity, formatTokens } from "../shared/format.js";
+import { formatCompactCount, formatCountTick, formatQuantity } from "../shared/format.js";
 import { TOKEN_PART_NAMES } from "../session/token_parts.js";
 import { drawWithLegend, shownRows } from "./legend.js";
 import { harnessText } from "./sessions_table_state.js";
@@ -40,8 +40,18 @@ const TOKEN_PART_LABELS = Object.freeze({
   cached: TOKEN_PART_NAMES.cached, uncached: TOKEN_PART_NAMES.uncached, unreported: "Not reported",
 });
 
+/** Lay out the trends in `container` and draw the three charts; a chart whose query fails shows its error there. */
+export async function runTrends(container, context) {
+  const places = layoutTrends(container);
+  await Promise.all([
+    drawSessionsPerWeek(places.sessions, context).catch((error) => showError(places.sessions, error)),
+    drawRequestsPerWeek(places.requests, context).catch((error) => showError(places.requests, error)),
+    drawInputTokensPerWeek(places.tokens, context).catch((error) => showError(places.tokens, error)),
+  ]);
+}
+
 /** Fill `container` with the cards of the three trend charts, each loading: `{ sessions, requests, tokens }`. */
-export function layoutTrends(container) {
+function layoutTrends(container) {
   const sessions = document.createElement("article");
   const requests = document.createElement("article");
   const tokens = document.createElement("article");
@@ -51,16 +61,6 @@ export function layoutTrends(container) {
   }
   container.replaceChildren(sessions, requests, tokens);
   return { sessions, requests, tokens };
-}
-
-/** Lay out the trends in `container` and draw the three charts; a chart whose query fails shows its error there. */
-export async function runTrends(container, context) {
-  const places = layoutTrends(container);
-  await Promise.all([
-    drawSessionsPerWeek(places.sessions, context).catch((error) => showError(places.sessions, error)),
-    drawRequestsPerWeek(places.requests, context).catch((error) => showError(places.requests, error)),
-    drawInputTokensPerWeek(places.tokens, context).catch((error) => showError(places.tokens, error)),
-  ]);
 }
 
 /** One row `{ week, part, tokens }` per week and part of its input tokens, in the weeks' order and cached first. */
@@ -121,7 +121,7 @@ async function drawInputTokensPerWeek(place, context) {
     colours: new Map(TOKEN_PARTS.map((part) => [part.part, part.colour])),
     labels: TOKEN_PART_LABELS,
     yLabel: "Input tokens",
-    format: formatTokens,
+    format: formatCompactCount,
     legendTopDown: true,
   });
 }
@@ -129,9 +129,9 @@ async function drawInputTokensPerWeek(place, context) {
 /**
  * Draw into `body` a trend's bars of `rows`, one stack per week, `options` saying which column is the height (`y`),
  * which the series (`fill`), the series' `order`, `colours` and, where a series' name is not its label, `labels`, and
- * how the y axis reads. Above them goes the legend that hides and shows a series, in the order of `colours`, or, with
- * `legendTopDown`, in the order the stack draws them from the top down; a series past the eighth of the order is first
- * folded into "Other", so the legend hides "Other" as one.
+ * how a y value reads (`yLabel`, `format`). Above them goes the legend that hides and shows a series, in the order of
+ * `colours`, or, with `legendTopDown`, in the order the stack draws them from the top down; a series past the eighth
+ * of the order is first folded into "Other", so the legend hides "Other" as one.
  */
 async function drawTrend(body, rows, context, options) {
   const { y, fill, order, colours, labels = {}, legendTopDown = false } = options;
@@ -140,12 +140,13 @@ async function drawTrend(body, rows, context, options) {
   if (legendTopDown) {
     legend.series.reverse();
   }
-  const drawShown = (hidden) => drawTrendBars(body, shownRows(folded, fill, hidden), context, options);
+  const barOptions = { ...weekBarOptions(context), y, fill, colours, yLabel: options.yLabel, format: options.format };
+  const drawShown = (hidden) => drawTrendBars(body, shownRows(folded, fill, hidden), barOptions);
   await drawWithLegend(body, legend, drawShown);
 }
 
-async function drawTrendBars(body, rows, context, options) {
-  await drawBars(body, rows, { ...weekBarOptions(context), ...options });
+async function drawTrendBars(body, rows, barOptions) {
+  await drawBars(body, rows, barOptions);
   nameChart(body);
 }
 
@@ -153,7 +154,6 @@ async function drawTrendBars(body, rows, context, options) {
 function weekBarOptions(context) {
   return {
     x: "week",
-    stacked: true,
     xLabel: null,
     yAxisLabel: null, // the card's title names what the bars count
     xTickFormat: monthTickFormat(context.weeks),

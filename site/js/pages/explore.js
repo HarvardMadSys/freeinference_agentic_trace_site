@@ -5,20 +5,20 @@
  */
 
 import { startPage } from "../explore/start.js";
-import { layoutSessionsTable, runSessionsTable } from "../explore/sessions_table.js";
-import { layoutTrends, runTrends } from "../explore/trends.js";
-import { layoutMixes, runMixes } from "../landing/donuts.js";
+import { runSessionsTable } from "../explore/sessions_table.js";
+import { runTrends } from "../explore/trends.js";
+import { runMixes } from "../landing/donuts.js";
 import { mountCopyButtons, renderCiteLine } from "../landing/cite.js";
 import { renderHero } from "../landing/hero.js";
-import { layoutStats, runStats } from "../landing/stats.js";
+import { runStats } from "../landing/stats.js";
 import { renderTeam } from "../landing/team.js";
 
-// Each section: the id of its place in index.html, the function that draws its loading state, and the one that runs it.
+// Each section: the id of its place in index.html, and the function that runs it.
 const SECTIONS = Object.freeze([
-  Object.freeze({ id: "stats", layout: layoutStats, run: runStats }),
-  Object.freeze({ id: "mixes", layout: layoutMixes, run: runMixes }),
-  Object.freeze({ id: "trends", layout: layoutTrends, run: runTrends }),
-  Object.freeze({ id: "sessions-table", layout: layoutSessionsTable, run: runSessionsTable }),
+  Object.freeze({ id: "stats", run: runStats }),
+  Object.freeze({ id: "mixes", run: runMixes }),
+  Object.freeze({ id: "trends", run: runTrends }),
+  Object.freeze({ id: "sessions-table", run: runSessionsTable }),
 ]);
 
 renderTeam(document.querySelector("#team"));
