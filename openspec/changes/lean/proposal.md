@@ -41,8 +41,8 @@ Nothing a visitor sees or can do changes.
   to its kind with the columns and labels written out, and, where the
   paper's callout needs it, one short function of its own. No string
   dispatch and no option a single figure uses: a figure that would need
-  one keeps a plain draw function instead. The runner stops interpreting
-  flags.
+  one keeps a plain draw function instead. The runner reads only the documented row fields, guarded by
+  `ENTRY_FIELDS`.
 - **One URL format.** The sessions table reads and writes `months`,
   `harnesses`, `model`, `min_requests`, `search`, `sort`, `direction` and
   `page`;

@@ -90,7 +90,8 @@ export function drawableBins(card) {
 
 /**
  * Draw `rows`, a bins query's, into `body` as a histogram, its summary line in the figure's legend place above it and
- * its count as the figure's line of rows. It takes no series colours and hides no series. Its named parameters:
+ * its count as the figure's line of rows. It takes no series colours and hides no series.
+ * Required: `statsQuery`, `countLabel` and `valueFormat`. Its named parameters:
  * - `statsQuery`: the query whose one row holds the count, the maximum and the percentiles, read here by name.
  * - `countLabel`: what a bin counts, "Sessions": the count axis's title and the line of rows' noun.
  * - `xLabel`: the value axis's title, none when null.

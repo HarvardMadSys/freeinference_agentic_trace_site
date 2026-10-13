@@ -34,10 +34,11 @@ const ASTERISK_NOTE = "* a shell command, by its purpose";
  * - `floor`: the smallest value drawn, in the drawn unit; a smaller one is drawn at it, on the log axis; else none.
  * - `xLabel`: the value axis's title.
  * - `valueFormat`: how a value is written in the tooltip; `xTickFormat`: how a power of ten is written on the axis.
- * Required: `unitFactor`, `xLabel` and `valueFormat`.
+ * Required: `unitFactor`, `floor` (a log axis has no place for 0, and a 0 percentile without a floor never ends its
+ * ticks), `xLabel` and `valueFormat`.
  */
 export async function drawRanges(rows, body, colours, parameters) {
-  const { unitFactor, floor = -Infinity, xLabel, valueFormat, xTickFormat } = parameters;
+  const { unitFactor, floor, xLabel, valueFormat, xTickFormat } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const categories = drawnCategories(rows, colours.categories);
