@@ -8,7 +8,9 @@
  * column holding each series' median, the same on every row of the series.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, X_INSET } from "../shared/charts.js";
+import {
+  AXIS_STYLE, CHART_HEIGHT, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, X_INSET,
+} from "../shared/charts.js";
 import { formatPercent, formatShare } from "../shared/format.js";
 import { axisWithTicks, extent, isNarrowChart, logAxisTicks, TICK_COUNT } from "../axes/ticks.js";
 import { seriesLegend, shownRows } from "../shared/series.js";
@@ -39,17 +41,20 @@ const MEDIAN_LABEL_STYLE = Object.freeze({
  * - `shareNoun`: what a share is of in the tooltip, "45.0% of prompts"; without it, "45.0% at or below".
  * - `callout(Plot, rows, medians)`: the marks of a note the kind does not draw, from the rows drawn and the medians
  *   marked (`seriesMedians`), laid over the lines.
+ * - `height`: the chart's height in pixels, a frame size for a chart beside a tall neighbour; else every chart's.
+ * Only the lines are cut at the plot's edge; the median's marks and the tooltip are not.
  */
 export async function drawCdf(rows, body, colours, parameters, hidden) {
   const { labels = {}, floor = -Infinity, logScale, xDomain, xTicks, narrowXTicks, xTickFormat } = parameters;
   const { xLabel = null, yLabel = null, valueFormat, medianColumn, shareNoun, callout } = parameters;
+  const { height = CHART_HEIGHT } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const shown = shownRows(rows, SERIES_COLUMN, hidden);
   const series = cdfSeries(shown, [...colours.series.keys()], { labels, floor });
   const points = cdfPoints(series);
   const medians = seriesMedians(shown, series.map((one) => one.name), medianColumn, floor);
-  const frame = chartFrame(body);
+  const frame = { ...chartFrame(body), height };
   const ticks = drawnTicks({ logScale, xDomain, xTicks, narrowXTicks }, points, frame.width);
   const chart = Plot.plot({
     ...frame,

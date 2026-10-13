@@ -152,6 +152,21 @@ test("every histogram runs a bins and a stats query of one Explore name, both fi
   }
 });
 
+// The fields a figure entry may carry, as CONTRIBUTING.md defines them: its card's words and width, its queries, its
+// draw and legend, and the fields that say what its rows are. A field the page does not read has no place here.
+const ENTRY_FIELDS = new Set([
+  "name", "title", "insight", "caption", "definition", "isWide", "query", "statsQuery", "draw", "legend",
+  "binColumn", "seriesColumn", "seriesOverSameRows", "seriesNouns", "drawnRows", "drawsLines", "readsSimulation",
+]);
+
+test("a figure entry carries only the fields CONTRIBUTING defines, so no new flag creeps in", async () => {
+  for (const figure of await everyFigure()) {
+    for (const field of Object.keys(figure)) {
+      assert.ok(ENTRY_FIELDS.has(field), `${figure.name}: ${field} is not a field of a figure entry`);
+    }
+  }
+});
+
 test("every chart has a bin column and a draw function", async () => {
   for (const figure of await chartFigures()) {
     assert.ok(typeof figure.binColumn === "string" || figure.binColumn === null, figure.name);

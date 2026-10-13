@@ -1,12 +1,23 @@
 /**
- * A chart's series: the rows of the series its legend does not hide, and the legend itself, `{ series, colours }`,
- * the series it lists, each `{ name, label }`, and their colours, a Map from name to colour. These are plain functions,
- * tested with `node --test`.
+ * A chart's series: the rows of the series its legend does not hide, the rows of the series with a colour of their
+ * own, and the legend itself, `{ series, colours }`, the series it lists, each `{ name, label }`, and their colours, a
+ * Map from name to colour. These are plain functions, tested with `node --test`.
  */
+
+import { slottedColours } from "../theme/colours.js";
 
 /** The rows whose series, `row[seriesColumn]`, is not in `hidden`, in their order. */
 export function shownRows(rows, seriesColumn, hidden) {
   return rows.filter((row) => !hidden.has(row[seriesColumn]));
+}
+
+/**
+ * The rows whose `column` names a series with one of the eight series colours of `colours` (a Map from name to
+ * colour): a line per model or provider is drawn only for these, since one in the Other grey could not be told apart.
+ */
+export function rowsWithSeriesColour(rows, column, colours) {
+  const coloured = slottedColours(colours);
+  return rows.filter((row) => coloured.has(row[column]));
 }
 
 /**

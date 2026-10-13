@@ -19,7 +19,8 @@ import test_pipeline_mirrors
 SITE_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site"
 GAP_BIN_QUERY = SITE_FOLDER / "queries" / "figures" / "hit_ratio_cdf_by_gap_bin.sql"  # bins the gaps
 CAUSE_QUERY = SITE_FOLDER / "queries" / "figures" / "mean_hit_ratio_by_cause.sql"  # orders the causes
-CACHING_GAPS_MODULE = SITE_FOLDER / "js" / "figures" / "caching_gaps.js"  # the bins' labels, the causes' names
+CACHING_GAPS_MODULE = SITE_FOLDER / "js" / "figures" / "caching_gaps.js"  # the causes' names, the gap limits, the mutation table's rows
+CACHING_CDFS_MODULE = SITE_FOLDER / "js" / "figures" / "caching_cdfs.js"  # the gap bins' labels
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the causes' colours
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the causes a wait bar names
 RETENTION_MODULE = SITE_FOLDER / "js" / "simulation" / "prefill.js"  # the scopes' names, the labelled TTLs
@@ -65,7 +66,7 @@ def test_the_query_s_gap_bins_are_the_pipeline_s_in_its_order() -> None:
 
 
 def test_the_browser_s_gap_bin_labels_are_the_pipeline_s_in_its_order() -> None:
-    body = test_pipeline_mirrors.declaration(CACHING_GAPS_MODULE, r"const GAP_BIN_LABELS = Object\.freeze\(\[(.*?)\]\);")
+    body = test_pipeline_mirrors.declaration(CACHING_CDFS_MODULE, r"const GAP_BIN_LABELS = Object\.freeze\(\[(.*?)\]\);")
     assert re.findall(r'"([^"]+)"', body.group(1)) == [label for _name, label, _lower, _upper in gaps.GAP_BINS]
 
 

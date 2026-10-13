@@ -2,9 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  dropThinGroups, figureRowsText, hiddenText, restingCountText, restingRowCount, rowsWithSeriesColour,
-  unsimulatedWeeks,
-} from "../site/js/figures/figure_rows.js";
+  dropThinGroups, figureRowsText, hiddenText, MIN_ROWS_PER_BIN, restingCountText, restingRowCount, unsimulatedWeeks,
+} from "../site/js/explore/figure_rows.js";
 
 // Two CDF series of two points each: `requests` over 120 sessions, `tool_steps` over 30.
 const CDF_ROWS = [
@@ -26,6 +25,7 @@ test("a thin series is hidden whole and counted once", () => {
 });
 
 test("a thin bin of one row is hidden, and a bin of exactly the threshold is kept", () => {
+  assert.equal(MIN_ROWS_PER_BIN, 50);
   assert.deepEqual(dropThinGroups(BIN_ROWS, "bin_start"), { rows: [BIN_ROWS[0], BIN_ROWS[2]], hidden: 1 });
 });
 
@@ -79,17 +79,11 @@ const WEEK_ENTRIES = [
 ];
 test("a figure of the trace leaves no week unsimulated; a simulation figure names the weeks not simulated", () => {
   assert.deepEqual(unsimulatedWeeks({}, WEEK_ENTRIES), []);
-  assert.deepEqual(unsimulatedWeeks({ isSimulation: true }, WEEK_ENTRIES), ["2026-08-16"]);
-});
-
-test("the rows drawn as lines are those of a series with a series colour, never one in the Other grey", () => {
-  const colours = new Map([["A", "var(--series-1)"], ["B", "var(--series-other)"]]);
-  const rows = [{ provider: "A" }, { provider: "B" }, { provider: "C" }];
-  assert.deepEqual(rowsWithSeriesColour(rows, "provider", colours), [{ provider: "A" }]);
+  assert.deepEqual(unsimulatedWeeks({ readsSimulation: true }, WEEK_ENTRIES), ["2026-08-16"]);
 });
 
 test("a figure's line of rows counts its rows, names the weeks not simulated and notes hidden bins, never the population", () => {
-  const simulation = { isSimulation: true, binColumn: "ttl", seriesOverSameRows: true };
+  const simulation = { readsSimulation: true, binColumn: "ttl", seriesOverSameRows: true };
   assert.equal(figureRowsText(simulation, [{ ttl: "5m", rows: 1200 }], 0, ["2026-08-16"]),
     "1,200 rows · not simulated: 2026-08-16");
   const byWeek = { binColumn: "week" };

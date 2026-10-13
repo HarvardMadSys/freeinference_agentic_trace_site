@@ -2,18 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  categoryRowsFrame, chartFrame, chartName, colourScale, columnTotal, dropThinBins, MIN_ROWS_PER_BIN,
+  categoryRowsFrame, chartFrame, chartName, colourScale, columnTotal,
 } from "../site/js/shared/charts.js";
 import { assignColours } from "../site/js/theme/colours.js";
-
-test("a bin with exactly the minimum rows is kept, and one below it is hidden", () => {
-  assert.equal(MIN_ROWS_PER_BIN, 50);
-  const rows = [{ bin: "a", requests: 50 }, { bin: "b", requests: 49 }, { bin: "c", requests: 1200 }, { bin: "d", requests: 0 }];
-  assert.deepEqual(dropThinBins(rows, "requests"), {
-    rows: [{ bin: "a", requests: 50 }, { bin: "c", requests: 1200 }],
-    hidden: 2,
-  });
-});
 
 test("every chart starts from the same frame, as wide as its body", () => {
   const frame = chartFrame({ clientWidth: 300 });

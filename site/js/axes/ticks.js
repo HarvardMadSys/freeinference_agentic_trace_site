@@ -62,11 +62,6 @@ export function atMost(ticks, maxTicks) {
   return ticks.length <= maxTicks ? ticks : everyOther(ticks);
 }
 
-/** The ticks of `ticks` an axis of a chart `width` pixels wide labels: every other one on a narrow chart, else all. */
-export function fewerOnNarrow(ticks, width) {
-  return isNarrowChart(width) ? everyOther(ticks) : ticks;
-}
-
 /**
  * The ticks an axis of a chart `width` pixels wide asks for or labels at most: `count`, or `NARROW_MAX_TICKS` on a
  * narrow chart.

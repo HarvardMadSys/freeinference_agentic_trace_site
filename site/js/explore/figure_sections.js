@@ -18,10 +18,10 @@
  * and draws the chart again from the rows already fetched.
  */
 
-import { MIN_ROWS_PER_BIN, nameChart, renderFigure, showError, showLoading, showNote } from "../shared/charts.js";
+import { nameChart, renderFigure, showError, showLoading, showNote } from "../shared/charts.js";
 import { readAnswer } from "../shared/answers.js";
 import { figureColours } from "../theme/colours.js";
-import { dropThinGroups, figureRowsText, unsimulatedWeeks } from "../figures/figure_rows.js";
+import { dropThinGroups, figureRowsText, MIN_ROWS_PER_BIN, unsimulatedWeeks } from "./figure_rows.js";
 import { drawWithLegend } from "./legend.js";
 import { shownRows } from "../shared/series.js";
 

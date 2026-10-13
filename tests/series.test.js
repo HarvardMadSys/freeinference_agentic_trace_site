@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { partsLegend, seriesLegend, shownRows } from "../site/js/shared/series.js";
+import { partsLegend, rowsWithSeriesColour, seriesLegend, shownRows } from "../site/js/shared/series.js";
 
 // Two series of a CDF query, `requests` and `tool_steps`, two points each.
 const ROWS = [
@@ -33,4 +33,10 @@ test("a legend of parts lists each part with its label, in order, with the colou
     { name: "output", label: "Output" },
   ]);
   assert.equal(legend.colours, colours);
+});
+
+test("the rows drawn as lines are those of a series with a series colour, never one in the Other grey", () => {
+  const colours = new Map([["A", "var(--series-1)"], ["B", "var(--series-other)"]]);
+  const rows = [{ provider: "A" }, { provider: "B" }, { provider: "C" }];
+  assert.deepEqual(rowsWithSeriesColour(rows, "provider", colours), [{ provider: "A" }]);
 });

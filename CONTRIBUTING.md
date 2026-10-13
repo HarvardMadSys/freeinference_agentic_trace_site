@@ -240,10 +240,14 @@ a module docstring stating the definition, a frozen dataclass for anything
 that crosses a boundary, and functions that each do one job.
 
 **A figure entry** (listed in its section module's `FIGURES`). Every
-figure of the Insights is one frozen object with these fields; the
-page draws its card (title, insight, legend, chart, caption, and a Definition
-control that opens on the definition and the line of rows), reads its query's
-answer, hides its thin bins, writes its line of rows and calls `draw`:
+figure of the Insights is one frozen object of the fields below, and of no
+other: `ENTRY_FIELDS` in `tests/figure_sections.test.js` lists them, and a
+field added here is added there. The page draws its card (title, insight,
+legend, chart, caption, and a Definition control that opens on the
+definition and the line of rows), reads its query's answer, hides its thin
+bins, writes its line of rows and calls `draw`.
+
+Its card and its drawing:
 
 - `name`: the figure's id, also the id of its card on the page.
 - `title`: the card's heading.
@@ -262,24 +266,10 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
   where the site draws more simply than the paper, README's "Where the
   numbers come from" says how, not the definition; shown behind the
   Definition control.
-- `query`: the query whose answer it draws, as `readAnswer` names it
-  (`"figures/<name>"`).
-- `binColumn`: the column naming the bin or series each row belongs to, every
-  row of a bin carrying the bin's count in `rows`; a bin under
-  `MIN_ROWS_PER_BIN` is hidden whole. `null` when every row is a bin of its own.
-- `seriesOverSameRows` (optional): true when every series is drawn from the
-  same rows, so the line of rows counts them once rather than summing them.
-- `seriesNouns` (optional): when the series count different things, each
-  series' name with the plural noun of what it counts; the line of rows then
-  gives each count ("84,239 turns · 12,002 sessions").
-- `isSimulation` (optional): true for a figure that reads the cache
-  simulation, whole (the cost and prefill figures) or for one column (the
-  mutation table's prefill); the line of rows names a week the simulation
-  does not cover.
-- `drawsLines` (optional): true for a figure that draws its series as lines,
-  whose legend then shows a short line per series instead of a square.
 - `isWide` (optional): true for a figure whose card takes its section's whole
   width: one that needs the room, or that would otherwise sit alone in a row.
+- `query`: the query whose answer it draws, as `readAnswer` names it
+  (`"figures/<name>"`).
 - `legend` (a figure of more than one series): `legend(rows, colours, seriesColumn)`
   returns the series its legend lists and their colours, `{ series, colours }`,
   each series `{ name, label }`. The page draws the legend as buttons that
@@ -287,21 +277,45 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
   rows it already has; from the keyboard the legend is one tab stop, the
   arrow keys moving between its buttons. It lists every series the chart
   draws.
-- `drawnRows` (optional): `drawnRows(rows, colours)` returns the rows of the
-  query the figure draws, when it draws fewer: a line or CDF per provider or
-  model draws only those with one of the eight series colours, never one in
-  the Other grey. The line of rows counts these, and thin bins are hidden
-  among them.
-- `seriesColumn` (a figure whose rows each name their series): that column. A
-  hidden series' rows are left out before `draw` is called; a figure with a
-  `legend` and no `seriesColumn` holds its series in columns and leaves out
-  those in `hidden` itself.
 - `draw(rows, body, colours, hidden)`: draws the rows, thin bins hidden, into
   `body`. `colours` holds the colours every figure shares (`{ models,
   categories, providers }`, each a Map from name to colour) and, for a figure
   with a `legend`, the legend's as `series`; `hidden` is the Set of the
   series names the legend hides. It is one call to the figure's chart kind
   (below), its columns where they vary, and its labels.
+
+What its rows are, which the page reads to hide thin bins, leave out hidden
+series and write the line of rows (`explore/figure_rows.js`); each is a
+fact about the query's rows, not a choice of how to draw them:
+
+- `binColumn`: the column naming the bin each row belongs to (a size bin, a
+  week, a category, a CDF series), every row of a bin carrying the bin's
+  count in `rows`; `null` when every row is a bin of its own. A bin under
+  `MIN_ROWS_PER_BIN` is hidden whole, and the line of rows sums the bins'
+  counts.
+- `seriesColumn` (rows that each name their series): that column. A hidden
+  series' rows are left out before `draw` is called; a figure with a
+  `legend` and no `seriesColumn` holds its series in columns and leaves out
+  those in `hidden` itself.
+- `seriesOverSameRows` (optional): true when every series is drawn from the
+  same rows, so the line of rows counts them once rather than summing them.
+- `seriesNouns` (optional): when the series count different things, each
+  series' name with the plural noun of what it counts; the line of rows then
+  gives each count ("84,239 turns · 12,002 sessions").
+- `drawnRows` (optional): `drawnRows(rows, colours)` returns the rows of the
+  query the figure draws, when it draws fewer: a line or CDF per provider or
+  model draws only those with one of the eight series colours, never one in
+  the Other grey. The line of rows counts these, and thin bins are hidden
+  among them.
+- `drawsLines` (optional): true when the rows are drawn as lines, so the
+  legend shows a short line per series instead of a square.
+- `readsSimulation` (optional): true when the rows come from the cache
+  simulation, whole (the cost and prefill figures) or in one column (the
+  mutation table's prefill); the line of rows names a week the simulation
+  does not cover.
+- `statsQuery` (a histogram's): the query summarising its rows, which are
+  bins; the page reads it as the sign of a histogram, whose bins are all
+  drawn (below).
 
 **The chart kinds** (`js/charts/`), one module per shape several figures
 share: `cdf` (CDF lines), `stacked_bars` (stacked bars over a named x
@@ -317,7 +331,7 @@ function what each parameter decides. A kind imports only from `shared/`,
 with two exceptions: a kind kept whole may take a parameter one figure uses
 when the alternative is a near-copy of the kind (the histogram's `ticks`,
 the donut's `labels`), and a frame or axis setting (the stacked bars'
-`weeks` and `margins`, the CDF's `height`, once it exists) is a plain
+`weeks` and `margins`, the CDF's `height`) is a plain
 setting, not behaviour. A note the kind does not draw, such as the scope
 CDFs' ratio of medians, is a short named function in the figure's module,
 given to the kind as its `callout`. A figure that would need any other
@@ -494,7 +508,7 @@ which is plain HTML.
   medians is written on the chart, not in the legend. After each drawing the
   chart is named for a screen reader by its title and insight (or caption),
   `nameChart` in `shared/charts.js`. Bars start at zero, and a label written
-  by a line sits off every line (`lineLabels` of `shared/cdf.js`).
+  by a line sits off every line (`lineLabelPoints` of `figures/caching_cdfs.js`).
 - **Axis text.** At most six ticks per axis (`axes/ticks.js`), no minor
   gridlines on a log axis, no arrow on an axis title, and no title that the
   card's title or legend already gives; a y-axis title says what is counted

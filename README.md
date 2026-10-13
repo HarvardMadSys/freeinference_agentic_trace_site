@@ -157,9 +157,9 @@ site/              exactly the files that are deployed
   style.css        tokens, layout and components
   favicon.svg      the brand mark, for the browser tab
   js/shared/       answers (the indexes, and the answer files by query name), libraries, format, charts (what every
-                   chart shares: the frame, the ink, the colour scale, the card), series (a chart's shown rows and its
-                   legend), cdf (the CDF drawing of the Prefix-caching CDFs, which the CDF kind does not draw
-                   yet), table, layout (the header and footer)
+                   chart shares: the frame, the ink, the colour scale, the card), series (a chart's shown rows, the
+                   rows of its series with a colour of their own, and its legend), table, layout (the header and
+                   footer)
   js/charts/       the chart kinds, each a draw function with named parameters that several figures call: cdf (CDF
                    lines), stacked_bars (stacked bars per week or bin), ranges (quantile ranges per category),
                    histogram, ranked (stacked shares over ranked sessions), knee_lines (cost against cache TTL, the
@@ -171,12 +171,12 @@ site/              exactly the files that are deployed
   js/axes/         ticks, the ticks of every chart's axes: how many, and where a log, duration or week axis ticks
   js/pages/        one module per page: explore, session
   js/explore/      the Explore page's start and sections: start (the page's start), trends,
-                   figure_sections (the figure runner), topic_tabs (the Insights' tabs, one topic shown at a time),
+                   figure_sections (the figure runner), figure_rows (the row rules it applies to every figure: thin
+                   bins hidden, the line of rows), topic_tabs (the Insights' tabs, one topic shown at a time),
                    legend (the legend of buttons that hides and shows a series), sessions_table, sessions_table_state
                    (its columns and its state in the URL), and sessions_filter (its month and harness filter)
   js/figures/      one module per figure section (sessions, tokens, latency, tools, caching), the modules they take
-                   figures from (sessions_ranked, tools_batching, caching_gaps), and figure_rows, the row rules every
-                   figure shares
+                   figures from (sessions_ranked, tools_batching, caching_gaps, caching_cdfs)
   js/simulation/   the Prefix-caching section's figures of the cache simulation: prefill and costs
   js/comparison/   the figures that compare human-driven sessions with the benchmark's: the Human-driven-against-
                    benchmark section's module, comparison, the modules that draw them (scope_cdfs, tool_mix; the

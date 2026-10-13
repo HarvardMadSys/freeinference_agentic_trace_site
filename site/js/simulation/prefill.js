@@ -63,7 +63,7 @@ export const PREFILL_AGAINST_STORAGE = Object.freeze({
   query: "figures/prefill_against_storage",
   binColumn: "scope",
   seriesColumn: "scope",
-  isSimulation: true,
+  readsSimulation: true,
   legend: scopeLegend,
   draw: drawPrefillAgainstStorage,
 });

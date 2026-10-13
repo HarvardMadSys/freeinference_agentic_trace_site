@@ -1,11 +1,8 @@
 /**
- * What every chart shares: its frame and ink, thin bins, loading and error states, and the figure card and its places;
+ * What every chart shares: its frame and ink, loading and error states, and the figure card and its places;
  * the chart kinds are in `js/charts/`. The colours a chart draws in come from `theme/colours.js`. Its functions
  * that need no page are tested with `node --test`.
  */
-
-/** A bin, category or model with fewer rows than this is not drawn: too few rows to show a shape. */
-export const MIN_ROWS_PER_BIN = 50;
 
 /** Every chart's height, so a grid of figures lines up. */
 export const CHART_HEIGHT = 240;
@@ -52,12 +49,6 @@ export function chartFrame(body) {
 export function categoryRowsFrame(body, categoryCount) {
   const height = categoryCount * CATEGORY_ROW_HEIGHT + CATEGORY_MARGINS_Y;
   return { ...chartFrame(body), height, marginTop: CATEGORY_MARGIN_TOP, marginLeft: CATEGORY_MARGIN_LEFT };
-}
-
-/** `{ rows, hidden }`: the rows whose `row[countKey]` is at least `MIN_ROWS_PER_BIN`, and how many rows were dropped. */
-export function dropThinBins(rows, countKey) {
-  const kept = rows.filter((row) => row[countKey] >= MIN_ROWS_PER_BIN);
-  return { rows: kept, hidden: rows.length - kept.length };
 }
 
 /** Replace `container`'s content with the loading state. */

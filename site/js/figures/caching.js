@@ -2,7 +2,7 @@
  * The Prefix-caching section of the Explore page's figures: how much of a request's input the provider served from
  * cache, after a gap of each length and cause, after an idle gap and after each kind of context change, and what the
  * cache simulation says each TTL prefills, keeps and costs. The figures of the gap or change before a request are drawn in
- * `caching_gaps.js`, those of the simulation in `simulation/prefill.js` and `simulation/costs.js`.
+ * `caching_gaps.js` and `caching_cdfs.js`, those of the simulation in `simulation/prefill.js` and `simulation/costs.js`.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. A figure of more than one series colours each
  * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
@@ -13,10 +13,10 @@ import { axisWithTicks } from "../axes/ticks.js";
 import { slottedColours } from "../theme/colours.js";
 import { formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare } from "../shared/format.js";
 import { GAP_FIGURES } from "./caching_gaps.js";
+import { HIT_RATIO_CDF_BY_GAP_BIN } from "./caching_cdfs.js";
 import { API_COST_BY_TTL, INFRASTRUCTURE_COST_BY_TTL } from "../simulation/costs.js";
 import { PREFILL_AGAINST_STORAGE } from "../simulation/prefill.js";
-import { rowsWithSeriesColour } from "./figure_rows.js";
-import { seriesLegend } from "../shared/series.js";
+import { rowsWithSeriesColour, seriesLegend } from "../shared/series.js";
 
 // The idle-gap bins mirror the pipeline's `gaps.IDLE_GAP_EDGES_S`: 26 bins between 27 geometric edges from 10 s to
 // one hour, each 1.25 times as wide as the one before. tests/test_pipeline_mirrors.py checks these three constants
@@ -35,7 +35,7 @@ export const TAKEAWAY = "Long waits and changes to earlier messages reduce cache
 
 /** The figures of the Prefix-caching section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
-  GAP_FIGURES.hitRatioByGapBin,
+  HIT_RATIO_CDF_BY_GAP_BIN,
   Object.freeze({
     name: "hit_ratio_by_idle_gap",
     title: "Cache reuse by provider",

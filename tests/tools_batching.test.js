@@ -4,7 +4,7 @@ import { test } from "node:test";
 import {
   LATENCY_BY_BATCH_WIDTH, waitAxisEnd, widthLabel, WIDEST_DRAWN,
 } from "../site/js/figures/tools_batching.js";
-import { dropThinGroups } from "../site/js/figures/figure_rows.js";
+import { dropThinGroups } from "../site/js/explore/figure_rows.js";
 import { BATCH_COLOURS } from "../site/js/theme/colours.js";
 
 // Rows of the batch-width query: one-call requests, and the widest width, which holds requests of eight calls or more.

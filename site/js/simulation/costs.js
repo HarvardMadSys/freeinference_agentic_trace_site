@@ -40,7 +40,7 @@ export const API_COST_BY_TTL = Object.freeze({
   binColumn: "part",
   seriesColumn: "part",
   seriesOverSameRows: true,
-  isSimulation: true,
+  readsSimulation: true,
   legend: (rows) => kneeLinesLegend(rows, costColours(API_LEGEND_ORDER), { parts: API_PARTS }),
   draw: (rows, body, colours, hidden) => drawKneeLines(rows, body, colours, {
     parts: API_PARTS,
@@ -60,7 +60,7 @@ export const INFRASTRUCTURE_COST_BY_TTL = Object.freeze({
   binColumn: "part",
   seriesColumn: "part",
   seriesOverSameRows: true,
-  isSimulation: true,
+  readsSimulation: true,
   legend: (rows) => kneeLinesLegend(rows, costColours(INFRASTRUCTURE_LEGEND_ORDER), { parts: INFRASTRUCTURE_PARTS }),
   draw: (rows, body, colours, hidden) => drawKneeLines(rows, body, colours, {
     parts: INFRASTRUCTURE_PARTS,

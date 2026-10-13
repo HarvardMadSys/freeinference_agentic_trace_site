@@ -4,7 +4,7 @@ import { test } from "node:test";
 import {
   stepPoints, TENTHS, TOOL_MIX_BY_TURN_POSITION, toolMixPoints, toolMixTips, turnTicks,
 } from "../site/js/comparison/tool_mix.js";
-import { dropThinGroups, restingCountText } from "../site/js/figures/figure_rows.js";
+import { dropThinGroups, restingCountText } from "../site/js/explore/figure_rows.js";
 import { TOOL_GROUP_COLOURS } from "../site/js/theme/colours.js";
 
 // Rows of the tool mix query: the benchmark's first tenth holds Read and Search, its last only Read, and the

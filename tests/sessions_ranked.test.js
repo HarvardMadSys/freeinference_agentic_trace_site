@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { COST_SHARE_BY_SESSION, SESSION_TIME_BY_PART } from "../site/js/figures/sessions_ranked.js";
 import { rankTips } from "../site/js/charts/ranked.js";
-import { dropThinGroups, restingCountText } from "../site/js/figures/figure_rows.js";
+import { dropThinGroups, restingCountText } from "../site/js/explore/figure_rows.js";
 import { TIME_PART_COLOURS, TOKEN_PART_COLOURS } from "../site/js/theme/colours.js";
 
 test("the session time's legend lists the paper's four parts bottom up, each in its part colour", () => {

@@ -21,17 +21,18 @@ const KEY_SEPARATOR = "\u0000";
  * - `xColumn`, `seriesColumn` and `valueColumn`: the columns holding a row's bar, its series and its value, a
  *   segment's height.
  * - `valueLabel`: what a value is, named in the tooltip, "Sessions: 412".
- * - `yLabel`: the value axis's title, none when null, where the card's title already says what the bars count.
+ * - `yLabel`: the value axis's title, none when null or not given, where the card's title already says what the bars
+ *   count.
  * - `valueFormat`: how a value is written in the tooltip; `yTickFormat`: on the value axis.
- * - `xLabel`: the x axis's title, none when null; `xTickFormat`: how a tick is written, "" for an unlabelled one, such
- *   as `weekTicks` gives for an axis of weeks.
+ * - `xLabel`: the x axis's title, none when null or not given; `xTickFormat`: how a tick is written, "" for an
+ *   unlabelled one, such as `weekTicks` gives for an axis of weeks.
  * - `weeks`: every week the axis spans, `weeks.json`'s entries, each a bar's place even without rows and its months
  *   labelled once; without it, the bars of the rows' x values.
  * - `margins`: Plot margins in place of the frame's, where the bars should take more of the card's width.
  */
 export async function drawStackedBars(rows, body, colours, parameters, hidden) {
   const { xColumn, seriesColumn, valueColumn, valueLabel, valueFormat } = parameters;
-  const { xLabel, yLabel, xTickFormat, yTickFormat, weeks, margins } = parameters;
+  const { xLabel = null, yLabel = null, xTickFormat, yTickFormat, weeks, margins } = parameters;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
   const { Plot } = await import("../shared/libraries.js");
   const folded = foldedRows(rows, colours.series, { xColumn, seriesColumn, valueColumn });

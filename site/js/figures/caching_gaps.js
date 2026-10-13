@@ -1,30 +1,25 @@
 /**
- * The Prefix-caching section's figures of what came before a request: the hit ratio after a gap of each length, how
- * long a gap is by what it waited for, the mean hit ratio by the same, the hit ratio after the context was appended
- * to or rewritten, and how often each kind of rewrite happens. A request's gap is the wait since the previous request
- * of its session ended, of 0 s or more, with what it waited for; the queries pick those requests.
+ * The Prefix-caching section's figures of what came before a request: how long a gap is by what it waited for, the
+ * mean hit ratio by the same, the hit ratio after the context was appended to or rewritten, and how often each kind of
+ * rewrite happens; the hit ratio after a gap of each length is drawn in `caching_cdfs.js`. A request's gap is the wait
+ * since the previous request of its session ended, of 0 s or more, with what it waited for; the queries pick those
+ * requests.
  *
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines; `caching.js` lists them with the section's other
- * figures. A cause, a transition and a gap bin have the same colour in every chart, from `theme/colours.js`.
+ * figures. The two CDFs are drawn by the CDF kind (`charts/cdf.js`); the bars and the table, which no kind fits, have
+ * plain draw functions. A cause and a transition have the same colour in every chart, from `theme/colours.js`.
  */
 
 import { AXIS_STYLE, BAR_INSET, chartFrame, colourScale, TALL_CHART_HEIGHT } from "../shared/charts.js";
-import { drawCdfSeries } from "../shared/cdf.js";
-import { cdfSeries } from "../charts/cdf.js";
-import { durationTicks, fewerOnNarrow } from "../axes/ticks.js";
-import { CAUSE_COLOURS, GAP_BIN_SLOTS, TIME_PART_NAMES, TRANSITION_COLOURS } from "../theme/colours.js";
+import { drawCdf } from "../charts/cdf.js";
+import { durationTicks, everyOther } from "../axes/ticks.js";
+import { CAUSE_COLOURS, TIME_PART_NAMES, TRANSITION_COLOURS } from "../theme/colours.js";
 import {
   formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare, MISSING_TEXT,
 } from "../shared/format.js";
 import { seriesLegend } from "../shared/series.js";
 
-// The gap bins' labels, shortest gap first, as the pipeline's `gaps.GAP_BINS` names them. tests/
-// test_pipeline_mirrors_caching.py checks them, the causes and the two gap limits below against the pipeline.
-const GAP_BIN_LABELS = Object.freeze(["<1m", "1–5m", "5–15m", "15–30m", "30m–1h", ">1h"]);
-// How a legend and a tooltip write each gap bin, in the words every duration is written in.
-const GAP_BIN_TEXT = Object.freeze({ "<1m": "Under 1 min", "1–5m": "1–5 min", "5–15m": "5–15 min",
-  "15–30m": "15–30 min", "30m–1h": "30 min–1 h", ">1h": "Over 1 h" });
-
+// tests/test_pipeline_mirrors_caching.py checks the causes and the two gap limits below against the pipeline.
 // What a gap waited for, by the release's `waited_for` value in the order of the pipeline's `gaps.CAUSE_NAMES`, in
 // sentence case: a wait for a tool and for the user named as the parts of a session's time they count toward.
 const CAUSE_NAMES = Object.freeze({
@@ -49,29 +44,17 @@ const SMALLEST_SHARE_WRITTEN = 0.001; // a share of the table under 0.1% is writ
 
 const MIN_GAP_DRAWN_S = 0.1; // a shorter gap is drawn at it, on the log axis, as in the paper
 const MAX_GAP_DRAWN_S = 86400; // the gap axis ends at a day, as the paper's does
-const HIT_RATIO_DOMAIN = Object.freeze([0, 1]); // a hit ratio runs from none of the input cached to all of it
-// The shortest and longest gap bins, named off the lines: the longest above its line, where no line lies above it; the
-// shortest, which hugs the axis under the others, beside its right end at a share of 10%, where it rises alone.
-const GAP_BIN_END_LABELS = Object.freeze([{ name: "<1m", at: 0.1, placement: "end" }, { name: ">1h", at: 0.5, placement: "above" }]);
+const GAP_DOMAIN_S = Object.freeze([MIN_GAP_DRAWN_S, MAX_GAP_DRAWN_S]); // the gap axis, in seconds
+const GAP_TICKS_S = durationTicks(GAP_DOMAIN_S); // the durations people count time in, from 0.1 s to a day
+const NARROW_GAP_TICKS_S = everyOther(GAP_TICKS_S); // on a phone five labels would touch
+/** A hit ratio's axis: from none of the input cached to all of it. */
+export const HIT_RATIO_DOMAIN = Object.freeze([0, 1]);
 const CAUSE_MARGIN_LEFT = 116; // pixels; room for the longest cause name, "Ask-user tool"
 const VALUE_MARGIN_RIGHT = 48; // pixels; room for a value written after a bar that reaches 1, "100%"
 const VALUE_OFFSET = 4; // pixels between a bar's end and its value
 
 /** The gap figures of the Prefix-caching section, by name. */
 export const GAP_FIGURES = Object.freeze({
-  hitRatioByGapBin: Object.freeze({
-    name: "hit_ratio_cdf_by_gap_bin",
-    title: "Cache hits after a wait",
-    insight: "Taking a break can turn reused context into fresh work.",
-    definition: "Each line groups requests by how long they waited after the previous request ended. It shows the percentage of requests at or below each cache hit ratio: cached input tokens divided by total input tokens. Lighter lines show shorter waits.",
-    caption: "Prefix reuse stays high when requests arrive within one minute, but falls to roughly 58% after 15–30 minutes and just 18% after gaps longer than an hour.",
-    drawsLines: true,
-    query: "figures/hit_ratio_cdf_by_gap_bin",
-    binColumn: "series",
-    seriesColumn: "series",
-    legend: (rows, colours, seriesColumn) => seriesLegend(rows, seriesColumn, gapBinColours(), GAP_BIN_TEXT),
-    draw: drawHitRatioByGapBin,
-  }),
   gapByCause: Object.freeze({
     name: "gap_cdf_by_cause",
     title: "Gap before a request by cause",
@@ -83,7 +66,18 @@ export const GAP_FIGURES = Object.freeze({
     binColumn: "series",
     seriesColumn: "series",
     legend: (rows, colours, seriesColumn) => seriesLegend(rows, seriesColumn, CAUSE_COLOUR_MAP, CAUSE_NAMES),
-    draw: drawGapByCause,
+    draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
+      labels: CAUSE_NAMES,
+      floor: MIN_GAP_DRAWN_S,
+      logScale: true,
+      xDomain: GAP_DOMAIN_S,
+      xTicks: GAP_TICKS_S,
+      narrowXTicks: NARROW_GAP_TICKS_S,
+      xTickFormat: formatDurationTick,
+      xLabel: null,
+      yLabel: "Share of gaps",
+      valueFormat: formatSeconds,
+    }, hidden),
   }),
   meanHitRatioByCause: Object.freeze({
     name: "mean_hit_ratio_by_cause",
@@ -104,7 +98,7 @@ export const GAP_FIGURES = Object.freeze({
     query: "figures/mutations_by_cause",
     binColumn: null,
     seriesOverSameRows: true,
-    isSimulation: true, // its fresh prefill shares come from the cache simulation
+    readsSimulation: true, // its fresh prefill shares come from the cache simulation
     draw: drawMutationsByCause,
   }),
   hitRatioByTransition: Object.freeze({
@@ -119,18 +113,17 @@ export const GAP_FIGURES = Object.freeze({
     seriesColumn: "series",
     legend: (rows, colours, seriesColumn) =>
       seriesLegend(rows, seriesColumn, new Map(Object.entries(TRANSITION_COLOURS)), TRANSITION_NAMES),
-    draw: drawHitRatioByTransition,
+    draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
+      labels: TRANSITION_NAMES,
+      xDomain: HIT_RATIO_DOMAIN,
+      xTickFormat: formatPercent,
+      xLabel: "Hit ratio",
+      yLabel: "Share of requests",
+      valueFormat: formatShare,
+      height: TALL_CHART_HEIGHT, // as tall as the mutation table beside it
+    }, hidden),
   }),
 });
-
-/** A map from each gap bin's label, shortest gap first, to its colour. */
-export function gapBinColours() {
-  const colours = new Map();
-  for (let index = 0; index < GAP_BIN_LABELS.length; index += 1) {
-    colours.set(GAP_BIN_LABELS[index], GAP_BIN_SLOTS[index]);
-  }
-  return colours;
-}
 
 /** The mean-hit-ratio bars, one per cause of `rows` in the paper's order: `{ cause, name, mean, rows }`. */
 export function meanHitRatioBars(rows) {
@@ -209,35 +202,6 @@ function mutationTableRow(line) {
     tableRow.append(cell);
   }
   return tableRow;
-}
-
-/** Draw one CDF line of the hit ratio per gap bin, the shortest and the longest gaps named on their lines. */
-async function drawHitRatioByGapBin(rows, body, colours) {
-  const series = cdfSeries(rows, GAP_BIN_LABELS, { labels: GAP_BIN_TEXT });
-  await drawCdfSeries(body, series, {
-    xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, xTickFormat: formatPercent, format: formatShare,
-    colours: colours.series, lineLabels: GAP_BIN_END_LABELS,
-  });
-}
-
-/** Draw one CDF line of the gap per cause, on a log axis of seconds from 0.1 s to a day. */
-async function drawGapByCause(rows, body, colours) {
-  const series = cdfSeries(rows, Object.keys(CAUSE_NAMES), { labels: CAUSE_NAMES, floor: MIN_GAP_DRAWN_S });
-  const xDomain = [MIN_GAP_DRAWN_S, MAX_GAP_DRAWN_S];
-  const ticks = durationTicks(xDomain);
-  await drawCdfSeries(body, series, {
-    yLabel: "Share of gaps", logX: true, xDomain, xTicks: fewerOnNarrow(ticks, chartFrame(body).width),
-    xTickFormat: formatDurationTick, format: formatSeconds, colours: colours.series,
-  });
-}
-
-/** Draw one CDF line of the hit ratio per transition. */
-async function drawHitRatioByTransition(rows, body, colours) {
-  const series = cdfSeries(rows, Object.keys(TRANSITION_NAMES), { labels: TRANSITION_NAMES });
-  await drawCdfSeries(body, series, {
-    xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, xTickFormat: formatPercent, format: formatShare,
-    colours: colours.series, height: TALL_CHART_HEIGHT,
-  });
 }
 
 /**

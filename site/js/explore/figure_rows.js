@@ -1,15 +1,16 @@
 /**
- * What the Explore page does to a figure's rows before drawing them: the rows of a series with a colour of its own,
- * thin bins hidden, and its line of rows (the rows it rests on, the weeks not simulated and the bins hidden).
+ * What the figure runner (`figure_sections.js`) does to a figure's rows before drawing them: its thin bins hidden, and
+ * its line of rows (the rows it rests on, the weeks not simulated and the bins hidden).
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
  * a CDF series), or, when `binColumn` is null, each row alone. Every row of a bin carries the bin's count, the number
  * of rows of the data it rests on, in the column `rows`. These are plain functions, tested with `node --test`.
  */
 
-import { dropThinBins, MIN_ROWS_PER_BIN } from "../shared/charts.js";
 import { formatCount } from "../shared/format.js";
-import { slottedColours } from "../theme/colours.js";
+
+/** A bin, category or model with fewer rows than this is not drawn: too few rows to show a shape. */
+export const MIN_ROWS_PER_BIN = 50;
 
 // The column of every figure query that holds a bin's count: the number of rows of the data behind the bin.
 const COUNT_COLUMN = "rows";
@@ -24,22 +25,18 @@ const HIDDEN_NOUNS = Object.freeze({
 const DEFAULT_HIDDEN_NOUN = ["bin", "bins"];
 
 /**
- * The rows whose `column` names a series with one of the eight series colours of `colours` (a Map from name to
- * colour): a line per model or provider is drawn only for these, since one in the Other grey could not be told apart.
- */
-export function rowsWithSeriesColour(rows, column, colours) {
-  const coloured = slottedColours(colours);
-  return rows.filter((row) => coloured.has(row[column]));
-}
-
-/**
  * `{ rows, hidden }`: the rows of the bins whose count is at least `MIN_ROWS_PER_BIN`, in their order, and how
  * many bins were hidden.
  */
 export function dropThinGroups(rows, binColumn) {
-  const { rows: keptBins, hidden } = dropThinBins(binCounts(rows, binColumn), "count");
-  const keptNames = new Set(keptBins.map((bin) => bin.name));
-  return { rows: rows.filter((row, index) => keptNames.has(binName(row, index, binColumn))), hidden };
+  const thinBins = new Set();
+  for (const bin of binCounts(rows, binColumn)) {
+    if (bin.count < MIN_ROWS_PER_BIN) {
+      thinBins.add(bin.name);
+    }
+  }
+  const kept = rows.filter((row, index) => !thinBins.has(binName(row, index, binColumn)));
+  return { rows: kept, hidden: thinBins.size };
 }
 
 /**
@@ -78,10 +75,10 @@ export function restingCountText(rows, figure) {
 
 /**
  * The weeks (Sundays) of `weekEntries` (the entries of `weeks.json`) that the cache simulation does not cover, for a
- * figure drawn from the simulation, wholly or in one column (`isSimulation`); none for any other figure.
+ * figure that reads the simulation, wholly or in one column (`readsSimulation`); none for any other figure.
  */
 export function unsimulatedWeeks(figure, weekEntries) {
-  if (figure.isSimulation !== true) {
+  if (figure.readsSimulation !== true) {
     return [];
   }
   return weekEntries.filter((entry) => !entry.simulated).map((entry) => entry.week);

@@ -49,7 +49,7 @@ series, `legend(rows, colours, options)`:
 - `donut.js`: the Overview's donut, moved from `landing/arcs.js`.
 
 A figure entry is `{ name, query, title, insight, caption, definition,
-draw, legend? }` plus the fields that describe its rows, and `draw` is
+draw, legend?, isWide? }` plus the fields that describe its rows, and `draw` is
 one visible call:
 `draw: (rows, body, colours) => drawCdf(rows, body, colours, { xLabel:
 "Requests or steps", ... })`. A reader sees which kind draws the figure

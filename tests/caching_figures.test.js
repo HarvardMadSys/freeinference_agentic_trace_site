@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { FIGURES, idleGapEdgeSeconds, idleGapLegend } from "../site/js/figures/caching.js";
-import { GAP_FIGURES, gapBinColours, meanHitRatioBars, mutationTableLines } from "../site/js/figures/caching_gaps.js";
+import { GAP_FIGURES, meanHitRatioBars, mutationTableLines } from "../site/js/figures/caching_gaps.js";
+import { gapBinColours, HIT_RATIO_CDF_BY_GAP_BIN } from "../site/js/figures/caching_cdfs.js";
 import {
   API_COST_BY_TTL, costColours, INFRASTRUCTURE_COST_BY_TTL, kneeText, lowestText,
 } from "../site/js/simulation/costs.js";
@@ -30,7 +31,7 @@ test("the gap bins take the six gap-bin colours, shortest gap first, whichever b
   const colours = gapBinColours();
   assert.deepEqual([...colours.keys()], ["<1m", "1–5m", "5–15m", "15–30m", "30m–1h", ">1h"]);
   assert.deepEqual([...colours.values()], [1, 2, 3, 4, 5, 6].map((slot) => `var(--gap-bin-${slot})`));
-  const legend = GAP_FIGURES.hitRatioByGapBin.legend([{ series: ">1h" }, { series: "<1m" }], FIGURE_COLOURS, "series");
+  const legend = HIT_RATIO_CDF_BY_GAP_BIN.legend([{ series: ">1h" }, { series: "<1m" }], FIGURE_COLOURS, "series");
   assert.deepEqual(legend.series, [{ name: "<1m", label: "Under 1 min" }, { name: ">1h", label: "Over 1 h" }]);
   assert.equal(legend.colours.get(">1h"), "var(--gap-bin-6)");
 });

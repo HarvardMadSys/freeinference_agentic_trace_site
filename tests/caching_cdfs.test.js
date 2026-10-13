@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { labelsThatFit, lineLabelPoints } from "../site/js/shared/cdf.js";
+import { labelsThatFit, lineLabelPoints } from "../site/js/figures/caching_cdfs.js";
 
 // Two CDF series of three points each, as `cdfSeries` gives them.
 const SERIES = [
