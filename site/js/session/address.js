@@ -4,7 +4,7 @@
  * to the Session Explorer, which reopens the table as it was.
  */
 
-import { EXPLORE_FILE, queryString } from "../shared/layout.js";
+import { EXPLORE_FILE, queryString, SESSION_EXPLORER_ANCHOR } from "../shared/layout.js";
 
 /** The views of the Session page, in the order of their tabs. */
 export const VIEW_NAMES = Object.freeze(["requests", "context", "timeline"]);
@@ -14,9 +14,6 @@ const SESSION_KEYS = Object.freeze(["week", "id", "view", "step"]);
 
 // The view a URL with no `view`, or an unknown one, opens.
 const DEFAULT_VIEW = "requests";
-
-// The anchor of the Explore page's Session Explorer, where the link back opens it.
-const SESSION_EXPLORER_ANCHOR = "#sessions";
 
 // A step as a URL writes it: a whole number, no sign.
 const STEP_PATTERN = /^\d+$/;

@@ -65,8 +65,10 @@ const PAGE_SECTIONS = [
   { id: "insights-comparison", number: "06", heading: "Human-driven against benchmark" },
 ];
 const PAGE = readFileSync(new URL("../site/index.html", import.meta.url), "utf8");
-// A topic's section: its id, the tab that labels it, then its heading of number and title.
-const PAGE_SECTION = /<section id="(insights-\w+)"[^>]*aria-labelledby="tab-\1"[^>]*>\s*<h2[^>]*><span[^>]*>(\d+)<\/span> ([^<]+)<\/h2>/g;
+// A topic's section: its id, a tab panel labelled by its tab, then its heading of number and title; the topic tabs
+// read the number by its class.
+const PAGE_SECTION =
+  /<section id="(insights-\w+)"[^>]*role="tabpanel" aria-labelledby="tab-\1"[^>]*>\s*<h2[^>]*><span class="topic-number"[^>]*>(\d+)<\/span> ([^<]+)<\/h2>/g;
 
 // A histogram figure names its stats query beside its bins query; every other figure is drawn from one query.
 function isHistogram(figure) {

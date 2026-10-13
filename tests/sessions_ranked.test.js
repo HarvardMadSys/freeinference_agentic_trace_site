@@ -7,6 +7,7 @@ import {
   SESSION_TIME_BY_PART,
   stackedSharePoints,
 } from "../site/js/figures/sessions_ranked.js";
+import { dropThinGroups, restingCountText } from "../site/js/figures/figure_rows.js";
 import { TIME_PART_COLOURS, TOKEN_PART_COLOURS } from "../site/js/theme/colours.js";
 
 // Two rank bins of a cost share query, the first of 55 sessions, the second of 54, of 109 sessions ranked.
@@ -55,4 +56,25 @@ test("the cost share's legend draws each token part in its token colour", () => 
   const legend = COST_SHARE_BY_SESSION.legend();
   assert.deepEqual(legend.series.map((one) => one.name), ["cached", "uncached", "output"]);
   assert.deepEqual([...legend.colours], Object.entries(TOKEN_PART_COLOURS));
+});
+
+// Eight rank bins of 13 sessions each, every one under the page's 50 rows a bin, of 104 sessions ranked.
+const SMALL_BIN_ROWS = Array.from({ length: 8 }, (unused, bin) => ({
+  percentile: (bin + 0.5) * 12.5,
+  prefill: 0.25,
+  decode: 0.25,
+  tool: 0.25,
+  user: 0.25,
+  bin_sessions: 13,
+  ranked_bin: "ranked sessions",
+  rows: 104,
+}));
+
+test("a rank-bin figure is drawn whole when its sessions are enough, however small each bin, and counts them once", () => {
+  for (const figure of [COST_SHARE_BY_SESSION, SESSION_TIME_BY_PART]) {
+    const { rows, hidden } = dropThinGroups(SMALL_BIN_ROWS, figure.binColumn);
+    assert.equal(rows.length, SMALL_BIN_ROWS.length, figure.name);
+    assert.equal(hidden, 0, figure.name);
+    assert.equal(restingCountText(rows, figure), "104 rows", figure.name);
+  }
 });

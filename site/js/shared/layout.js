@@ -21,17 +21,23 @@ export const URLS = Object.freeze({
 /** The Explore page, the landing page, which holds the sections the header and footer link. */
 export const EXPLORE_FILE = "index.html";
 
+/**
+ * The anchor of the Explore page's Session Explorer, where the header's link, the hero's first button and the Session
+ * page's link back lead.
+ */
+export const SESSION_EXPLORER_ANCHOR = "#sessions";
+
 /** The Explore page's sections, linked from the header and from the footer's "On this site": `{ anchor, title }`. */
 export const LINKED_SECTIONS = Object.freeze([
   Object.freeze({ anchor: "#overview", title: "Overview" }),
-  Object.freeze({ anchor: "#sessions", title: "Session Explorer" }),
+  Object.freeze({ anchor: SESSION_EXPLORER_ANCHOR, title: "Session Explorer" }),
   Object.freeze({ anchor: "#insights", title: "Insights" }),
   Object.freeze({ anchor: "#cite", title: "Cite" }),
 ]);
 
 // The section whose header link a page marks as current, by the page's file: the Session page is opened from the
 // Session Explorer. The Explore page marks none, since all four are on it.
-const MARKED_SECTIONS = Object.freeze({ "session.html": "#sessions" });
+const MARKED_SECTIONS = Object.freeze({ "session.html": SESSION_EXPLORER_ANCHOR });
 
 // The footer's "Elsewhere": the dataset, the paper, the code told apart from the lab's GitHub, then the projects
 // around it. The header links nothing off the site; the hero and the footer do.

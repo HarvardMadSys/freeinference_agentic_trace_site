@@ -44,7 +44,7 @@ test("a request's parameters open the Requests view at that session's step, keep
   assert.deepEqual(readAddress(opened), { week: "2026-08-09", id: "child", view: "requests", step: 4 });
 });
 
-test("the link back opens the Session Explorer with the table's keys as given, and the Session page's dropped", () => {
+test("the link back opens the Session Explorer with the table's keys as given, and the Session page's own keys dropped", () => {
   const params = new URLSearchParams("week=2026-08-09&id=abc&view=context&step=3&harnesses=hermes,codex&sort=requests");
   assert.equal(backLinkHref(params), "index.html?harnesses=hermes,codex&sort=requests#sessions");
 });

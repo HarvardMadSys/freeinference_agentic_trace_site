@@ -101,7 +101,7 @@ test("the footer's section links lead where the header's do, with the URL keys f
   ]);
 });
 
-test("the footer holds the brand and the two lists of links, and nothing else", () => {
+test("the footer holds the brand, its line and the two lists of links, with no headings and no copyright or policy text", () => {
   const markup = rendered(renderFooter, "index.html", "");
   assert.match(markup, /FreeInference <em>Agentic Dataset<\/em>/);
   const titles = [...markup.matchAll(/<p class="footer-nav-title">([^<]+)<\/p>/g)].map((match) => match[1]);
@@ -134,12 +134,13 @@ test("the Explore page runs Overview, Session Explorer, Insights, Cite and Team,
   assert.doesNotMatch(page, /class="eyebrow"/);
 });
 
-test("the Session Explorer's line under its heading says what a click does", () => {
+test("the Session Explorer's line under its heading says what a click does, and no line says what a month holds", () => {
   const page = readFileSync(EXPLORE_PAGE, "utf8");
   const section = page.slice(page.indexOf('<section id="sessions"'), page.indexOf('<section id="insights"'));
   const heading = section.indexOf('id="session-list-heading"');
   const guide = section.indexOf("Click a session to open its requests, context and timeline.");
   assert.ok(heading !== -1 && heading < guide && guide < section.indexOf('id="sessions-table"'));
+  assert.doesNotMatch(page, /A month holds/);
 });
 
 test("the Session page's link back reads Session Explorer and opens the Explore page at it", () => {
