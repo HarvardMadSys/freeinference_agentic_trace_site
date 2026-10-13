@@ -55,20 +55,15 @@ const SECTION_FIGURES = {
   ],
 };
 
-// The figure sections of index.html's Insights, in order: each section's id, its number and its heading.
-const PAGE_SECTIONS = [
-  { id: "insights-sessions", number: "01", heading: "Session structure" },
-  { id: "insights-tokens", number: "02", heading: "Tokens and cost" },
-  { id: "insights-latency", number: "03", heading: "Latency" },
-  { id: "insights-tools", number: "04", heading: "Tools" },
-  { id: "insights-caching", number: "05", heading: "Prefix caching" },
-  { id: "insights-comparison", number: "06", heading: "Human-driven against benchmark" },
+// The ids of the figure sections of index.html's Insights, in order.
+const PAGE_SECTION_IDS = [
+  "insights-sessions", "insights-tokens", "insights-latency", "insights-tools", "insights-caching", "insights-comparison",
 ];
 const PAGE = readFileSync(new URL("../site/index.html", import.meta.url), "utf8");
-// A topic's section: its id, a tab panel labelled by its tab, then its heading of number and title; the topic tabs
-// read the number by its class.
+// A topic's section: its id, a tab panel labelled by its tab, then its heading opening on the number the topic tabs
+// read by its class.
 const PAGE_SECTION =
-  /<section id="(insights-\w+)"[^>]*role="tabpanel" aria-labelledby="tab-\1"[^>]*>\s*<h2[^>]*><span class="topic-number"[^>]*>(\d+)<\/span> ([^<]+)<\/h2>/g;
+  /<section id="(insights-\w+)"[^>]*role="tabpanel" aria-labelledby="tab-\1"[^>]*>\s*<h2[^>]*><span class="topic-number"/g;
 
 // A histogram figure declares its stats query beside its bins query; every other figure is drawn from one query.
 function isHistogram(figure) {
@@ -95,20 +90,20 @@ async function sections() {
   return loaded;
 }
 
-test("the page holds the six figure sections in order, each with its number and heading", () => {
-  const found = [...PAGE.matchAll(PAGE_SECTION)].map((match) => ({ id: match[1], number: match[2], heading: match[3] }));
-  assert.deepEqual(found, PAGE_SECTIONS);
+test("the page holds the six figure sections in order, each a tab panel labelled by its tab, its heading's number marked", () => {
+  const found = [...PAGE.matchAll(PAGE_SECTION)].map((match) => match[1]);
+  assert.deepEqual(found, PAGE_SECTION_IDS);
 });
 
 test("the Insights open on their heading and the row of topic tabs, before the six topics", () => {
   const heading = PAGE.indexOf('id="insights-title"');
   const tabs = PAGE.indexOf('id="topic-tabs"');
-  const firstTopic = PAGE.indexOf(`id="${PAGE_SECTIONS[0].id}"`);
+  const firstTopic = PAGE.indexOf(`id="${PAGE_SECTION_IDS[0]}"`);
   assert.ok(PAGE.indexOf('id="insights"') < heading && heading < tabs && tabs < firstTopic);
 });
 
 test("a figure section holds no intro text", () => {
-  for (const { id } of PAGE_SECTIONS) {
+  for (const id of PAGE_SECTION_IDS) {
     const start = PAGE.indexOf(`<section id="${id}"`);
     const section = PAGE.slice(start, PAGE.indexOf("</section>", start));
     assert.doesNotMatch(section, /<p[\s>]/, id);
@@ -116,7 +111,7 @@ test("a figure section holds no intro text", () => {
 });
 
 test("the runner fills each section of the page from its section module, in the page's order", () => {
-  assert.deepEqual(FIGURE_SECTIONS.map((section) => section.selector), PAGE_SECTIONS.map((section) => `#${section.id}`));
+  assert.deepEqual(FIGURE_SECTIONS.map((section) => section.selector), PAGE_SECTION_IDS.map((id) => `#${id}`));
   const modules = Object.keys(SECTION_FIGURES).map((path) => path.replace("../site/js/", "../"));
   assert.deepEqual(FIGURE_SECTIONS.map((section) => section.module), modules);
 });

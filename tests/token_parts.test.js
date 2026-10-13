@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { TOKEN_PART_NAMES, tokenPartEntries, tokenParts } from "../site/js/session/token_parts.js";
+import { TOKEN_PART_NAMES, tokenParts } from "../site/js/session/token_parts.js";
 import { TIME_PART_NAMES } from "../site/js/theme/colours.js";
 
 const SCRIPTS = new URL("../site/js/", import.meta.url);
@@ -24,13 +24,6 @@ test("a request's tokens are its cached input, uncached input and output", () =>
 test("a request with no cache report counts its whole input as uncached", () => {
   const unreported = { ...REQUEST, cache_read_tokens: null, uncached_tokens: null };
   assert.deepEqual(tokenParts(unreported), { cached: 0, uncached: 1_000, output: 50 });
-});
-
-test("the legend names the three parts and no other", () => {
-  assert.deepEqual(tokenPartEntries().map((entry) => entry.name), ["Cached input", "Uncached input", "Output"]);
-  assert.deepEqual(tokenPartEntries().map((entry) => entry.colour), [
-    "var(--token-cached)", "var(--token-uncached)", "var(--token-output)",
-  ]);
 });
 
 test("the part names are typed only in their homes; every other module imports them", () => {

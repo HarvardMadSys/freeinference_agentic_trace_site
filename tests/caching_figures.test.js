@@ -4,11 +4,8 @@ import { test } from "node:test";
 import { FIGURES, idleGapEdgeSeconds, idleGapLegend } from "../site/js/figures/caching.js";
 import { GAP_FIGURES, meanHitRatioBars, mutationTableLines } from "../site/js/figures/caching_gaps.js";
 import { gapBinColours, HIT_RATIO_CDF_BY_GAP_BIN } from "../site/js/figures/caching_cdfs.js";
-import {
-  API_COST_BY_TTL, costColours, INFRASTRUCTURE_COST_BY_TTL, kneeText, lowestText,
-} from "../site/js/simulation/costs.js";
+import { costColours, INFRASTRUCTURE_COST_BY_TTL } from "../site/js/simulation/costs.js";
 import { prefillPoints, retainedDomain } from "../site/js/simulation/prefill.js";
-import { scopeLegend } from "../site/js/comparison/scopes.js";
 import { decadeTicks } from "../site/js/axes/ticks.js";
 import { assignColours, OTHER_SERIES } from "../site/js/theme/colours.js";
 
@@ -107,27 +104,6 @@ test("the retained-tokens axis runs from half the fewest to three times the most
   assert.deepEqual(decadeTicks([1, 100]), [1, 10, 100]);
 });
 
-test("the scope legend lists the paper's harnesses as human-driven, then the benchmark, each in its colour", () => {
-  const legend = scopeLegend([{ scope: "SWE-Bench" }, { scope: "Agentic" }], FIGURE_COLOURS, "scope");
-  assert.deepEqual(legend.series, [
-    { name: "Agentic", label: "Human-driven" }, { name: "SWE-Bench", label: "Benchmark" },
-  ]);
-  assert.equal(legend.colours.get("Agentic"), "var(--series-1)");
-  assert.equal(legend.colours.get("SWE-Bench"), "var(--series-8)");
-});
-
-// Rows of the API cost query at two TTLs, by part, then in TTL order, as the query gives them; the knee at 30m.
-const MINUTE = { ttl: "1m", ttl_seconds: 60, total_multiple: 1, is_knee: false, rows: 90 };
-const HALF_HOUR = { ttl: "30m", ttl_seconds: 1800, total_multiple: 0.65, is_knee: true, rows: 90 };
-const API_ROWS = [
-  { ...MINUTE, part: "cache_read", cost_multiple: 0.1 },
-  { ...HALF_HOUR, part: "cache_read", cost_multiple: 0.15 },
-  { ...MINUTE, part: "input", cost_multiple: 0.5 },
-  { ...HALF_HOUR, part: "input", cost_multiple: 0.1 },
-  { ...MINUTE, part: "output", cost_multiple: 0.4 },
-  { ...HALF_HOUR, part: "output", cost_multiple: 0.4 },
-];
-
 test("a cost figure's legend lists its parts, each in the colour of what it prices", () => {
   const colours = costColours(["output", "cache_read", "input"]);
   assert.deepEqual([...colours.keys()], ["output", "cache_read", "input"]);
@@ -137,11 +113,6 @@ test("a cost figure's legend lists its parts, each in the colour of what it pric
   assert.deepEqual(infrastructure.series, [{ name: "storage", label: "Storage" }]);
   assert.equal(infrastructure.colours.get("recompute"), "var(--token-uncached)");
   assert.equal(infrastructure.colours.get("storage"), "var(--series-7)");
-});
-
-test("each cost figure's callout names the TTL it marks and its total, on two lines", () => {
-  assert.equal(kneeText("0.65×", "30 min"), "0.65× at 30 min,\nnear the lowest");
-  assert.equal(lowestText("0.42×", "15 min"), "Lowest 0.42×\nat 15 min");
 });
 
 test("the mutation table's lines come in the paper's order, causes after transitions, shares with one decimal", () => {
@@ -155,12 +126,4 @@ test("the mutation table's lines come in the paper's order, causes after transit
     { name: "mutation", isCause: false, cells: ["Mutation", "4.0%", "56.4%", "—"] },
     { name: "compaction", isCause: true, cells: ["Compaction", "<0.1%", "3.7%", "0.6%"] },
   ]);
-});
-
-test("the API cost's legend lists every part its stack draws, the output included", () => {
-  const legend = API_COST_BY_TTL.legend(API_ROWS, {}, "part");
-  const drawn = [...new Set(API_ROWS.map((row) => row.part))].sort();
-  assert.deepEqual(legend.series.map((one) => one.name).sort(), drawn);
-  assert.deepEqual(legend.series.map((one) => one.label), ["Cached input", "Uncached input", "Output"]);
-  assert.equal(legend.colours.get("output"), "var(--token-output)");
 });

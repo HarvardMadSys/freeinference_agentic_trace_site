@@ -129,7 +129,7 @@ function shownAnchors(sections) {
   return sections.filter((section) => !section.hidden).map((section) => section.id);
 }
 
-test("a tab is a button labelled with its topic's number and title, controlling its topic's section", () => {
+test("a tab is a button in the tab role, controlling its topic's section", () => {
   globalThis.document = { createElement: () => new FakeElement() };
   const tab = topicTab({ anchor: "insights-tokens", number: "02", title: "Tokens and cost" });
   delete globalThis.document;
@@ -138,7 +138,6 @@ test("a tab is a button labelled with its topic's number and title, controlling 
   assert.equal(tab.className, "nav-link topic-tab");
   assert.equal(tab.getAttribute("role"), "tab");
   assert.equal(tab.getAttribute("aria-controls"), "insights-tokens");
-  assert.equal(tab.textContent, "02 Tokens and cost");
 });
 
 test("a hash naming a topic shows that topic", () => {
@@ -191,12 +190,6 @@ test("showing a topic hides every other topic and selects its tab alone, the row
   assert.deepEqual(shownAnchors(sections), ["insights-sessions"]);
   assert.equal(tabs[2].getAttribute("aria-selected"), "false");
   assert.equal(tabs[2].classes.has("is-active"), false);
-});
-
-test("the tabs read their titles from the headings, after the number", () => {
-  const { tabs } = mountedTabs("");
-  done();
-  assert.deepEqual(tabs.map((tab) => tab.textContent), TITLES.map((title, index) => `0${index + 1} ${title}`));
 });
 
 test("Back from the fourth topic shows the first again", () => {

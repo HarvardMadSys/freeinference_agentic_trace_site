@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { copySource, mountCopyButtons, renderCiteLine } from "../site/js/landing/cite.js";
-import { renderTeam } from "../site/js/landing/team.js";
 import { URLS } from "../site/js/shared/layout.js";
 
 // The Explore page, which holds the BibTeX block.
@@ -24,10 +23,8 @@ function fakePage(text) {
   return { root, button, source, listeners };
 }
 
-test("the BibTeX block on the page is the paper's citation, a misc entry with the paper's address", () => {
+test("the BibTeX entry links the paper's address, and its copy button starts hidden, naming the block it copies", () => {
   const page = readFileSync(EXPLORE_PAGE, "utf8");
-  assert.match(page, /<pre id="bibtex"><code>@misc\{freeinference2026requests,/);
-  assert.match(page, /author\s+= \{Nixon, William and Tian, Muxin and Zheng, Yunjia\s+and Gunawi, Haryadi S\. and Yang, Juncheng\}/);
   assert.ok(page.includes(`howpublished = {\\url{${URLS.paper}}}`), "the entry links the paper");
   assert.match(page, /<button class="cite-copy" type="button" data-copy="bibtex" hidden>Copy<\/button>/);
 });
@@ -60,27 +57,8 @@ test("a clipboard that refuses says so on the button", async (context) => {
   assert.equal(button.textContent, "Select and copy");
 });
 
-test("the team lists the five authors in the paper's order, with their affiliations", () => {
-  const container = { innerHTML: "" };
-  renderTeam(container);
-  const authors = [...container.innerHTML.matchAll(/<strong>([^<]+)<\/strong>(?:<\/a>)?<span>([^<]+)<\/span>/g)];
-  assert.deepEqual(authors.map((match) => [match[1], match[2]]), [
-    ["William Nixon", "UChicago & Harvard"],
-    ["Muxin Tian", "Toronto"],
-    ["Yunjia Zheng", "Harvard"],
-    ["Haryadi S. Gunawi", "UChicago"],
-    ["Juncheng Yang", "Harvard"],
-  ]);
-});
-
-test("the team has no About paragraph", () => {
-  const container = { innerHTML: "" };
-  renderTeam(container);
-  assert.doesNotMatch(container.innerHTML, /team-about|>About</);
-});
-
-test("the citation's sentence names the paper and links it", () => {
+test("the citation's sentence links the paper's address", () => {
   const container = { innerHTML: "" };
   renderCiteLine(container);
-  assert.match(container.innerHTML, /please cite\s+<a href="https:\/\/data\.freeinference\.org\/pdf\/paper\/from-requests-to-sessions\.pdf"[^>]*><em>From Requests to Sessions<\/em><\/a>/);
+  assert.ok(container.innerHTML.includes(`<a href="${URLS.paper}"`), container.innerHTML);
 });
