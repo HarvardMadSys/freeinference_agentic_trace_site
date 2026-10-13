@@ -1,6 +1,6 @@
 /**
- * The Session page's data, as the data step precomputed it: a session's rows from its week's bucket, and the order of
- * the tool categories.
+ * The Session page's data, as the data step precomputed it: a session's rows from its week's bucket, the order of the
+ * tool categories, and the number of weeks.
  *
  * A bucket is `session_buckets/<week>/<xx>.json.gz` in the data folder, `xx` the first two characters of a top-level
  * session's id: an object from each top-level id whose id starts with `xx` to its entry, `{ tree, requests,
@@ -23,6 +23,9 @@ const INDEX_FILE = "index.json.gz";
 
 // The answer of `setup/category_order` in the data folder: the order that fixes each tool category's colour.
 const CATEGORY_ORDER_FILE = "all_weeks/setup/category_order.json";
+
+// The index of the weeks in the data folder, whose entries the footer counts.
+const WEEKS_FILE = "weeks.json";
 
 // The first two bytes of every gzip stream. A body without them was decompressed on the way, by a host that served the
 // file with its gzip layer removed, and is read as it is.
@@ -63,6 +66,12 @@ export async function fetchSession(dataUrl, week, id) {
 export async function fetchCategoryOrder(dataUrl) {
   const rows = await fetchJson(fileUrl(dataUrl, CATEGORY_ORDER_FILE));
   return rows.map((row) => row.category);
+}
+
+/** The number of weeks the data folder at `dataUrl` holds: the entries of its `weeks.json`. */
+export async function fetchWeekCount(dataUrl) {
+  const weeks = await fetchJson(fileUrl(dataUrl, WEEKS_FILE));
+  return weeks.length;
 }
 
 /** A bucket entry's parts as the views take them: `{ tree, requests, toolCalls }`, each a list of row objects. */

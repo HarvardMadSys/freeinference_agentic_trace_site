@@ -4,7 +4,7 @@
  * paper and the code, and the lab's name under them.
  */
 
-import { AFFILIATION, URLS } from "../shared/layout.js";
+import { AFFILIATION, URLS, weekCountText } from "../shared/layout.js";
 
 // The title, the dataset's name: its first phrase, and its second, drawn in the accent.
 const TITLE = "FreeInference";
@@ -26,17 +26,6 @@ const EXTERNAL_BUTTONS = Object.freeze([
   Object.freeze({ title: "Code", url: URLS.code }),
 ]);
 
-/**
- * The lede's first words for `weekCount` weeks: "16 weeks", "1 week"; "Weeks" when the count is not known (null), as
- * when `weeks.json` could not be read.
- */
-export function ledeOpening(weekCount) {
-  if (weekCount === null) {
-    return "Weeks";
-  }
-  return `${weekCount} ${weekCount === 1 ? "week" : "weeks"}`;
-}
-
 /** Fill `container` with the hero's copy for the `weekCount` weeks the trace holds (null when not known). */
 export function renderHero(container, weekCount) {
   const siteButtons = SITE_BUTTONS.map(
@@ -47,7 +36,7 @@ export function renderHero(container, weekCount) {
   );
   container.innerHTML = `
     <h1 id="hero-title">${TITLE} <em>${TITLE_ACCENT}</em></h1>
-    <p class="hero-lede">${ledeOpening(weekCount)} ${LEDE_REST}</p>
+    <p class="hero-lede">${weekCountText(weekCount)} ${LEDE_REST}</p>
     <div class="hero-actions">
       ${siteButtons.join("")}
       ${externalButtons.join("")}

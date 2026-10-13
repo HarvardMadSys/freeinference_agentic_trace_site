@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { ledeOpening, renderHero } from "../site/js/landing/hero.js";
+import { renderHero } from "../site/js/landing/hero.js";
+import { weekCountText } from "../site/js/shared/layout.js";
 
 test("the lede's first words count the weeks in digits, one week in the singular, and name none it does not know", () => {
-  assert.equal(ledeOpening(16), "16 weeks");
-  assert.equal(ledeOpening(1), "1 week");
-  assert.equal(ledeOpening(null), "Weeks");
+  assert.equal(weekCountText(16), "16 weeks");
+  assert.equal(weekCountText(1), "1 week");
+  assert.equal(weekCountText(null), "Weeks");
 });
 
 test("the hero holds the dataset's name as its title, the lede counting the weeks, the five buttons and the lab's name", () => {

@@ -209,6 +209,11 @@ body {
   background: var(--color-background);
 }
 
+/* An element the page hides takes no room, whatever display rule its class gives it. */
+[hidden] {
+  display: none !important;
+}
+
 /* Headings in the display serif, set close and balanced over their lines, as Open Data sets them. */
 h1,
 h2,
@@ -450,7 +455,7 @@ code,
 }
 
 /* A link that leaves the site says so with an arrow after its text. */
-a[target="_blank"]:not(.brand)::after {
+a[target="_blank"]::after {
   content: "\2197";
   margin-left: 0.3em; /* a margin, not a space: a flex item such as a button trims a leading space */
   font-size: 0.85em;
@@ -1162,11 +1167,6 @@ section[id] {
   cursor: pointer;
 }
 
-/* The topics not shown take no room: the hidden attribute alone loses to the section's flex display. */
-.figure-section[hidden] {
-  display: none;
-}
-
 /* A topic's number before its heading, in the eyebrow's monospace and the accent: "01 Session structure". */
 .topic-number {
   margin-right: 0.25rem; /* with the space after it, the gap the title keeps from the number */
@@ -1503,11 +1503,6 @@ section[id] {
 
 .selection .note {
   margin: 0;
-}
-
-/* A page whose figures are frozen hides the selection section, which its display rule would otherwise keep shown. */
-.selection[hidden] {
-  display: none;
 }
 
 /* The sessions table's row of controls: each a field under its name in small monospace capitals, wrapping on a phone. */

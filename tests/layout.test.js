@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { renderFooter, renderHeader, SECTIONS } from "../site/js/shared/layout.js";
+import { LINKED_SECTIONS, renderFooter, renderHeader } from "../site/js/shared/layout.js";
 
 // The Explore page, whose sections the header and footer link by anchor.
 const EXPLORE_PAGE = new URL("../site/index.html", import.meta.url);
@@ -11,9 +11,9 @@ const EXPLORE_PAGE = new URL("../site/index.html", import.meta.url);
 const TABLE_KEYS = "months=2026-07&harnesses=codex&sort=requests&page=2";
 
 // The markup `render` writes into a stand-in container for the page `activeFile` with the URL keys `query`.
-function rendered(render, activeFile, query) {
+function rendered(render, activeFile, query, weekCount = 16) {
   const container = { innerHTML: "" };
-  render(container, activeFile, new URLSearchParams(query));
+  render(container, activeFile, new URLSearchParams(query), weekCount);
   return container.innerHTML;
 }
 
@@ -104,7 +104,7 @@ test("the footer's section links lead where the header's do, with the URL keys f
 test("the footer holds the brand, its line and the two lists of links, and nothing else", () => {
   const markup = rendered(renderFooter, "index.html", "");
   assert.match(markup, /FreeInference <em>Agentic Dataset<\/em>/);
-  assert.match(markup, /Sixteen weeks worth of coding agent traces from FreeInference\./);
+  assert.match(markup, /<p>16 weeks worth of coding agent traces from FreeInference\.<\/p>/);
   assert.deepEqual([...markup.matchAll(/<h2>([^<]+)<\/h2>/g)].map((match) => match[1]), ["On this site", "Elsewhere"]);
   assert.doesNotMatch(markup, /Copyright|Accessibility|footer-legal/);
 });
@@ -113,7 +113,7 @@ test("the Explore page is the site's one page of sections, titled with the datas
   const page = readFileSync(EXPLORE_PAGE, "utf8");
   assert.match(page, /<title>FreeInference Agentic Dataset<\/title>/);
   assert.match(page, /<script type="module" src="js\/pages\/explore\.js"><\/script>/);
-  for (const section of SECTIONS) {
+  for (const section of LINKED_SECTIONS) {
     assert.match(page, new RegExp(`<section id="${section.anchor.slice(1)}"`), `index.html has no section ${section.anchor}`);
   }
 });
@@ -125,7 +125,7 @@ test("the Explore page runs Overview, Session Explorer, Insights, Cite and Team,
     "hero", "selection", "overview", "sessions", "insights", "insights-sessions", "insights-tokens", "insights-latency",
     "insights-tools", "insights-caching", "insights-comparison", "cite", "team",
   ]);
-  for (const section of SECTIONS) {
+  for (const section of LINKED_SECTIONS) {
     const start = page.indexOf(`<section id="${section.anchor.slice(1)}"`);
     const firstHeading = page.slice(start).match(/<h2 id="[^"]+">([^<]+)<\/h2>/)[1];
     assert.equal(firstHeading, section.title, section.anchor);
@@ -149,4 +149,10 @@ test("the Session page's link back reads Session Explorer and opens the Explore 
   assert.match(page, /<a id="back-link" href="index\.html#sessions">← Session Explorer<\/a>/);
   const module = readFileSync(new URL("../site/js/pages/session.js", import.meta.url), "utf8");
   assert.ok(module.includes("`index.html${selectionQuery(selection)}#sessions`"), "the link back drops the table's keys");
+});
+
+test("the footer's line counts the weeks in digits as the hero's lede does, and says Weeks while the count is unknown", () => {
+  assert.match(rendered(renderFooter, "index.html", "", 17), /<p>17 weeks worth of coding agent traces from FreeInference\.<\/p>/);
+  assert.match(rendered(renderFooter, "index.html", "", 1), /<p>1 week worth of coding agent traces/);
+  assert.match(rendered(renderFooter, "session.html", "", null), /<p>Weeks worth of coding agent traces/);
 });

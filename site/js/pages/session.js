@@ -7,7 +7,7 @@ import { mountContextView } from "../session_charts/context.js";
 import { factsList, sessionFacts } from "../session/facts_card.js";
 import { mountRequestsView } from "../session_requests/requests.js";
 import { mountTimelineView } from "../session_charts/timeline.js";
-import { fetchCategoryOrder, fetchSession } from "../session/bucket.js";
+import { fetchCategoryOrder, fetchSession, fetchWeekCount } from "../session/bucket.js";
 import { OPEN_REQUEST_EVENT } from "../session/view_chart.js";
 import { showError, showLoading, showNote } from "../shared/charts.js";
 import { toolCategoryColours } from "../theme/colours.js";
@@ -24,7 +24,8 @@ const DATA_URL = new URL("data/", window.location.href).href;
 const parameters = new URLSearchParams(window.location.search);
 const selection = selectionParameters(parameters);
 mountHeader(document.querySelector("#site-header"), "session.html", selection);
-renderFooter(document.querySelector("#site-footer"), "session.html", selection);
+renderFooter(document.querySelector("#site-footer"), "session.html", selection, null);
+showWeekCountInFooter();
 // The link back opens the Explore page at its Session Explorer, with the table's search, filters, sort and page.
 document.querySelector("#back-link").href = `index.html${selectionQuery(selection)}#sessions`;
 
@@ -112,6 +113,19 @@ function showView(view, session, address) {
   }
   const options = { focusSessionId: address.id, focusStep: address.step, categoryColours: session.categoryColours };
   return mountRequestsView(page.view, session.tree, session.requests, session.toolCalls, options);
+}
+
+/**
+ * Write the footer's line again once `weeks.json` is read, counting the weeks as the Explore page's hero does; when it
+ * cannot be read, the line keeps "Weeks" and the session is shown all the same.
+ */
+async function showWeekCountInFooter() {
+  try {
+    const weekCount = await fetchWeekCount(DATA_URL);
+    renderFooter(document.querySelector("#site-footer"), "session.html", selection, weekCount);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 /** Fill `container` with one tab per view; a click shows that view in place and writes it into the URL. */

@@ -52,12 +52,11 @@ const NO_ROWS_NOTE = "No rows over every week and the paper's harnesses.";
 const ALL_THIN_NOTE = `Too few rows: every bin has fewer than ${MIN_ROWS_PER_BIN} rows.`;
 
 /**
- * Place a card for every figure of every section of `figureSections` (entries of `FIGURE_SECTIONS`) and, unless
- * `drawsEveryRunAtOnce`, watch which cards are in view; return what the page keeps of the figures, nothing laid out
- * yet.
+ * Place a card for every figure of every section of `FIGURE_SECTIONS` and, unless `drawsEveryRunAtOnce`, watch which
+ * cards are in view; return what the page keeps of the figures, nothing laid out yet.
  */
-export async function mountFigureSections(figureSections, drawsEveryRunAtOnce = false) {
-  const cards = await placeCards(figureSections);
+export async function mountFigureSections(drawsEveryRunAtOnce = false) {
+  const cards = await placeCards();
   const figures = { cards, places: new Map(), run: null, visibleNames: new Set(), drawsEveryRunAtOnce };
   if (drawsEveryRunAtOnce) {
     return figures;
@@ -261,13 +260,13 @@ function layOutPlaces(figures) {
 }
 
 /**
- * Every figure of every section of `figureSections`, each with a new card in its section's grid and that section,
+ * Every figure of every section of `FIGURE_SECTIONS`, each with a new card in its section's grid and that section,
  * `[{ figure, card, topic }]`; each section's takeaway is written under its heading. A section whose module fails to
  * load shows the error in its grid and has no cards; the others are placed.
  */
-async function placeCards(figureSections) {
+async function placeCards() {
   const cards = [];
-  for (const section of figureSections) {
+  for (const section of FIGURE_SECTIONS) {
     const topic = document.querySelector(section.selector);
     const grid = topic.querySelector(".card-grid");
     try {

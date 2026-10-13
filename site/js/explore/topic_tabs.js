@@ -9,7 +9,7 @@
  * the shown tab in it.
  */
 
-import { bringIntoRow, markMoreBeyondEdge } from "../shared/table.js";
+import { bringIntoRow, markMoreBeyondEdge, mountScrollingRow } from "../shared/table.js";
 
 // The anchor of the Insights section itself, which, as no anchor does, shows the first topic.
 const INSIGHTS_ANCHOR = "insights";
@@ -21,7 +21,7 @@ const TAB_ID_PREFIX = "tab-";
  * The topics of the sections `figureSections` name (entries of `FIGURE_SECTIONS`), read from their headings on the
  * page: `[{ anchor, number, title }]`, the section's id, its number ("01") and its title ("Session structure").
  */
-export function pageTopics(figureSections) {
+function pageTopics(figureSections) {
   const topics = [];
   for (const section of figureSections) {
     const element = document.querySelector(section.selector);
@@ -128,8 +128,7 @@ export function mountTopicTabs(row, figureSections, onShow) {
   window.addEventListener("popstate", (event) => {
     showTab(view, topicForEntry(event.state, window.location.hash, anchors, shownTopic(view)));
   });
-  window.addEventListener("resize", () => markMoreBeyondEdge(row));
-  row.addEventListener("scroll", () => markMoreBeyondEdge(row));
+  mountScrollingRow(row);
   const opened = topicForHash(window.location.hash, anchors, anchors[0]);
   // The entry the page opened on holds its topic, so Back to it shows that topic whatever its anchor names.
   window.history.replaceState({ topic: opened }, "");

@@ -108,6 +108,7 @@ function mountedTabs(hash) {
   window.location = { hash };
   window.history = new FakeHistory(window, hash);
   globalThis.window = window;
+  globalThis.ResizeObserver = class { observe() {} };
   globalThis.document = {
     querySelector: (selector) => sections.find((section) => `#${section.id}` === selector),
     getElementById: (id) => sections.find((section) => section.id === id),
@@ -121,6 +122,7 @@ function mountedTabs(hash) {
 function done() {
   delete globalThis.window;
   delete globalThis.document;
+  delete globalThis.ResizeObserver;
 }
 
 function shownAnchors(sections) {

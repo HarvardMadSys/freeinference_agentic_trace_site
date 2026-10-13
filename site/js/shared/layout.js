@@ -21,11 +21,11 @@ export const URLS = Object.freeze({
   github: "https://github.com/HarvardMadSys",
 });
 
-// The Explore page, the landing page, which holds the sections the header and footer link.
-const EXPLORE_FILE = "index.html";
+/** The Explore page, the landing page, which holds the sections the header and footer link. */
+export const EXPLORE_FILE = "index.html";
 
 /** The Explore page's sections, linked from the header and from the footer's "On this site": `{ anchor, title }`. */
-export const SECTIONS = Object.freeze([
+export const LINKED_SECTIONS = Object.freeze([
   Object.freeze({ anchor: "#overview", title: "Overview" }),
   Object.freeze({ anchor: "#sessions", title: "Session Explorer" }),
   Object.freeze({ anchor: "#insights", title: "Insights" }),
@@ -49,7 +49,19 @@ const ELSEWHERE_LINKS = Object.freeze([
 
 /** The lab's name, written under the hero and in the footer, linking to the lab. */
 export const AFFILIATION = "Harvard SEAS · MadSys Lab";
-const FOOTER_LINE = "Sixteen weeks worth of coding agent traces from FreeInference.";
+// The footer's line after its first words, which count the weeks.
+const FOOTER_LINE_REST = "worth of coding agent traces from FreeInference.";
+
+/**
+ * The words that count `weekCount` weeks, as the hero's lede and the footer's line open: "16 weeks", "1 week";
+ * "Weeks" when the count is not known (null), as before `weeks.json` is read or when it cannot be.
+ */
+export function weekCountText(weekCount) {
+  if (weekCount === null) {
+    return "Weeks";
+  }
+  return `${weekCount} ${weekCount === 1 ? "week" : "weeks"}`;
+}
 
 /**
  * Fill `container` with the site header: the brand and the links to the Explore page's sections, the one the page
@@ -58,7 +70,7 @@ const FOOTER_LINE = "Sixteen weeks worth of coding agent traces from FreeInferen
  */
 export function renderHeader(container, activeFile, carried) {
   const query = selectionQuery(carried);
-  const sectionLinks = SECTIONS.map((section) => headerSectionLink(section, activeFile, query));
+  const sectionLinks = LINKED_SECTIONS.map((section) => headerSectionLink(section, activeFile, query));
   container.innerHTML = `
     <div class="header-inner">
       ${brand(query)}
@@ -93,19 +105,19 @@ export function mountHeader(container, activeFile, carried) {
 }
 
 /**
- * Fill `container` with the site footer: the brand and one line, the Explore page's sections and the places off the
- * site.
+ * Fill `container` with the site footer: the brand and one line counting the `weekCount` weeks (null when not known),
+ * the Explore page's sections and the places off the site.
  * `activeFile` and `carried` are as `renderHeader` takes them.
  */
-export function renderFooter(container, activeFile, carried) {
+export function renderFooter(container, activeFile, carried, weekCount) {
   const query = selectionQuery(carried);
-  const sectionLinks = SECTIONS.map((section) => footerSectionLink(section, activeFile, query));
+  const sectionLinks = LINKED_SECTIONS.map((section) => footerSectionLink(section, activeFile, query));
   const elsewhereLinks = ELSEWHERE_LINKS.map((link) => externalLink(link, "footer-link"));
   container.innerHTML = `
     <div class="footer-inner">
       <div class="footer-brand">
         ${brand(query)}
-        <p>${FOOTER_LINE}</p>
+        <p>${weekCountText(weekCount)} ${FOOTER_LINE_REST}</p>
         <p><a class="affiliation" href="${URLS.lab}" target="_blank" rel="noopener">${AFFILIATION}</a></p>
       </div>
       ${footerLinkList("On this site", sectionLinks)}

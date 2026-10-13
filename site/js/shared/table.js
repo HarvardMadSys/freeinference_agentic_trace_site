@@ -63,13 +63,22 @@ export function mountTable(container, { columns, rows, sort, pageNumber, summary
   }
   container.append(wrap, pager(page, onPage));
   showSortedColumn(wrap);
-  markMoreBeyondEdge(wrap);
-  wrap.addEventListener("scroll", () => markMoreBeyondEdge(wrap));
+  mountScrollingRow(wrap);
+}
+
+/**
+ * Keep `row`, an element that scrolls sideways (a table's wrap, the Insights' tab row), marked while more of it lies
+ * beyond its right edge (`markMoreBeyondEdge`): now, after each scroll and after each change of its size.
+ */
+export function mountScrollingRow(row) {
+  markMoreBeyondEdge(row);
+  row.addEventListener("scroll", () => markMoreBeyondEdge(row));
+  new ResizeObserver(() => markMoreBeyondEdge(row)).observe(row);
 }
 
 /**
  * Mark `element` with the class `has-more-beyond-edge` while its content lies beyond its right edge, so the page fades
- * that edge to say it scrolls sideways: a table's columns, or the header's links on a phone.
+ * that edge to say it scrolls sideways.
  */
 export function markMoreBeyondEdge(element) {
   const isMoreBeyond = element.scrollLeft + element.clientWidth < element.scrollWidth - 1;
