@@ -5,11 +5,8 @@
  * phone the row scrolls sideways, its right edge faded while more links lie beyond it, and keeps the marked link in it.
  */
 
-import { markMoreBeyondEdge } from "../shared/table.js";
+import { bringIntoRow, markMoreBeyondEdge } from "../shared/table.js";
 import { noteVisibility } from "./figure_sections.js";
-
-// The room, in pixels, kept before the marked link when the row scrolls to bring it into view.
-const ROW_EDGE_ROOM = 16;
 
 /**
  * The topics of the sections `figureSections` name (entries of `FIGURE_SECTIONS`), read from their headings on the
@@ -91,18 +88,9 @@ function noteTopicsInView(row, topics, inView, entries) {
     link.classList.toggle("is-active", isCurrent);
     if (isCurrent) {
       link.setAttribute("aria-current", "location");
-      keepInRow(row, link);
+      bringIntoRow(row, link);
     } else {
       link.removeAttribute("aria-current");
     }
-  }
-}
-
-/** Scroll `row` sideways, where it scrolls, so that `link` lies wholly in it. */
-function keepInRow(row, link) {
-  const linkStart = link.offsetLeft;
-  const linkEnd = linkStart + link.offsetWidth;
-  if (linkStart < row.scrollLeft || linkEnd > row.scrollLeft + row.clientWidth) {
-    row.scrollLeft = linkStart - ROW_EDGE_ROOM;
   }
 }

@@ -8,7 +8,7 @@
  */
 
 import { selectionQuery } from "./selection.js";
-import { markMoreBeyondEdge } from "./table.js";
+import { bringIntoRow, markMoreBeyondEdge } from "./table.js";
 
 /** Every address outside the site that a page links, each written once. */
 export const URLS = Object.freeze({
@@ -91,7 +91,8 @@ const WIRED_HEADERS = new WeakSet();
 
 /**
  * Draw the site header into `container` as `renderHeader` does, and wire its links: on a phone they scroll sideways in
- * one row, whose right edge fades while more links lie beyond it. A redraw into the same container keeps the wiring.
+ * one row, whose right edge fades while more links lie beyond it, scrolled so that the current page's link is in it. A
+ * redraw into the same container keeps the wiring.
  */
 export function mountHeader(container, activeFile, carried) {
   if (!WIRED_HEADERS.has(container)) {
@@ -101,7 +102,12 @@ export function mountHeader(container, activeFile, carried) {
     new ResizeObserver(() => markMoreBeyondEdge(container.querySelector(".site-nav"))).observe(container);
   }
   renderHeader(container, activeFile, carried);
-  markMoreBeyondEdge(container.querySelector(".site-nav"));
+  const links = container.querySelector(".site-nav");
+  const marked = links.querySelector(".nav-link.is-active");
+  if (marked !== null) {
+    bringIntoRow(links, marked);
+  }
+  markMoreBeyondEdge(links);
 }
 
 /**

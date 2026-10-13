@@ -14,4 +14,4 @@ and no data change is expected.
 - [x] 2.4 `shared/layout.js`: `SECTIONS` as pages, the current page's link marked, the query carried to the Session Explorer link alone; the footer's "On this site" the same four; `pages/explore.js` removed; the layout test.
 
 ## 3. Close
-- [ ] 3.1 The deploy workflow checks `/`, `/explorer` and `/insights`; README (pages table, layout, hosting), CONTRIBUTING (adding a page and a section), `openspec validate split-pages --strict`, a browser pass over the four pages.
+- [x] 3.1 The deploy workflow checks `/`, `/explorer` and `/insights`; README (pages table, layout, hosting), CONTRIBUTING (adding a page and a section), `openspec validate split-pages --strict`, a browser pass over the four pages.

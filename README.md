@@ -16,21 +16,23 @@ and no page fetches them. There is no server and no bundler.
 
 | Page | File | What it shows |
 |---|---|---|
-| Explore | `index.html` | The landing page: a hero with the stats strip (the whole trace as the paper's summary table counts it: weeks, sessions, requests, input tokens, tool calls, harnesses), the model and harness mixes and the weekly trends (Overview, `#overview`), the Session Explorer (`#sessions`), a table of every top-level session with its own filter, the Insights (`#insights`), 29 of the paper's figures and two histograms in six topics (`#insights-sessions`, `#insights-tokens`, `#insights-latency`, `#insights-tools`, `#insights-caching`, `#insights-comparison`: Session structure, Tokens and cost, Latency, Tools, Prefix caching, Human-driven against benchmark), the paper's citation (Cite, `#cite`) and the team (`#team`) |
+| Overview | `index.html` | The landing page: a hero with buttons to the Session Explorer and the Insights and the stats strip (the whole trace as the paper's summary table counts it: weeks, sessions, requests, input tokens, tool calls, harnesses), the model and harness mixes and the weekly trends (`#overview`), the paper's citation (Cite, `#cite`) and the team (`#team`). A link to its old anchors is sent on: `#sessions` to the Session Explorer with its query, `#insights` and `#insights-<topic>` to the Insights and that topic |
+| Session Explorer | `explorer.html` | A table of every top-level session, with its own filter, sort and page in the URL (`?months=2026-07&harnesses=codex`) |
+| Insights | `insights.html` | 29 of the paper's figures and two histograms in six topics, under a topic bar that stays in view (`#structure`, `#tokens`, `#latency`, `#tools`, `#caching`, `#comparison`: Session structure, Tokens and cost, Latency, Tools, Prefix caching, Human-driven against benchmark) |
 | Session | `session.html` | One session and its subagents: a bar per request with each tool call's programs and the skeleton of its arguments, context over time, and a timeline per agent |
 
 ## Frozen figures
 
-Every number on the Explore page, every trend, stat
-and figure, is drawn over every week and the paper's
+Every number on the three Explore pages (Overview, Session Explorer and
+Insights), every trend, stat and figure, is drawn over every week and the paper's
 harnesses (every harness but the benchmark replay `eval:swe-bench`, which
 appears only where a figure's legend names it), from answers precomputed
 when the data are built; the stats strip and the Session Explorer, which
 count the whole trace, are answered over every harness. `make data` runs
 every query under `site/queries/explore/` and `site/queries/figures/` and
 the colour orders under `site/queries/setup/` once with that selection, and
-writes each answer as `site/data/all_weeks/<page>/<query>.json`; the Explore
-page reads those files and nothing else, so it loads no DuckDB and no
+writes each answer as `site/data/all_weeks/<page>/<query>.json`; each Explore
+page reads the ones it draws and nothing else, so it loads no DuckDB and no
 Parquet file. **Rerun `make data` after editing any of those queries**: the page reads
 the answer, not the query. `make data` records the hash of each query's
 text in `all_weeks/queries.json`, and `make test` fails on a query edited
@@ -50,7 +52,7 @@ read as the filter and rewritten.
 
 The browser query path stays in the code behind one switch:
 `FIGURES_ARE_FROZEN` in `site/js/explore/start.js` is `true`. Set to
-`false`, the page mounts the week and harness pickers again, and any
+`false`, the Overview and Insights pages mount the week and harness pickers again, and any
 selection but the default is computed by DuckDB-WASM over the Parquet files
 from the same queries. After the first view the page could then stream
 every week's row files into memory so that a narrowed selection reads no
@@ -70,14 +72,22 @@ Parquet file and no SQL.
 Measured on the shipped data (16 weeks), served by `serve.py` (which does
 not compress) on the same machine, in headless Chromium, three runs each:
 
-- The Explore page draws every trend, headline number,
-  figure and the session list in 0.9–1.2 s (median 1.1 s). It makes 143
-  requests: 91 to the site (the page and its style sheet, 44 modules, 45 data
-  files: `weeks.json`, `harnesses.json` and 43 answers) and 52 to the CDN
-  (Observable Plot with its modules, and the web fonts). The site's own files come to 5.2 MB,
-  4.8 MB of them data and 4.0 MB the session list's answer; gzipped, as a
-  static host serves them, 1.0 MB, plus 0.35 MB of libraries and fonts as the
-  CDN sends them. No `.wasm` and no `.parquet` is fetched.
+- The Overview page draws the stats strip, the mixes and the trends in
+  0.8–1.1 s (median 1.0 s): 94 requests, 42 to the site (the page and its
+  style sheet, 29 modules, 11 data files: `weeks.json`, `harnesses.json`, the
+  four colour orders and five answers) and 52 to the CDN (Observable Plot with
+  its modules, and the web fonts). The site's files come to 0.28 MB, 0.09 MB
+  gzipped as a static host serves them.
+- The Session Explorer page draws the session list in 0.46–0.50 s (median
+  0.47 s): 34 requests, 30 to the site (21 modules and 7 data files, the
+  session list's answer 4.0 MB of them) and 4 to the CDN for the web fonts.
+  The site's files come to 4.3 MB, 0.86 MB gzipped.
+- The Insights page draws its 31 figures in 1.1–1.2 s (median 1.1 s): 130
+  requests, 78 to the site (37 modules and 39 data files: the two indexes, the
+  four colour orders and 33 answers) and 52 to the CDN. The site's files come
+  to 1.1 MB, 0.21 MB gzipped.
+- None of the three fetches a `.wasm` or a `.parquet` file; the libraries and
+  fonts, where a page loads them, come to 0.35 MB as the CDN sends them.
 - The Session page draws the Requests view of its largest session (5,040
   requests, week of 2026-08-30) in 0.99–1.07 s (median 1.0 s), or 0.9 s
   with 40 ms of latency and 50 Mbit/s: 35 requests, 31 to the site (the
@@ -145,8 +155,9 @@ The site is a Cloudflare Worker with static assets and no code of its own:
 `wrangler deploy` with two repository secrets, `CLOUDFLARE_API_TOKEN` (a
 token made from the dashboard's "Edit Cloudflare Workers" template) and
 `CLOUDFLARE_ACCOUNT_ID`; set the repository variable
-`CLOUDFLARE_ACCOUNT_SUBDOMAIN` and the workflow also checks the deployed
-site. `make deploy` does the same from a machine with `npm install` done and
+`CLOUDFLARE_ACCOUNT_SUBDOMAIN` and the workflow also asks the deployed site
+for the three Explore pages (`/`, `/explorer`, `/insights`), `weeks.json`
+and a Parquet file, and fails on any answer but 200. `make deploy` does the same from a machine with `npm install` done and
 the token in `CLOUDFLARE_API_TOKEN`. Static assets allow 20,000 files of
 25 MiB each; the site is about 3,400 files, the largest under 10 MB, and a
 new week adds about 210.
@@ -157,7 +168,8 @@ while the figures are frozen, and with the switch off DuckDB accepts a whole
 file where it asked for a range. It may serve a `.json.gz` file with its
 gzip layer removed, which the Session page reads as plain JSON all the same.
 And it redirects `page.html` to `page`, so `session.html?week=…` lands on
-`/session?week=…` with its query kept.
+`/session?week=…` and `explorer.html?months=…` on `/explorer?months=…`, with
+the query kept; the pages link one another by their `.html` names.
 
 ## Layout
 
@@ -187,21 +199,24 @@ site_data/         builds site/data/ from a release, and opens a database over i
   check_answers.py what make deploy checks first: every answered and bucket query's text is the one make data ran
   paths.py         the names of the folders and files the step writes
 site/              exactly the files that are deployed
-  *.html           one file per page: index (Explore, the landing page), session
+  *.html           one file per page: index (Overview, the landing page), explorer (Session Explorer), insights,
+                   session
   style.css        tokens, layout and components
   js/shared/       database (answer files and queries by name), selection (the selection
                    and its notes), libraries, format, charts, histogram (the histogram figures), cdf (the CDF
                    figures), table, layout (the header and footer)
-  js/landing/      the Explore page's opening: hero (the title, lede and buttons), stats (the stats strip beside it),
-                   donuts (the model and harness mixes), arcs (a donut's shares and ring segments), cite (the
-                   citation's copy button) and team (the authors and the About paragraph)
+  js/landing/      the Overview page's own parts: hero (the title, lede and buttons), stats (the stats strip beside
+                   it), donuts (the model and harness mixes), arcs (a donut's shares and ring segments), cite (the
+                   citation's copy button), team (the authors and the About paragraph) and old_links (where a link
+                   to the page's old anchors leads now)
   js/engine/       DuckDB in the page, kept behind the switch: duckdb_start (starting it), duckdb_views (its views and
                    setup), duckdb_files (the week files' names, and the stream of every week's files)
   js/theme/        colours, the site's colours as the style tokens give them
   js/axes/         ticks, the ticks of every chart's axes: how many, and where a log, duration or week axis ticks
   js/pages/        one module per page: overview, explorer, insights, session
-  js/explore/      the Explore page's start and sections: start (the start every Explore page shares, with
-                   FIGURES_ARE_FROZEN), trends, figure_sections (the figure runner),
+  js/explore/      the Explore pages' start and sections: start (the start every Explore page shares, with
+                   FIGURES_ARE_FROZEN), trends, figure_sections (the figure runner), topic_bar (the Insights page's
+                   topic bar),
                    legend (the legend of buttons that hides and shows a series), sessions_table, sessions_table_state
                    (its columns and its state in the URL), sessions_filter (its month and harness filter), and
                    selection_pickers (the week and harness pickers, mounted only with the switch off)

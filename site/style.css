@@ -877,6 +877,12 @@ section[id] {
   margin-top: clamp(1.5rem, 4vw, 3rem);
 }
 
+/* A page that opens on its heading, as the Session Explorer and the Insights do, keeps only the page's own room above
+   it, as the Session page does. */
+.page > .section-heading:first-child {
+  margin-top: 0;
+}
+
 .section-heading h1,
 .section-heading h2,
 .cite h2,
@@ -1160,7 +1166,6 @@ section[id] {
 }
 
 .topic-links {
-  position: relative; /* the links' offsets are measured from the row, which scrolls */
   display: flex;
   gap: 1.4rem;
   min-width: 0;

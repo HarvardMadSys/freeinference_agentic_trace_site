@@ -1,6 +1,6 @@
 /**
- * A table the visitor sorts, searches, filters and pages in the browser, and the fade at the right edge of a table, or
- * of any row, that scrolls sideways.
+ * A table the visitor sorts, searches, filters and pages in the browser, and, for a table or any row that scrolls
+ * sideways, the fade at its right edge and the scroll that brings one of its items into view.
  *
  * The pure functions take an array of row objects and return a new one; the
  * page chains them and passes the result to `mountTable`, which draws one page
@@ -10,6 +10,9 @@
 
 // Rows shown on one page of a table: few enough that a page is one card, with the pager under its last row.
 export const ROWS_PER_PAGE = 20;
+
+// The room, in pixels, kept before an item that a row scrolls sideways to bring into view.
+const ROW_EDGE_ROOM = 16;
 
 // The mark after a sorted column's title, by sort direction.
 const SORT_ARROWS = { ascending: "▲", descending: "▼" };
@@ -71,6 +74,18 @@ export function mountTable(container, { columns, rows, sort, pageNumber, summary
 export function markMoreBeyondEdge(element) {
   const isMoreBeyond = element.scrollLeft + element.clientWidth < element.scrollWidth - 1;
   element.classList.toggle("has-more-beyond-edge", isMoreBeyond);
+}
+
+/**
+ * Scroll `row` sideways, where it scrolls, so that `item`, one of its elements, lies wholly in it with a little room
+ * before it; an item already wholly in the row leaves it where it is.
+ */
+export function bringIntoRow(row, item) {
+  const rowBox = row.getBoundingClientRect();
+  const itemBox = item.getBoundingClientRect();
+  if (itemBox.left < rowBox.left || itemBox.right > rowBox.right) {
+    row.scrollLeft += itemBox.left - rowBox.left - ROW_EDGE_ROOM;
+  }
 }
 
 /**

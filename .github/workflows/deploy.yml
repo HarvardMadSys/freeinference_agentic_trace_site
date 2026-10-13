@@ -56,14 +56,15 @@ jobs:
         run: |
           # The Worker answers at its workers.dev address until a custom domain is set in wrangler.jsonc. The host
           # answers a range request with the whole file (200, not 206); the pages tolerate that, so the check is
-          # that the landing page, a data file and a Parquet file are served.
+          # that each Explore page at its clean path (the Overview, the Session Explorer and the Insights), a data
+          # file and a Parquet file are served.
           host="freeinference-agentic-trace-site.${CLOUDFLARE_ACCOUNT_SUBDOMAIN:-}.workers.dev"
           if [ -z "${CLOUDFLARE_ACCOUNT_SUBDOMAIN:-}" ]; then
             echo "Set the CLOUDFLARE_ACCOUNT_SUBDOMAIN repository variable to check the deployed site; skipping."
             exit 0
           fi
           week=$(python3 -c "import json; print(json.load(open('site/data/weeks.json'))[0]['week'])")
-          for path in "/" "/data/weeks.json" "/data/requests/week%3D$week/rows.parquet"; do
+          for path in "/" "/explorer" "/insights" "/data/weeks.json" "/data/requests/week%3D$week/rows.parquet"; do
             status=$(curl -s -o /dev/null -w '%{http_code}' -L "https://$host$path")
             [ "$status" = "200" ] || { echo "::error::$path on $host answered $status"; exit 1; }
           done
