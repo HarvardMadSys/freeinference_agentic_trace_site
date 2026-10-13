@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { datesLine, harnessesText, statsRows } from "../site/js/landing/stats.js";
@@ -22,11 +21,6 @@ const TOTALS_ROW = {
   benchmark_harnesses: 1,
 };
 
-// The shipped data: the indexes and the answers the page reads.
-function shipped(path) {
-  return JSON.parse(readFileSync(new URL(`../site/data/${path}`, import.meta.url), "utf8"));
-}
-
 test("the strip counts the weeks and the trace totals, the largest compactly", () => {
   assert.deepEqual(statsRows(TOTALS_ROW, WEEKS), [
     { value: "4", label: "weeks" },
@@ -41,18 +35,6 @@ test("the strip counts the weeks and the trace totals, the largest compactly", (
 test("the harnesses are written with the benchmark's apart, and alone when there is none", () => {
   assert.equal(harnessesText({ harnesses: 14, benchmark_harnesses: 1 }), "13 (+1)");
   assert.equal(harnessesText({ harnesses: 3, benchmark_harnesses: 0 }), "3");
-});
-
-test("the strip over the shipped data counts every week and the whole trace, as the Session Explorer lists it", () => {
-  const weeks = shipped("weeks.json");
-  const harnesses = shipped("harnesses.json");
-  const [totals] = shipped("all_weeks/explore/trace_totals.json");
-  const listed = shipped("all_weeks/explore/sessions_of_selection.json");
-  const rows = statsRows(totals, weeks);
-  assert.equal(rows[0].value, String(weeks.length));
-  assert.equal(rows[1].value, listed.length.toLocaleString("en-US"));
-  const benchmarks = harnesses.filter((entry) => entry.benchmark).length;
-  assert.equal(rows[5].value, `${harnesses.length - benchmarks} (+${benchmarks})`);
 });
 
 test("the dates line spans the first Sunday to the last Saturday and names nothing else", () => {

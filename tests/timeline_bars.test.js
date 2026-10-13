@@ -5,6 +5,7 @@ import {
   barAt, barsWithin, ganttBars, ganttRows, placedInRow, pointerPlace, requestPartEntries, toolCallEntry, undrawnCounts,
   waitEntries,
 } from "../site/js/session_charts/timeline_bars.js";
+import { TIMELINE_WAIT_COLOURS } from "../site/js/theme/colours.js";
 
 
 // The fixture's tree: `root` spawns `child` and `sibling` from step 1, whose requests overlap; `child` spawns
@@ -33,14 +34,17 @@ const REQUESTS = [
 ];
 
 const CALLS = [
-  { session_id: "root", step: 1, call_index: 0, name: "Task", category: "Subagent", latency_ms: 20_000 },
-  { session_id: "root", step: 1, call_index: 1, name: "Read", category: "Read", latency_ms: null },
+  { session_id: "root", step: 1, name: "Task", category: "Subagent", latency_ms: 20_000 },
+  { session_id: "root", step: 1, name: "Read", category: "Read", latency_ms: null },
 ];
 
 
-// A wait's bar is the one whose tooltip says how long the agent waited.
+// The colours a wait's bar takes, one per cause; no request or tool call bar takes one.
+const WAIT_COLOURS = new Set(Object.values(TIMELINE_WAIT_COLOURS));
+
+// A wait's bar is the one in a wait's colour.
 function isWait(bar) {
-  return bar.tip.startsWith("waited");
+  return WAIT_COLOURS.has(bar.colour);
 }
 
 function barsOf(kind) {

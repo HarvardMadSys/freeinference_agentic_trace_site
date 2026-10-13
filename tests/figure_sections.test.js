@@ -65,8 +65,8 @@ const PAGE_SECTIONS = [
   { id: "insights-comparison", number: "06", heading: "Human-driven against benchmark" },
 ];
 const PAGE = readFileSync(new URL("../site/index.html", import.meta.url), "utf8");
-const PAGE_SECTION =
-  /<section id="(insights-\w+)" class="figure-section" role="tabpanel" aria-labelledby="tab-\1">\s*<h2[^>]*><span class="topic-number" aria-hidden="true">(\d+)<\/span> ([^<]+)<\/h2>/g;
+// A topic's section: its id, the tab that labels it, then its heading of number and title.
+const PAGE_SECTION = /<section id="(insights-\w+)"[^>]*aria-labelledby="tab-\1"[^>]*>\s*<h2[^>]*><span[^>]*>(\d+)<\/span> ([^<]+)<\/h2>/g;
 
 // A histogram figure names its stats query beside its bins query; every other figure is drawn from one query.
 function isHistogram(figure) {
@@ -99,19 +99,17 @@ test("the page holds the six figure sections in order, each with its number and 
 });
 
 test("the Insights open on their heading and the row of topic tabs, before the six topics", () => {
-  const firstTopic = PAGE.indexOf(`<section id="${PAGE_SECTIONS[0].id}"`);
-  const heading = PAGE.indexOf('<h2 id="insights-title">Insights</h2>');
-  const tabs = PAGE.indexOf('<div id="topic-tabs" class="topic-tabs" role="tablist" aria-label="Topics"></div>');
-  assert.ok(PAGE.indexOf('<section id="insights"') < heading && heading !== -1);
-  assert.ok(heading < tabs && tabs < firstTopic);
+  const heading = PAGE.indexOf('id="insights-title"');
+  const tabs = PAGE.indexOf('id="topic-tabs"');
+  const firstTopic = PAGE.indexOf(`id="${PAGE_SECTIONS[0].id}"`);
+  assert.ok(PAGE.indexOf('id="insights"') < heading && heading < tabs && tabs < firstTopic);
 });
 
-test("a figure section holds its heading and its cards, and no intro text", () => {
+test("a figure section holds no intro text", () => {
   for (const { id } of PAGE_SECTIONS) {
     const start = PAGE.indexOf(`<section id="${id}"`);
     const section = PAGE.slice(start, PAGE.indexOf("</section>", start));
-    const tags = [...section.matchAll(/<(\w+)[\s>]/g)].map((match) => match[1]);
-    assert.deepEqual(tags, ["section", "h2", "span", "div"], id);
+    assert.doesNotMatch(section, /<p[\s>]/, id);
   }
 });
 

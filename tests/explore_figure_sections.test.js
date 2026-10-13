@@ -3,13 +3,6 @@ import { test } from "node:test";
 
 import { drawFigureSeries, newFigureRun, startFigures } from "../site/js/explore/figure_sections.js";
 
-test("a new run carries its context and has started no figure", () => {
-  const context = { weeks: [] };
-  const run = newFigureRun(context);
-  assert.equal(run.context, context);
-  assert.equal(run.startedNames.size, 0);
-});
-
 /**
  * What the page keeps of two figures, "first" in a shown topic and "second" in a hidden one, for a run; and the two
  * topics, whose `hidden` a test flips as the tabs do.

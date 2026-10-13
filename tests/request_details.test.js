@@ -48,11 +48,6 @@ test("an append with no cause names only the transition", () => {
   assert.equal(values["Transition"], "append");
 });
 
-test("a request with no cache report counts its whole input as uncached", () => {
-  const values = factValues({ ...REQUEST, cache_read_tokens: null, uncached_tokens: null });
-  assert.equal(values["Input tokens"], "3,000: 0 cached, 3,000 uncached");
-});
-
 const SHELL_CALL = {
   name: "execute_command", category: "Network", programs: ["nc", "echo", "echo"],
   arguments_skeleton: '{"command": "nc -z -w <num> <path> <num> && echo <str> || echo <str>"}',

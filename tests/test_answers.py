@@ -165,11 +165,16 @@ def test_the_first_page_is_the_session_list_s_newest_twenty_with_its_count(data_
         assert {row["total_sessions"] for row in first_page} == {len(listed)}, data_folder
 
 
-def test_the_trace_totals_count_the_sessions_the_session_explorer_lists(data_directory: pathlib.Path) -> None:
+def test_the_trace_totals_count_the_sessions_the_session_explorer_lists_and_the_harnesses_the_index_lists(
+        data_directory: pathlib.Path) -> None:
     for data_folder in [data_directory, SHIPPED_DATA_FOLDER]:
         [totals] = read_answer(data_folder, TRACE_TOTALS_QUERY)
         assert totals["sessions"] == len(read_answer(data_folder, SESSIONS_TABLE_QUERY)), data_folder
         assert totals["benchmark_harnesses"] == 1, data_folder
+        listed_harnesses = json.loads((data_folder / site_data.paths.HARNESSES_FILE).read_text())
+        benchmarks = [entry for entry in listed_harnesses if entry["benchmark"]]
+        assert totals["harnesses"] == len(listed_harnesses), data_folder
+        assert totals["benchmark_harnesses"] == len(benchmarks), data_folder
 
 
 # The whole fixture's totals, counted by hand in tests/test_explore_queries.py.

@@ -10,6 +10,6 @@ starts. A final whole-branch review closes.
 - [x] 2.1 The build from frames (design §2): `site_data` without the row files or the no-simulation case, the unread queries and columns dropped, the parity tests on the answers, `make data` rerun, the answers compared with the baseline, `site/data/<kind>/` deleted. Done when `site/data` holds no `.parquet`, the answers differ from the baseline by nothing or by listed last-bit floats, and the gate's diff is empty.
 - [x] 3.1 One caller, one form in the figure and session modules (design §3: the wrappers, the folded modules, the things written once). Done when each item of those groups is applied or its reason for staying is in the report, and the gate's diff is empty.
 - [x] 3.2 One caller, one form in the explore and shared modules (design §3: the dropped options, the table, the section hook, `TIP_STYLE`). Done likewise, with the two tooltip screenshots.
-- [ ] 4.1 Tests that test behaviour (design §4). Done when every listed test is removed or reduced and `make test` is green.
+- [x] 4.1 Tests that test behaviour (design §4). Done when every listed test is removed or reduced and `make test` is green.
 - [x] 5.1 Docs and tooling (design §5). Done when each fact named there is written once, `serve.py` and `check_answers.py` are gone, and `make serve`, `make test`, `make data --help`-level commands in README all work as written.
 - [ ] 6.1 The whole-branch review and its fixes, then merge and archive.

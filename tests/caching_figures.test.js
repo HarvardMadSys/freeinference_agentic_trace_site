@@ -173,10 +173,6 @@ test("the mutation table's lines come in the paper's order, causes after transit
   ]);
 });
 
-test("the mutation table names a week without a simulation, its prefill column being simulated", () => {
-  assert.equal(GAP_FIGURES.mutationsByCause.isSimulation, true);
-});
-
 test("the API cost's legend lists every part its stack draws, the output included", () => {
   const legend = API_COST_BY_TTL.legend(API_ROWS, {}, "part");
   const drawn = [...new Set(API_ROWS.map((row) => row.part))].sort();

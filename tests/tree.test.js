@@ -60,9 +60,9 @@ test("a subagent whose spawning step has no request sits under its parent's last
 
 test("tool calls are grouped by their request, in the order given", () => {
   const calls = [
-    { session_id: "a", step: 0, call_index: 0 },
-    { session_id: "a", step: 0, call_index: 1 },
-    { session_id: "b", step: 0, call_index: 0 },
+    { session_id: "a", step: 0, name: "Read" },
+    { session_id: "a", step: 0, name: "Edit" },
+    { session_id: "b", step: 0, name: "Read" },
   ];
   const grouped = callsByRequest(calls);
   assert.deepEqual(grouped.get(requestKey("a", 0)), [calls[0], calls[1]]);

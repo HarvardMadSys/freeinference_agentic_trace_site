@@ -25,7 +25,7 @@ const REQUESTS = [
   request("mutation", 2, 1_200, 1_210, 1_800, { cache_read_tokens: 1_500, uncached_tokens: 300 }),
   request("mutation", 0, 1_000, 1_010, 2_000, { transition: null }),
   request("mutation", 1, 1_020, 1_030, 1_500, { transition: "mutation", cause: "compaction" }),
-  request("mutation", 3, 1_300, 1_310, 1_900, { turn: 2, cache_read_tokens: null, uncached_tokens: null }),
+  request("mutation", 3, 1_300, 1_310, 1_900, { turn: 2 }),
   request("helper", 0, 1_025, 1_040, 700, { transition: null }),
 ];
 
@@ -45,7 +45,7 @@ test("each agent's line ends at its last request's end, so an agent of one reque
   assert.deepEqual(helper.map((point) => [point.elapsed, point.inputTokens]), [[25, 700], [40, 700]]);
 });
 
-test("the area splits each top-level request into cached and uncached input, the unreported whole uncached", () => {
+test("the area splits each top-level request into cached and uncached input", () => {
   const parts = areaParts("tokens");
   assert.deepEqual(parts.map((part) => part.name), ["Cached input", "Uncached input"]);
   assert.equal(parts[0].colour, "var(--token-cached)");
