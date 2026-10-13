@@ -1,0 +1,7 @@
+Prefill (time to first token) | legend-dash color: var(--part-prefill); background: var(--part-prefill);
+Decode (the rest) | legend-dash color: var(--part-decode); background: var(--part-decode);
+No time to first token | legend-dash color: var(--color-text-faint); background: var(--color-text-faint);
+Tool call | legend-dash color: var(--part-tool); background: var(--part-tool);
+Tool wait | legend-dash color: var(--wait-tool); background: var(--wait-tool);
+User idle | legend-dash color: var(--wait-user); background: var(--wait-user);
+Subagent wait | legend-dash color: var(--wait-subagent); background: var(--wait-subagent);

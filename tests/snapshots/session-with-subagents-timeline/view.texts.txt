@@ -1,0 +1,5 @@
+title: Where the time went
+caption: Each agent's time in the parts' colours; subagent waits in violet.
+definition: One row per agent; on a phone the subagents are numbered in start order, and a bar's tooltip names its agent. Each request is split into prefill (time to first token) and decode (the rest); each tool call runs from its request's end for its latency, in the thin band below, since the data hold no tool call's start; its tooltip names its category. A pale bar is a wait before a request, in the colour of the part of the session's time it counts toward; a wait for subagents, which counts as tool time, is violet. Click a bar to open its request.
+rows: 22 requests · 32 tool calls · 3 agents.
+range: Time range 0:00–18:14 of 18:14 (m:ss)

@@ -484,9 +484,10 @@ make snapshots # when the change is meant to alter what a page shows
 make serve     # then open http://localhost:8000
 ```
 
-`make test` ends with the snapshot test (`tests/snapshot.py`): it opens nine
-states of the pages in headless Chromium (the Explore page with each
-Insights topic shown, one session in each of its three views) and compares
+`make test` ends with the snapshot test (`tests/snapshot.py`): it opens
+twelve states of the pages in headless Chromium (the Explore page with each
+Insights topic shown, two fixed sessions, one with subagents, in each of
+their three views) and compares
 every chart, table, legend and block of text they show with its text file
 in `tests/snapshots/`, failing with the name of each unit that changed. A
 change that is meant to alter a chart or a text, a data rebuild among them,

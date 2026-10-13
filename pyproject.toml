@@ -17,7 +17,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "pytest>=9",
-    "playwright>=1.50",  # opens the served pages in headless Chromium for the snapshot test; make setup-browser installs Chromium
+    "playwright==1.63.0",  # the Chromium the snapshots were written with; make setup-browser installs it
 ]
 
 [tool.setuptools.packages.find]

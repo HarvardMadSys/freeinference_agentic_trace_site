@@ -8,7 +8,7 @@ import pathlib
 import re
 import subprocess
 
-import snapshot
+import snapshot_units
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 MAX_FUNCTION_LINES = 50  # a longer function does two jobs
@@ -206,4 +206,4 @@ def test_every_page_state_has_a_tracked_snapshot() -> None:
     folders = set()
     for name in tracked.stdout.split():
         folders.add(pathlib.PurePosixPath(name).relative_to(SNAPSHOTS_FOLDER).parts[0])
-    assert folders == set(snapshot.state_names()), f"{SNAPSHOTS_FOLDER}/ holds {sorted(folders)}"
+    assert folders == set(snapshot_units.state_names()), f"{SNAPSHOTS_FOLDER}/ holds {sorted(folders)}"

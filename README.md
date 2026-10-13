@@ -65,6 +65,10 @@ make setup-browser   # the headless Chromium the snapshot test opens the pages i
 make deploy          # publish site/ to Cloudflare as the Worker's static assets (see Hosting)
 ```
 
+The test tools `make setup` installs include Playwright, pinned to the
+version whose Chromium wrote the snapshots; a virtual environment made
+before Playwright joined them needs `make setup` again.
+
 Rebuilding the data is the maintainer's step, when the release gains a
 week, a column changes, or a query under `explore/`, `figures/` or
 `buckets/` or a colour order changes. It takes the pipeline repository,
@@ -134,7 +138,7 @@ Makefile           setup · setup-browser · data · serve · test · snapshots 
 wrangler.jsonc     the Cloudflare Worker that serves site/ as static assets: its name, its hostnames
 package.json       sets ES modules for node --test; wrangler, the one dev dependency, deploys the site
 package-lock.json  wrangler's exact version and its dependencies', which npm ci installs
-pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
+pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest and Playwright (pinned) for tests
 site_data/         builds site/data/ from a release, running the queries over its rows in memory
   __main__.py      the step make data runs: loads and checks every week, builds the frames, writes the indexes, the
                    answers, the session buckets
@@ -209,9 +213,10 @@ tests/             what make test runs
                    the pipeline constants the queries and modules hold a copy of, against the pipeline's own
   test_differences.py       no figure's definition names the paper
   test_repository.py        the repository's countable rules
-  snapshot.py, snapshot_units.py, test_snapshot_units.py
-                   the snapshot test: nine states of the pages opened in headless Chromium, each unit they show (a
-                   chart, a table, a legend, a block of text) read as text and compared with tests/snapshots/
+  snapshot.py, snapshot_units.py, test_snapshot.py, test_snapshot_units.py
+                   the snapshot test: twelve states of the pages opened in headless Chromium (the Explore page with
+                   each topic shown, two fixed sessions in each view), each unit they show (a chart, a table, a legend,
+                   a block of text) read as text and compared with tests/snapshots/
   snapshots/       one folder per page state, one text file per unit, rewritten by make snapshots
   *.test.js        node --test, one file per JavaScript module with pure functions
 openspec/          the specifications and the changes that built the site

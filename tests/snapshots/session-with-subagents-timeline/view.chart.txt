@@ -1,0 +1,241 @@
+<svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" width="1131" height="152" viewBox="0 0 1131 152" role="img" aria-label="Where the time went: Each agent's time in the parts' colours; subagent waits in violet." style="color: var(--chart-label); background: transparent; font-family: var(--font-sans);">
+<style>:where(.plot-d6a7b5) { --plot-background: white; display: block; height: auto; height: intrinsic; max-width: 100%; } :where(.plot-d6a7b5 text), :where(.plot-d6a7b5 tspan) { white-space: pre; }</style>
+<g aria-label="x-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0.5,0)">
+<line x1="116" x2="116" y1="8" y2="104">
+</line>
+<line x1="206.52989679043654" x2="206.52989679043654" y1="8" y2="104">
+</line>
+<line x1="297.0597935808731" x2="297.0597935808731" y1="8" y2="104">
+</line>
+<line x1="387.58969037130964" x2="387.58969037130964" y1="8" y2="104">
+</line>
+<line x1="478.1195871617462" x2="478.1195871617462" y1="8" y2="104">
+</line>
+<line x1="568.6494839521827" x2="568.6494839521827" y1="8" y2="104">
+</line>
+<line x1="659.1793807426193" x2="659.1793807426193" y1="8" y2="104">
+</line>
+<line x1="749.7092775330558" x2="749.7092775330558" y1="8" y2="104">
+</line>
+<line x1="840.2391743234924" x2="840.2391743234924" y1="8" y2="104">
+</line>
+<line x1="930.7690711139288" x2="930.7690711139288" y1="8" y2="104">
+</line>
+<line x1="1021.2989679043654" x2="1021.2989679043654" y1="8" y2="104">
+</line>
+</g>
+<g aria-label="rect">
+<rect x="320.3323141487906" y="75.84" width="4.188818324493525" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="324.5211324732841" y="75.84" width="65.81976146148685" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="390.340893934771" y="93.12" width="42.71381590366377" height="7.039999999999992" fill="var(--part-tool)">
+</rect>
+<rect x="390.340893934771" y="93.12" width="42.71381590366377" height="7.039999999999992" fill="var(--part-tool)">
+</rect>
+<rect x="390.340893934771" y="93.12" width="42.71381590366377" height="7.039999999999992" fill="var(--part-tool)">
+</rect>
+<rect x="390.340893934771" y="93.12" width="42.71381590366377" height="7.039999999999992" fill="var(--part-tool)">
+</rect>
+<rect x="390.340893934771" y="75.84" width="42.71381590366377" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="433.05470983843475" y="75.84" width="4.452260324153713" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="437.50697016258846" y="75.84" width="2.4388754195343836" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="439.94584558212284" y="93.12" width="0.3449189067715679" height="7.039999999999992" fill="var(--part-tool)">
+</rect>
+<rect x="439.94584558212284" y="93.12" width="0.3449189067715679" height="7.039999999999992" fill="var(--part-tool)">
+</rect>
+<rect x="439.94584558212284" y="75.84" width="0.3449189067715679" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="440.2907644888944" y="75.84" width="4.475798097319114" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="444.7665625862135" y="75.84" width="66.87352946012754" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="511.64009204634107" y="93.12" width="21.025568529578948" height="7.039999999999992" fill="var(--part-tool)">
+</rect>
+<rect x="511.64009204634107" y="75.84" width="21.025568529578948" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="532.66566057592" y="75.84" width="131.69112496414436" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="664.3567855400644" y="75.84" width="0.0018105979357869728" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="664.3585961380002" y="93.12" width="8.121437041069953" height="7.039999999999992" fill="var(--part-tool)">
+</rect>
+<rect x="664.3585961380002" y="75.84" width="8.121437041069953" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="672.4800331790701" y="75.84" width="0.827443256664651" height="15.36" fill="var(--color-text-faint)">
+</rect>
+<rect x="287.3088183975752" y="43.84" width="4.623361829087628" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="291.9321802266628" y="43.84" width="2.1401267601258382" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="294.07230698678865" y="61.12" width="0.26887379346760554" height="7.039999999999999" fill="var(--part-tool)">
+</rect>
+<rect x="294.0723069867887" y="43.84" width="0.26887379346760554" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="294.3411807802563" y="43.84" width="4.300170097545731" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="298.64135087780204" y="43.84" width="6.544406238980628" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="305.18575711678267" y="61.12" width="0.40919513349280123" height="7.039999999999999" fill="var(--part-tool)">
+</rect>
+<rect x="305.18575711678267" y="61.12" width="0.40919513349280123" height="7.039999999999999" fill="var(--part-tool)">
+</rect>
+<rect x="305.18575711678267" y="61.12" width="0.40919513349280123" height="7.039999999999999" fill="var(--part-tool)">
+</rect>
+<rect x="305.18575711678267" y="43.84" width="0.40919513349280123" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="305.59495225027547" y="43.84" width="4.6043505507615805" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="310.19930280103705" y="43.84" width="9.373465513681765" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="319.5727683147188" y="61.12" width="5.21452205512918" height="7.039999999999999" fill="var(--part-tool)">
+</rect>
+<rect x="319.5727683147188" y="61.12" width="5.21452205512918" height="7.039999999999999" fill="var(--part-tool)">
+</rect>
+<rect x="319.5727683147188" y="43.84" width="5.21452205512918" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="324.787290369848" y="43.84" width="4.523778942618094" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="329.3110693124661" y="43.84" width="274.86958853202714" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="604.1806578444932" y="61.12" width="40.26769809238613" height="7.039999999999999" fill="var(--part-tool)">
+</rect>
+<rect x="604.1806578444931" y="43.84" width="40.26769809238624" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="644.4483559368794" y="43.84" width="7.353743516287182" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="651.8020994531665" y="43.84" width="19.635029314877784" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="116" y="11.84" width="13.294315343675606" height="15.359999999999996" fill="var(--part-prefill)">
+</rect>
+<rect x="129.2943153436756" y="11.84" width="1.1886575448584153" height="15.359999999999996" fill="var(--part-decode)">
+</rect>
+<rect x="130.48297288853405" y="11.84" width="35.34377700595431" height="15.359999999999996" fill="var(--wait-user)">
+</rect>
+<rect x="165.82674989448836" y="11.84" width="14.296481301145747" height="15.359999999999996" fill="var(--part-prefill)">
+</rect>
+<rect x="180.1232311956341" y="11.84" width="19.330848861661934" height="15.359999999999996" fill="var(--part-decode)">
+</rect>
+<rect x="199.45408005729604" y="29.119999999999997" width="0.26253670069223745" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="199.45408005729604" y="11.84" width="0.26253670069223745" height="15.359999999999996" fill="var(--wait-tool)">
+</rect>
+<rect x="199.71661675798828" y="11.84" width="4.3725940149781195" height="15.359999999999996" fill="var(--part-prefill)">
+</rect>
+<rect x="204.0892107729664" y="11.84" width="82.97155570740296" height="15.359999999999996" fill="var(--part-decode)">
+</rect>
+<rect x="287.06076648036935" y="29.119999999999997" width="599.3785300721864" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="287.06076648036935" y="29.119999999999997" width="599.3785300721864" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="287.06076648036935" y="29.119999999999997" width="599.3785300721864" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="287.06076648036935" y="29.119999999999997" width="599.3785300721864" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="287.06076648036935" y="29.119999999999997" width="599.3785300721864" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="287.06076648036935" y="29.119999999999997" width="599.3785300721864" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="287.0607664803694" y="11.84" width="599.3785300721863" height="15.359999999999996" fill="var(--wait-subagent)">
+</rect>
+<rect x="886.4392965525558" y="11.84" width="4.587149870371491" height="15.359999999999996" fill="var(--part-prefill)">
+</rect>
+<rect x="891.0264464229273" y="11.84" width="1.3289788848834405" height="15.359999999999996" fill="var(--part-decode)">
+</rect>
+<rect x="892.3554253078107" y="29.119999999999997" width="0.21998764920078884" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="892.3554253078107" y="11.84" width="0.21998764920078884" height="15.359999999999996" fill="var(--wait-tool)">
+</rect>
+<rect x="892.5754129570115" y="11.84" width="4.3572039325238165" height="15.359999999999996" fill="var(--part-prefill)">
+</rect>
+<rect x="896.9326168895353" y="11.84" width="2.0686081416613433" height="15.359999999999996" fill="var(--part-decode)">
+</rect>
+<rect x="899.0012250311967" y="29.119999999999997" width="0.23266183475141133" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="899.0012250311969" y="11.84" width="0.23266183475129765" height="15.359999999999996" fill="var(--wait-tool)">
+</rect>
+<rect x="899.2338868659482" y="11.84" width="4.418764262341256" height="15.359999999999996" fill="var(--part-prefill)">
+</rect>
+<rect x="903.6526511282894" y="11.84" width="4.98910261212086" height="15.359999999999996" fill="var(--part-decode)">
+</rect>
+<rect x="908.6417537404103" y="29.119999999999997" width="0.23718832959082192" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="908.6417537404103" y="29.119999999999997" width="0.23718832959082192" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="908.6417537404104" y="11.84" width="0.2371883295909356" height="15.359999999999996" fill="var(--wait-tool)">
+</rect>
+<rect x="908.8789420700014" y="11.84" width="5.23081743655132" height="15.359999999999996" fill="var(--part-prefill)">
+</rect>
+<rect x="914.1097595065527" y="11.84" width="0.43906999943362734" height="15.359999999999996" fill="var(--part-decode)">
+</rect>
+<rect x="914.5488295059863" y="29.119999999999997" width="0.23085123681562436" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="914.5488295059863" y="29.119999999999997" width="0.23085123681562436" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="914.5488295059863" y="11.84" width="0.23085123681562436" height="15.359999999999996" fill="var(--wait-tool)">
+</rect>
+<rect x="914.7796807428019" y="11.84" width="4.784505045374544" height="15.359999999999996" fill="var(--part-prefill)">
+</rect>
+<rect x="919.5641857881765" y="11.84" width="24.409576071605557" height="15.359999999999996" fill="var(--part-decode)">
+</rect>
+<rect x="943.973761859782" y="29.119999999999997" width="0.2598208037884433" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="943.973761859782" y="11.84" width="0.2598208037884433" height="15.359999999999996" fill="var(--wait-tool)">
+</rect>
+<rect x="944.2335826635705" y="11.84" width="139.03672078972033" height="15.359999999999996" fill="var(--part-prefill)">
+</rect>
+<rect x="1083.2703034532908" y="11.84" width="0.0018105979359006596" height="15.359999999999996" fill="var(--part-decode)">
+</rect>
+<rect x="1083.2721140512267" y="29.119999999999997" width="0.29693806147247415" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="1083.272114051227" y="11.84" width="0.29693806147247415" height="15.359999999999996" fill="var(--wait-tool)">
+</rect>
+<rect x="1083.5690521126994" y="11.84" width="4.581718076563902" height="15.359999999999996" fill="var(--part-prefill)">
+</rect>
+<rect x="1088.1507701892633" y="11.84" width="0.9342685348772193" height="15.359999999999996" fill="var(--part-decode)">
+</rect>
+<rect x="1089.0850387241405" y="29.119999999999997" width="0.2462413192697568" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="1089.0850387241405" y="11.84" width="0.2462413192697568" height="15.359999999999996" fill="var(--wait-tool)">
+</rect>
+<rect x="1089.3312800434103" y="11.84" width="7.178115516513799" height="15.359999999999996" fill="var(--part-prefill)">
+</rect>
+<rect x="1096.509395559924" y="11.84" width="0.05884443291415664" height="15.359999999999996" fill="var(--part-decode)">
+</rect>
+<rect x="1096.5682399928382" y="29.119999999999997" width="0.23718832959070824" height="7.040000000000006" fill="var(--part-tool)">
+</rect>
+<rect x="1096.5682399928382" y="11.84" width="0.23718832959070824" height="15.359999999999996" fill="var(--wait-tool)">
+</rect>
+<rect x="1096.805428322429" y="11.84" width="4.749198385626414" height="15.359999999999996" fill="var(--part-prefill)">
+</rect>
+<rect x="1101.5546267080554" y="11.84" width="5.445373291944634" height="15.359999999999996" fill="var(--part-decode)">
+</rect>
+</g>
+<g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0.5,0)">
+<path transform="translate(116,104)" d="M0,0L0,6">
+</path>
+<path transform="translate(387.58969037130964,104)" d="M0,0L0,6">
+</path>
+<path transform="translate(659.1793807426193,104)" d="M0,0L0,6">
+</path>
+<path transform="translate(930.7690711139288,104)" d="M0,0L0,6">
+</path>
+</g>
+<g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0.5,9.5)">
+<text y="0.71em" transform="translate(116,104)">0:00</text>
+<text y="0.71em" transform="translate(387.58969037130964,104)">5:00</text>
+<text y="0.71em" transform="translate(659.1793807426193,104)">10:00</text>
+<text y="0.71em" transform="translate(930.7690711139288,104)">15:00</text>
+</g>
+<g aria-label="x-axis label" text-anchor="end" transform="translate(21.5,45.5)">
+<text transform="translate(1107,104)">Time since first request (m:ss)</text>
+</g>
+<g aria-label="y-axis tick label" text-anchor="end" font-variant="tabular-nums" transform="translate(-8.5,0.5)">
+<text y="0.32em" transform="translate(116,24)">Main</text>
+<text y="0.32em" transform="translate(116,56)">Sub e4cea289</text>
+<text y="0.32em" transform="translate(116,88)">Sub 938201be</text>
+</g>
+</svg>

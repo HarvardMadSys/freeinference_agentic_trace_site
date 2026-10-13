@@ -1,17 +1,55 @@
-"""The units of a snapshot, read from a page open in the browser: each unit is one block a visitor sees (a chart, a
-table, a legend, a block of text), returned as the text written to its file, `<unit>.txt`.
+"""The states of a snapshot, and the units read from each in the browser: each unit is one block a visitor sees (a
+chart, a table, a legend, a block of text), returned as the text written to its file, `<state>/<unit>.txt`.
 
 Text units hold one line per entry, their whitespace collapsed: a card's texts as `label: text`, a legend's entries
 as `text | pressed=… | mark`, a table's rows as cells joined by ` | `. Markup units (a chart's SVG, the Session page's
-request list) hold the element's outer HTML with one element per line and Plot's numbered clip ids made plain, so that
-`git diff` shows which element changed. Every function takes a Playwright page or locator and reads it as it is now.
+request list) hold the element's outer HTML with one element per line and Plot's numbered ids made plain, so that
+`git diff` shows which element changed. Colours are recorded as the CSS tokens the page names (`var(--series-5)`), so
+a series moved to another colour slot is caught; the colour a token holds is the palette tests' job. Every reading
+function takes a Playwright page or locator and reads it as it is now; this module imports no Playwright itself.
 """
 
 import re
+import typing
 
-# Plot numbers each clip path in the order charts are drawn, which follows the order their answers arrive, so the
-# number is left out: `plot-clip-7` is written `plot-clip`.
-PLOT_CLIP_ID = re.compile(r"plot-clip-\d+")
+
+class SessionAddress(typing.NamedTuple):
+    """A session the Session page opens: its week's Sunday, and an id, a top-level session's or a subagent's."""
+
+    week: str
+    id: str
+
+
+# The Explore page's states, each a folder of `tests/snapshots/`, and the Insights topic each shows, by its section id;
+# in the order of the topic tabs, the page opening on the first.
+EXPLORE_STATES = {
+    "explore-sessions": "insights-sessions",
+    "explore-tokens": "insights-tokens",
+    "explore-latency": "insights-latency",
+    "explore-tools": "insights-tools",
+    "explore-caching": "insights-caching",
+    "explore-comparison": "insights-comparison",
+}
+
+# The sessions the Session page's states open, by the name their states' folders start with. Each is fixed by week and
+# id: a released week never changes, so a data rebuild that adds a week leaves them and their snapshots as they are,
+# where the Session Explorer's newest row would change every week.
+SESSIONS = {
+    # One agent, 83 requests: the plain case.
+    "session": SessionAddress("2026-08-30", "0d4c79dbd3b1193de10ea89e38898bac"),
+    # A subagent's id, so the page finds its top-level session through the week's index and expands the subagent's
+    # group: a top-level session and two subagents, 22 requests, some at overlapping times, so a bracket is drawn.
+    "session-with-subagents": SessionAddress("2026-08-30", "938201be3805b8c17338188095ab7ea4"),
+}
+
+# The Session page's views, by the name that ends their states' folders, and their tabs' labels; the page opens on the
+# first.
+VIEWS = {"requests": "Requests", "context": "Context", "timeline": "Timeline"}
+
+# Plot numbers each clip path, marker and pattern in the order charts are drawn, which follows the order their answers
+# arrive, so the number is left out: `plot-clip-7` is written `plot-clip`.
+PLOT_NUMBERED_ID = re.compile(r"\bplot-(clip|marker|pattern)-\d+")
+BETWEEN_ELEMENTS = re.compile(r">\s*<")  # where one element's tag ends and the next begins
 WHITESPACE = re.compile(r"\s+")
 NOT_A_WORD = re.compile(r"[^a-z0-9]+")
 
@@ -34,15 +72,29 @@ LEGEND_MARK = ".legend-swatch, .legend-dash"  # the colour mark inside a legend 
 CHART = ".figure-body svg:not(svg svg)"
 
 
+def session_state(session: str, view: str) -> str:
+    """The folder name of the state showing the session named `session` (a key of `SESSIONS`) in `view`."""
+    return f"{session}-{view}"
+
+
+def state_names() -> list[str]:
+    """The folder name of every state, in the order the states are read."""
+    names = list(EXPLORE_STATES)
+    for session in SESSIONS:
+        for view in VIEWS:
+            names.append(session_state(session, view))
+    return names
+
+
 def plain_text(text: str) -> str:
     """`text` with every run of whitespace made one space, and none at either end."""
     return WHITESPACE.sub(" ", text).strip()
 
 
 def markup_lines(html: str) -> str:
-    """`html` with Plot's clip ids unnumbered and its whitespace collapsed, one element per line."""
-    html = PLOT_CLIP_ID.sub("plot-clip", html)
-    return plain_text(html).replace("><", ">\n<")
+    """`html` with Plot's numbered ids unnumbered and its whitespace collapsed, one element per line."""
+    html = PLOT_NUMBERED_ID.sub(r"plot-\1", html)
+    return BETWEEN_ELEMENTS.sub(">\n<", plain_text(html))
 
 
 def unit_name(title: str) -> str:
