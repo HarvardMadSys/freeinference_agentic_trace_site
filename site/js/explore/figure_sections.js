@@ -70,13 +70,6 @@ export async function mountFigureSections(figureSections, drawsEveryRunAtOnce = 
   return figures;
 }
 
-/** Show `error` in place of each of `figureSections`' cards, when the page cannot read the indexes to place them. */
-export function showErrorInFigureSections(figureSections, error) {
-  for (const section of figureSections) {
-    showError(document.querySelector(`${section.selector} .card-grid`), error);
-  }
-}
-
 /** Lay out every figure afresh, each loading. */
 export function layoutFigures(figures) {
   for (const { body } of layOutPlaces(figures).values()) {
@@ -269,21 +262,26 @@ function layOutPlaces(figures) {
 
 /**
  * Every figure of every section of `figureSections`, each with a new card in its section's grid and that section,
- * `[{ figure, card, topic }]`; each section's takeaway is written under its heading.
+ * `[{ figure, card, topic }]`; each section's takeaway is written under its heading. A section whose module fails to
+ * load shows the error in its grid and has no cards; the others are placed.
  */
 async function placeCards(figureSections) {
   const cards = [];
   for (const section of figureSections) {
-    const { FIGURES, TAKEAWAY } = await import(section.module);
     const topic = document.querySelector(section.selector);
-    placeTakeaway(topic, TAKEAWAY);
     const grid = topic.querySelector(".card-grid");
-    for (const figure of FIGURES) {
-      const card = document.createElement("article");
-      card.className = figure.isWide === true ? "card is-wide" : "card";
-      card.id = figure.name;
-      grid.append(card);
-      cards.push({ figure, card, topic });
+    try {
+      const { FIGURES, TAKEAWAY } = await import(section.module);
+      placeTakeaway(topic, TAKEAWAY);
+      for (const figure of FIGURES) {
+        const card = document.createElement("article");
+        card.className = figure.isWide === true ? "card is-wide" : "card";
+        card.id = figure.name;
+        grid.append(card);
+        cards.push({ figure, card, topic });
+      }
+    } catch (error) {
+      showError(grid, error);
     }
   }
   return cards;

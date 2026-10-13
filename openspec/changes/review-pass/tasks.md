@@ -4,7 +4,7 @@ Every task ends with `make test` green and one commit. A task that touches
 a view checks it in a browser at 1280 and 360 px, light and dark. Task 6
 reruns `make data`; the others change no query and no data.
 
-- [ ] 1.1 Back and the tabs (design §2): history state, the ARIA tabs pattern, the tab row mounted before the fetch, the caught `onShow`; tests with a fake history.
+- [x] 1.1 Back and the tabs (design §2): history state, the ARIA tabs pattern, the tab row mounted before the fetch, the caught `onShow`; tests with a fake history.
 - [ ] 2.1 The start module for one page and the minor findings (design §8).
 - [ ] 3.1 Colours (design §3): the tool category tokens, the harness slot offset, the role hue; the distinctness and contrast tests.
 - [ ] 4.1 The phone header and the wide header's breakpoint (design §4).

@@ -66,7 +66,7 @@ const PAGE_SECTIONS = [
 ];
 const PAGE = readFileSync(new URL("../site/index.html", import.meta.url), "utf8");
 const PAGE_SECTION =
-  /<section id="(insights-\w+)" class="figure-section"[^>]*>\s*<h2[^>]*><span class="topic-number">(\d+)<\/span>([^<]+)<\/h2>/g;
+  /<section id="(insights-\w+)" class="figure-section" role="tabpanel" aria-labelledby="tab-\1">\s*<h2[^>]*><span class="topic-number" aria-hidden="true">(\d+)<\/span> ([^<]+)<\/h2>/g;
 
 // A histogram figure names its stats query beside its bins query; every other figure is drawn from one query.
 function isHistogram(figure) {

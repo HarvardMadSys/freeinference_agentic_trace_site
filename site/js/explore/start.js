@@ -25,9 +25,8 @@
  * - `weeks` and `harnesses`, the entries of `weeks.json` and `harnesses.json`;
  * - `selection`, the current selection (the default one while frozen), and `database`, the database;
  * - `orders`, the colour orders (below);
- * - `figures`, what the figure sections keep (`explore/figure_sections.js`), none on a page without figures: null
- *   until the header is drawn, then a promise of it that settles once every figure card is placed; it stays a
- *   promise, and each run awaits it;
+ * - `figures`, a promise of what the figure sections keep (`explore/figure_sections.js`), asked for before the indexes
+ *   are read and settled once every figure card is placed; it stays a promise, and each run awaits it;
  * - `latestRun`, the number of the latest run of the sections, so a run that a newer one replaced stops before it
  *   draws;
  * - `streamedWeeks`, the Sundays streamed in so far behind the switch (null when the page does not stream).
@@ -46,8 +45,7 @@ import { fetchHarnesses, fetchWeeks, openDatabase, STREAM_ROWS_AFTER_DRAW } from
 import { mountHeader, renderFooter } from "../shared/layout.js";
 import { defaultSelection, readSelection, selectionQuery, writeSelection } from "../shared/selection.js";
 import {
-  layoutFigures, mountFigureSections, runFigures, showErrorInFigureSections, showErrorInFigures, showNoteInFigures,
-  startFigures,
+  layoutFigures, mountFigureSections, runFigures, showErrorInFigures, showNoteInFigures, startFigures,
 } from "./figure_sections.js";
 import { mountSelection, showStreamedWeeks } from "./selection_pickers.js";
 import { withFirstPage } from "./sessions_table_state.js";
@@ -74,6 +72,9 @@ export async function startPage({ file, sections, figureSections = [], showWeekC
     // Frozen, the selection's card is hidden; with the pickers, it shows the selection the figures draw instead.
     selectionCard.hidden = FIGURES_ARE_FROZEN;
   }
+  // The figure modules load and the tabs are drawn while the indexes are read, so a tab shows its topic at once.
+  const figures = mountFigureSections(figureSections, FIGURES_ARE_FROZEN);
+  mountTabs(figures, figureSections);
   let weeks;
   let harnesses;
   try {
@@ -81,18 +82,15 @@ export async function startPage({ file, sections, figureSections = [], showWeekC
   } catch (error) {
     mountHeader(document.querySelector("#site-header"), file, new URLSearchParams());
     showWeekCount(null);
-    // Every section shows the error in its own place; the hidden card shows nothing.
+    // Every section and figure shows the error in its own place; the hidden card shows nothing.
     showErrorInEverySection(sections, error);
-    showErrorInFigureSections(figureSections, error);
+    showErrorInFigures(await figures, error);
     return;
   }
   showWeekCount(weeks.length);
   const params = new URLSearchParams(window.location.search);
-  const page = openPage(file, sections, weeks, harnesses, params);
+  const page = openPage(file, sections, weeks, harnesses, params, figures);
   showSelectionAndHeader(page, params);
-  // The pickers are drawn first; the figure modules load and their cards are placed after.
-  page.figures = mountFigureSections(figureSections, FIGURES_ARE_FROZEN);
-  mountTabs(page, figureSections);
   await runEverySection(page);
   scrollToAnchor(figureSections);
   if (!FIGURES_ARE_FROZEN) {
@@ -100,8 +98,11 @@ export async function startPage({ file, sections, figureSections = [], showWeekC
   }
 }
 
-/** The page's state for `weeks` and `harnesses`: its selection, its database and the colour orders asked for. */
-function openPage(file, sections, weeks, harnesses, params) {
+/**
+ * The page's state for `weeks` and `harnesses`: its selection, its database, the colour orders asked for, and
+ * `figures`, the promise of what the figure sections keep.
+ */
+function openPage(file, sections, weeks, harnesses, params, figures) {
   const selection = FIGURES_ARE_FROZEN ? defaultSelection(weeks, harnesses) : readSelection(params, weeks, harnesses);
   const dataUrl = new URL("data/", window.location.href).href;
   const database = openDatabase(dataUrl, weeks, harnesses, { answersOnly: FIGURES_ARE_FROZEN });
@@ -117,7 +118,7 @@ function openPage(file, sections, weeks, harnesses, params) {
     order.catch(() => undefined);
   }
   const streamedWeeks = STREAM_ROWS_AFTER_DRAW ? [] : null;
-  return { file, sections, weeks, harnesses, selection, database, orders, figures: null, latestRun: 0, streamedWeeks };
+  return { file, sections, weeks, harnesses, selection, database, orders, figures, latestRun: 0, streamedWeeks };
 }
 
 /**
@@ -199,13 +200,14 @@ function askSessionsPerWeek(page) {
 
 /**
  * Show the topic of `figureSections` the URL's anchor names, or the first, behind the tabs of the page's `#topic-tabs`
- * row, when it has one; showing a topic starts the current run's figures of it.
+ * row; showing a
+ * topic starts the current run's figures of it, once `figures`, the promise of what the figure sections keep, settles.
+ * Before the first run there is none to start, and the run starts the shown topic's figures itself.
  */
-function mountTabs(page, figureSections) {
+function mountTabs(figures, figureSections) {
   const row = document.querySelector("#topic-tabs");
-  if (row !== null) {
-    mountTopicTabs(row, figureSections, () => page.figures.then(startFigures));
-  }
+  // The promise never rejects: a figure module that fails to load shows its error in its own section.
+  mountTopicTabs(row, figureSections, () => figures.then(startFigures));
 }
 
 /**
@@ -238,7 +240,8 @@ function changeSelection(page, selection) {
  */
 function replaceQuery(page, params) {
   const { pathname, hash } = window.location;
-  window.history.replaceState(null, "", `${pathname}${selectionQuery(params)}${hash}`);
+  // The entry keeps its state, the Insights' shown topic, which Back to it shows again.
+  window.history.replaceState(window.history.state, "", `${pathname}${selectionQuery(params)}${hash}`);
   renderPageHeader(page);
 }
 

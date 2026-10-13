@@ -1169,7 +1169,7 @@ section[id] {
 
 /* A topic's number before its heading, in the eyebrow's monospace and the accent: "01 Session structure". */
 .topic-number {
-  margin-right: 0.6rem;
+  margin-right: 0.25rem; /* with the space after it, the gap the title keeps from the number */
   font-family: var(--font-mono);
   font-size: var(--font-size-smallest);
   font-weight: 600;
