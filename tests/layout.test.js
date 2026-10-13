@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
+import { oldLinkAddress } from "../site/js/landing/old_links.js";
 import { renderFooter, renderHeader, SECTIONS } from "../site/js/shared/layout.js";
 
-// The Explore page, whose sections the header and footer link by anchor.
+// The Overview page, whose sections the header and footer link by anchor.
 const EXPLORE_PAGE = new URL("../site/index.html", import.meta.url);
 
 // The markup `render` writes into a stand-in container for the page `activeFile` with the URL keys `query`.
@@ -98,21 +99,22 @@ test("the footer holds the brand, its line and the two lists of links, and nothi
   assert.doesNotMatch(markup, /Copyright|Accessibility|footer-legal/);
 });
 
-test("every section the header and footer link is an element of the Explore page", () => {
+test("every section the header and footer link is an element of the Overview page or one it sends on", () => {
   const page = readFileSync(EXPLORE_PAGE, "utf8");
   for (const section of SECTIONS) {
-    assert.match(page, new RegExp(`<section id="${section.anchor.slice(1)}"`), `index.html has no section ${section.anchor}`);
+    const isOnPage = page.includes(`<section id="${section.anchor.slice(1)}"`);
+    assert.ok(isOnPage || oldLinkAddress(section.anchor, "") !== null, `index.html has no section ${section.anchor}`);
   }
 });
 
-test("the Explore page runs Overview, Session Explorer, Insights, Cite and Team, each of the four a heading alone", () => {
+test("the Overview page runs Overview, Cite and Team, each of the three a heading alone", () => {
   const page = readFileSync(EXPLORE_PAGE, "utf8");
   const order = [...page.matchAll(/<section id="(overview|sessions|insights|cite|team)"/g)].map((match) => match[1]);
-  assert.deepEqual(order, ["overview", "sessions", "insights", "cite", "team"]);
-  for (const section of SECTIONS) {
-    const start = page.indexOf(`<section id="${section.anchor.slice(1)}"`);
+  assert.deepEqual(order, ["overview", "cite", "team"]);
+  for (const id of ["overview", "cite"]) {
+    const start = page.indexOf(`<section id="${id}"`);
     const firstHeading = page.slice(start).match(/<h2 id="[^"]+">([^<]+)<\/h2>/)[1];
-    assert.equal(firstHeading, section.title, section.anchor);
+    assert.equal(firstHeading, SECTIONS.find((section) => section.anchor === `#${id}`).title, id);
   }
   assert.doesNotMatch(page, /class="eyebrow"/);
 });

@@ -1,6 +1,7 @@
 /**
- * The Explore page's hero: the dataset's name as its title, a lede whose first clause counts the weeks of `weeks.json`
- * and whose rest says what the trace holds, and the buttons to the Insights, the dataset, the paper and the code.
+ * The Overview page's hero: the dataset's name as its title, a lede whose first clause counts the weeks of
+ * `weeks.json` and whose rest says what the trace holds, and the buttons to the Session Explorer and Insights pages,
+ * the dataset, the paper and the code.
  */
 
 import { URLS } from "../shared/layout.js";
@@ -19,8 +20,12 @@ const TITLE_ACCENT = "Agentic Dataset";
 // The lede after its first clause, which counts the weeks.
 const LEDE_REST = "anonymised: every request, tool call and subagent of the agent sessions FreeInference served.";
 
-// The buttons under the lede: the first leads to the page's Insights, the others leave the site.
-const INSIGHTS_BUTTON = Object.freeze({ title: "Insights", href: "#insights" });
+// The buttons under the lede: the first two lead to the site's other Explore pages, the first of them the primary one;
+// the others leave the site.
+const SITE_BUTTONS = Object.freeze([
+  Object.freeze({ title: "Session Explorer", href: "explorer.html", className: "button button--primary" }),
+  Object.freeze({ title: "Insights", href: "insights.html", className: "button" }),
+]);
 const EXTERNAL_BUTTONS = Object.freeze([
   Object.freeze({ title: "Dataset", url: URLS.dataset }),
   Object.freeze({ title: "Paper", url: URLS.paper }),
@@ -55,6 +60,9 @@ export function ledeOpening(weekCount) {
 
 /** Fill `container` with the hero's copy for the `weekCount` weeks the trace holds (null when not known). */
 export function renderHero(container, weekCount) {
+  const siteButtons = SITE_BUTTONS.map(
+    (button) => `<a class="${button.className}" href="${button.href}">${button.title}</a>`,
+  );
   const externalButtons = EXTERNAL_BUTTONS.map(
     (button) => `<a class="button" href="${button.url}" target="_blank" rel="noopener">${button.title}</a>`,
   );
@@ -62,7 +70,7 @@ export function renderHero(container, weekCount) {
     <h1 id="hero-title">${TITLE} <em>${TITLE_ACCENT}</em></h1>
     <p class="hero-lede">${ledeOpening(weekCount)} ${LEDE_REST}</p>
     <div class="hero-actions">
-      <a class="button button--primary" href="${INSIGHTS_BUTTON.href}">${INSIGHTS_BUTTON.title}</a>
+      ${siteButtons.join("")}
       ${externalButtons.join("")}
     </div>`;
 }

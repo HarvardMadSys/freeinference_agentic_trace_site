@@ -55,7 +55,7 @@ const SECTION_FIGURES = {
   ],
 };
 
-// The figure sections of index.html, in order: each section's id, its number and its heading.
+// The figure sections of insights.html, in order: each section's id, its number and its heading.
 const PAGE_SECTIONS = [
   { id: "insights-sessions", number: "01", heading: "Session structure" },
   { id: "insights-tokens", number: "02", heading: "Tokens and cost" },
@@ -64,7 +64,7 @@ const PAGE_SECTIONS = [
   { id: "insights-caching", number: "05", heading: "Prefix caching" },
   { id: "insights-comparison", number: "06", heading: "Human-driven against benchmark" },
 ];
-const PAGE = readFileSync(new URL("../site/index.html", import.meta.url), "utf8");
+const PAGE = readFileSync(new URL("../site/insights.html", import.meta.url), "utf8");
 const PAGE_SECTION =
   /<section id="(insights-\w+)" class="figure-section"[^>]*>\s*<h2[^>]*><span class="topic-number">(\d+)<\/span>([^<]+)<\/h2>/g;
 

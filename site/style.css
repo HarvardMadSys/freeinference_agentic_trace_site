@@ -732,10 +732,15 @@ section[id] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  /* The four buttons two by two, each as wide as its column, rather than in ragged rows. */
+  /* The five buttons in even rows rather than ragged ones: the primary one across both columns, the others two by two,
+     each as wide as its column. */
   .hero-actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-actions .button--primary {
+    grid-column: 1 / -1;
   }
 }
 
