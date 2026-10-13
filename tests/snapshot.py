@@ -168,7 +168,7 @@ def read_states(browser, address: str) -> dict[str, dict[str, str]]:
         states = read_explore_states(page, address)
         for name, session in snapshot_units.SESSIONS.items():
             states.update(read_session_states(page, address, name, session))
-    except playwright.sync_api.Error as error:  # a state that did not draw: say why, with what the browser reported
+    except (playwright.sync_api.Error, AssertionError) as error:  # a state that did not draw: say why, with what the browser reported
         raise PageError(f"{error}\nthe browser reported:\n" + "\n".join(errors)) from error
     page.close()
     if errors:
@@ -247,7 +247,7 @@ def main(arguments: list[str]) -> int:
     with served_site(SITE_FOLDER) as address, playwright.sync_api.sync_playwright() as browsers:
         try:
             browser = browsers.chromium.launch()
-        except playwright.sync_api.Error as error:  # Chromium is not installed, or cannot start on this machine
+        except (playwright.sync_api.Error, AssertionError) as error:  # Chromium is not installed, or cannot start on this machine
             if write:
                 raise
             print(SKIP_MESSAGE.format(reason=str(error).splitlines()[0]))
