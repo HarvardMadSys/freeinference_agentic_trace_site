@@ -29,8 +29,11 @@ binding, and `make test` checks the countable ones.
   - `selected_weeks(week)`: the selected weeks' Sundays; `make data` fills
     it with every week, and the browser only with the switch off;
   - `selected_harnesses(harness)`: the selected harnesses; `make data` fills
-    it with the paper's harnesses (every harness for the session list's
-    answer and the trace totals), and the browser only with the switch off;
+    it with the paper's harnesses for the figures and with every harness for
+    the Explore page's own answers (`EVERY_HARNESS_QUERIES` in
+    `site_data/answers.py`: the Overview's mixes and trends, the session
+    list, its first page and the trace totals), and the browser only with
+    the switch off;
   - `benchmark_harness(harness)`: not a choice but a fact, filled from
     `harnesses.json` when the database opens: the harness that is not the
     paper's population.
@@ -132,12 +135,15 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   `js/pages/explore.js`, is the landing page and holds, in order, the hero
   and stats strip, the Overview (`#overview`), the Session Explorer
   (`#sessions`), the Insights (`#insights`), Cite (`#cite`) and Team. Its
-  module lists its sections in `SECTIONS`, names its file in `PAGE_FILE`,
-  and calls `startPage` of `explore/start.js` with them and
-  `FIGURE_SECTIONS`; `startPage` fetches the indexes, draws the header and
-  footer, mounts the Insights' tabs, opens the database and runs the
-  sections. The header links the page's sections by anchor (`SECTIONS` of
-  `shared/layout.js`); from the Session page the links lead to
+  module lists its sections in `SECTIONS` and calls `startPage` of
+  `explore/start.js` with them; `startPage` draws the footer and mounts the
+  Insights' tabs and figure cards (`FIGURE_SECTIONS` of
+  `explore/figure_sections.js`), fetches the indexes, draws the header,
+  opens the database and runs the sections. The header links the page's
+  sections by anchor (`LINKED_SECTIONS` of `shared/layout.js`, beside
+  `EXPLORE_FILE`, the page's one file name); on a phone it is two rows, the
+  brand and the four links, which wrap, and the page measures its height
+  for the sections' scroll margin. From the Session page the links lead to
   `index.html` with the URL's keys, which are the table's. Pages link one
   another by their `.html` names; the host serves each at its clean path
   with the query kept.
@@ -182,9 +188,12 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   a section with a heading and a card grid for each, its id the topic's
   anchor (`#insights-sessions`, `#insights-tokens`, `#insights-latency`,
   `#insights-tools`, `#insights-caching`, `#insights-comparison`).
-- The topics are tabs (`explore/topic_tabs.js`): one is shown and the
-  others hidden, the shown one named by the URL's hash, which a click
-  pushes as a new history entry, so Back returns to the topic before. A
+- The topics are tabs (`explore/topic_tabs.js`), following the ARIA tabs
+  pattern (one tab stop, the arrow keys, Home and End, each topic a tab
+  panel): one is shown and the others hidden, the shown one named by the
+  URL's hash and kept in the history entry's state; a tab chosen pushes a
+  new entry with its topic, so Back returns to the topic before, whatever
+  anchor the page opened on. A
   chart reads its width from its card, and a hidden card has none, so
   `figure_sections.js` starts only a shown topic's figures, and showing a
   topic runs the same start step a card coming into view does. Nothing is
@@ -196,9 +205,9 @@ module with `layout<Thing>(container)`, which shows the loading state, and
 `async run<Thing>(container, context)`, which lays out a fresh place in the
 container and draws its answer into it (`context` is described in
 `explore/start.js`); and add `{ id, layout, run }` to the page module's
-`SECTIONS`, with `readsSessionsPerWeek: true` if it draws the answer of
-sessions per week by harness, which the page then asks for once for every
-section that reads it. A new topic of figures is a section module of figure
+`SECTIONS`. The answer of sessions per week by harness, which the harness
+mix and the sessions trend both draw, is asked for once a run and given as
+`context.sessionsPerWeekByHarness`. A new topic of figures is a section module of figure
 entries instead, added to `FIGURE_SECTIONS` and to `index.html`'s
 Insights, where it becomes a tab.
 
@@ -267,8 +276,8 @@ WHERE is_top_level
 The first line says what one row is. Columns are named in words. Every
 query is run by `tests/test_queries.py` against the fixture data.
 `make data` also runs every query under `explore/` and `figures/` once with
-every week and the paper's harnesses selected (the session list's and the
-trace totals with every harness), and the colour orders `setup/*_order`, and writes each answer to
+every week and the paper's harnesses selected (the Explore page's own,
+`EVERY_HARNESS_QUERIES`, with every harness), and the colour orders `setup/*_order`, and writes each answer to
 `site/data/all_weeks/`. **Rerun `make data` after editing one of those
 queries**: the Explore page reads the answer, not the query.
 `tests/test_answers.py` checks each answer written for the fixture against its
@@ -333,7 +342,9 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
   returns the series its legend lists and their colours, `{ series, colours }`,
   each series `{ name, label }`. The page draws the legend as buttons that
   hide and show a series (`explore/legend.js`), redrawing the chart from the
-  rows it already has.
+  rows it already has; from the keyboard the legend is one tab stop, the
+  arrow keys moving between its buttons. It lists every series the chart
+  draws.
 - `drawnRows` (optional): `drawnRows(rows, colours)` returns the rows of the
   query the figure draws, when it draws fewer: a line or CDF per provider or
   model draws only those with one of the eight series colours, never one in
@@ -467,10 +478,13 @@ which is plain HTML.
   of time or of roles never give one hue two meanings; their names have
   one home each, `TOKEN_PART_NAMES` in `session/token_parts.js` and
   `TIME_PART_NAMES` in `theme/colours.js`. The same model, provider or wait cause has the
-  same colour in every chart. A tool category takes its tool group's colour
-  (`toolCategoryColours` in `theme/colours.js`, the one home of category,
-  group and colour), and every category without a group, Other included, the
-  Other grey. A wait cause, a role of the input, a transition and a gap bin
+  same colour in every chart; the harnesses take the series slots from
+  `HARNESS_FIRST_SLOT`, the models from the first, so the two donuts do
+  not open on one colour. A tool category has one colour in every chart
+  (`TOOL_CATEGORY_COLOURS` in `theme/colours.js`, the one home of category
+  and colour): a category with a tool group takes the group's, each of the
+  six without one a `--tool-category-*` token of its own, and only the
+  category Other the Other grey. A wait cause, a role of the input, a transition and a gap bin
   always take `--cause-*`, `--role-*`, `--transition-*` and `--gap-bin-1` to
   `--gap-bin-6`, read through `CAUSE_COLOURS`, `ROLE_COLOURS`,
   `TRANSITION_COLOURS` and `GAP_BIN_SLOTS` in `theme/colours.js`; the parts of
@@ -483,11 +497,15 @@ which is plain HTML.
   apart in lightness so that a red-green colour-blind reader can tell every
   pair apart.
   `tests/palette_contrast.test.js` is the validation: it reads both schemes
-  from `style.css` and checks every series, part, cause, role, token,
-  transition, tool-group and gap-bin colour at 3:1 on its scheme's card, every text colour
+  from `style.css` (through `tests/palette.js`) and checks every series,
+  part, cause, role, token, transition, tool-group, tool-category and
+  gap-bin colour at 3:1 on its scheme's card, every text colour
   at 4.5:1 on the paper and on a card, each slot's hue across the schemes,
   the hues' spread, every pair of slots at an OKLab distance of 5 under a
-  deuteranopia simulation, and the parts' hues against the paper's. A new
+  deuteranopia simulation, and the parts' hues against the paper's;
+  `tests/palette_meanings.test.js` checks that the token parts, the time
+  parts and the roles keep apart, and each group-less category's hue from
+  every group's and every other's. A new
   colour token is named there as text, a mark or a tint, or the test fails.
   Protanopia and tritanopia are not simulated, so no series is told by its
   colour alone: every chart ships a legend and a hover tooltip,
@@ -501,7 +519,11 @@ which is plain HTML.
   single series), its evidence caption under the chart, and a Definition
   control that opens on its full definition and
   the rows it rests on. A legend names only what is drawn, and everything
-  drawn has an entry or a label on the chart.
+  drawn has an entry or a label on the chart; a note such as a ratio of
+  medians is written on the chart, not in the legend. After each drawing the
+  chart is named for a screen reader by its title and insight (or caption),
+  `nameChart` in `shared/charts.js`. Bars start at zero, and a label written
+  by a line sits off every line (`lineLabels` of `shared/cdf.js`).
 - **Axis text.** At most six ticks per axis (`axes/ticks.js`), no minor
   gridlines on a log axis, no arrow on an axis title, and no title that the
   card's title or legend already gives; a y-axis title says what is counted

@@ -30,8 +30,9 @@ The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
 - Names are words; functions ≤ 50 lines; modules ≤ 300 lines; every module
   has tests.
 - The Explore page's figures are frozen: it draws every section from the
-  answers `make data` precomputed over every week and the paper's
-  harnesses, and loads no DuckDB and no Parquet file. The browser query path
+  answers `make data` precomputed over every week, the figures over the
+  paper's harnesses and the stats strip, the Overview and the Session
+  Explorer over every harness, and loads no DuckDB and no Parquet file. The browser query path
   stays behind `FIGURES_ARE_FROZEN` in `site/js/explore/start.js`, the
   page's start. The Insights' topics are tabs, and a topic's figures are
   drawn only once its tab is shown: a chart drawn hidden has no width.

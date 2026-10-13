@@ -21,12 +21,12 @@ and no page fetches them. There is no server and no bundler.
 
 ## Frozen figures
 
-Every number on the Explore page, every trend, stat
-and figure, is drawn over every week and the paper's
+Every figure of the Insights is drawn over every week and the paper's
 harnesses (every harness but the benchmark replay `eval:swe-bench`, which
 appears only where a figure's legend names it), from answers precomputed
-when the data are built; the stats strip and the Session Explorer, which
-count the whole trace, are answered over every harness. `make data` runs
+when the data are built; the stats strip, the Overview's mixes and trends
+and the Session Explorer, which count the whole trace, are answered over
+every harness, the benchmark replay among them as `swe-bench`. `make data` runs
 every query under `site/queries/explore/` and `site/queries/figures/` and
 the colour orders under `site/queries/setup/` once with that selection, and
 writes each answer as `site/data/all_weeks/<page>/<query>.json`; the Explore
@@ -73,19 +73,21 @@ Measured on the shipped data (16 weeks), served by `serve.py` (which does
 not compress) on the same machine, in headless Chromium, three runs each:
 
 - The Explore page draws the stats strip, the mixes, the trends, the session
-  list and the first topic's figures in 1.2–1.4 s (median 1.4 s). It makes
-  117 requests: 65 to the site (the page and its style sheet, 46 modules, 17
-  data files: `weeks.json`, `harnesses.json`, the four colour orders and 11
+  list and the first topic's figures in 0.7–1.1 s (median 0.9 s). It makes
+  118 requests: 66 to the site (the page and its style sheet, 46 modules, 18
+  data files: `weeks.json`, `harnesses.json`, the four colour orders and 12
   answers) and 52 to the CDN (Observable Plot with its modules, and the web
-  fonts). The site's own files come to 4.5 MB, 4.0 MB of them the session
-  list's answer; gzipped, as a static host serves them, 0.90 MB, plus 0.35 MB
+  fonts). The site's own files come to 4.6 MB, 4.0 MB of them the session
+  list's answer, whose first page is drawn from a 20-row answer before it
+  arrives; gzipped, as a static host serves them, about 0.9 MB, plus 0.35 MB
   of libraries and fonts as the CDN sends them. No `.wasm` and no `.parquet`
   is fetched. Each other topic fetches its own answers when its tab is shown.
 - The Session page draws the Requests view of its largest session (5,040
-  requests, week of 2026-08-30) in 0.99–1.07 s (median 1.0 s), or 0.9 s
+  requests, week of 2026-08-30) in 0.89–1.07 s (median 1.0 s), or 0.9 s
   with 40 ms of latency and 50 Mbit/s: 35 requests, 31 to the site (the
-  page and its style sheet, 27 modules, and two data files: the session's
-  bucket, 0.30 MB, and the category order) and 4 to the CDN for the web
+  page and its style sheet, 26 modules, and three data files: the session's
+  bucket, 0.30 MB, the category order and `weeks.json`, which the footer
+  counts) and 4 to the CDN for the web
   fonts. The site's files come to 0.54 MB, 0.38 MB as a gzipping host
   serves them. No `.wasm`, `.parquet` or `.sql` is fetched; the Context and
   Timeline views add Observable Plot from the CDN. Reading the week's
@@ -186,7 +188,7 @@ site_data/         builds site/data/ from a release, and opens a database over i
                    one module per kind of row, each column from the pipeline's functions
   site_database.py the browser's database in Python DuckDB: the views over the week files, the selection tables
   answers.py       the answers: every Explore and figure query and colour order, run once over every week and the
-                   paper's harnesses; the session list's over every harness, the benchmark's marked
+                   paper's harnesses; the Overview's, the session list's and its first page's over every harness
   buckets.py       the session buckets: every week's sessions, gzipped JSON by the first two characters of the
                    top-level id, and each week's index of session ids
   check_answers.py what make deploy checks first: every answered and bucket query's text is the one make data ran
@@ -225,7 +227,7 @@ site/              exactly the files that are deployed
                         skeleton), brackets and legend
   js/session_charts/    the Context and Timeline views, the series and bars they draw, their range slider and
                         the Timeline's pointer
-  queries/         one .sql file per chart or table, in one folder per purpose: explore (12), figures (31: the 29
+  queries/         one .sql file per chart or table, in one folder per purpose: explore (13), figures (31: the 29
                    figures, and two per-model medians only the paper-parity test reads), buckets (3: the session
                    buckets' tree, requests and tool calls, run per week by make data), setup (17)
   data/            built by make data and tracked, so a clone serves the site without building
