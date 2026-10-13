@@ -1,0 +1,2 @@
+Human-driven | pressed=true | legend-swatch is-line background: var(--series-1);
+Benchmark | pressed=true | legend-swatch is-line background: var(--series-8);

@@ -1,0 +1,5 @@
+title: Turn and session duration
+insight: Agents work in short bursts, but sessions stay alive while humans think.
+caption: The median turn lasts about one minute, while the median session spans 30 minutes. The difference largely comes from idle time between user turns.
+definition: Each line shows the percentage of turns or main sessions that finish within the time shown. A turn starts with a user prompt and ends with the agent’s final response. A session includes all turns and the waits between them.
+rows: 84,239 turns · 10,967 sessions

@@ -1,0 +1,5 @@
+title: Gap before a request by cause
+insight: Human pauses are far longer than routine tool execution.
+caption: Ordinary tool gaps last a median of 1.8 seconds, compared with 96.5 seconds between user turns. Subagents and tools requesting human input introduce additional long waits.
+definition: Each line shows the percentage of waits that end within the time shown, grouped by what the session waited for. Wait time is measured from one request’s end to the next request’s start. Waits below 0.1 seconds are shown at 0.1 seconds.
+rows: 1,114,622 rows

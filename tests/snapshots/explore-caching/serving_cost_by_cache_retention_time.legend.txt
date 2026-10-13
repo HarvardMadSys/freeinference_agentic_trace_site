@@ -1,0 +1,2 @@
+Recompute | pressed=true | legend-swatch background: var(--token-uncached);
+Storage | pressed=true | legend-swatch background: var(--series-7);

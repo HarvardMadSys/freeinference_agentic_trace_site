@@ -1,0 +1,4 @@
+title: Sessions per week
+caption: Top-level sessions each week, by harness.
+definition: Top-level sessions per week, stacked by harness.
+rows: 12,002 sessions

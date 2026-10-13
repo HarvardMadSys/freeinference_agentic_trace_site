@@ -1,0 +1,5 @@
+title: Context mutations by cause
+insight: Rare context changes are responsible for most recomputation.
+caption: Only 4% of request transitions modify earlier context, yet these mutations account for 62.5% of fresh prefill even under infinite cache retention.
+definition: The table shows how often each change occurs and its percentage of uncached input processing, assuming the cache never expires. Append adds messages; mutation changes earlier messages. First requests and model or provider switches are excluded; session percentages count sessions with each change, except Append counts sessions with no mutations.
+rows: 1,106,180 rows

@@ -1,0 +1,5 @@
+title: Tool latency by category
+insight: Even simple tools can have surprisingly long delays.
+caption: Read, Edit, Search, and File Ops have median latencies near one second, while Build/Test and Subagent calls take much longer. Long tails mean even fast categories occasionally stall for minutes.
+definition: Tool wait times by category, counting only requests that call one tool. Wait time starts when the model response ends and stops at the next request; boxes show the middle 50% and whiskers show the 5th–95th percentiles. An asterisk marks shell commands grouped by what they do.
+rows: 970,869 rows

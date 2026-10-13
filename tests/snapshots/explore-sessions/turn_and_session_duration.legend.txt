@@ -1,0 +1,2 @@
+Turn | pressed=true | legend-swatch is-line background: var(--series-1);
+Session | pressed=true | legend-swatch is-line background: var(--series-2);

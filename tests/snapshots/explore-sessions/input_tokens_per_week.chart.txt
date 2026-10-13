@@ -1,0 +1,201 @@
+<svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" width="328" height="240" viewBox="0 0 328 240" role="img" aria-label="Input tokens per week: Input tokens each week, by cache status." style="color: var(--chart-label); background: transparent; font-family: var(--font-sans);">
+<style>:where(.plot-d6a7b5) { --plot-background: white; display: block; height: auto; height: intrinsic; max-width: 100%; } :where(.plot-d6a7b5 text), :where(.plot-d6a7b5 tspan) { white-space: pre; }</style>
+<g aria-label="y-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0,0.5)">
+<line x1="44" x2="320" y1="192" y2="192">
+</line>
+<line x1="44" x2="320" y1="149.4499043016967" y2="149.4499043016967">
+</line>
+<line x1="44" x2="320" y1="106.8998086033934" y2="106.8998086033934">
+</line>
+<line x1="44" x2="320" y1="64.34971290509013" y2="64.34971290509013">
+</line>
+<line x1="44" x2="320" y1="21.799617206786827" y2="21.799617206786827">
+</line>
+</g>
+<g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(8,0)">
+<path transform="translate(47,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(64,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(81,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(98,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(115,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(132,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(149,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(166,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(183,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(200,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(217,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(234,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(251,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(268,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(285,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(302,192)" d="M0,0L0,6">
+</path>
+</g>
+<g aria-label="x-axis tick label" transform="translate(8,9.5)">
+<text y="0.71em" transform="translate(47,192)">May</text>
+<text y="0.71em" transform="translate(64,192)">
+</text>
+<text y="0.71em" transform="translate(81,192)">
+</text>
+<text y="0.71em" transform="translate(98,192)">Jun</text>
+<text y="0.71em" transform="translate(115,192)">
+</text>
+<text y="0.71em" transform="translate(132,192)">
+</text>
+<text y="0.71em" transform="translate(149,192)">
+</text>
+<text y="0.71em" transform="translate(166,192)">Jul</text>
+<text y="0.71em" transform="translate(183,192)">
+</text>
+<text y="0.71em" transform="translate(200,192)">
+</text>
+<text y="0.71em" transform="translate(217,192)">
+</text>
+<text y="0.71em" transform="translate(234,192)">Aug</text>
+<text y="0.71em" transform="translate(251,192)">
+</text>
+<text y="0.71em" transform="translate(268,192)">
+</text>
+<text y="0.71em" transform="translate(285,192)">
+</text>
+<text y="0.71em" transform="translate(302,192)">Sep</text>
+</g>
+<g aria-label="y-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0,0.5)">
+<path transform="translate(44,192)" d="M0,0L-6,0">
+</path>
+<path transform="translate(44,149.4499043016967)" d="M0,0L-6,0">
+</path>
+<path transform="translate(44,106.8998086033934)" d="M0,0L-6,0">
+</path>
+<path transform="translate(44,64.34971290509013)" d="M0,0L-6,0">
+</path>
+<path transform="translate(44,21.799617206786827)" d="M0,0L-6,0">
+</path>
+</g>
+<g aria-label="y-axis tick label" text-anchor="end" font-variant="tabular-nums" transform="translate(-8.5,0.5)">
+<text y="0.32em" transform="translate(44,192)">0</text>
+<text y="0.32em" transform="translate(44,149.4499043016967)">10B</text>
+<text y="0.32em" transform="translate(44,106.8998086033934)">20B</text>
+<text y="0.32em" transform="translate(44,64.34971290509013)">30B</text>
+<text y="0.32em" transform="translate(44,21.799617206786827)">40B</text>
+</g>
+<g aria-label="bar">
+<rect x="48" width="13" y="189.7643158464627" height="1.2356841535373064" fill="var(--token-cached)">
+</rect>
+<rect x="48" width="13" y="189.3767093834772" height="0" fill="var(--token-uncached)">
+</rect>
+<rect x="48" width="13" y="189.01774880653338" height="0" fill="var(--series-other)">
+</rect>
+<rect x="65" width="13" y="188.78282034163192" height="2.2171796583680816" fill="var(--token-cached)">
+</rect>
+<rect x="65" width="13" y="188.4142082796612" height="0" fill="var(--token-uncached)">
+</rect>
+<rect x="65" width="13" y="187.7721644860624" height="0" fill="var(--series-other)">
+</rect>
+<rect x="82" width="13" y="190.4445069241776" height="0.5554930758223975" fill="var(--token-cached)">
+</rect>
+<rect x="82" width="13" y="190.32826550063206" height="0" fill="var(--token-uncached)">
+</rect>
+<rect x="82" width="13" y="189.9881900986074" height="0" fill="var(--series-other)">
+</rect>
+<rect x="99" width="13" y="190.3262753645761" height="0.6737246354238948" fill="var(--token-cached)">
+</rect>
+<rect x="99" width="13" y="190.25524252841302" height="0" fill="var(--token-uncached)">
+</rect>
+<rect x="99" width="13" y="190.11610116247383" height="0" fill="var(--series-other)">
+</rect>
+<rect x="116" width="13" y="185.11757254797433" height="5.8824274520256665" fill="var(--token-cached)">
+</rect>
+<rect x="116" width="13" y="184.72409282719943" height="0" fill="var(--token-uncached)">
+</rect>
+<rect x="116" width="13" y="183.33479203961446" height="0" fill="var(--series-other)">
+</rect>
+<rect x="133" width="13" y="176.43714090478338" height="14.562859095216623" fill="var(--token-cached)">
+</rect>
+<rect x="133" width="13" y="175.59351338619788" height="0" fill="var(--token-uncached)">
+</rect>
+<rect x="133" width="13" y="175.25600145298367" height="0" fill="var(--series-other)">
+</rect>
+<rect x="150" width="13" y="167.50718638618707" height="23.492813613812928" fill="var(--token-cached)">
+</rect>
+<rect x="150" width="13" y="166.8028743995925" height="0" fill="var(--token-uncached)">
+</rect>
+<rect x="150" width="13" y="166.36146347675674" height="0" fill="var(--series-other)">
+</rect>
+<rect x="167" width="13" y="169.7868162136727" height="21.213183786327306" fill="var(--token-cached)">
+</rect>
+<rect x="167" width="13" y="169.06897061173498" height="0" fill="var(--token-uncached)">
+</rect>
+<rect x="167" width="13" y="167.79738535321098" height="0" fill="var(--series-other)">
+</rect>
+<rect x="184" width="13" y="152.55493981501183" height="38.445060184988165" fill="var(--token-cached)">
+</rect>
+<rect x="184" width="13" y="151.41060097083937" height="0" fill="var(--token-uncached)">
+</rect>
+<rect x="184" width="13" y="150.3961394091805" height="0" fill="var(--series-other)">
+</rect>
+<rect x="201" width="13" y="144.63452373115692" height="46.36547626884308" fill="var(--token-cached)">
+</rect>
+<rect x="201" width="13" y="143.35421207774658" height="0" fill="var(--token-uncached)">
+</rect>
+<rect x="201" width="13" y="139.68676166562014" height="1.667450412126442" fill="var(--series-other)">
+</rect>
+<rect x="218" width="13" y="149.14075038078798" height="41.85924961921202" fill="var(--token-cached)">
+</rect>
+<rect x="218" width="13" y="147.96777482011944" height="0" fill="var(--token-uncached)">
+</rect>
+<rect x="218" width="13" y="145.57901256250196" height="0.3887622576174863" fill="var(--series-other)">
+</rect>
+<rect x="235" width="13" y="135.29742949840337" height="55.702570501596625" fill="var(--token-cached)">
+</rect>
+<rect x="235" width="13" y="134.19267543376003" height="0" fill="var(--token-uncached)">
+</rect>
+<rect x="235" width="13" y="131.42825009100852" height="0.7644253427515082" fill="var(--series-other)">
+</rect>
+<rect x="252" width="13" y="56.791265378265436" height="134.20873462173455" fill="var(--token-cached)">
+</rect>
+<rect x="252" width="13" y="54.88545445094111" height="0" fill="var(--token-uncached)">
+</rect>
+<rect x="252" width="13" y="48.52428420285008" height="4.361170248091028" fill="var(--series-other)">
+</rect>
+<rect x="269" width="13" y="75.45823783261318" height="115.54176216738682" fill="var(--token-cached)">
+</rect>
+<rect x="269" width="13" y="73.0293867215029" height="0.4288511111102764" fill="var(--token-uncached)">
+</rect>
+<rect x="269" width="13" y="65.92294107567754" height="5.10644564582536" fill="var(--series-other)">
+</rect>
+<rect x="286" width="13" y="58.19568735079404" height="132.80431264920597" fill="var(--token-cached)">
+</rect>
+<rect x="286" width="13" y="55.295462484069425" height="0.9002248667246135" fill="var(--token-uncached)">
+</rect>
+<rect x="286" width="13" y="53.673772361738735" height="0" fill="var(--series-other)">
+</rect>
+<rect x="303" width="13" y="19.24827191322934" height="171.75172808677067" fill="var(--token-cached)">
+</rect>
+<rect x="303" width="13" y="14.786996550552029" height="2.461275362677309" fill="var(--token-uncached)">
+</rect>
+<rect x="303" width="13" y="13" height="0" fill="var(--series-other)">
+</rect>
+</g>
+<g aria-label="rule" stroke="var(--chart-axis)" transform="translate(0,0.5)">
+<line x1="44" x2="320" y1="192" y2="192">
+</line>
+</g>
+<g aria-label="tip" fill="var(--plot-background)" stroke="currentColor" pointer-events="none" text-anchor="start" transform="translate(8,0.5)">
+</g>
+</svg>

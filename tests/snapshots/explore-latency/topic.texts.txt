@@ -1,0 +1,8 @@
+tab: 01 SESSION STRUCTURE | selected=false
+tab: 02 TOKENS AND COST | selected=false
+tab: 03 LATENCY | selected=true
+tab: 04 TOOLS | selected=false
+tab: 05 PREFIX CACHING | selected=false
+tab: 06 HUMAN-DRIVEN AGAINST BENCHMARK | selected=false
+heading: 03 Latency
+takeaway: Tools take the most active time; waiting for users accounts for half of total session time.

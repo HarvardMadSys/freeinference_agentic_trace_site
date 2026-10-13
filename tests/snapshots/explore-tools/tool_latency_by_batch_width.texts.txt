@@ -1,0 +1,5 @@
+title: Tool latency by batch width
+insight: Running more tools together adds surprisingly little waiting time.
+caption: Batched tool latency remains relatively flat as the number of concurrent calls increases, while estimated serial execution grows with each additional LLM–tool round trip.
+definition: Tool wait times by number of calls per request, excluding Ask User and grouping eight or more calls together. Bands show the 10th–90th percentiles. The comparison estimates time for separate calls: number of calls × (median tool wait + median model response time), using requests with one call.
+rows: 1,036,900 rows

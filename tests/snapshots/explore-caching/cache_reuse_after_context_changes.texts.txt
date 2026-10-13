@@ -1,0 +1,5 @@
+title: Cache reuse after context changes
+insight: Rewriting old messages can invalidate an otherwise reusable context.
+caption: Cache-hit ratios are substantially lower after context mutations than append-only steps. Changes to early content, such as system prompts or tool definitions, invalidate large portions of cached prefixes.
+definition: Each line shows the percentage of requests at or below each cache hit ratio: cached input divided by total input. Append means adding messages; mutation means changing earlier messages. Requests that switch model or provider are excluded.
+rows: 1,062,824 rows

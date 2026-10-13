@@ -7,7 +7,7 @@ PIPELINE ?= ../freeinference-agentic-pipeline
 RELEASE ?= $(PIPELINE)/data/v1/release
 SIMULATION ?= $(PIPELINE)/data/v1/simulation
 
-.PHONY: setup setup-browser data serve test deploy
+.PHONY: setup setup-browser data serve test snapshots deploy
 
 # Create the virtual environment; install the pipeline's package from its
 # repository, then this package with its test tools.
@@ -17,9 +17,9 @@ setup:
 	$(PYTHON) -m pip install -e $(PIPELINE)
 	$(PYTHON) -m pip install -e '.[test]'
 
-# A headless Chromium for checking pages: used by hand and by browser checks, not by make test.
+# The headless Chromium the snapshot test opens the pages in, also for checking pages by hand; without it make test
+# skips the snapshots, saying so.
 setup-browser:
-	$(PYTHON) -m pip install -e '.[browser]'
 	$(PYTHON) -m playwright install chromium
 
 # Build site/data from the release.
@@ -31,9 +31,15 @@ serve:
 	python3 -m http.server -d site -b 127.0.0.1 8000
 
 # The paper-parity test reads the pipeline's numbers.json; it is told where the pipeline is and skips when it is absent.
+# The snapshot test compares what the pages show with tests/snapshots/.
 test:
 	FREEINFERENCE_PIPELINE=$(PIPELINE) $(PYTHON) -m pytest
 	node --test "tests/*.test.js"
+	$(PYTHON) tests/snapshot.py
+
+# Rewrite tests/snapshots/ from the pages as they are now, when a change is meant to alter what a page shows.
+snapshots:
+	$(PYTHON) tests/snapshot.py --write
 
 # Publish site/, with its data, to Cloudflare as the static assets of the Worker wrangler.jsonc names. Needs
 # `npm install` once and a Cloudflare API token (see README); a push to main deploys the same way through

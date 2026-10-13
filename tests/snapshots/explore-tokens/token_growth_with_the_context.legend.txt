@@ -1,0 +1,3 @@
+Cached input | pressed=true | legend-swatch is-line background: var(--token-cached);
+Uncached input | pressed=true | legend-swatch is-line background: var(--token-uncached);
+Output | pressed=true | legend-swatch is-line background: var(--token-output);

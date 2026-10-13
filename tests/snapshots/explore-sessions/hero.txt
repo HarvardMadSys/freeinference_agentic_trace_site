@@ -1,0 +1,8 @@
+FreeInference Agentic Dataset
+16 weeks worth of production agent traces from FreeInference across diverse agent harnesses, with latency, tool, and KV block information.
+Session Explorer
+Insights
+Dataset
+Paper
+Code
+Harvard SEAS · MadSys Lab

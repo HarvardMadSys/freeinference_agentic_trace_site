@@ -1,0 +1,31 @@
+<svg viewBox="-100 -100 200 200" class="donut" role="img" aria-label="Model mix: Each model's share of the requests.">
+<path d="M 0 -100 A 100 100 0 0 1 40.7 91.34 L 25.23 56.63 A 62 62 0 0 0 0 -62 Z" fill="var(--series-1)" class="donut-slice">
+<title>deepseek-v4-flash: 43.3% of requests (514,128)</title>
+</path>
+<path d="M 40.7 91.34 A 100 100 0 0 1 -43.34 90.12 L -26.87 55.88 A 62 62 0 0 0 25.23 56.63 Z" fill="var(--series-2)" class="donut-slice">
+<title>glm-5.2: 13.8% of requests (163,813)</title>
+</path>
+<path d="M -43.34 90.12 A 100 100 0 0 1 -94.33 33.2 L -58.48 20.58 A 62 62 0 0 0 -26.87 55.88 Z" fill="var(--series-3)" class="donut-slice">
+<title>glm-5.1: 12.5% of requests (148,081)</title>
+</path>
+<path d="M -94.33 33.2 A 100 100 0 0 1 -97.74 -21.16 L -60.6 -13.12 A 62 62 0 0 0 -58.48 20.58 Z" fill="var(--series-4)" class="donut-slice">
+<title>minimax-m3: 8.8% of requests (104,185)</title>
+</path>
+<path d="M -97.74 -21.16 A 100 100 0 0 1 -78.81 -61.56 L -48.86 -38.17 A 62 62 0 0 0 -60.6 -13.12 Z" fill="var(--series-5)" class="donut-slice">
+<title>qwen3.6-35b: 7.2% of requests (84,959)</title>
+</path>
+<path d="M -78.81 -61.56 A 100 100 0 0 1 -53.59 -84.43 L -33.23 -52.34 A 62 62 0 0 0 -48.86 -38.17 Z" fill="var(--series-6)" class="donut-slice">
+<title>glm-5.3-flash: 5.4% of requests (64,601)</title>
+</path>
+<path d="M -53.59 -84.43 A 100 100 0 0 1 -30.01 -95.39 L -18.61 -59.14 A 62 62 0 0 0 -33.23 -52.34 Z" fill="var(--series-7)" class="donut-slice">
+<title>kimi-k2.7-code: 4.2% of requests (49,257)</title>
+</path>
+<path d="M -30.01 -95.39 A 100 100 0 0 1 -18.95 -98.19 L -11.75 -60.88 A 62 62 0 0 0 -18.61 -59.14 Z" fill="var(--series-8)" class="donut-slice">
+<title>minimax-m2.7: 1.8% of requests (21,554)</title>
+</path>
+<path d="M -18.95 -98.19 A 100 100 0 0 1 0 -100 L 0 -62 A 62 62 0 0 0 -11.75 -60.88 Z" fill="var(--series-other)" class="donut-slice">
+<title>Other: 3.0% of requests (36,004)</title>
+</path>
+<text y="-0.15em" class="donut-total">1.2M</text>
+<text y="1.35em" class="donut-unit">requests</text>
+</svg>

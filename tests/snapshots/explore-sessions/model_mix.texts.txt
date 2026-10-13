@@ -1,0 +1,4 @@
+title: Model mix
+caption: Each model's share of the requests.
+definition: Requests of the top-level sessions of every harness over every week, the benchmark replay's included, by the model they asked for. The eight models with most requests are named, as the trends name them; the rest are Other.
+rows: 1,186,582 requests

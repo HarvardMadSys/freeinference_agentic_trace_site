@@ -1,0 +1,4 @@
+title: Requests per week
+caption: Requests each week, by model.
+definition: Requests of the top-level sessions per week, stacked by model.
+rows: 1,186,582 requests

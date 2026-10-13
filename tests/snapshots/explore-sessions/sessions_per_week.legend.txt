@@ -1,0 +1,9 @@
+hermes | pressed=true | legend-swatch background: var(--series-5);
+opencode | pressed=true | legend-swatch background: var(--series-6);
+pi | pressed=true | legend-swatch background: var(--series-7);
+swe-bench | pressed=true | legend-swatch background: var(--series-8);
+kilo | pressed=true | legend-swatch background: var(--series-1);
+codex | pressed=true | legend-swatch background: var(--series-2);
+oh-my-pi | pressed=true | legend-swatch background: var(--series-3);
+claude-code | pressed=true | legend-swatch background: var(--series-4);
+Other | pressed=true | legend-swatch background: var(--series-other);

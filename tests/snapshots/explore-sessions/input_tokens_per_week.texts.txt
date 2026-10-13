@@ -1,0 +1,4 @@
+title: Input tokens per week
+caption: Input tokens each week, by cache status.
+definition: Input tokens of the top-level requests per week: cached and uncached where the provider reports cache reads, not reported where it does not.
+rows: 1,186,582 requests

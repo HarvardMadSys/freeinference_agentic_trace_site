@@ -1,0 +1,9 @@
+deepseek-v4-flash | pressed=true | legend-swatch background: var(--series-1);
+glm-5.2 | pressed=true | legend-swatch background: var(--series-2);
+glm-5.1 | pressed=true | legend-swatch background: var(--series-3);
+minimax-m3 | pressed=true | legend-swatch background: var(--series-4);
+qwen3.6-35b | pressed=true | legend-swatch background: var(--series-5);
+glm-5.3-flash | pressed=true | legend-swatch background: var(--series-6);
+kimi-k2.7-code | pressed=true | legend-swatch background: var(--series-7);
+minimax-m2.7 | pressed=true | legend-swatch background: var(--series-8);
+Other | pressed=true | legend-swatch background: var(--series-other);

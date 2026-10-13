@@ -1,0 +1,4 @@
+Tool wait | pressed=true | legend-swatch is-line background: var(--cause-tool);
+Ask-user tool | pressed=true | legend-swatch is-line background: var(--cause-ask-user);
+User idle | pressed=true | legend-swatch is-line background: var(--cause-user);
+Subagent | pressed=true | legend-swatch is-line background: var(--cause-subagent);

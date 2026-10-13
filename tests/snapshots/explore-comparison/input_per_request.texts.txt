@@ -1,0 +1,5 @@
+title: Input per request
+insight: Benchmarks underestimate how large real agent contexts become.
+caption: Human-driven requests carry a median of 129K input tokens, compared with just 25K in SWE-Bench. Repeated user turns accumulate much larger histories and increase cache pressure.
+definition: Each line shows the percentage of main-session requests with this many input tokens or fewer, for human sessions and SWE-Bench. Only requests with reported input counts are included. Dots mark the medians.
+rows: 1,125,604 human-driven requests · 60,978 benchmark requests

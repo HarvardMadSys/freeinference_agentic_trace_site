@@ -1,0 +1,6 @@
+Under 1 min | pressed=true | legend-swatch is-line background: var(--gap-bin-1);
+1–5 min | pressed=true | legend-swatch is-line background: var(--gap-bin-2);
+5–15 min | pressed=true | legend-swatch is-line background: var(--gap-bin-3);
+15–30 min | pressed=true | legend-swatch is-line background: var(--gap-bin-4);
+30 min–1 h | pressed=true | legend-swatch is-line background: var(--gap-bin-5);
+Over 1 h | pressed=true | legend-swatch is-line background: var(--gap-bin-6);

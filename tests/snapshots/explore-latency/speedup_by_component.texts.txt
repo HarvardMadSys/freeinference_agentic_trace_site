@@ -1,0 +1,5 @@
+title: Speedup by component
+insight: Faster tools improve agent performance more than faster inference.
+caption: In a simulated speedup analysis excluding user idle time, doubling tool throughput yields a 1.38× speedup, compared with 1.09× for prefill and 1.16× for decoding.
+definition: Estimated speedup if input processing (prefill), output generation (decode), or tool execution takes half as long. Each bar changes one component and uses total active time across main sessions. User waits are excluded, each tool wait is capped at 15 minutes, and prefill time uses reliable time-to-first-token measurements.
+rows: 10,967 rows

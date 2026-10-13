@@ -1,0 +1,5 @@
+title: Session duration
+insight: Real users keep coming back, making sessions much longer than benchmarks.
+caption: Human-driven sessions last a median of 30 minutes, compared with 3.2 minutes for SWE-Bench. Multiple turns and idle periods extend production sessions well beyond individual tasks.
+definition: Each line shows the percentage of main sessions that finish within the time shown, for human sessions and SWE-Bench. Duration is measured from the first request’s start to the last request’s end, including waits between turns. Dots mark the medians.
+rows: 10,967 human-driven sessions · 1,035 benchmark sessions

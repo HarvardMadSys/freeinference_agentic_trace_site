@@ -1,0 +1,8 @@
+tab: 01 SESSION STRUCTURE | selected=true
+tab: 02 TOKENS AND COST | selected=false
+tab: 03 LATENCY | selected=false
+tab: 04 TOOLS | selected=false
+tab: 05 PREFIX CACHING | selected=false
+tab: 06 HUMAN-DRIVEN AGAINST BENCHMARK | selected=false
+heading: 01 Session structure
+takeaway: Sessions have a few user prompts, dozens of model requests, and long waits between prompts.

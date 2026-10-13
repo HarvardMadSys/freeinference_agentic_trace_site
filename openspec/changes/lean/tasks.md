@@ -4,7 +4,7 @@ Every task ends with `make test` green (the snapshot test included once
 it exists) and one commit, and is reviewed against the design and
 CONTRIBUTING before the next starts. A final whole-branch review closes.
 
-- [ ] 1.1 The snapshot test: `tests/snapshot.py`, `tests/snapshots/`, `make snapshots`, `make test` comparing; the baseline committed. Done when a second run is green and a one-character change to a figure's insight is caught.
+- [x] 1.1 The snapshot test: `tests/snapshot.py`, `tests/snapshots/`, `make snapshots`, `make test` comparing; the baseline committed. Done when a second run is green and a one-character change to a figure's insight is caught.
 - [ ] 2.1 One URL format (design §3). Done when `sessions_filter.js` names seven keys and no other, and the snapshots are green.
 - [ ] 3.1 `js/charts/`: the seven kinds, each with a focused test; the first family (Session structure) converted to one-call draws. Snapshots green.
 - [ ] 3.2 Tokens and cost, Latency converted. Snapshots green.

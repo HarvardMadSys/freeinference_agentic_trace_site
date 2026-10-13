@@ -1,0 +1,21 @@
+Session ↕ | Started (UTC) ▼ | Harness ↕ | Requests ↕ | Model ↕ | Turns ↕ | Duration ↕ | Input tokens ↕ | Cached share ↕
+0d4c79db | Sep 5, 23:37 | hermes | 83 | deepseek-v4-flash | 10 | 22.5 min | 14.2M | 97.8%
+e317a932 | Sep 5, 23:32 | hermes | 82 | deepseek-v4-flash | 8 | 22.3 min | 12.7M | 98.6%
+4e025585 | Sep 5, 23:32 | hermes | 5 | deepseek-v4-flash | 2 | 3.3 min | 147.8k | 79.5%
+eb27761f | Sep 5, 23:27 | hermes | 22 | deepseek-v4-flash | 4 | 17.3 min | 1.4M | 95.6%
+7da25144 | Sep 5, 23:19 | hermes | 17 | deepseek-v4-flash | 2 | 6.3 min | 591.3k | 94.0%
+680ef248 | Sep 5, 23:09 | hermes | 29 | glm-5.3 | 2 | 22.7 min | 3.2M | 99.0%
+51eb4d77 | Sep 5, 22:56 | pi | 150 | glm-5.3-flash | 3 | 63.9 min | 17.3M | 98.5%
+4402f45e | Sep 5, 22:53 | hermes | 82 | deepseek-v4-flash | 3 | 63.0 min | 5.0M | 97.9%
+1670e582 | Sep 5, 22:52 | opencode | 87 | deepseek-v4-flash | 4 | 65.2 min | 7.4M | 93.5%
+11ad5d30 | Sep 5, 22:45 | pi | 87 | minimax-m3 | 3 | 74.0 min | 26.4M | 84.0%
+94a51f93 | Sep 5, 22:38 | hermes | 92 | glm-5.3-flash | 9 | 47.9 min | 5.6M | 97.8%
+a7620a10 | Sep 5, 22:36 | pi | 6 | deepseek-v4-flash | 3 | 1.6 min | 17.2k | 76.1%
+25c87e67 | Sep 5, 22:25 | oh-my-pi | 79 | deepseek-v4-flash | 3 | 17.8 min | 11.7M | 98.5%
+e9440339 | Sep 5, 22:23 | hermes | 72 | glm-5.3 | 2 | 35.9 min | 4.5M | 98.6%
+c6939f67 | Sep 5, 22:20 | claude-code | 203 | deepseek-v4-flash | 15 | 98.9 min | 32.6M | 5.5%
+3cf3788d | Sep 5, 22:16 | hermes | 25 | deepseek-v4-flash | 4 | 9.4 min | 2.0M | 91.6%
+3cc79cd3 | Sep 5, 22:14 | hermes | 61 | deepseek-v4-flash | 2 | 2.9 min | 3.5M | 94.0%
+bd8ec8cb | Sep 5, 22:09 | pi | 10 | deepseek-v4-flash | 4 | 19.4 min | 49.2k | 82.1%
+294e69ec | Sep 5, 22:05 | pi | 35 | glm-5.3 | 3 | 8.5 min | 6.7M | 98.7%
+87d5ed06 | Sep 5, 22:02 | hermes | 50 | deepseek-v4-flash | 4 | 5.5 min | 2.6M | 94.4%

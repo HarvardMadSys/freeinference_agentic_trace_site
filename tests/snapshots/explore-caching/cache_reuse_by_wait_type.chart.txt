@@ -1,0 +1,37 @@
+<svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" width="528" height="240" viewBox="0 0 528 240" role="img" aria-label="Cache reuse by wait type: Cache reuse suffers most when control returns to the user." style="color: var(--chart-label); background: transparent; font-family: var(--font-sans);">
+<style>:where(.plot-d6a7b5) { --plot-background: white; display: block; height: auto; height: intrinsic; max-width: 100%; } :where(.plot-d6a7b5 text), :where(.plot-d6a7b5 tspan) { white-space: pre; }</style>
+<g aria-label="y-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0,18)">
+<path transform="translate(116,36)" d="M0,0L-6,0">
+</path>
+<path transform="translate(116,75)" d="M0,0L-6,0">
+</path>
+<path transform="translate(116,114)" d="M0,0L-6,0">
+</path>
+<path transform="translate(116,153)" d="M0,0L-6,0">
+</path>
+</g>
+<g aria-label="y-axis tick label" text-anchor="end" transform="translate(-8.5,18)">
+<text y="0.32em" transform="translate(116,36)">Tool wait</text>
+<text y="0.32em" transform="translate(116,75)">Ask-user tool</text>
+<text y="0.32em" transform="translate(116,114)">User idle</text>
+<text y="0.32em" transform="translate(116,153)">Subagent</text>
+</g>
+<g aria-label="bar">
+<rect x="117" width="352.7348392655281" y="37" height="33" fill="var(--cause-tool)">
+</rect>
+<rect x="117" width="333.7097824288381" y="76" height="33" fill="var(--cause-ask-user)">
+</rect>
+<rect x="117" width="304.5800290750099" y="115" height="33" fill="var(--cause-user)">
+</rect>
+<rect x="117" width="329.0346440178447" y="154" height="33" fill="var(--cause-subagent)">
+</rect>
+</g>
+<g aria-label="text" fill="var(--chart-label)" text-anchor="start" transform="translate(4.5,18)">
+<text y="0.32em" transform="translate(470.7348392655281,36)">97.5%</text>
+<text y="0.32em" transform="translate(451.7097824288381,75)">92.2%</text>
+<text y="0.32em" transform="translate(422.5800290750099,114)">84.2%</text>
+<text y="0.32em" transform="translate(447.0346440178447,153)">90.9%</text>
+</g>
+<g aria-label="tip" fill="var(--plot-background)" stroke="currentColor" pointer-events="none" text-anchor="start" transform="translate(0.5,18)">
+</g>
+</svg>

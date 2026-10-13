@@ -1,0 +1,7 @@
+16 weeks
+12,002 sessions
+1.2M requests
+209.2B input tokens
+1.2M tool calls
+13 (+1) harnesses
+May 17 – September 5, 2026

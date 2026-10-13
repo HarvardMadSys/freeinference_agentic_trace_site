@@ -1,0 +1,5 @@
+title: Tool mix along a turn
+insight: Real coding doesn't follow the neat workflow seen in benchmarks.
+caption: SWE-Bench turns shift from reading and searching toward execution and testing. Human-driven turns maintain a more varied mix of tool operations throughout execution.
+definition: Each panel divides a turn into ten equal stages and shows each tool group’s percentage of calls, for human sessions and SWE-Bench. Only main sessions count. Shell file operations are grouped by whether they read files, change files, or do neither.
+rows: 1,152,306 human-driven calls · 61,041 benchmark calls

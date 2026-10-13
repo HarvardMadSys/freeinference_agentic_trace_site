@@ -1,0 +1,5 @@
+title: Turn duration
+insight: Benchmarks keep agents working longer without human interruption.
+caption: The median SWE-Bench turn lasts 188 seconds, compared with 61 seconds for human-driven turns. Benchmark agents work continuously on a predefined task.
+definition: Each line shows the percentage of turns that finish within the time shown, for human sessions and SWE-Bench. A turn starts with a user prompt and ends with the agent’s final response. Dots mark the medians.
+rows: 84,239 human-driven turns · 1,056 benchmark turns

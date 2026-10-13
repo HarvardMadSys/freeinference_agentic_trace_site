@@ -1,0 +1,5 @@
+System | pressed=true | legend-swatch background: var(--role-system);
+User | pressed=true | legend-swatch background: var(--role-user);
+Assistant | pressed=true | legend-swatch background: var(--role-assistant);
+Tool results | pressed=true | legend-swatch background: var(--role-tool-results);
+Tool definitions | pressed=true | legend-swatch background: var(--role-tool-definitions);

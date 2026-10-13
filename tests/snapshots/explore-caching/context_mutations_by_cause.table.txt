@@ -1,0 +1,11 @@
+Transition | Steps | Sessions | Fresh prefill
+Append | 96.0% | 43.6% | 37.5%
+Mutation | 4.0% | 56.4% | 62.5%
+of which
+Injection | 1.0% | 17.1% | 7.4%
+System prompt | 0.7% | 20.3% | 26.9%
+Tool definitions | 0.4% | 21.4% | 13.9%
+Dropped turns | 0.4% | 6.5% | 5.3%
+Compaction | <0.1% | 3.7% | 0.6%
+Tool result drop | 0.5% | 5.9% | 3.2%
+Other | 1.0% | 14.5% | 5.2%

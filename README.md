@@ -59,8 +59,9 @@ The built data ships with the repository, so a clone serves the site as it is:
 
 ```bash
 make serve           # http://localhost:8000
-make test            # the Python tests and the node tests (after make setup, below)
-make setup-browser   # a headless Chromium and Playwright, for checking pages by hand; make test does not need it
+make test            # the Python tests, the node tests and the snapshot test (after make setup, below)
+make snapshots       # rewrite tests/snapshots/ when a change is meant to alter what a page shows
+make setup-browser   # the headless Chromium the snapshot test opens the pages in; without it make test skips them
 make deploy          # publish site/ to Cloudflare as the Worker's static assets (see Hosting)
 ```
 
@@ -87,8 +88,9 @@ make data RELEASE=~/freeinference_agentic_trace/release SIMULATION=~/freeinferen
 
 `make data` prints what it wrote: each index's rows, the answers' files and
 bytes, and the buckets' count and size with the median and largest bucket.
-The rebuilt data is committed with the change that needed it. A rebuild of
-the same rows writes the same bytes, so git sees only what changed; one that
+The rebuilt data is committed with the change that needed it, with the
+snapshots `make snapshots` rewrites from it. A rebuild of the same rows
+writes the same bytes, so git sees only what changed; one that
 rewrites every bucket (a new column, an edited bucket query) adds nearly the
 whole of `site/data` to the repository's history, so the data is rebuilt
 when the release, a column or a query changes, not routinely.
@@ -125,7 +127,7 @@ the rules, how the pieces fit together, and the patterns to copy.
 README.md          this file
 CONTRIBUTING.md    the rules, the patterns, and how to add a query, a section, a figure or a Session page column
 CLAUDE.md          a pointer to the two files above, the rules that matter most and the git rules
-Makefile           setup · setup-browser · data · serve · test · deploy
+Makefile           setup · setup-browser · data · serve · test · snapshots · deploy
 .github/workflows/deploy.yml
                    deploys site/ on every push to main, then asks the published site for three files
 .nvmrc             the Node version the workflow installs
@@ -207,6 +209,10 @@ tests/             what make test runs
                    the pipeline constants the queries and modules hold a copy of, against the pipeline's own
   test_differences.py       no figure's definition names the paper
   test_repository.py        the repository's countable rules
+  snapshot.py, snapshot_units.py, test_snapshot_units.py
+                   the snapshot test: nine states of the pages opened in headless Chromium, each unit they show (a
+                   chart, a table, a legend, a block of text) read as text and compared with tests/snapshots/
+  snapshots/       one folder per page state, one text file per unit, rewritten by make snapshots
   *.test.js        node --test, one file per JavaScript module with pure functions
 openspec/          the specifications and the changes that built the site
 ```

@@ -480,8 +480,22 @@ which is plain HTML.
 
 ```bash
 make test PIPELINE=<the pipeline's checkout>   # with the paper-parity tests
+make snapshots # when the change is meant to alter what a page shows
 make serve     # then open http://localhost:8000
 ```
+
+`make test` ends with the snapshot test (`tests/snapshot.py`): it opens nine
+states of the pages in headless Chromium (the Explore page with each
+Insights topic shown, one session in each of its three views) and compares
+every chart, table, legend and block of text they show with its text file
+in `tests/snapshots/`, failing with the name of each unit that changed. A
+change that is meant to alter a chart or a text, a data rebuild among them,
+runs `make snapshots` to rewrite the files and commits them with the
+change. The diff of `tests/snapshots/` is reviewed like code: it is what a
+visitor will see differently, and a line there that the change did not mean
+to move is a bug. A change that should alter nothing a visitor sees, such
+as a refactoring, leaves the snapshots as they are. Without Chromium
+(`make setup-browser`) the snapshot test skips, saying so.
 
 Before committing anything that touches a page: open it at 360 px wide and
 at desktop width, in light and dark mode; check the console is clean; check
