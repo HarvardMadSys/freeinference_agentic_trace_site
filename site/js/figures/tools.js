@@ -51,16 +51,16 @@ const MEDIAN_TICK_INSET = 4; // pixels taken off the top and bottom of a categor
 const ASTERISK_NOTE = "* a shell command, by its purpose";
 
 /** The Tools topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
-export const TAKEAWAY = "Tool latency and result size differ by category; most calls go one at a time, though batching keeps latency flat.";
+export const TAKEAWAY = "Most requests call one tool; calling tools together can reduce total waiting time.";
 
 /** The figures of the Tools section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
   Object.freeze({
     name: "latency_by_category",
     title: "Tool latency by category",
-    insight: "Local tools are fast; builds and waits are slow, with long tails.",
-    definition: "The 5th, 25th, 50th, 75th and 95th percentiles of a tool call's latency, the wait after its request until the session's next, per category, over calls alone in their request; * marks a shell command's purpose.",
-    caption: "Tool call latency per category, box p25–p75, whiskers p5–p95.",
+    insight: "Even simple tools can have surprisingly long delays.",
+    definition: "Tool wait times by category, counting only requests that call one tool. Wait time starts when the model response ends and stops at the next request; boxes show the middle 50% and whiskers show the 5th–95th percentiles. An asterisk marks shell commands grouped by what they do.",
+    caption: "Read, Edit, Search, and File Ops have median latencies near one second, while Build/Test and Subagent calls take much longer. Long tails mean even fast categories occasionally stall for minutes.",
     query: "figures/latency_by_category",
     binColumn: "category",
     draw: drawLatency,
@@ -68,9 +68,9 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "result_tokens_by_category",
     title: "Tool result size by category",
-    insight: "Reads return the most tokens and drive context growth.",
-    definition: "The 5th, 25th, 50th, 75th and 95th percentiles of the tokens of a tool call's result per category, over calls whose result was matched; * marks a shell command's purpose.",
-    caption: "Tool result tokens per category, box p25–p75, whiskers p5–p95.",
+    insight: "Reading code contributes far more context than writing it.",
+    definition: "Tokens returned by each tool category, counting only calls with a known result. Boxes show the middle 50% and whiskers show the 5th–95th percentiles. An asterisk marks shell commands grouped by what they do.",
+    caption: "Read operations produce 33.9% of tool-result tokens despite accounting for only 16.3% of calls. Edit and Write operations typically return fewer than 50 tokens.",
     query: "figures/result_tokens_by_category",
     binColumn: "category",
     draw: drawResultTokens,

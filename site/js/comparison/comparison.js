@@ -10,7 +10,7 @@
 import { INPUT_PER_REQUEST_BY_SCOPE, SESSION_DURATION_BY_SCOPE, TURN_DURATION_BY_SCOPE } from "./scope_cdfs.js";
 
 /** The Human-driven-against-benchmark topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
-export const TAKEAWAY = "Benchmark replays run shorter, carry smaller contexts and never idle, so they understate what serving needs.";
+export const TAKEAWAY = "Human sessions last longer and use larger inputs than SWE-Bench sessions.";
 
 /** The figures of the Human-driven-against-benchmark section, in the order the page shows them. */
 export const FIGURES = Object.freeze([

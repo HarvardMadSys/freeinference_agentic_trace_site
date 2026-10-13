@@ -44,9 +44,9 @@ const BAR_LABEL_GAP = 4; // pixels between a bar's end and its label
 export const TTFT_CDF_BY_MODEL = Object.freeze({
   name: "ttft_cdf_by_model",
   title: "Time to first token by model",
-  insight: "Time to first token is overhead, not prefill.",
-  definition: "Share of requests whose time to first token is at most each value, per model, over requests whose TTFT is trusted (positive and under 95% of the latency), for the five busiest models.",
-  caption: "Time to first token of each request, for the five busiest models.",
+  insight: "Most of the first-token wait isn't spent processing input.",
+  definition: "Each line shows the percentage of requests that receive their first output token within the time shown, for the five busiest models. This time includes input processing and waiting at the server. Measurements count only when positive and below 95% of total request time.",
+  caption: "On the two externally routed models, median time to first token is roughly four seconds, while estimated prefill typically takes less than 0.1 seconds. Serving overhead accounts for most of the delay.",
   drawsLines: true,
   query: "figures/ttft_cdf_by_model",
   binColumn: "series",
@@ -60,9 +60,9 @@ export const TTFT_CDF_BY_MODEL = Object.freeze({
 export const DECODE_CDF_BY_MODEL = Object.freeze({
   name: "decode_cdf_by_model",
   title: "Decode time by model",
-  insight: "Decode is short because outputs are short.",
-  definition: "Share of requests whose decode time (latency minus time to first token) is at most each value, per model, over requests whose TTFT is trusted, for the same five models.",
-  caption: "Latency minus time to first token, for the same five models.",
+  insight: "Agents generate short responses, leaving relatively little decoding work.",
+  definition: "Each line shows the percentage of requests that finish generating output within the time shown, for the five busiest models. Generation time is total request time minus time to first token. Only requests with reliable first-token measurements are included.",
+  caption: "Requests generate only a few hundred output tokens at the median, keeping typical decode latency around one to three seconds on the externally routed models.",
   drawsLines: true,
   query: "figures/decode_cdf_by_model",
   binColumn: "series",
@@ -75,10 +75,10 @@ export const DECODE_CDF_BY_MODEL = Object.freeze({
 /** The speed-up figure: the sessions' machine time over the same with prefill, decode or tool time alone halved. */
 export const SPEEDUP_IF_TWICE_AS_FAST = Object.freeze({
   name: "speedup_if_twice_as_fast",
-  title: "Speed-up if twice as fast",
-  insight: "Faster tools buy more than faster prefill or decode.",
-  definition: "The top-level sessions' machine time (prefill, decode and tool time) over the same with one part alone halved, prefill being the time to first token where trusted and a tool wait counting for at most 15 minutes.",
-  caption: "Machine-time speed-up if prefill, decode or tools ran twice as fast.",
+  title: "Speedup by component",
+  insight: "Faster tools improve agent performance more than faster inference.",
+  definition: "Estimated speedup if input processing (prefill), output generation (decode), or tool execution takes half as long. Each bar changes one component and uses total active time across main sessions. User waits are excluded, each tool wait is capped at 15 minutes, and prefill time uses reliable time-to-first-token measurements.",
+  caption: "In a simulated speedup analysis excluding user idle time, doubling tool throughput yields a 1.38× speedup, compared with 1.09× for prefill and 1.16× for decoding.",
   query: "figures/speedup_if_twice_as_fast",
   binColumn: null,
   seriesOverSameRows: true,
@@ -86,7 +86,7 @@ export const SPEEDUP_IF_TWICE_AS_FAST = Object.freeze({
 });
 
 /** The Latency topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
-export const TAKEAWAY = "Serving overheads shape time to first token, tools dominate active time, and user idle dominates the session.";
+export const TAKEAWAY = "Tools take the most active time; waiting for users accounts for half of total session time.";
 
 /** The figures of the Latency section, in the order the page shows them. */
 export const FIGURES = Object.freeze([

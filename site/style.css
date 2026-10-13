@@ -1237,7 +1237,7 @@ section[id] {
   color: var(--color-text-muted);
 }
 
-/* The one short line of what a figure draws: under its chart where the card has an insight, else under its title. */
+/* Evidence for an insight below its chart, or a description below the title of a figure without an insight. */
 .figure-caption {
   font-size: 0.875rem;
   color: var(--color-text-muted);

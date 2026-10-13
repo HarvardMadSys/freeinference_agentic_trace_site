@@ -38,10 +38,10 @@ const CALLOUT_HALO = 4; // pixels of the card's colour around the callout's text
 /** The figure of what an API customer pays per TTL, stacked by part, the knee called out. */
 export const API_COST_BY_TTL = Object.freeze({
   name: "api_cost_by_ttl",
-  title: "API cost by TTL",
-  insight: "API cost flattens after thirty minutes of retention.",
-  definition: "Each TTL's simulated API cost for the paper's harnesses in every simulated week, at the pipeline's prices (cached 1, uncached 10, output 50), stacked by part, over the one-minute total; the shortest TTL within 5% of the lowest is marked.",
-  caption: "An API customer's cost at each cache TTL, against a one-minute TTL.",
+  title: "API cost by cache retention time",
+  insight: "Most API savings come from relatively short cache retention.",
+  definition: "Simulated API cost for different cache retention times, compared with a one-minute cache. Prices per 1 million tokens are $1 for cached input, $10 for uncached input, and $50 for output. The marker shows the shortest retention time with a cost within 5% of the lowest cost.",
+  caption: "Extending retention from one to 30 minutes reduces modeled API cost by 35%. Longer retention continues reducing recomputation, but provides diminishing additional savings.",
   query: "figures/api_cost_by_ttl",
   binColumn: "part",
   seriesColumn: "part",
@@ -56,10 +56,10 @@ export const API_COST_BY_TTL = Object.freeze({
 /** The figure of what an inference provider pays per TTL, recomputing against storing, the cheapest TTL called out. */
 export const INFRASTRUCTURE_COST_BY_TTL = Object.freeze({
   name: "infrastructure_cost_by_ttl",
-  title: "Infrastructure cost by TTL",
-  insight: "Infrastructure cost bottoms at fifteen minutes.",
-  definition: "Each TTL's simulated serving cost for the paper's harnesses in every simulated week: prefilling missed tokens at $1 per million plus keeping reusable and dead tokens at $30 per million a day, over the one-minute total.",
-  caption: "Serving cost at each TTL: recomputing misses against storing tokens.",
+  title: "Serving cost by cache retention time",
+  insight: "The cache that saves the most computation isn't the cheapest to run.",
+  definition: "Simulated serving cost for different cache retention times, compared with a one-minute cache. Processing uncached input costs $1 per 1 million tokens. Storage costs $30 per 1 million tokens per day, including tokens that will not be used again.",
+  caption: "Simulated infrastructure cost reaches its minimum at 15 minutes, falling to 42% of the one-minute baseline. Longer retention increases storage cost faster than it reduces recomputation.",
   query: "figures/infrastructure_cost_by_ttl",
   binColumn: "part",
   seriesColumn: "part",

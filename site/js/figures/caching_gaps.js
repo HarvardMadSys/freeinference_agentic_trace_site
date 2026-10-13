@@ -59,10 +59,10 @@ const BAR_INSET = 1; // pixels taken off each side of a bar: a 2px gap between n
 export const GAP_FIGURES = Object.freeze({
   hitRatioByGapBin: Object.freeze({
     name: "hit_ratio_cdf_by_gap_bin",
-    title: "Hit ratio by gap before the request",
-    insight: "Reuse survives a minute and fades by an hour.",
-    definition: "Share of requests with at most each hit ratio (cached over input tokens), in each of six bins of the gap before them, the wait since their session's previous request ended, shortest gap lightest.",
-    caption: "Hit ratio of each request, by its gap since the previous one.",
+    title: "Cache hits after a wait",
+    insight: "Taking a break can turn reused context into fresh work.",
+    definition: "Each line groups requests by how long they waited after the previous request ended. It shows the percentage of requests at or below each cache hit ratio: cached input tokens divided by total input tokens. Lighter lines show shorter waits.",
+    caption: "Prefix reuse stays high when requests arrive within one minute, but falls to roughly 58% after 15–30 minutes and just 18% after gaps longer than an hour.",
     drawsLines: true,
     query: "figures/hit_ratio_cdf_by_gap_bin",
     binColumn: "series",
@@ -73,9 +73,9 @@ export const GAP_FIGURES = Object.freeze({
   gapByCause: Object.freeze({
     name: "gap_cdf_by_cause",
     title: "Gap before a request by cause",
-    insight: "Tool gaps last seconds; user idle lasts minutes.",
-    definition: "Share of gaps before a request, the wait since its session's previous request ended, at most each length, by what the gap waited for; a gap under 0.1 s is drawn at 0.1 s.",
-    caption: "Gap before each request, by what it waited for.",
+    insight: "Human pauses are far longer than routine tool execution.",
+    definition: "Each line shows the percentage of waits that end within the time shown, grouped by what the session waited for. Wait time is measured from one request’s end to the next request’s start. Waits below 0.1 seconds are shown at 0.1 seconds.",
+    caption: "Ordinary tool gaps last a median of 1.8 seconds, compared with 96.5 seconds between user turns. Subagents and tools requesting human input introduce additional long waits.",
     drawsLines: true,
     query: "figures/gap_cdf_by_cause",
     binColumn: "series",
@@ -85,10 +85,10 @@ export const GAP_FIGURES = Object.freeze({
   }),
   meanHitRatioByCause: Object.freeze({
     name: "mean_hit_ratio_by_cause",
-    title: "Mean hit ratio by cause",
-    insight: "Misses follow user waits, not tool loops.",
-    definition: "Mean hit ratio (cached over input tokens) of requests by what the gap before them waited for, each bar drawn from 0% with its value written beside it.",
-    caption: "Mean hit ratio of requests, by what the gap before waited for.",
+    title: "Cache reuse by wait type",
+    insight: "Cache reuse suffers most when control returns to the user.",
+    definition: "The average percentage of input tokens read from cache, grouped by what the session waited for before the request. For each request, this percentage is cached input divided by total input.",
+    caption: "Ordinary tool calls preserve an average cache-hit ratio of 97.5%, compared with just 84% following user idle periods. Subagent and Ask User waits also reduce reuse.",
     query: "figures/mean_hit_ratio_by_cause",
     binColumn: "waited_for",
     draw: drawMeanHitRatioByCause,
@@ -96,9 +96,9 @@ export const GAP_FIGURES = Object.freeze({
   mutationsByCause: Object.freeze({
     name: "mutations_by_cause",
     title: "Context mutations by cause",
-    insight: "Mutations are rare per step, common per session, costly.",
-    definition: "Per transition and mutation cause, over top-level requests after their session's first, model and provider switches left out: its share of steps, of sessions having one (for appends, having no mutation), and of simulated tokens missed with no TTL.",
-    caption: "How often each kind of context change happens, and its prefill.",
+    insight: "Rare context changes are responsible for most recomputation.",
+    definition: "The table shows how often each change occurs and its percentage of uncached input processing, assuming the cache never expires. Append adds messages; mutation changes earlier messages. First requests and model or provider switches are excluded; session percentages count sessions with each change, except Append counts sessions with no mutations.",
+    caption: "Only 4% of request transitions modify earlier context, yet these mutations account for 62.5% of fresh prefill even under infinite cache retention.",
     query: "figures/mutations_by_cause",
     binColumn: null,
     seriesOverSameRows: true,
@@ -107,10 +107,10 @@ export const GAP_FIGURES = Object.freeze({
   }),
   hitRatioByTransition: Object.freeze({
     name: "hit_ratio_cdf_by_transition",
-    title: "Hit ratio after a context change",
-    insight: "A context mutation throws the prefix away.",
-    definition: "Share of requests with at most each hit ratio (cached over input tokens), of those that append to the context before them and of those that rewrite it (a mutation); a switch of model or provider is not drawn.",
-    caption: "Hit ratio of requests that append to the context or rewrite it.",
+    title: "Cache reuse after context changes",
+    insight: "Rewriting old messages can invalidate an otherwise reusable context.",
+    definition: "Each line shows the percentage of requests at or below each cache hit ratio: cached input divided by total input. Append means adding messages; mutation means changing earlier messages. Requests that switch model or provider are excluded.",
+    caption: "Cache-hit ratios are substantially lower after context mutations than append-only steps. Changes to early content, such as system prompts or tool definitions, invalidate large portions of cached prefixes.",
     drawsLines: true,
     query: "figures/hit_ratio_cdf_by_transition",
     binColumn: "series",
@@ -180,7 +180,7 @@ function drawMutationsByCause(rows, body) {
   table.innerHTML = `
     <thead><tr>
       <th>Transition</th><th class="is-number">Steps</th>
-      <th class="is-number">Sessions</th><th class="is-number">Prefill missed</th>
+      <th class="is-number">Sessions</th><th class="is-number">Fresh prefill</th>
     </tr></thead>
     <tbody></tbody>`;
   const lines = mutationTableLines(rows);

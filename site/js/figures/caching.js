@@ -30,17 +30,17 @@ const IDLE_GAP_TICK_SECONDS = Object.freeze([10, 60, 600, 3600]);
 const MARKER_RADIUS = 3; // pixels; the small markers on the idle-gap lines
 
 /** The Prefix-caching topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
-export const TAKEAWAY = "Reuse is high inside model and tool loops and breaks on user waits and context mutations.";
+export const TAKEAWAY = "Long waits and changes to earlier messages reduce cache hits.";
 
 /** The figures of the Prefix-caching section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
   GAP_FIGURES.hitRatioByGapBin,
   Object.freeze({
     name: "hit_ratio_by_idle_gap",
-    title: "Hit ratio after an idle gap",
-    insight: "Providers retain prefixes from minutes to an hour, invisibly.",
-    definition: "Median hit ratio per idle-gap bin (time since the same user's previous request finished; 26 geometric bins, 10 s to 1 h) for the eight providers with most requests, named by the release's fixed anonymous letters.",
-    caption: "Median hit ratio by time since the user's last request, per provider.",
+    title: "Cache reuse by provider",
+    insight: "The same pause can be a cache hit on one provider and a miss on another.",
+    definition: "The median percentage of input tokens read from cache, grouped by time since the same user’s previous request ended. Each line shows one of the eight busiest providers, labeled with a letter. Wait times range from 10 seconds to one hour.",
+    caption: "One provider's median cache-hit ratio falls below 50% after 15 minutes, while another maintains high reuse near one hour, revealing substantial differences in cache retention.",
     drawsLines: true,
     query: "figures/hit_ratio_by_idle_gap",
     binColumn: null,

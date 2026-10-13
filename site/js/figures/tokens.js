@@ -52,16 +52,16 @@ const MARKER_RADIUS = 3; // pixels; the small markers on the token growth lines
 const MAX_BAR_LABELS = 5; // a bar chart's axis labels at most this many bars, so the labels fit a phone's width
 
 /** The Tokens-and-cost topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
-export const TAKEAWAY = "Requests reuse large, growing contexts while adding little, so cache reads dominate tokens and cost.";
+export const TAKEAWAY = "Most input tokens are cached, and cache reads account for most API cost at the stated prices.";
 
 /** The figures of the Tokens-and-cost section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
   Object.freeze({
     name: "tokens_per_request_cdf",
     title: "Tokens per request",
-    insight: "Each request adds little to a large context.",
-    definition: "Share of requests with at most each number of input tokens, uncached input tokens (where the provider reports cache reads) and output tokens (where there are more than one).",
-    caption: "Input, uncached input and output tokens of each request.",
+    insight: "Huge inputs don't necessarily mean huge computation.",
+    definition: "Each line shows the percentage of requests with this many tokens or fewer, for total input, uncached input, and output. Uncached input counts only requests with reported cache usage. Output excludes responses with one token or fewer.",
+    caption: "A median request carries 129K input tokens, but only about 500 are uncached and require fresh processing. Outputs contain just a few hundred tokens.",
     drawsLines: true,
     query: "figures/tokens_per_request_cdf",
     binColumn: "series",
@@ -73,9 +73,9 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "token_split_by_week",
     title: "Token split by week",
-    insight: "Cached input is almost all of the tokens, every week.",
-    definition: "Per week, the share of cached input, uncached input and output in the tokens of requests whose provider reports cache reads, each token counted once whatever its price.",
-    caption: "Share of cached input, uncached input and output tokens, each week.",
+    insight: "Most token traffic is the same context being read again and again.",
+    definition: "Each bar shows the percentages of cached input, uncached input, and output tokens in one week. Only requests with reported cache usage are included. Tokens are counted equally, regardless of price.",
+    caption: "Cached input dominates the token mix across weeks. Overall, cached input accounts for 97.4% of token volume among requests with reported cache usage, far exceeding fresh input and output.",
     query: "figures/token_split_by_week",
     binColumn: "week",
     seriesColumn: "part",
@@ -85,9 +85,9 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "token_growth_by_messages",
     title: "Token growth with the context",
-    insight: "The cached prefix grows all session; new tokens stay small.",
-    definition: "Median cached, uncached and output tokens per request, by the number of messages in the request, in fixed power-of-two bins of messages.",
-    caption: "Median tokens per request, by messages in the request.",
+    insight: "Contexts keep growing, but each step adds surprisingly little.",
+    definition: "Median cached input, uncached input, and output tokens per request, grouped by how many messages the request contains. The groups are 1 message, 2–3 messages, 4–7 messages, and so on.",
+    caption: "As request histories grow, cached input reaches hundreds of thousands of tokens, while newly processed input falls toward roughly 1K tokens and output remains near 200 tokens per request.",
     drawsLines: true,
     query: "figures/token_growth_by_messages",
     binColumn: "bin_start",
@@ -97,9 +97,9 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "context_share_by_role",
     title: "Context share by role",
-    insight: "Tool results fill mid-session contexts; assistant history fills the longest.",
-    definition: "Share of the input held by system, user, assistant and tool messages and tool definitions, the tokens of every request pooled per power-of-two bin of input tokens (4k is 4,096).",
-    caption: "Share of the input held by each role, by input size.",
+    insight: "The agent's own responses eventually dominate its context.",
+    definition: "Each bar shows the percentage of input tokens from system instructions, users, the assistant, tool results, and tool definitions. Requests are grouped by input size, with each group twice the size of the previous one. Here, 4k means 4,096 tokens.",
+    caption: "System prompts dominate initially, followed by growing tool results. In longer contexts, tool history is pruned while assistant messages continue accumulating and become the largest component.",
     query: "figures/context_share_by_role",
     binColumn: "bin_start",
     seriesColumn: "role",
@@ -109,9 +109,9 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "cached_fraction_per_request",
     title: "Cached share per request",
-    insight: "Most requests reuse nearly all of their prefix.",
-    definition: "Cached over input tokens of each top-level request whose provider reports cache reads, in bins of 5%, the requests of each bin counted on a log axis.",
-    caption: "Cached over input tokens, where the provider reports cache reads.",
+    insight: "Cache hits are the norm, not the exception.",
+    definition: "The percentage of each request’s input tokens read from cache, grouped into 5% ranges. Only main-session requests with reported cache usage are included. The vertical axis counts requests on a log scale.",
+    caption: "Requests typically reuse nearly all their input tokens. Across requests with reported cache usage, cached tokens account for more than 97% of total token volume.",
     query: "explore/cached_fraction_bins",
     statsQuery: "explore/cached_fraction_stats",
     countLabel: "Requests",

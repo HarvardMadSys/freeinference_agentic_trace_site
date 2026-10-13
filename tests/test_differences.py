@@ -23,7 +23,7 @@ FIGURE_ENTRY_QUERY = re.compile(r'query: "(?:figures|explore)/\w+"')  # one per 
 PAPER_POPULATION = "the paper's harnesses"
 FIGURE_QUERIES = SITE_FOLDER / "queries" / "figures"
 MODEL_QUERIES = [FIGURE_QUERIES / "ttft_cdf_by_model.sql", FIGURE_QUERIES / "decode_cdf_by_model.sql"]
-IDLE_GAP_TITLE = "Hit ratio after an idle gap"
+IDLE_GAP_TITLE = "Cache reuse by provider"
 NUMBER_WORDS = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten")
 
 
@@ -89,7 +89,7 @@ def test_no_figure_definition_names_the_paper() -> None:
 
 
 def test_the_list_leaves_out_what_the_paper_does_too() -> None:
-    assert "**Hit ratio after a context change**" not in differences()
+    assert "**Cache reuse after context changes**" not in differences()
 
 
 def test_the_thin_bins_are_the_browser_s_and_the_pipeline_s() -> None:
@@ -114,5 +114,5 @@ def test_the_models_and_providers_are_the_queries_and_the_paper_s() -> None:
 
 def test_the_idle_gap_providers_are_those_the_figure_draws() -> None:
     drawn = f"the {NUMBER_WORDS[series_slot_count()]} providers with most requests"
-    assert drawn in figure_definition(IDLE_GAP_TITLE)
+    assert f"the {NUMBER_WORDS[series_slot_count()]} busiest providers" in figure_definition(IDLE_GAP_TITLE).lower()
     assert f"a line for each of {drawn}" in difference_item(IDLE_GAP_TITLE)

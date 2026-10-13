@@ -28,16 +28,16 @@ const DURATION_TICKS_S = Object.freeze([1, 60, 3600, 86400]); // a second, a min
 const SUBAGENT_TICKS = Object.freeze([1, 3, 10, 30]);
 
 /** The Session-structure topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
-export const TAKEAWAY = "A session is a few prompts and tens of model and tool steps, with long idle gaps between turns.";
+export const TAKEAWAY = "Sessions have a few user prompts, dozens of model requests, and long waits between prompts.";
 
 /** The figures of the Session-structure section, in the order the page shows them. */
 export const FIGURES = Object.freeze([
   Object.freeze({
     name: "requests_per_session_cdf",
     title: "Requests and steps per session",
-    insight: "A few prompts drive tens of model requests.",
-    definition: "Share of top-level sessions with at most each number of requests, user steps and tool steps; a session with no tool step is drawn at one.",
-    caption: "Requests, user steps and tool steps of each top-level session.",
+    insight: "A handful of user prompts can trigger hundreds of LLM and tool interactions.",
+    definition: "Each line shows the percentage of main sessions with this many requests or fewer. The lines count all model requests, requests after user prompts, and requests after tool results. Sessions with no tool requests are shown at one on the log scale.",
+    caption: "A median session contains just 4 user steps, compared with 42 LLM requests and 36 tool steps. Most activity happens within the autonomous LLM–tool loop.",
     drawsLines: true,
     query: "figures/requests_per_session_cdf",
     binColumn: "series",
@@ -49,9 +49,9 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "duration_cdf",
     title: "Turn and session duration",
-    insight: "Sessions are mostly idle time between turns.",
-    definition: "Share of turns, and of top-level sessions, that last at most each duration; a turn is a user step and the tool steps after it, from first start to last end.",
-    caption: "Duration of each turn and of each top-level session.",
+    insight: "Agents work in short bursts, but sessions stay alive while humans think.",
+    definition: "Each line shows the percentage of turns or main sessions that finish within the time shown. A turn starts with a user prompt and ends with the agent’s final response. A session includes all turns and the waits between them.",
+    caption: "The median turn lasts about one minute, while the median session spans 30 minutes. The difference largely comes from idle time between user turns.",
     drawsLines: true,
     query: "figures/duration_cdf",
     binColumn: "series",
@@ -63,9 +63,9 @@ export const FIGURES = Object.freeze([
   Object.freeze({
     name: "subagents_per_session",
     title: "Subagents per session",
-    insight: "Subagents are rare, and usually one at a time.",
-    definition: "Subagent sessions each top-level session spawned, at any depth, on a log scale; a session that spawned none is counted in the rows, the median and the 95th percentile, but not drawn.",
-    caption: "Subagents per session; most spawn none, those that do are drawn.",
+    insight: "Multi-agent coding is still mostly single-agent coding.",
+    definition: "The number of subagents started by each main session, including subagents started by other subagents. Sessions with no subagents count toward the summary statistics but are not shown on the log scale.",
+    caption: "Nearly 90% of sessions never invoke subagents. Even when used, most subagent calls spawn just one child rather than multiple agents in parallel. Sessions with zero subagents are excluded from the bars.",
     query: "explore/subagents_per_session_bins",
     statsQuery: "explore/subagents_per_session_stats",
     countLabel: "Sessions",

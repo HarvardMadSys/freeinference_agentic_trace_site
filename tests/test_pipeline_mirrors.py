@@ -44,16 +44,16 @@ EDGE_TOLERANCE = 1e-9  # relative; the browser computes the geometric edges itse
 # The figure queries that restate a pipeline definition in SQL, each with its figure's title. Each is read by a mirror
 # test, and the repository's documents name exactly these.
 RESTATING_QUERIES = {
-    "cost_share_by_session": "Cost share by session",
-    "session_time_by_part": "Session time by part",
-    "speedup_if_twice_as_fast": "Speed-up if twice as fast",
+    "cost_share_by_session": "Cost breakdown by session",
+    "session_time_by_part": "Where session time goes",
+    "speedup_if_twice_as_fast": "Speedup by component",
     "calls_per_request_by_category": "Calls per request by category",
     "latency_by_batch_width": "Tool latency by batch width",
     "tool_mix_by_turn_position": "Tool mix along a turn",
     "mutations_by_cause": "Context mutations by cause",
-    "prefill_against_storage": "Prefill against storage",
-    "api_cost_by_ttl": "API cost by TTL",
-    "infrastructure_cost_by_ttl": "Infrastructure cost by TTL",
+    "prefill_against_storage": "Input processing versus cache storage",
+    "api_cost_by_ttl": "API cost by cache retention time",
+    "infrastructure_cost_by_ttl": "Serving cost by cache retention time",
 }
 MIRROR_TESTS = sorted(pathlib.Path(__file__).resolve().parent.glob("test_pipeline_mirrors*.py"))  # read the copies
 # The documents that list the restating queries, each as `figures/<name>.sql`.

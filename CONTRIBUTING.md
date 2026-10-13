@@ -295,15 +295,17 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
 - `name`: the figure's id, also the id of its card on the page.
 - `title`: the card's heading.
 - `insight`: the card's point, under its title: one sentence of at most
-  twelve words saying what the chart means, not what it draws ("Sessions are
+  twenty words saying what the chart means, not what it draws ("Sessions are
   mostly idle time between turns."); a number appears only where the number
   is the point. The sentences are the paper's claims, and no test checks one
   against the data.
-- `caption`: the card's one short line under the chart, a sentence of at most
-  twelve words saying what is drawn, with nothing the axes and legend already
-  say.
-- `definition`: one sentence of at most forty words saying what is drawn, in
-  plain words ("share of requests at or below each …", not "CDF");
+- `caption`: evidence supporting the insight, shown under the chart in up
+  to three short sentences and at most forty words total; use measurements,
+  comparisons or trends from the paper, with relevant qualifications.
+- `definition`: up to three short sentences, at most sixty words in total,
+  explaining what is drawn in plain words ("percentage of requests at or
+  below each …", not "CDF"); spell out price units and explain technical
+  terms where they are used instead of packing clauses into one sentence;
   where the site draws more simply than the paper, `docs/differences.md`
   says how, not the definition; shown behind the Definition control.
 - `query`: the query whose answer it draws, as `runQuery` names it
@@ -400,9 +402,10 @@ words, and their tests. Nothing about it runs in the browser.
    than the query's text.
 3. **The entry and the draw function**, in its section's module or a module
    it takes entries from (`js/figures/`, `js/simulation/`, `js/comparison/`):
-   a frozen figure entry with its `title`, an `insight` and a `caption`, each
-   one sentence of at most twelve words, and a one-sentence `definition` of at
-   most forty, and a
+   a frozen figure entry with its `title`, an `insight` of one sentence and
+   at most twenty words, a `caption` of up to three sentences and forty
+   words total, and a `definition` of up to three
+   short sentences and at most sixty words in total, and a
    draw function that loads Plot where it needs it and colours its series
    from `colours`. Its
    pure parts (rows to series, bars or stacks) are exported and tested with
@@ -495,7 +498,7 @@ which is plain HTML.
 - **One axis.** Two measures of different scale are two charts.
 - **The card.** A figure of the Insights shows its title, its insight, its
   legend above the chart (none, and no room kept for one, where it has a
-  single series), its one-line caption under the chart, and a Definition
+  single series), its evidence caption under the chart, and a Definition
   control that opens on its full definition and
   the rows it rests on. A legend names only what is drawn, and everything
   drawn has an entry or a label on the chart.

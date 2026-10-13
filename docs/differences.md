@@ -15,7 +15,7 @@ below are the queries' and the pipeline's.
   takes each request's share per bin of messages and its main figure leaves
   tool definitions out.
 - **Token split by week**: plain token shares per week, where the paper
-  weights tokens by price and ranks sessions; **Cost share by session** does
+  weights tokens by price and ranks sessions; **Cost breakdown by session** does
   that, as the paper does, at the pipeline's prices: cached, uncached and
   output at 1 : 10 : 50.
 - **Time to first token by model** and **Decode time by model**: the five
@@ -25,9 +25,9 @@ below are the queries' and the pipeline's.
   estimate.
 - **Tool latency by category** and **Tool result size by category**:
   percentiles per category, where the paper also marks the mean.
-- **Mean hit ratio by cause**: each bar from 0%, where the paper starts its
+- **Cache reuse by wait type**: each bar from 0%, where the paper starts its
   bars at 70% so that their differences show.
-- **Hit ratio after an idle gap**: the pipeline's fixed idle-gap bins, each
+- **Cache reuse by provider**: the pipeline's fixed idle-gap bins, each
   drawn at its middle, a line for each of the eight providers with most
   requests, where the paper merges a thin bin into the next, draws each bin at
   its requests' median gap and shows the four providers with most idle gaps.

@@ -29,10 +29,10 @@ const SHARE_DOMAIN = Object.freeze([0, 1]); // the y axis spans a whole share, w
 /** The cost share figure: each session's cost split between its token parts, sessions ranked by cached share. */
 export const COST_SHARE_BY_SESSION = Object.freeze({
   name: "cost_share_by_session",
-  title: "Cost share by session",
-  insight: "Cache reads are most of the API bill.",
-  definition: "Each top-level session's cost at the pipeline's prices (cached 1, uncached 10, output 50 per token), over requests reporting cache reads, split by token kind, sessions ranked by cached share and each rank bin's mean shares stacked.",
-  caption: "Each session's cost by token kind, sessions ranked by cached share.",
+  title: "Cost breakdown by session",
+  insight: "Even discounted cache reads become the biggest API expense.",
+  definition: "The percentage of each session’s API cost spent on each token type. Prices are $1 per 1 million cached input tokens, $10 per 1 million uncached input tokens, and $50 per 1 million output tokens. Only requests with reported cache usage count; sessions are sorted by cached cost percentage, then averaged in groups.",
+  caption: "Cached input accounts for 72.9% of modeled API cost, despite costing one-tenth as much per token as uncached input. Its enormous volume outweighs the pricing discount.",
   query: "figures/cost_share_by_session",
   binColumn: "ranked_bin",
   seriesOverSameRows: true,
@@ -43,10 +43,10 @@ export const COST_SHARE_BY_SESSION = Object.freeze({
 /** The session time figure: each session's time in prefill, decode, tool wait and user idle, ranked by idle share. */
 export const SESSION_TIME_BY_PART = Object.freeze({
   name: "session_time_by_part",
-  title: "Session time by part",
-  insight: "Half a session is user thinking; tools take most of the rest.",
-  definition: "Each top-level session's time as prefill, decode, tool waits (for a tool or subagent) and user idle (waits for the user or an ask-user tool), sessions ranked by user-idle share, each rank bin's mean shares stacked.",
-  caption: "Each session's time in prefill, decode, tool wait and user idle.",
+  title: "Where session time goes",
+  insight: "Most session time is spent outside the LLM.",
+  definition: "Each main session’s time is split into input processing, output generation, tool or subagent waits, and user waits. Sessions are sorted by the percentage of time spent waiting for users, then averaged in groups. Input processing time is estimated using time to first token.",
+  caption: "User idle time accounts for 50.3% of session duration and tool execution another 21.7%. Prefill and decoding together account for the remaining 28%.",
   query: "figures/session_time_by_part",
   binColumn: "ranked_bin",
   seriesOverSameRows: true,

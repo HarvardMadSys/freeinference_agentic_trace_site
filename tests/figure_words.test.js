@@ -30,18 +30,18 @@ function isOneSentence(text) {
   return text.split(SENTENCE_BREAK).length === 1;
 }
 
-test("every figure has a title and a one-sentence definition", async () => {
+test("every figure has a title and a definition of at most three sentences", async () => {
   for (const figure of await everyFigure()) {
     assert.ok(figure.title.length > 0, figure.name);
     assert.ok(figure.definition.endsWith("."), figure.name);
-    assert.ok(isOneSentence(figure.definition), `${figure.name}: one sentence`);
+    assert.ok(figure.definition.split(SENTENCE_BREAK).length <= 3, `${figure.name}: at most three sentences`);
   }
 });
 
-const MAX_CAPTION_WORDS = 12; // a caption is one line a reader takes in at a glance
-const MAX_INSIGHT_WORDS = 12; // an insight is the card's point, read before the chart
+const MAX_CAPTION_WORDS = 40; // a caption gives evidence for the insight in up to three short sentences
+const MAX_INSIGHT_WORDS = 20; // an insight states one finding or implication before the chart
 const MAX_TAKEAWAY_WORDS = 20; // a takeaway is the topic's finding, one line under its heading on a desktop
-const MAX_DEFINITION_WORDS = 40; // a definition says what is drawn, no more
+const MAX_DEFINITION_WORDS = 60; // short sentences leave room to explain units and essential assumptions
 
 // The words of `text`: its whitespace-separated tokens.
 function wordCount(text) {
@@ -60,18 +60,18 @@ test("a word is a whitespace-separated token", () => {
   assert.equal(wordCount("  two\n words "), 2);
 });
 
-test("every figure has a caption of one short sentence, at most twelve words", async () => {
+test("every figure has a caption of at most three sentences and forty words", async () => {
   for (const figure of await everyFigure()) {
     assert.equal(typeof figure.caption, "string", `${figure.name} has a caption`);
     assert.ok(figure.caption.length > 0, `${figure.name}: a caption that says something`);
     assert.ok(figure.caption.endsWith("."), figure.name);
-    assert.ok(isOneSentence(figure.caption), `${figure.name}: one sentence`);
+    assert.ok(figure.caption.split(SENTENCE_BREAK).length <= 3, `${figure.name}: at most three sentences`);
     const words = wordCount(figure.caption);
     assert.ok(words <= MAX_CAPTION_WORDS, `${figure.name}: a caption of ${words} words`);
   }
 });
 
-test("every figure has an insight of one short sentence, at most twelve words", async () => {
+test("every figure has an insight of one short sentence, at most twenty words", async () => {
   for (const figure of await everyFigure()) {
     assert.equal(typeof figure.insight, "string", `${figure.name} has an insight`);
     assert.ok(figure.insight.endsWith("."), figure.name);
@@ -91,7 +91,7 @@ test("every section has a takeaway of one sentence, at most twenty words", async
   }
 });
 
-test("every figure's definition is at most forty words", async () => {
+test("every figure's definition is at most sixty words", async () => {
   for (const figure of await everyFigure()) {
     const words = wordCount(figure.definition);
     assert.ok(words <= MAX_DEFINITION_WORDS, `${figure.name}: a definition of ${words} words`);

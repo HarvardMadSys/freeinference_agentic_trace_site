@@ -55,10 +55,10 @@ const MARKER_RADIUS = 3; // pixels; the small marker of each TTL's point
 /** The figure of prefill against storage: one curve per scope, one labelled point per TTL. */
 export const PREFILL_AGAINST_STORAGE = Object.freeze({
   name: "prefill_against_storage",
-  title: "Prefill against storage",
-  insight: "Fifteen minutes' retention catches most reuse; a day costs far more storage.",
-  definition: "In the prefix-cache simulation of every week it covers, normalised prefill (tokens missed over those missed with no TTL) against mean retained tokens (token-seconds kept over the week's span), one point per TTL, human-driven and benchmark simulated apart.",
-  caption: "Missed tokens against tokens kept, per cache TTL, human-driven and benchmark.",
+  title: "Input processing versus cache storage",
+  insight: "Keeping caches longer eventually means storing mostly dead tokens.",
+  definition: "Each point represents a simulated cache retention time: how long tokens stay cached. The chart shows average tokens stored and input tokens processed without cache, compared with a cache that never expires. Human sessions and SWE-Bench are simulated separately.",
+  caption: "One day of retention brings prefill within roughly 1% of the infinite-cache minimum, but dead cached blocks accumulate to around 120× the active token volume.",
   isWide: true,
   drawsLines: true,
   query: "figures/prefill_against_storage",

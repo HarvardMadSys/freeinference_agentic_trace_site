@@ -119,7 +119,7 @@ export function showError(container, error) {
 /**
  * Fill `container` with a figure card and return its body, the empty place to draw into. A card with an `insight`, one
  * sentence of what the chart means, shows its title, the insight, an empty place for its legend, the body and its
- * caption (one short line of what is drawn); a card without one shows its title, its caption, the legend's place and
+ * caption (evidence supporting the insight); a card without one shows its title, its caption, the legend's place and
  * the body. Both end in a Definition control that opens on the full definition and the line of rows it rests on,
  * `rows`, which may also be written later into the card's `.figure-rows`.
  */
