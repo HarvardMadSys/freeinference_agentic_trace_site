@@ -109,10 +109,12 @@ bits (under 1e-9 relative), recorded in the task's report.
   `sessions.js`, `tokens.js`, `caching_gaps.js`, `tools_batching.js`,
   `tool_mix.js`); `scopeLegend` and `modelCdfLegend` stay functions.
   `hidden` is passed to every draw; the arity check and its test go.
-- Folded: `session_requests/request_legend.js` into `requests.js`;
+- Folded, each only if the merged module still reads as one job:
+  `session_requests/request_legend.js` into `requests.js`;
   `session_charts/timeline_pointer.js` (with `scrollBox`) into
   `timeline.js`; `session/overlaps.js` into `request_brackets.js`;
-  `viewChartWidth` into `chartFrame(body).width`.
+  `viewChartWidth` into `chartFrame(body).width`. A fold that would push
+  a module past about 250 lines or mix two jobs is skipped.
 - Once: the five input roles (`INPUT_ROLES` in `session/token_parts.js`),
   `topLevelSession(tree)` in `tree.js`, `groupedBy` and `byStart` reused,
   the halo style (`LINE_LABEL_STYLE`), one percent tick, the violet slot

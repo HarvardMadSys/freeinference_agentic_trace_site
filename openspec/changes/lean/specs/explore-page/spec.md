@@ -30,10 +30,11 @@ Every series a chart draws SHALL be in its legend.
 | 06 Human-driven against benchmark (`#insights-comparison`) | `turn_duration_by_scope`, `session_duration_by_scope`, `input_per_request_by_scope` |
 
 Each figure SHALL be one query
-file answered by `make data` and one entry naming its chart kind, its
-columns and labels, and at most one annotate hook; the chart kinds
-SHALL live in `js/charts/`, one module each, and a figure SHALL NOT
-carry a draw function of its own. The definitions,
+file answered by `make data` and one entry whose `draw` is one call to
+a chart kind in `js/charts/` with its columns and labels written out,
+plus, where the paper's callout needs it, one short named function; a
+kind SHALL take only parameters two or more figures use, and a figure
+that needs more SHALL keep a plain draw function of its own. The definitions,
 parity and legend behaviour stay as they are.
 Nothing on the page SHALL run a query in the browser.
 
@@ -87,4 +88,4 @@ Nothing on the page SHALL run a query in the browser.
 
 #### Scenario: Adding a figure
 - **WHEN** a maintainer adds a figure of an existing kind
-- **THEN** the change SHALL be one `.sql` file, one entry and `make data`, with no new draw function
+- **THEN** the change SHALL be one `.sql` file, one entry whose `draw` calls the kind, and `make data`

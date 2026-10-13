@@ -3,18 +3,18 @@
 ## 1. Snapshot tests
 `tests/snapshot.py` serves `site/` on a free port, opens the nine page
 states of `simplify`'s gate in headless Chromium (Playwright, from
-`make setup-browser`), and for each state computes one SHA-256 per
-unit: each chart's SVG outer HTML (Plot's ids normalised), each table's
-header and rows, each legend's buttons and states, the stats strip, each
-card's four texts, the facts card, the request rows. The checksums are
-written to `tests/snapshots/<state>.json`, keyed by the unit's id or
-title. `make test` runs the script in compare mode and fails naming each
-unit whose checksum changed; `make snapshots` rewrites the files. The
-test skips, saying so, when Chromium is not installed. The nine states
-and the session used are constants at the top of the script, and the
-session's id is read from the bucket index so a data rebuild does not
-break it. Checksums, not the markup, so the files stay small and a diff
-says what changed, not how.
+`make setup-browser`), and for each state writes one text file per
+unit under `tests/snapshots/<state>/`: each chart's SVG outer HTML
+(Plot's ids normalised, one element per line), each table's header and
+rows, each legend's buttons and states, the stats strip, each card's
+four texts, the facts card, the request rows. `make test` runs the
+script in compare mode and fails naming each unit whose text changed,
+pointing at the file so `git diff` shows the change; `make snapshots`
+rewrites the files. The test skips, saying so, when Chromium is not
+installed. The nine states and the session used are constants at the
+top of the script, and the session's id is read from the bucket index
+so a data rebuild does not break it. The files are text a maintainer
+can read; their size (a few megabytes) is accepted for that.
 
 ## 2. Chart kinds
 `js/charts/` holds one module per kind, each exporting
@@ -29,15 +29,19 @@ series, `legend(rows, colours, options)`:
 - `knee_lines.js`: cost against retention with a marked knee.
 - `donut.js`: the Overview's donut, moved from `landing/arcs.js`.
 
-A figure entry is `{ name, query, kind, options, title, insight,
-caption, definition, annotate? }`. `options` names the columns and
-labels the kind needs (`x`, `y`, `series`, `seriesLabels`, `xLabel`,
-`yLabel`, `ticks`); `annotate(plot, rows)` adds a callout the kind does
-not know (the ratio text of the scope CDFs, the knee text). The runner
-calls `kinds[entry.kind].draw(...)` and `.legend(...)`. The flags
-`drawsLines`, `binColumn`, `seriesColumn`, `seriesOverSameRows`,
+A figure entry is `{ name, query, title, insight, caption, definition,
+draw, legend? }`, and `draw` is one visible call:
+`draw: (rows, body, colours) => cdfLines(rows, body, colours, { x:
+"requests", series: "series", xLabel: "Requests or steps" })`. A reader
+sees which kind draws the figure and with which columns, without a
+table of flags. A callout the kind does not know (the ratio text of the
+scope CDFs, the knee text) is a short named function in the figure's
+module, called after the kind. A kind takes only parameters two or more
+figures use; a figure that would need a parameter of its own keeps a
+plain draw function, which is the honest form for a one-off chart. The
+flags `drawsLines`, `binColumn`, `seriesColumn`, `seriesOverSameRows`,
 `drawnRows`, `seriesNouns`, `isSimulation` go; thin-bin hiding and the
-line of rows read `options.series` and the kind. Each figure is
+line of rows are the kind's, from the same parameters. Each figure is
 converted one at a time, the snapshot test green after each, so a
 visitor sees no change. `shared/charts.js` keeps the frame, the tooltip
 style, the colour scale and the width; `axes/ticks.js` stays.
@@ -51,12 +55,13 @@ ignored, as today.
 
 ## 4. The comment rule
 CONTRIBUTING: a module header says what the module holds and the shape
-of what crosses its boundary, in at most eight lines; an export's
-docstring is one to three lines stating the definition; a comment
-inside a function says why, in one line; nothing describes history. A
-node test counts header lines. The modules this change touches are
-brought under the rule as they are edited; untouched modules follow
-when next edited.
+of what crosses its boundary; an export's docstring states the
+definition; a comment inside a function says why; nothing describes
+history. A header over ten lines is reviewed, not failed: the test
+lists such headers as a warning, and the reviewer decides whether every
+sentence earns its place. The modules this change touches are brought
+under the rule as they are edited, sentence by sentence, never by
+cutting to a count; untouched modules follow when next edited.
 
 ## 5. The specs
 After this change is archived, by hand in one commit: `site`

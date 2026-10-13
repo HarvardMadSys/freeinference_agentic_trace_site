@@ -11,6 +11,17 @@ prose or repeat one another; and docs that describe the same thing in
 three places. None of it changes what a visitor sees, and all of it costs
 the maintainer reading time.
 
+## The aim, and the rule for every task
+The aim is a codebase a normal person can maintain, not a smaller one.
+Fewer lines are a consequence, never the goal. The rule for every item
+and every review: **a change is made only if the code is clearer
+afterwards to someone reading it for the first time.** Where removing
+or merging something would make a reader work harder, the thing stays,
+and the report says so. No tricks: no clever one-liners to save a
+function, no module folded into another because one import looked
+untidy, no comment cut because it was long. A reviewer rejects a task
+that is shorter but less plain.
+
 ## What changes
 Nothing a visitor sees or can do changes. Every figure, table, view,
 filter and link stays as it is. The change is to what is behind them.
@@ -26,9 +37,11 @@ filter and link stays as it is. The change is to what is behind them.
   168 MB in the repository and in every deploy. The paper-parity tests
   read the shipped answers, which is what visitors see.
 - **One caller, one form.** Draw and legend wrappers become the entry's
-  own arrow; modules only one other imports fold into it; the five input
-  roles, the halo style, the violet slot and the small helpers exist
-  once; options always given the same value go.
+  own arrow; a module only one other imports folds into it where the
+  reader is better served by one file, and stays where its name says
+  something the merged file would not; the five input roles, the halo
+  style, the violet slot and the small helpers exist once; options always
+  given the same value go.
 - **Tests test behaviour.** Tests that pin prose, flag values, fetch
   counts or markup details go, and tests that repeat one another keep
   one copy. The queries no page reads go with their tests.
