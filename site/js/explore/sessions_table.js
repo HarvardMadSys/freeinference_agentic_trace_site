@@ -7,9 +7,9 @@
  * `explore/sessions_of_selection`, has arrived, and enables its controls once it has.
  *
  * The answer holds every week's sessions of every harness, and the table filters them itself by month and harness
- * (`explore/sessions_filter.js`). It owns the keys `months` and `harnesses`: it reads them, and the older `weeks`,
- * `month`, `scope` and `harness`, from the URL once, rewrites them in its own keys, and keeps the filter while the
- * visitor changes it.
+ * (`explore/sessions_filter.js`). It owns the keys `months` and `harnesses`: it reads them from the URL once, writes them
+ * back in that form, and writes them again whenever the visitor changes the filter. A key the table does not read is
+ * left as it is.
  *
  * A section's `context` is what the page gives every section; see `explore/start.js`. This one writes its state
  * with `context.replaceQuery(params)`.
@@ -126,7 +126,10 @@ function currentState() {
   return readTableState(currentParams());
 }
 
-/** Read the URL's filter, older keys included, and write it back in its own keys; the filter read. */
+/**
+ * Read the URL's filter and write it back in its own form: a key naming several months or harnesses keeps the first the
+ * data hold, and one naming none of them is removed; the filter read.
+ */
 function rewriteFilter(context) {
   const params = currentParams();
   const filter = readTableFilter(params, context.weeks, context.harnesses);

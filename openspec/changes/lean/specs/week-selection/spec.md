@@ -2,7 +2,7 @@
 
 ### Requirement: The selection lives in the URL
 **Reason**: The keys of earlier releases (`weeks`, `month`, `scope`) were never in a public link; reading and rewriting them is code and tests for nothing.
-**Migration**: The filter's seven keys stay as they are; an old key is dropped.
+**Migration**: The filter's eight keys stay as they are; an old key is ignored and left in place.
 
 ## ADDED Requirements
 
@@ -16,9 +16,9 @@ write no key. The Session page SHALL carry the keys back to the Explore
 page's Session Explorer. A
 month or harness in the URL that the data do not hold SHALL be ignored,
 and the list SHALL say which. A key naming several months or harnesses
-SHALL keep its first and be rewritten. No other key SHALL be read: the
-filter's keys are `months`, `harnesses`, `model`, `min`, `search`,
-`sort` and `page`.
+SHALL keep its first and be rewritten. No other key SHALL be read or
+rewritten: the filter's keys are `months`, `harnesses`, `model`,
+`min_requests`, `search`, `sort`, `direction` and `page`.
 
 #### Scenario: Sharing a view
 - **WHEN** a visitor opens a link with `index.html?months=2026-07&harnesses=hermes,codex`
@@ -30,4 +30,4 @@ filter's keys are `months`, `harnesses`, `model`, `min`, `search`,
 
 #### Scenario: An old key
 - **WHEN** a visitor opens a link with `?weeks=2026-07-05&scope=All`
-- **THEN** the page SHALL open with the list unfiltered and the keys SHALL be dropped from the URL
+- **THEN** the page SHALL open with the list unfiltered and leave the keys in the URL as they are
