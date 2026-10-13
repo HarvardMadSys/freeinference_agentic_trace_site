@@ -104,10 +104,9 @@ at most nine modules; `make test` counts them.
   and stats strip, the Overview (`#overview`), the Session Explorer
   (`#sessions`), the Insights (`#insights`), Cite (`#cite`) and Team. Its
   module lists its sections in `SECTIONS` and calls `startPage` of
-  `explore/start.js` with them; `startPage` draws the footer and mounts the
-  Insights' tabs and figure cards (`FIGURE_SECTIONS` of
-  `explore/figure_sections.js`), fetches the indexes, draws the header and
-  runs the sections. The header links the page's
+  `explore/start.js` with them; `startPage` mounts the Insights' tabs and
+  figure cards (`FIGURE_SECTIONS` of `explore/figure_sections.js`), fetches
+  the indexes, draws the header and the footer and runs the sections. The header links the page's
   sections by anchor (`LINKED_SECTIONS` of `shared/layout.js`, beside
   `EXPLORE_FILE`, the page's one file name); on a phone it is two rows, the
   brand and the four links, which wrap, and the page measures its height

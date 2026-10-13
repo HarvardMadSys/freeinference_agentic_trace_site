@@ -50,6 +50,17 @@ export async function runTrends(container, context) {
   ]);
 }
 
+/** One row `{ week, part, tokens }` per week and part of its input tokens, in the weeks' order and cached first. */
+export function tokenPartRows(weekRows) {
+  const rows = [];
+  for (const weekRow of weekRows) {
+    for (const { part, column } of TOKEN_PARTS) {
+      rows.push({ week: weekRow.week, part, tokens: weekRow[column] });
+    }
+  }
+  return rows;
+}
+
 /** Fill `container` with the cards of the three trend charts, each loading: `{ sessions, requests, tokens }`. */
 function layoutTrends(container) {
   const sessions = document.createElement("article");
@@ -61,17 +72,6 @@ function layoutTrends(container) {
   }
   container.replaceChildren(sessions, requests, tokens);
   return { sessions, requests, tokens };
-}
-
-/** One row `{ week, part, tokens }` per week and part of its input tokens, in the weeks' order and cached first. */
-export function tokenPartRows(weekRows) {
-  const rows = [];
-  for (const weekRow of weekRows) {
-    for (const { part, column } of TOKEN_PARTS) {
-      rows.push({ week: weekRow.week, part, tokens: weekRow[column] });
-    }
-  }
-  return rows;
 }
 
 async function drawSessionsPerWeek(place, context) {
@@ -134,13 +134,13 @@ async function drawInputTokensPerWeek(place, context) {
  * of the order is first folded into "Other", so the legend hides "Other" as one.
  */
 async function drawTrend(body, rows, context, options) {
-  const { y, fill, order, colours, labels = {}, legendTopDown = false } = options;
+  const { y, fill, order, colours, labels = {}, legendTopDown = false, yLabel, format } = options;
   const folded = sumFolded(foldToOther(rows, fill, order.slice(0, NAMED_SERIES)), { x: "week", y, fill });
   const legend = seriesLegend(folded, fill, colours, labels);
   if (legendTopDown) {
     legend.series.reverse();
   }
-  const barOptions = { ...weekBarOptions(context), y, fill, colours, yLabel: options.yLabel, format: options.format };
+  const barOptions = { ...weekBarOptions(context), y, fill, colours, yLabel, format };
   const drawShown = (hidden) => drawTrendBars(body, shownRows(folded, fill, hidden), barOptions);
   await drawWithLegend(body, legend, drawShown);
 }

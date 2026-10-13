@@ -40,7 +40,7 @@ export function pageRows(rows, pageNumber, rowCount = rows.length) {
 }
 
 /**
- * Fill `container` with an optional summary line, one page of `rows` as a table, and a pager.
+ * Fill `container` with a summary line, `summary`, one page of `rows` as a table, and a pager.
  * `columns` is `[{ key, title, format, isNumber, href, mark }]`; `format(value, row)` writes a cell's value, as text by
  * default; `href(row)`, when given, makes the cell a link to that address; `mark(row)`, when given, is a chip after
  * the cell's text, `{ text, title }`, or null for none. `sort` is `{ key, direction }`.
@@ -59,11 +59,7 @@ export function mountTable(container, options) {
   table.className = "data-table";
   table.append(tableHead(columns, sort, onSort, isWaiting), tableBody(columns, page.rows, onRowClick));
   wrap.append(table);
-  container.replaceChildren();
-  if (summary) {
-    container.append(summaryLine(summary));
-  }
-  container.append(wrap, pager(page, onPage, isWaiting));
+  container.replaceChildren(summaryLine(summary), wrap, pager(page, onPage, isWaiting));
   focusSortButton(wrap, focusedSortKey);
   showSortedColumn(wrap);
   mountScrollingRow(wrap);

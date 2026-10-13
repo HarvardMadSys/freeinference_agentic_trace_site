@@ -113,6 +113,12 @@ test("a main model filter keeps that model's sessions", () => {
   assert.deepEqual(ids, ["bbbb2222-y", "aaaa1111-x"]);
 });
 
+test("a main model and a minimum of requests together keep the sessions that pass both", () => {
+  const state = { ...DEFAULT_STATE, model: "glm", minRequests: 130 };
+  const ids = shownSessions(SESSIONS, state).map((row) => row.session_id);
+  assert.deepEqual(ids, ["aaaa1111-x"]);
+});
+
 test("a second click on the sorted column reverses it; a new column sorts numbers largest first, text A to Z", () => {
   const sort = { key: "input_tokens", direction: "descending" };
   assert.deepEqual(nextSort(sort, "input_tokens"), { key: "input_tokens", direction: "ascending" });

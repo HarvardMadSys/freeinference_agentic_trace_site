@@ -95,6 +95,14 @@ test("each legend entry names its slice, as the donut writes names, and its shar
   ]);
 });
 
+test("a donut with no name format writes each slice's name as given", () => {
+  const slices = [{ name: "glm-5.3-flash", count: 1 }, { name: "Other", count: 1 }];
+  assert.deepEqual(legendSeries(slices), [
+    { name: "glm-5.3-flash", label: "glm-5.3-flash 50.0%" },
+    { name: "Other", label: "Other 50.0%" },
+  ]);
+});
+
 test("the harness mix and the sessions trend draw the page's one answer of sessions per week, not their own", () => {
   const query = "explore/sessions_per_week_by_harness";
   const readers = ["landing/donuts.js", "explore/trends.js"];

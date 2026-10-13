@@ -19,11 +19,10 @@ test("the powers of ten of a range, and the powers of ten around a set of values
   assert.deepEqual(decadeDomain([150, 420000]), [100, 1e6]);
 });
 
-test("a duration axis ticks at the durations people count in, at most six of them", () => {
+test("a duration axis ticks at the durations people count in within its range", () => {
   assert.deepEqual(durationTicks([0.1, 86400]), [0.1, 1, 60, 3600, 86400]);
   assert.deepEqual(logAxisTicks([1e4, 1e8], 4), [1e4, 1e6, 1e8]);
   assert.deepEqual(durationTicks([0.5, 300]), [1, 60]);
-  assert.ok(durationTicks([0.001, 1e7]).length <= MAX_TICKS);
 });
 
 test("a crowded axis labels every step-th value from the first, at most the number asked", () => {

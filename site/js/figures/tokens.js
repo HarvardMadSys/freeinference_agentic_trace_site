@@ -29,7 +29,7 @@ const TOKEN_SERIES_COLOURS = Object.freeze({
   input: VIOLET_SLOT, uncached: TOKEN_PART_COLOURS.uncached, output: TOKEN_PART_COLOURS.output,
 });
 
-// A request's token parts, bottom up in a stacked bar, each drawn in its token colour.
+// The token parts the growth figure draws a line for, in its legend's order.
 const TOKEN_PARTS = Object.freeze(["cached", "uncached", "output"]);
 
 // The median column of each token part in the token growth query.

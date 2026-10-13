@@ -52,12 +52,9 @@ export function logAxisTicks([low, high], maxTicks = MAX_TICKS) {
   return powers.filter((power, index) => index % step === 0);
 }
 
-/**
- * The ticks of a log axis of seconds over `[low, high]`: the durations of `DURATION_TICKS_S` within it, every second one
- * when there are more than `MAX_TICKS`.
- */
+/** The ticks of a log axis of seconds over `[low, high]`: the durations of `DURATION_TICKS_S` within it. */
 export function durationTicks([low, high]) {
-  return atMost(DURATION_TICKS_S.filter((seconds) => seconds >= low && seconds <= high), MAX_TICKS);
+  return DURATION_TICKS_S.filter((seconds) => seconds >= low && seconds <= high);
 }
 
 /** `ticks`, or every other one of them when there are more than `maxTicks`. */
