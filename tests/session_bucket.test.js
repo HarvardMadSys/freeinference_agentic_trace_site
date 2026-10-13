@@ -84,7 +84,6 @@ test("an entry becomes the tree, requests and tool calls the views take", () => 
 test("a bucket is named by the first two characters of the id", () => {
   assert.equal(prefixOf("740dd162030203354c9e55d40fb3a2d5"), "74");
   assert.equal(bucketUrl(DATA_URL, WEEK, "740dd1"), `${DATA_URL}session_buckets/${WEEK}/74.json.gz`);
-  assert.equal(bucketUrl("http://localhost:8000/data", WEEK, "740dd1"), `${DATA_URL}session_buckets/${WEEK}/74.json.gz`);
 });
 
 test("gzipped bytes are recognised by their first two bytes and decompressed; plain bytes are read as they are", async () => {

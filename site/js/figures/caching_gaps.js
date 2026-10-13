@@ -11,7 +11,7 @@
 import { AXIS_STYLE, chartFrame, colourScale, TALL_CHART_HEIGHT, TIP_STYLE } from "../shared/charts.js";
 import { drawCdf } from "../shared/cdf.js";
 import { durationTicks, fewerOnNarrow } from "../axes/ticks.js";
-import { causeColours, GAP_BIN_SLOTS, TIME_PART_NAMES, TRANSITION_COLOURS } from "../theme/colours.js";
+import { CAUSE_COLOURS, GAP_BIN_SLOTS, TIME_PART_NAMES, TRANSITION_COLOURS } from "../theme/colours.js";
 import {
   formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare, MISSING_TEXT,
 } from "../shared/format.js";
@@ -29,6 +29,9 @@ const GAP_BIN_TEXT = Object.freeze({ "<1m": "Under 1 min", "1–5m": "1–5 min"
 const CAUSE_NAMES = Object.freeze({
   tool: TIME_PART_NAMES.tool, ask_user_tool: "Ask-user tool", user: TIME_PART_NAMES.user, subagent: "Subagent",
 });
+
+// The colour of each cause, by its `waited_for` value in the order of `CAUSE_NAMES`, as the charts take colours.
+const CAUSE_COLOUR_MAP = new Map(Object.entries(CAUSE_COLOURS));
 
 // The transitions the figure draws, in their order, with the names it draws them under. A switch to another model or
 // provider is routing, not a change of context, and is not drawn, as in the paper.
@@ -66,7 +69,7 @@ export const GAP_FIGURES = Object.freeze({
     query: "figures/hit_ratio_cdf_by_gap_bin",
     binColumn: "series",
     seriesColumn: "series",
-    legend: gapBinLegend,
+    legend: (rows, colours, seriesColumn) => seriesLegend(rows, seriesColumn, gapBinColours(), GAP_BIN_TEXT),
     draw: drawHitRatioByGapBin,
   }),
   gapByCause: Object.freeze({
@@ -79,7 +82,7 @@ export const GAP_FIGURES = Object.freeze({
     query: "figures/gap_cdf_by_cause",
     binColumn: "series",
     seriesColumn: "series",
-    legend: causeLegend,
+    legend: (rows, colours, seriesColumn) => seriesLegend(rows, seriesColumn, CAUSE_COLOUR_MAP, CAUSE_NAMES),
     draw: drawGapByCause,
   }),
   meanHitRatioByCause: Object.freeze({
@@ -101,7 +104,7 @@ export const GAP_FIGURES = Object.freeze({
     query: "figures/mutations_by_cause",
     binColumn: null,
     seriesOverSameRows: true,
-    isPartlySimulated: true,
+    isSimulation: true, // its fresh prefill shares come from the cache simulation
     draw: drawMutationsByCause,
   }),
   hitRatioByTransition: Object.freeze({
@@ -114,7 +117,8 @@ export const GAP_FIGURES = Object.freeze({
     query: "figures/hit_ratio_cdf_by_transition",
     binColumn: "series",
     seriesColumn: "series",
-    legend: transitionLegend,
+    legend: (rows, colours, seriesColumn) =>
+      seriesLegend(rows, seriesColumn, new Map(Object.entries(TRANSITION_COLOURS)), TRANSITION_NAMES),
     draw: drawHitRatioByTransition,
   }),
 });
@@ -126,21 +130,6 @@ export function gapBinColours() {
     colours.set(GAP_BIN_LABELS[index], GAP_BIN_SLOTS[index]);
   }
   return colours;
-}
-
-/** The gap-bin figure's legend: the bins of the rows, shortest gap first. */
-export function gapBinLegend(rows, colours, seriesColumn) {
-  return seriesLegend(rows, seriesColumn, gapBinColours(), GAP_BIN_TEXT);
-}
-
-/** The gap-by-cause figure's legend: the causes of the rows, in the paper's order, by the paper's names. */
-export function causeLegend(rows, colours, seriesColumn) {
-  return seriesLegend(rows, seriesColumn, causeColours(), CAUSE_NAMES);
-}
-
-/** The transition figure's legend: appends, then mutations, each in its transition colour. */
-export function transitionLegend(rows, colours, seriesColumn) {
-  return seriesLegend(rows, seriesColumn, new Map(Object.entries(TRANSITION_COLOURS)), TRANSITION_NAMES);
 }
 
 /** The mean-hit-ratio bars, one per cause of `rows` in the paper's order: `{ cause, name, mean, rows }`. */
@@ -266,7 +255,7 @@ async function drawMeanHitRatioByCause(rows, body) {
     marginRight: VALUE_MARGIN_RIGHT,
     x: { domain: [0, 1], axis: null },
     y: { type: "band", domain: causes },
-    color: colourScale(causeColours(), causes),
+    color: colourScale(CAUSE_COLOUR_MAP, causes),
     marks: [
       Plot.axisY({ ...AXIS_STYLE, label: null, tickFormat: (cause) => CAUSE_NAMES[cause] }),
       Plot.barX(bars, { x1: 0, x2: "mean", y: "cause", fill: "cause", inset: BAR_INSET }),

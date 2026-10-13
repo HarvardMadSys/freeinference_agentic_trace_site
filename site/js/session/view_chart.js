@@ -1,17 +1,12 @@
 /**
- * What the Context and Timeline views' charts share: drawing at the card's width once Plot has loaded, and a click
- * that opens a request. Their time axis, time since the session's first request, is `elapsedAxis` of `axes/ticks.js`.
+ * What the Context and Timeline views' charts share: drawing once Plot has loaded, and a click that opens a request.
+ * Their time axis, time since the session's first request, is `elapsedAxis` of `axes/ticks.js`.
  */
 
 import { showError, showLoading } from "../shared/charts.js";
 
 /** The event a view sends up from its chart when a click names a request; its `detail` is `{ sessionId, step }`. */
 export const OPEN_REQUEST_EVENT = "open-request";
-
-/** The width to draw a chart in `body`: the card's, so the chart never runs past it on a phone. */
-export function viewChartWidth(body) {
-  return body.clientWidth;
-}
 
 /**
  * Show the loading state in `container`, then load Plot and call `draw(Plot)`, or show the error that stopped it.
@@ -25,17 +20,6 @@ export function startChartView(container, draw) {
   showLoading(container);
   drawWithPlot(container, draw, controller.signal);
   return () => controller.abort();
-}
-
-/**
- * A box holding `chart` that would scroll it sideways were it wider than its card; a chart is drawn at the card's width,
- * but the Timeline's row labels keep their size, and the box is what its tooltip is placed against.
- */
-export function scrollBox(chart) {
-  const box = document.createElement("div");
-  box.className = "chart-scroll";
-  box.append(chart);
-  return box;
 }
 
 /**

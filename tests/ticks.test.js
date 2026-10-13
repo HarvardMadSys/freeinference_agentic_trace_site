@@ -3,8 +3,8 @@ import { test } from "node:test";
 
 import {
   atMost, axisWithTicks, fewerOnNarrow, tickCountFor, decadeDomain, decadeTicks, durationTicks, elapsedAxis, elapsedTicks, everyOther, firstWeekOfEachMonth,
-  isNarrowChart, logAxisTicks, MAX_TICKS, maxTicksFor, monthTickFormat, NARROW_MAX_TICKS, sparseTickFormat, tickCount,
-  weekTickFormat,
+  isNarrowChart, logAxisTicks, MAX_TICKS, maxTicksFor, monthTickFormat, NARROW_MAX_TICKS, percentTick, sparseTickFormat,
+  tickCount, weekTickFormat,
 } from "../site/js/axes/ticks.js";
 
 test("a log axis ticks its powers of ten, every other one past six, and leaves a range of one power to Plot", () => {
@@ -34,6 +34,10 @@ test("a crowded axis labels every step-th value from the first, at most the numb
 test("an axis with room for every value labels them all", () => {
   const format = sparseTickFormat([1, 2, 4], String, 6);
   assert.deepEqual([1, 2, 4].map(format), ["1", "2", "4"]);
+});
+
+test("a percentage axis writes its ticks as they are, with a percent sign", () => {
+  assert.deepEqual([0, 50, 100].map(percentTick), ["0%", "50%", "100%"]);
 });
 
 test("a week axis labels the first week of each month with its month alone", () => {

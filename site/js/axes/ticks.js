@@ -1,8 +1,8 @@
 /**
  * The ticks of a chart's axes: how many a linear axis asks for, where a log axis of counts or of seconds ticks and how
- * many fewer a narrow chart takes, which ticks of a week axis or a crowded band axis carry a label, an elapsed-time
- * axis, and an axis mark that labels each tick it is given. These are plain functions, tested with `node --test`; the
- * drawing modules give what they return to Plot.
+ * many fewer a narrow chart takes, which ticks of a week axis or a crowded band axis carry a label, how a percentage
+ * axis writes its ticks, an elapsed-time axis, and an axis mark that labels each tick it is given. These are plain
+ * functions, tested with `node --test`; the drawing modules give what they return to Plot.
  */
 
 import { elapsedTickFormat, formatElapsed, shortMonth } from "../shared/format.js";
@@ -134,6 +134,11 @@ export function sparseTickFormat(values, format, maxLabels) {
   const step = Math.max(1, Math.ceil(values.length / maxLabels));
   const labelled = new Set(values.filter((value, index) => index % step === 0));
   return (value) => (labelled.has(value) ? format(value) : "");
+}
+
+/** A tick of an axis in percent, from 0 to 100, as it is written: 50 → "50%". */
+export function percentTick(percent) {
+  return `${percent}%`;
 }
 
 /**

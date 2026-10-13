@@ -15,20 +15,13 @@ import { cdfPoints, drawCdf } from "../shared/cdf.js";
 import { durationTicks, extent, fewerOnNarrow, tickCountFor } from "../axes/ticks.js";
 import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
 import { slottedColours, TIME_PART_COLOURS, TIME_PART_NAMES } from "../theme/colours.js";
-import { cdfSeries, seriesLegend } from "./figure_rows.js";
+import { cdfSeries, rowsWithSeriesColour, seriesLegend } from "./figure_rows.js";
 import { SESSION_TIME_BY_PART } from "./sessions_ranked.js";
 
 // The parts of the machine time, by their name in the speed-up query, top down, with the name each bar is drawn under.
 const SPEEDUP_PARTS = Object.freeze({
   prefill: TIME_PART_NAMES.prefill, decode: TIME_PART_NAMES.decode, tool: TIME_PART_NAMES.tool,
 });
-
-// Each part's bar in the paper's colour of that part of a session's time, as the session time figure draws it.
-const SPEEDUP_COLOURS = new Map([
-  ["prefill", TIME_PART_COLOURS.prefill],
-  ["decode", TIME_PART_COLOURS.decode],
-  ["tool", TIME_PART_COLOURS.tool],
-]);
 
 /** The speed-up axis runs this far past the largest bar's gain over 1×, leaving room for its label, as the paper's. */
 export const SPEEDUP_AXIS_HEADROOM = 1.26;
@@ -51,7 +44,7 @@ export const TTFT_CDF_BY_MODEL = Object.freeze({
   query: "figures/ttft_cdf_by_model",
   binColumn: "series",
   seriesColumn: "series",
-  drawnRows: drawnModelRows,
+  drawnRows: (rows, colours) => rowsWithSeriesColour(rows, "series", colours.models),
   legend: modelCdfLegend,
   draw: drawModelCdf,
 });
@@ -67,7 +60,7 @@ export const DECODE_CDF_BY_MODEL = Object.freeze({
   query: "figures/decode_cdf_by_model",
   binColumn: "series",
   seriesColumn: "series",
-  drawnRows: drawnModelRows,
+  drawnRows: (rows, colours) => rowsWithSeriesColour(rows, "series", colours.models),
   legend: modelCdfLegend,
   draw: drawModelCdf,
 });
@@ -126,12 +119,6 @@ export function modelCdfLegend(rows, colours, seriesColumn) {
   return seriesLegend(rows, seriesColumn, slottedColours(colours.models));
 }
 
-/** The per-model CDF rows a figure draws: those of a model among the eight with most requests over every week. */
-export function drawnModelRows(rows, colours) {
-  const drawnModels = slottedColours(colours.models);
-  return rows.filter((row) => drawnModels.has(row.series));
-}
-
 /** Draw one CDF per model of the rows, in seconds on a log axis of durations, each model in its legend's colour. */
 async function drawModelCdf(rows, body, colours) {
   const series = cdfSeries(rows, [...colours.series.keys()]);
@@ -158,7 +145,8 @@ async function drawSpeedups(rows, body) {
     marginLeft: PART_LABEL_MARGIN,
     x: { domain: [NO_SPEEDUP, speedupAxisEnd(bars)] },
     y: { domain: bars.map((bar) => bar.label) },
-    color: colourScale(SPEEDUP_COLOURS, bars.map((bar) => bar.part)),
+    // Each part's bar in the paper's colour of that part of a session's time, as the session time figure draws it.
+    color: colourScale(new Map(Object.entries(TIME_PART_COLOURS)), bars.map((bar) => bar.part)),
     marks: [
       Plot.gridX({ ...GRID_STYLE, ticks }),
       Plot.axisX({ ...AXIS_STYLE, ticks, tickFormat: speedupTick, label: null }),

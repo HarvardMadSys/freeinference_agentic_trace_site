@@ -18,7 +18,7 @@ import {
 import { cdfPoints } from "../shared/cdf.js";
 import { axisWithTicks, isNarrowChart } from "../axes/ticks.js";
 import {
-  formatCountTick, formatDurationTick, formatMultiple, formatPercent, formatSeconds, formatShare, formatTokens,
+  formatCompactCount, formatCountTick, formatDurationTick, formatMultiple, formatPercent, formatSeconds, formatShare,
 } from "../shared/format.js";
 import { cdfSeries } from "../figures/figure_rows.js";
 import { SCOPE_LABELS, scopeLegend, SCOPES } from "./scopes.js";
@@ -68,7 +68,7 @@ const INPUT_AXIS = Object.freeze({
   ticks: Object.freeze([1e3, 1e4, 1e5, 1e6]),
   tickFormat: formatCountTick,
   xLabel: "Input tokens",
-  valueFormat: formatTokens,
+  valueFormat: formatCompactCount,
   noun: "requests",
   comparative: "more",
 });
@@ -79,7 +79,7 @@ const PROMPT_AXIS = Object.freeze({
   narrowTicks: Object.freeze([1, 100, 1e4]), // on a phone six labels would touch
   tickFormat: formatCountTick,
   xLabel: "Tokens",
-  valueFormat: formatTokens,
+  valueFormat: formatCompactCount,
   noun: "prompts",
   comparative: "longer",
 });
@@ -97,7 +97,7 @@ export const TURN_DURATION_BY_SCOPE = Object.freeze({
   seriesColumn: "series",
   seriesNouns: Object.freeze({ Agentic: "human-driven turns", "SWE-Bench": "benchmark turns" }),
   legend: scopeLegend,
-  draw: drawTurnDurations,
+  draw: (rows, body, colours) => drawScopeCdf(rows, body, colours, TURN_DURATION_AXIS),
 });
 
 /** The session duration figure entry. */
@@ -113,7 +113,7 @@ export const SESSION_DURATION_BY_SCOPE = Object.freeze({
   seriesColumn: "series",
   seriesNouns: Object.freeze({ Agentic: "human-driven sessions", "SWE-Bench": "benchmark sessions" }),
   legend: scopeLegend,
-  draw: drawSessionDurations,
+  draw: (rows, body, colours) => drawScopeCdf(rows, body, colours, SESSION_DURATION_AXIS),
 });
 
 /** The input per request figure entry. */
@@ -130,7 +130,7 @@ export const INPUT_PER_REQUEST_BY_SCOPE = Object.freeze({
   seriesColumn: "series",
   seriesNouns: Object.freeze({ Agentic: "human-driven requests", "SWE-Bench": "benchmark requests" }),
   legend: scopeLegend,
-  draw: drawInputPerRequest,
+  draw: (rows, body, colours) => drawScopeCdf(rows, body, colours, INPUT_AXIS),
 });
 
 /** The user prompt figure entry. */
@@ -146,7 +146,7 @@ export const USER_PROMPT_TOKENS_BY_SCOPE = Object.freeze({
   seriesColumn: "series",
   seriesNouns: Object.freeze({ Agentic: "human-driven prompts", "SWE-Bench": "benchmark prompts" }),
   legend: scopeLegend,
-  draw: drawUserPromptTokens,
+  draw: (rows, body, colours) => drawScopeCdf(rows, body, colours, PROMPT_AXIS),
 });
 
 /**
@@ -190,26 +190,6 @@ export function medianRatioText(rows) {
     return null;
   }
   return formatMultiple(rows[0].median_ratio, RATIO_DECIMALS);
-}
-
-/** Draw the turn duration CDFs, in seconds on a log axis. */
-async function drawTurnDurations(rows, body, colours) {
-  await drawScopeCdf(rows, body, colours, TURN_DURATION_AXIS);
-}
-
-/** Draw the session duration CDFs, in seconds on a log axis. */
-async function drawSessionDurations(rows, body, colours) {
-  await drawScopeCdf(rows, body, colours, SESSION_DURATION_AXIS);
-}
-
-/** Draw the input per request CDFs, in tokens on a log axis. */
-async function drawInputPerRequest(rows, body, colours) {
-  await drawScopeCdf(rows, body, colours, INPUT_AXIS);
-}
-
-/** Draw the user prompt CDFs, in tokens on a log axis. */
-async function drawUserPromptTokens(rows, body, colours) {
-  await drawScopeCdf(rows, body, colours, PROMPT_AXIS);
 }
 
 /**

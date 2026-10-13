@@ -7,10 +7,10 @@
  * `tree` holds rows of `buckets/week_tree`, `requests` rows of `buckets/week_requests`.
  */
 
-import { TOKEN_PART_NAMES, tokenParts } from "../session/token_parts.js";
-import { agentLabel, agentsInStartOrder } from "../session/tree.js";
-import { ROLE_COLOURS, SERIES_SLOTS, TOKEN_PART_COLOURS, TRANSITION_COLOURS } from "../theme/colours.js";
-import { elapsedSeconds, formatElapsed, formatTokens } from "../shared/format.js";
+import { INPUT_ROLES, TOKEN_PART_NAMES, tokenParts } from "../session/token_parts.js";
+import { agentLabel, agentsInStartOrder, byStart, groupedBy, topLevelSession } from "../session/tree.js";
+import { ROLE_COLOURS, SERIES_SLOTS, TOKEN_PART_COLOURS, TRANSITION_COLOURS, VIOLET_SLOT } from "../theme/colours.js";
+import { elapsedSeconds, formatCompactCount, formatElapsed } from "../shared/format.js";
 
 /** The two ways the area can split the top-level session's input: into cached and uncached tokens, or by role. */
 export const AREA_SPLITS = Object.freeze({ tokens: "Cached and uncached", roles: "By role" });
@@ -19,7 +19,7 @@ export const AREA_SPLITS = Object.freeze({ tokens: "Cached and uncached", roles:
  * The colour of each agent's line: the top-level session's, and every subagent's. The subagents' slot is one the
  * token split of the area does not use; in the role split it is also the system role's, a line against an area.
  */
-export const AGENT_LINE_COLOURS = Object.freeze({ main: SERIES_SLOTS[0], subagents: SERIES_SLOTS[6] });
+export const AGENT_LINE_COLOURS = Object.freeze({ main: SERIES_SLOTS[0], subagents: VIOLET_SLOT });
 
 /**
  * The transitions a dot marks, each with the dot's colour: the context was rewritten, in the colour every chart gives a
@@ -32,23 +32,13 @@ const MIN_TURN_GAP_PIXELS = 3; // a turn's rule is drawn only this far from the 
 // Each transition a dot marks, as the legend names it.
 const MARK_NAMES = Object.freeze({ mutation: "Mutation", switch: "Model or provider switch" });
 
-// Each role of the input, in stacking order: the release's name of it, its name in the legend, and the request column
-// that counts its tokens.
-const ROLE_COLUMNS = Object.freeze([
-  Object.freeze({ role: "system", name: "System", column: "system_tokens" }),
-  Object.freeze({ role: "user", name: "User", column: "user_tokens" }),
-  Object.freeze({ role: "assistant", name: "Assistant", column: "assistant_tokens" }),
-  Object.freeze({ role: "tool", name: "Tool results", column: "tool_tokens" }),
-  Object.freeze({ role: "tool_definitions", name: "Tool definitions", column: "tool_definition_tokens" }),
-]);
-
 /**
  * One point per request of every agent, in agent order and then start order: `{ sessionId, step, turn, label,
  * isTopLevel, elapsed, inputTokens, cachedTokens, uncachedTokens, transition, cause }`, `elapsed` in seconds since
  * the top-level session's first request.
  */
 export function requestPoints(tree, requests) {
-  const originMs = topLevelOf(tree).first_start_ms;
+  const originMs = topLevelSession(tree).first_start_ms;
   const points = [];
   for (const session of agentsInStartOrder(tree)) {
     for (const request of requestsOf(session, requests)) {
@@ -76,7 +66,7 @@ export function requestPoints(tree, requests) {
  * and one more at its last request's end, so that the last request, and an agent of one request, has a width.
  */
 export function trajectoryPoints(tree, requests) {
-  const originMs = topLevelOf(tree).first_start_ms;
+  const originMs = topLevelSession(tree).first_start_ms;
   const points = [];
   for (const session of agentsInStartOrder(tree)) {
     const ownRequests = requestsOf(session, requests);
@@ -101,7 +91,7 @@ export function trajectoryPoints(tree, requests) {
  */
 export function areaParts(split) {
   if (split === "roles") {
-    return ROLE_COLUMNS.map((role) => ({ name: role.name, colour: ROLE_COLOURS[role.role] }));
+    return INPUT_ROLES.map((inputRole) => ({ name: inputRole.name, colour: ROLE_COLOURS[inputRole.role] }));
   }
   return [
     { name: TOKEN_PART_NAMES.cached, colour: TOKEN_PART_COLOURS.cached },
@@ -114,7 +104,7 @@ export function areaParts(split) {
  * request's start, and at the last request's end, so that the last request has a width.
  */
 export function areaRows(tree, requests, split) {
-  const topLevel = topLevelOf(tree);
+  const topLevel = topLevelSession(tree);
   const ownRequests = requestsOf(topLevel, requests);
   const parts = areaParts(split);
   const rows = [];
@@ -134,15 +124,8 @@ export function areaRows(tree, requests, split) {
  * had there, and one at the range's end holding the value it had just before; a series wholly outside has none.
  */
 export function stepsWithin(points, seriesKey, range) {
-  const series = new Map();
-  for (const point of points) {
-    if (!series.has(point[seriesKey])) {
-      series.set(point[seriesKey], []);
-    }
-    series.get(point[seriesKey]).push(point);
-  }
   const cut = [];
-  for (const seriesPoints of series.values()) {
+  for (const seriesPoints of groupedBy(points, seriesKey).values()) {
     cut.push(...seriesWithin(seriesPoints, range));
   }
   return cut;
@@ -150,7 +133,7 @@ export function stepsWithin(points, seriesKey, range) {
 
 /** The elapsed seconds at the first request of each turn of the top-level session. */
 export function turnStarts(tree, requests) {
-  const topLevel = topLevelOf(tree);
+  const topLevel = topLevelSession(tree);
   const starts = [];
   const seenTurns = new Set();
   for (const request of requestsOf(topLevel, requests)) {
@@ -180,11 +163,12 @@ export function markEntries(marks) {
 
 /** A point's tooltip: its agent, step and turn, its time, its input tokens and, when marked, its transition. */
 export function pointTip(point) {
-  const split = `${formatTokens(point.cachedTokens)} cached, ${formatTokens(point.uncachedTokens)} uncached`;
+  const cached = formatCompactCount(point.cachedTokens);
+  const uncached = formatCompactCount(point.uncachedTokens);
   const lines = [
     `${point.label} · step ${point.step} · turn ${point.turn}`,
     formatElapsed(point.elapsed),
-    `${formatTokens(point.inputTokens)} input tokens: ${split}`,
+    `${formatCompactCount(point.inputTokens)} input tokens: ${cached} cached, ${uncached} uncached`,
   ];
   if (isMarked(point.transition)) {
     const cause = point.cause === null ? "" : `, ${point.cause}`;
@@ -222,8 +206,8 @@ function partRows(elapsed, tokens, parts) {
 function partTokens(request, split) {
   if (split === "roles") {
     const tokens = {};
-    for (const role of ROLE_COLUMNS) {
-      tokens[role.name] = request[role.column];
+    for (const inputRole of INPUT_ROLES) {
+      tokens[inputRole.name] = request[inputRole.column];
     }
     return tokens;
   }
@@ -231,14 +215,10 @@ function partTokens(request, split) {
   return { [TOKEN_PART_NAMES.cached]: tokens.cached, [TOKEN_PART_NAMES.uncached]: tokens.uncached };
 }
 
-function topLevelOf(tree) {
-  return tree.find((session) => session.parent_session_id === null);
-}
-
 /** The requests of `session` in start order, the step breaking a tie. */
 function requestsOf(session, requests) {
   const ownRequests = requests.filter((request) => request.session_id === session.session_id);
-  return ownRequests.sort((first, second) => first.start_ms - second.start_ms || first.step - second.step);
+  return ownRequests.sort(byStart);
 }
 
 /**

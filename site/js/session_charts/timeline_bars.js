@@ -55,7 +55,7 @@ export function ganttRows(tree) {
 }
 
 /**
- * Every bar of the Gantt: `{ sessionId, step, row, band, x1, x2, colour, isWait, tip }`, `row` the index of its
+ * Every bar of the Gantt: `{ sessionId, step, row, band, x1, x2, colour, tip }`, `row` the index of its
  * agent's row, `band` "request" (requests and waits) or "tool" (tool calls, drawn thinner below), `x1` and `x2` in
  * seconds since the top-level session's first request, and `step` the request a click opens: for a wait, the request
  * it came before. Waits under zero and tool calls without a positive latency have no bar.
@@ -119,7 +119,7 @@ function waitBars(request, place) {
   const cause = WAIT_CAUSES[request.waited_for] ?? request.waited_for;
   const tip = `waited ${formatSeconds(request.wait_s)} for ${cause}\nbefore ${place.label} step ${place.step}`;
   const colour = TIMELINE_WAIT_COLOURS[request.waited_for] ?? OTHER_SERIES;
-  return [{ ...bar(place, "request", start - request.wait_s, start, colour, tip), isWait: true }];
+  return [bar(place, "request", start - request.wait_s, start, colour, tip)];
 }
 
 /** A tool call's bar, from its request's end for its latency; none without a positive latency. */
@@ -219,5 +219,5 @@ function hasLatency(call) {
 }
 
 function bar(place, band, x1, x2, colour, tip) {
-  return { sessionId: place.sessionId, step: place.step, row: place.row, band, x1, x2, colour, isWait: false, tip };
+  return { sessionId: place.sessionId, step: place.step, row: place.row, band, x1, x2, colour, tip };
 }

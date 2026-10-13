@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  drawnModelRows, modelCdfLegend, SPEEDUP_AXIS_HEADROOM, speedupAxisEnd, speedupBars,
+  modelCdfLegend, SPEEDUP_AXIS_HEADROOM, speedupAxisEnd, speedupBars, TTFT_CDF_BY_MODEL,
 } from "../site/js/figures/latency.js";
 import { assignColours, OTHER_SERIES } from "../site/js/theme/colours.js";
 
@@ -22,7 +22,7 @@ test("a model CDF lists the selection's models among the eight with most request
 });
 
 test("a model CDF draws, and its caption counts, only the rows of the models its legend lists", () => {
-  const drawn = drawnModelRows(SELECTION_ROWS, FIGURE_COLOURS);
+  const drawn = TTFT_CDF_BY_MODEL.drawnRows(SELECTION_ROWS, FIGURE_COLOURS);
   assert.deepEqual(drawn.map((row) => row.series), ["m2", "m7", "m4"]);
 });
 

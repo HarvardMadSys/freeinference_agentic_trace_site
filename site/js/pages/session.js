@@ -8,6 +8,7 @@ import { factsList, sessionFacts } from "../session/facts_card.js";
 import { mountRequestsView } from "../session_requests/requests.js";
 import { mountTimelineView } from "../session_charts/timeline.js";
 import { fetchCategoryOrder, fetchSession, fetchWeekCount } from "../session/bucket.js";
+import { topLevelSession } from "../session/tree.js";
 import { OPEN_REQUEST_EVENT } from "../session/view_chart.js";
 import { showError, showLoading, showNote } from "../shared/charts.js";
 import { toolCategoryColours } from "../theme/colours.js";
@@ -35,6 +36,8 @@ const page = {
   tabs: document.querySelector("#views"),
   view: document.querySelector("#view"),
 };
+// Stops the view shown, so that showing another stops it first: the page shows one view at a time.
+let stopShownView = () => undefined;
 showLoading(page.facts);
 showLoading(page.view);
 openSession(readAddress(parameters)).catch(showFailure);
@@ -53,33 +56,32 @@ async function openSession(address) {
     showNotFound(`Session not found in this week: no session ${address.id} in the week of ${address.week}.`);
     return;
   }
-  const topLevel = session.tree.find((agent) => agent.depth === 0);
+  const topLevel = topLevelSession(session.tree);
   page.title.textContent = `Session ${shortSessionId(topLevel.session_id)}`;
   page.sessionId.textContent = topLevel.session_id;
   page.facts.replaceChildren(factsList(sessionFacts(session.tree, session.requests)));
-  const shownView = { stop: showView(address.view, session, address) };
-  mountViewTabs(page.tabs, address.view, (view) => switchView(shownView, view, session, address));
-  page.view.addEventListener(OPEN_REQUEST_EVENT, (event) => openRequest(shownView, session, address, event.detail));
+  // A tab's link names no step, so a view chosen by its tab points at no request.
+  mountViewTabs(page.tabs, (view) => showOnly(view, session, { ...address, step: null }));
+  showOnly(address.view, session, address);
+  page.view.addEventListener(OPEN_REQUEST_EVENT, (event) => openRequest(session, address, event.detail));
 }
 
-/** Stop the view shown and show `view` instead; `shownView.stop` stops whichever view is shown. */
-function switchView(shownView, view, session, address) {
-  shownView.stop();
-  // A tab's link names no step, so a view chosen by its tab points at no request.
-  shownView.stop = showView(view, session, { ...address, step: null });
+/** Show the view `view` of `session` alone, at the address's session and step: mark its tab, stop the view shown. */
+function showOnly(view, session, address) {
+  for (const tab of page.tabs.querySelectorAll(".view-tab")) {
+    markActive(tab, tab.dataset.view === view);
+  }
+  stopShownView();
+  stopShownView = showView(view, session, address);
 }
 
 /**
  * Show the Requests view at the request `{ sessionId, step }` a chart's click names, and write it into the URL; the
  * session id may be a subagent's, whose group the Requests view then expands.
  */
-function openRequest(shownView, session, address, { sessionId, step }) {
+function openRequest(session, address, { sessionId, step }) {
   history.replaceState(null, "", queryString(requestParameters(parameters, sessionId, step)));
-  for (const tab of page.tabs.querySelectorAll(".view-tab")) {
-    markActive(tab, tab.dataset.view === "requests");
-  }
-  shownView.stop();
-  shownView.stop = showView("requests", session, { ...address, id: sessionId, step });
+  showOnly("requests", session, { ...address, id: sessionId, step });
 }
 
 /**
@@ -127,35 +129,34 @@ async function showWeekCountInFooter() {
   }
 }
 
-/** Fill `container` with one tab per view; a click shows that view in place and writes it into the URL. */
-function mountViewTabs(container, activeView, onChoose) {
-  const tabs = VIEW_NAMES.map((view) => viewTab(view, activeView));
+/**
+ * Fill `container` with one tab per view; a click writes its view into the URL and calls `onChoose(view)`, which shows
+ * it in place and marks its tab.
+ */
+function mountViewTabs(container, onChoose) {
+  const tabs = VIEW_NAMES.map(viewTab);
   for (const tab of tabs) {
-    tab.addEventListener("click", (event) => chooseTab(event, tab, tabs, onChoose));
+    tab.addEventListener("click", (event) => chooseTab(event, tab, onChoose));
   }
   container.replaceChildren(...tabs);
 }
 
-/** Show `tab`'s view in place and write it into the URL; a click that opens the link elsewhere is left alone. */
-function chooseTab(event, tab, tabs, onChoose) {
+/** Write `tab`'s view into the URL and choose it; a click that opens the link elsewhere is left alone. */
+function chooseTab(event, tab, onChoose) {
   if (opensElsewhere(event)) {
     return;
   }
   event.preventDefault();
   history.replaceState(null, "", tab.href);
-  for (const other of tabs) {
-    markActive(other, other === tab);
-  }
   onChoose(tab.dataset.view);
 }
 
-function viewTab(view, activeView) {
+function viewTab(view) {
   const tab = document.createElement("a");
   tab.className = "view-tab";
   tab.dataset.view = view;
   tab.textContent = VIEW_TITLES[view];
   tab.href = queryString(viewParameters(parameters, view));
-  markActive(tab, view === activeView);
   return tab;
 }
 

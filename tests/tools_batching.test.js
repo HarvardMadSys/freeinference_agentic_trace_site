@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  batchLegend, LATENCY_BY_BATCH_WIDTH, waitAxisEnd, widthLabel, WIDEST_DRAWN,
+  LATENCY_BY_BATCH_WIDTH, waitAxisEnd, widthLabel, WIDEST_DRAWN,
 } from "../site/js/figures/tools_batching.js";
 import { dropThinGroups } from "../site/js/figures/figure_rows.js";
 import { BATCH_COLOURS } from "../site/js/theme/colours.js";
@@ -14,7 +14,7 @@ const ROWS = [
 ];
 
 test("the legend lists the batched calls and the serial line, each in its own colour", () => {
-  const { series, colours } = batchLegend();
+  const { series, colours } = LATENCY_BY_BATCH_WIDTH.legend();
   assert.deepEqual(series, [
     { name: "batched", label: "Batched calls: median, p25–p75, p10–p90" },
     { name: "serial", label: "Same calls one by one" },

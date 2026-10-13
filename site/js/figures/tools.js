@@ -12,7 +12,7 @@ import {
 } from "../shared/charts.js";
 import { axisWithTicks, decadeTicks } from "../axes/ticks.js";
 import {
-  formatCount, formatCountTick, formatSeconds, formatTokens, MILLISECONDS_PER_SECOND,
+  formatCompactCount, formatCount, formatCountTick, formatSeconds, MILLISECONDS_PER_SECOND,
 } from "../shared/format.js";
 import { CALLS_PER_REQUEST_BY_CATEGORY, LATENCY_BY_BATCH_WIDTH } from "./tools_batching.js";
 import { TOOL_MIX_BY_TURN_POSITION } from "../comparison/tool_mix.js";
@@ -40,7 +40,7 @@ const RESULT_TOKENS_RANGE = Object.freeze({
   xLabel: "Tokens",
   scale: 1,
   floor: 1, // an empty result is drawn at one token, below the shortest messages
-  format: formatTokens,
+  format: formatCompactCount,
   tickFormat: formatCountTick,
 });
 
@@ -63,7 +63,7 @@ export const FIGURES = Object.freeze([
     caption: "Read, Edit, Search, and File Ops have median latencies near one second, while Build/Test and Subagent calls take much longer. Long tails mean even fast categories occasionally stall for minutes.",
     query: "figures/latency_by_category",
     binColumn: "category",
-    draw: drawLatency,
+    draw: (rows, body, colours) => drawQuantileRanges(rows, body, colours.categories, LATENCY_RANGE),
   }),
   Object.freeze({
     name: "result_tokens_by_category",
@@ -73,22 +73,12 @@ export const FIGURES = Object.freeze([
     caption: "Read operations produce 33.9% of tool-result tokens despite accounting for only 16.3% of calls. Edit and Write operations typically return fewer than 50 tokens.",
     query: "figures/result_tokens_by_category",
     binColumn: "category",
-    draw: drawResultTokens,
+    draw: (rows, body, colours) => drawQuantileRanges(rows, body, colours.categories, RESULT_TOKENS_RANGE),
   }),
   CALLS_PER_REQUEST_BY_CATEGORY,
   LATENCY_BY_BATCH_WIDTH,
   TOOL_MIX_BY_TURN_POSITION,
 ]);
-
-/** Draw each category's latency percentiles, in seconds on a log axis. */
-async function drawLatency(rows, body, colours) {
-  await drawQuantileRanges(rows, body, colours.categories, LATENCY_RANGE);
-}
-
-/** Draw each category's result token percentiles, on a log axis. */
-async function drawResultTokens(rows, body, colours) {
-  await drawQuantileRanges(rows, body, colours.categories, RESULT_TOKENS_RANGE);
-}
 
 /**
  * Draw one row per category, in the order of `categoryColours` (the global category order, Other last) and in its

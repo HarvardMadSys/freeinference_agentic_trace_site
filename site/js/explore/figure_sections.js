@@ -22,7 +22,7 @@ import { MIN_ROWS_PER_BIN, nameChart, renderFigure, showError, showLoading, show
 import { runQuery } from "../shared/database.js";
 import { figureColours } from "../theme/colours.js";
 import { drawHistogram, histogramCard, rowsText } from "../shared/histogram.js";
-import { dropThinGroups, figureDrawnRows, figureRowsText, unsimulatedWeeks } from "../figures/figure_rows.js";
+import { dropThinGroups, figureRowsText, unsimulatedWeeks } from "../figures/figure_rows.js";
 import { drawWithLegend, shownRows } from "./legend.js";
 
 /**
@@ -139,7 +139,10 @@ async function drawHistogramFigure(figure, place) {
 /** Run one figure's query and draw its rows into `place`, its thin bins hidden, with its line of rows. */
 async function drawQueryFigure(figure, place, context) {
   const colours = await figureColours(context.orders);
-  const rows = figureDrawnRows(figure, await runQuery(figure.query), colours);
+  let rows = await runQuery(figure.query);
+  if (figure.drawnRows !== undefined) {
+    rows = figure.drawnRows(rows, colours);
+  }
   const { rows: shown, hidden } = dropThinGroups(rows, figure.binColumn);
   const notSimulated = unsimulatedWeeks(figure, context.weeks);
   place.rows.textContent = figureRowsText(figure, shown, hidden, notSimulated);
@@ -154,28 +157,24 @@ async function drawQueryFigure(figure, place, context) {
 
 /**
  * Draw `figure`'s rows with the series named in `hidden` left out, and name its chart: a figure whose rows each name
- * their series in `seriesColumn` is drawn from the rows of the other series; any other is given `hidden` and leaves
- * those series out of its marks.
+ * their series in `seriesColumn` is drawn from the rows of the other series. Every figure is given `hidden`; one that
+ * holds its series in columns leaves those out of its marks.
  */
 export async function drawFigureSeries(figure, rows, body, colours, hidden) {
-  if (figure.seriesColumn !== undefined) {
-    await figure.draw(shownRows(rows, figure.seriesColumn, hidden), body, colours);
-  } else {
-    await figure.draw(rows, body, colours, hidden);
-  }
+  const shown = figure.seriesColumn === undefined ? rows : shownRows(rows, figure.seriesColumn, hidden);
+  await figure.draw(shown, body, colours, hidden);
   nameChart(body);
 }
 
 /**
- * Draw a figure's rows into `body`. A figure of more than one series (one with a `legend`) gets its legend of buttons
- * above the chart, a short line per series for a figure that `drawsLines`, else a square, and its draw function its
- * legend's colours as `colours.series`. The legend function is given the
+ * Draw a figure's rows into `body`; a figure without a legend hides no series. A figure of more than one series (one
+ * with a `legend`) gets its legend of buttons above the chart, a short line per series for a figure that `drawsLines`,
+ * else a square, and its draw function its legend's colours as `colours.series`. The legend function is given the
  * figure's `seriesColumn`, undefined for a figure that holds its series in columns.
  */
 async function drawFigureRows(figure, rows, body, colours) {
   if (figure.legend === undefined) {
-    await figure.draw(rows, body, colours);
-    nameChart(body);
+    await drawFigureSeries(figure, rows, body, colours, new Set());
     return;
   }
   const legend = figure.legend(rows, colours, figure.seriesColumn);

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
-  assignColours, barColours, CAUSE_COLOURS, causeColours, figureColours, GAP_BIN_SLOTS, HARNESS_FIRST_SLOT,
+  assignColours, barColours, CAUSE_COLOURS, figureColours, GAP_BIN_SLOTS, HARNESS_FIRST_SLOT,
   OTHER_SERIES, SCOPE_COLOURS, SERIES_SLOTS, slottedColours, TIME_PART_COLOURS, TIME_PART_NAMES, TOKEN_PART_COLOURS,
   TOOL_CATEGORY_COLOURS, TOOL_GROUP_COLOURS, TOOL_GROUP_OF_CATEGORY, toolCategoryColour, toolCategoryColours,
   TRANSITION_COLOURS,
@@ -79,7 +79,7 @@ test("a bar chart's colours are the first eight names' series colours and Other'
 });
 
 test("the wait causes take their cause tokens in the paper's order", () => {
-  assert.deepEqual([...causeColours()], [
+  assert.deepEqual(Object.entries(CAUSE_COLOURS), [
     ["tool", "var(--cause-tool)"],
     ["ask_user_tool", "var(--cause-ask-user)"],
     ["user", "var(--cause-user)"],
