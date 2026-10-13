@@ -106,7 +106,7 @@ export function axisWithTicks(makeAxis, ticks, { tickFormat, ...options }) {
   if (tickFormat === undefined) {
     return makeAxis(ticks, options);
   }
-  // As text every tick is labelled; a log axis's tick format blanks one, such as 60, not 1, 2 or 5 times a power of 10.
+  // As `text` every tick is labelled; as `tickFormat` a log axis blanks a tick not 1, 2 or 5 times 10^k, such as 60.
   return makeAxis(ticks, { ...options, text: (tick) => tickFormat(tick) });
 }
 
