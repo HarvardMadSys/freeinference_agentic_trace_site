@@ -1,16 +1,35 @@
 # Design: simplify
 
 ## 0. The gate every task passes
-Before the first task, a scratch script (outside the repository) opens
-the served site in headless Chromium and saves, for the landing page
-with each of the six topics shown and for one session page in its three
-views, the outer HTML of every chart's SVG, every table's rows, every
-legend's text, and the stats strip, with Plot's generated ids
-normalised. After each task the script runs again and the two trees are
-compared; the diff must be empty, or every difference named in the
-task's report and accepted by its reviewer. `make test` stays green at
-every commit. A reviewer reads each task's diff against this design and
-the rules in CONTRIBUTING.md, and a final whole-branch review closes.
+Before the first task, a script in the scratch folder (never in the
+repository) serves the worktree and, in headless Chromium at 1280 px,
+light scheme, writes one text file per page state:
+- `index.html` with each of the six topics shown (six states), and
+  `session.html?week=2026-08-30&id=e317a932…` (the id completed from
+  the bucket index) in its Requests, Context and Timeline views, the
+  Context and Timeline views with the slider at its full range.
+For each state the file holds, in document order: the stats strip's
+text, every `.card-grid` card's title, insight, caption and definition
+text, every legend button's text and pressed state, every chart SVG's
+outer HTML, every table's header and row texts, the facts card's text,
+and the Requests view's row texts. Plot's generated ids (`plot-clip-N`
+and the like) are replaced by `plot-id`, and whitespace runs by one
+space. The baseline is saved once at the base commit, with the
+checksums of every file under `site/data/all_weeks`.
+
+After each task the script runs again and `diff -r` compares the two
+trees. The diff must be empty. The only differences this design allows
+are named here: task 2.1 may change an answer file's floats in their
+last bits (under 1e-9 relative), listed in the report; task 3.2 may
+change the SVG attribute that `TIP_STYLE` set, provided the rendered
+tooltip background is the card surface in both schemes (checked with
+two screenshots). A difference not named here is a defect, fixed before
+the task is reviewed.
+
+`make test` is green at every commit. Each task is reviewed by a
+reviewer who reads its diff against this design and CONTRIBUTING.md's
+rules, and the gate's diff; a task is complete when the reviewer finds
+nothing. A whole-branch review on the most capable model closes.
 
 ## 1. The browser query path (JavaScript)
 What the switch guards is never reached: `openDatabase` is opened

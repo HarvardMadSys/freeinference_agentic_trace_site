@@ -42,6 +42,28 @@ filter and link stays as it is. The change is to what is behind them.
 - **The specs are squashed** into three files that describe the site as
   it is, and the archived changes leave the tree: git history keeps them.
 
+## Before and after
+| | Now | After |
+|---|---|---|
+| `site/data` tracked and deployed | 168 MB, 3,451 files | about 84 MB, about 3,387 files |
+| JavaScript under `site/js` | about 10,100 lines, 65 modules | about 8,400 lines, about 58 modules |
+| Python under `site_data` | 1,344 lines, 12 modules | about 950 lines, 11 modules |
+| SQL under `site/queries` | 64 files | 58 files |
+| Tests | 10,460 lines | about 9,100 lines |
+| README, CONTRIBUTING, CLAUDE.md, docs | 944 lines | about 650 lines |
+| Specs | 5 files, 1,047 lines | 3 files, about 600 lines |
+| `openspec/changes/archive` | 79 files, 6,993 lines | none, in git history |
+| Pages, figures, views, filters, links | | the same |
+
+## Decisions taken
+1. The browser query path and the Parquet row files go. Recomputing
+   figures in the browser would be a new change; the dataset's rows stay
+   on Hugging Face and in the pipeline repository.
+2. The archived changes leave the tree; git history keeps them.
+3. The specs are squashed into three files.
+4. Git history is not rewritten: the row files already pushed stay in
+   the pack.
+
 ## Impact
 - Specs: `site-repository` (the switch removed, layout, deployment, the
   built data, tests), `site-data` (no row files; answers from frames;
