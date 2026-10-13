@@ -1,20 +1,38 @@
 # Design: lean
 
 ## 1. Snapshot tests
-`tests/snapshot.py` serves `site/` on a free port, opens the nine page
-states of `simplify`'s gate in headless Chromium (Playwright, from
-`make setup-browser`), and for each state writes one text file per
-unit under `tests/snapshots/<state>/`: each chart's SVG outer HTML
-(Plot's ids normalised, one element per line), each table's header and
-rows, each legend's buttons and states, the stats strip, each card's
-four texts, the facts card, the request rows. `make test` runs the
-script in compare mode and fails naming each unit whose text changed,
-pointing at the file so `git diff` shows the change; `make snapshots`
-rewrites the files. The test skips, saying so, when Chromium is not
-installed. The nine states and the session used are constants at the
-top of the script, and the session's id is read from the bucket index
-so a data rebuild does not break it. The files are text a maintainer
-can read; their size (a few megabytes) is accepted for that.
+`tests/snapshot.py` serves `site/` on a free port, opens twelve page
+states in headless Chromium (Playwright, pinned to the version the
+snapshots were written with; `make setup` installs it, `make
+setup-browser` its Chromium) at 1280 px, light scheme: the landing page
+with each of the six topics shown, and two fixed sessions, named as
+constants in `tests/snapshot_units.py` with the reason they were chosen,
+each in its Requests, Context and Timeline views: a plain session, and
+a session with subagents and overlapping requests, opened by a
+subagent's id so the index lookup and the expanded group are covered.
+A fixed session survives every rebuild, since a week never changes once
+released; the test fails with a clear message if one is missing. For
+each state it writes one text file per unit under
+`tests/snapshots/<state>/`: each chart's SVG outer HTML (Plot's
+generated clip, marker and pattern ids normalised, one element per
+line), each table's header and rows, each legend's buttons and states,
+the stats strip, each card's texts (title, insight, caption, definition,
+rows, range), the facts card, the request rows as markup. Colours are
+recorded as CSS tokens, so a series moving to another slot is caught
+and a token's value is the palette tests' job. A unit no tab changes is
+read once, with its page's first state. `make test` runs the script in
+compare mode and fails naming each unit whose text changed, pointing at
+the file so `git diff` shows the change; `make snapshots` rewrites the
+files. The test skips, saying so, when Chromium is not installed; it
+fails, naming the host, when the CDN libraries or fonts cannot load,
+since they are part of what is compared. A page that fails to draw
+reports the browser's errors, not a locator timeout. The files are text
+a maintainer can read; their size (about a megabyte) is accepted for
+that.
+
+Not covered: the narrow-width branches of the charts (every state is at
+1280 px). Task 4.1 therefore keeps the unit tests that pin the narrow
+ticks and labels.
 
 ## 2. Chart kinds
 `js/charts/` holds one module per kind, each exporting
