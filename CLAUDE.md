@@ -32,7 +32,9 @@ The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
 - The Explore page's figures are frozen: it draws every section from the
   answers `make data` precomputed over every week and the paper's
   harnesses, and loads no DuckDB and no Parquet file. The browser query path
-  stays behind `FIGURES_ARE_FROZEN` in `site/js/explore/start.js`.
+  stays behind `FIGURES_ARE_FROZEN` in `site/js/explore/start.js`, the
+  page's start. The Insights' topics are tabs, and a topic's figures are
+  drawn only once its tab is shown: a chart drawn hidden has no width.
 - `make data PIPELINE=<the pipeline's checkout>` follows every edit to a
   query under `site/queries/explore/`, `site/queries/figures/` or
   `site/queries/buckets/`, a colour order or a column, and `site/data` is

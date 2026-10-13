@@ -88,8 +88,7 @@ binding, and `make test` checks the countable ones.
 ```
 make data:     queries/explore/, queries/figures/, setup/*_order  →  run over site/data/*.parquet  →  data/all_weeks/<page>/<query>.json
                queries/buckets/, one week at a time                →  run over site/data/*.parquet  →  data/session_buckets/<week>/<xx>.json.gz
-Explore:       index.html, explorer.html, insights.html  →  js/pages/overview.js, explorer.js, insights.js  →  js/explore/start.js,
-               section modules and js/shared/  →  data/all_weeks/<page>/<query>.json
+Explore:       index.html  →  js/pages/explore.js  →  js/explore/start.js, section modules and js/shared/  →  data/all_weeks/<page>/<query>.json
 Session:       session.html  →  js/pages/session.js  →  js/session/bucket.js  →  data/session_buckets/<week>/<xx>.json.gz
 ```
 
@@ -97,22 +96,22 @@ Session:       session.html  →  js/pages/session.js  →  js/session/bucket.js
 js/pages/             one module per page
 js/shared/            what every page uses: the database, the selection, the libraries, formatting, charts, the
                       histogram and CDF figures, the table, the header and footer
-js/landing/           the Overview page's own parts: the hero, the stats strip beside it, the model and harness
-                      donuts, the citation's copy button, the team, and where its old anchors lead now (old_links.js)
-js/theme/             the site's colours as the style tokens give them
+js/landing/           the Explore page's own parts: the hero, the stats strip beside it, the model and harness
+                      donuts, the citation's copy button and the team
+js/theme/             the site's colours as the style tokens give them, and the colours every figure shares
 js/axes/              the ticks of every chart's axes: how many, where a log, duration or elapsed-time axis ticks, which
                       week a week axis labels, and an axis mark that labels each tick it is given
 js/engine/            DuckDB in the page: starting it, its views and setup, and the stream of every week's files, kept
                       behind the switch
-js/explore/           the Explore pages' shared start (start.js) and their sections: the trends, the figure runner
-                      (figure_sections.js), the Insights page's topic bar, the legend of buttons, the session list
-                      with its state and its month and harness filter, and the week and harness pickers, mounted
-                      only with the switch off
-js/figures/           the Insights page's figures: one module per section, listing its figure entries, the modules a
+js/explore/           the Explore page's start (start.js) and its sections: the trends, the figure runner
+                      (figure_sections.js), the Insights' topic tabs (topic_tabs.js), the legend of buttons, the
+                      session list with its state and its month and harness filter, and the week and harness
+                      pickers, mounted only with the switch off
+js/figures/           the Insights' figures: one module per section, listing its figure entries, the modules a
                       section takes entries from, and the row rules every figure shares (figure_rows.js)
 js/simulation/        the Prefix-caching section's figures of the cache simulation: prefill against storage, and the
                       two costs by TTL
-js/comparison/        the Insights page's figures that compare human-driven sessions with the benchmark's: the
+js/comparison/        the Insights' figures that compare human-driven sessions with the benchmark's: the
                       Human-driven-against-benchmark section's module, listing its figure entries, the modules that
                       draw them, and the two scopes the figures compare (scopes.js)
 js/session/           the Session page's bucket (a session's rows from its week's bucket), address, agent tree,
@@ -127,25 +126,26 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
 - An HTML file is a shell: a header, titled sections with ids, a footer, and
   one `<script type="module">`. It holds no data and no inline script.
 - The page module mounts the header and footer, reads what it shows from the
-  URL, opens the database (an Explore page, through `explore/start.js`) or
+  URL, opens the database (the Explore page, through `explore/start.js`) or
   fetches its session's bucket (the Session page), and fills each section.
-- There are three Explore pages, each an HTML file and a page module of the
-  same name under `js/pages/`: Overview (`index.html`, `overview.js`, the
-  landing page), Session Explorer (`explorer.html`, `explorer.js`) and
-  Insights (`insights.html`, `insights.js`). A page module lists its
-  sections in `SECTIONS`, names its own file in `PAGE_FILE`, and calls
-  `startPage` of `explore/start.js`, which fetches the indexes, draws the
-  header and footer, opens the database and runs the sections; the
-  Insights page passes `FIGURE_SECTIONS` as its figure sections too. The
-  header links the pages by file (`SECTIONS` of `shared/layout.js`), and
-  only its Session Explorer link carries the URL's keys, which are the
-  table's. Pages link one another by their `.html` names; the host serves
-  each at its clean path, `/explorer`, with the query kept.
+- The site has two pages. The Explore page, `index.html` and
+  `js/pages/explore.js`, is the landing page and holds, in order, the hero
+  and stats strip, the Overview (`#overview`), the Session Explorer
+  (`#sessions`), the Insights (`#insights`), Cite (`#cite`) and Team. Its
+  module lists its sections in `SECTIONS`, names its file in `PAGE_FILE`,
+  and calls `startPage` of `explore/start.js` with them and
+  `FIGURE_SECTIONS`; `startPage` fetches the indexes, draws the header and
+  footer, mounts the Insights' tabs, opens the database and runs the
+  sections. The header links the page's sections by anchor (`SECTIONS` of
+  `shared/layout.js`); from the Session page the links lead to
+  `index.html` with the URL's keys, which are the table's. Pages link one
+  another by their `.html` names; the host serves each at its clean path
+  with the query kept.
 - `shared/database.js` fetches `weeks.json` and `harnesses.json` and runs a
   query by name: `runQuery("explore/request_count")` names
   `queries/explore/request_count.sql`. An Explore or figure query is
   answered from its file under `data/all_weeks/`, as is a colour order
-  (`setup/*_order`). An Explore page opens the database with `answersOnly`,
+  (`setup/*_order`). The Explore page opens the database with `answersOnly`,
   so a query with an answer file reads it whatever the selection; the page
   runs no other, so DuckDB never starts there. Only with the switch off does
   DuckDB load, the first time a query needs it (`engine/duckdb_views.js`): it
@@ -178,11 +178,19 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   exports `TAKEAWAY`, its topic's finding in one sentence of at most twenty
   words, which the page writes under the topic's heading.
   `explore/figure_sections.js` lists the six in `FIGURE_SECTIONS`, and
-  `insights.html` holds a section with a heading and a card grid for each,
-  its id the topic's anchor (`#structure`, `#tokens`, `#latency`, `#tools`,
-  `#caching`, `#comparison`), which the topic bar links.
+  `index.html` holds, under the Insights heading and its `#topic-tabs` row,
+  a section with a heading and a card grid for each, its id the topic's
+  anchor (`#insights-sessions`, `#insights-tokens`, `#insights-latency`,
+  `#insights-tools`, `#insights-caching`, `#insights-comparison`).
+- The topics are tabs (`explore/topic_tabs.js`): one is shown and the
+  others hidden, the shown one named by the URL's hash, which a click
+  pushes as a new history entry, so Back returns to the topic before. A
+  chart reads its width from its card, and a hidden card has none, so
+  `figure_sections.js` starts only a shown topic's figures, and showing a
+  topic runs the same start step a card coming into view does. Nothing is
+  drawn into a hidden topic.
 
-**Adding a section to an Explore page.** Give it a place in the page's HTML,
+**Adding a section to the Explore page.** Give it a place in the page's HTML,
 an element with an id, under a heading if it is a part of its own; write its
 module with `layout<Thing>(container)`, which shows the loading state, and
 `async run<Thing>(container, context)`, which lays out a fresh place in the
@@ -191,17 +199,8 @@ container and draws its answer into it (`context` is described in
 `SECTIONS`, with `readsSessionsPerWeek: true` if it draws the answer of
 sessions per week by harness, which the page then asks for once for every
 section that reads it. A new topic of figures is a section module of figure
-entries instead, added to `FIGURE_SECTIONS` and to `insights.html`.
-
-**Adding an Explore page.** Copy `explorer.html`, keeping its `<head>`, header,
-`<main class="page">` and footer, and give it a `<title>` of the form
-"Name · FreeInference Agentic Dataset", a heading as its `<h1>` and the
-places of its sections; add its module under `js/pages/`, its `SECTIONS`, its
-`PAGE_FILE` and the call of `startPage`; add the page to `SECTIONS` of
-`shared/layout.js` and to the tests of `tests/layout.test.js`, which check
-each page's links, title and module; and add its clean path to the pages
-the deploy workflow asks the published site for. A page with pickers to
-mount behind the switch holds a `#selection` card, hidden while frozen.
+entries instead, added to `FIGURE_SECTIONS` and to `index.html`'s
+Insights, where it becomes a tab.
 
 ## How a session is served
 
@@ -271,7 +270,7 @@ query is run by `tests/test_queries.py` against the fixture data.
 every week and the paper's harnesses selected (the session list's and the
 trace totals with every harness), and the colour orders `setup/*_order`, and writes each answer to
 `site/data/all_weeks/`. **Rerun `make data` after editing one of those
-queries**: the Explore pages read the answer, not the query.
+queries**: the Explore page reads the answer, not the query.
 `tests/test_answers.py` checks each answer written for the fixture against its
 query run live, and that the shipped answers under `site/data`, which the
 repository tracks, come from each query's current text: `make data` records
@@ -288,7 +287,7 @@ a module docstring stating the definition, a frozen dataclass for anything
 that crosses a boundary, and functions that each do one job.
 
 **A figure entry** (listed in its section module's `FIGURES`). Every
-figure of the Insights page is one frozen object with these fields; the
+figure of the Insights is one frozen object with these fields; the
 page draws its card (title, insight, legend, chart, caption, and a Definition
 control that opens on the definition and the line of rows), reads its query's
 answer, hides its thin bins, writes its line of rows and calls `draw`:

@@ -11,4 +11,4 @@ and no data change is expected.
 - [x] 2.1 `explore/topic_tabs.js` from `topic_bar.js`: the tab row, one topic shown at a time, the hash as the shown topic (`pushState` on click, `popstate`, the hash on load), the row scrolling sideways on a phone; `figure_sections.js` draws a topic's figures when it is shown; CSS; the tests.
 
 ## 3. Close
-- [ ] 3.1 The deploy workflow checks `/` and the data files; README, CONTRIBUTING, `CLAUDE.md`; `openspec validate insights-tabs --strict`; the browser pass.
+- [x] 3.1 The deploy workflow checks `/` and the data files; README, CONTRIBUTING, `CLAUDE.md`; `openspec validate insights-tabs --strict`; the browser pass.
