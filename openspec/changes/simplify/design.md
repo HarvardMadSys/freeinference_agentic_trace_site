@@ -89,8 +89,8 @@ tool_calls,sessions,simulation}/` are deleted from the tree.
 
 Also dropped, since this reruns `make data` anyway: the queries no page
 reads (`explore/request_count`, `explore/headline_numbers`) with their
-tests, `trace_totals` becoming CONTRIBUTING's example; the frame columns
-no query reads (`requests.idle_gap_s`, `simulation.active_token_seconds`);
+tests, `trace_totals` becoming CONTRIBUTING's example; the frame column
+no query reads (`simulation.active_token_seconds`);
 the bucket columns no view reads (`n_tool_calls`, `main_model`,
 `user_id`, `call_index` in the SELECT). The figure queries
 `ttft_median_by_model` and `decode_median_by_model` stay: parity reads

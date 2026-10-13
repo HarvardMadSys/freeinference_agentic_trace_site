@@ -25,3 +25,24 @@ SHALL run no query and load no database.
 #### Scenario: A slow connection
 - **WHEN** an answer file takes several seconds to download
 - **THEN** the page SHALL already show its layout, with a loading state in that answer's place and the other parts drawn
+
+### Requirement: Weekly trends
+Three cards in the Overview SHALL show per week the sessions by harness,
+the requests by model and the input tokens cached and uncached, over
+every harness, the benchmark's included, as stacked
+bars, the series the donuts name (those holding the eight series colours)
+named and the rest folded into Other, with legends that toggle, each
+chart as wide as its card's body, its x axis ticked at every month the
+weeks span, the first and the last included. A bar SHALL take no click.
+
+#### Scenario: Clicking a bar
+- **WHEN** the visitor clicks a week's bar
+- **THEN** nothing SHALL change
+
+#### Scenario: Models per week
+- **WHEN** the requests-per-week card draws
+- **THEN** each week's bar SHALL be split by model, the models the model-mix donut names named and the rest Other
+
+#### Scenario: The benchmark's weeks
+- **WHEN** the sessions-per-week card draws
+- **THEN** the benchmark replay's sessions SHALL be in their weeks' bars as the `swe-bench` series
