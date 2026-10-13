@@ -4,7 +4,7 @@
  * paper and the code, and the lab's name under them.
  */
 
-import { AFFILIATION, URLS, weekCountText } from "../shared/layout.js";
+import { AFFILIATION, SESSION_EXPLORER_ANCHOR, URLS, weekCountText } from "../shared/layout.js";
 
 // The title, the dataset's name: its first phrase, and its second, drawn in the accent.
 const TITLE = "FreeInference";
@@ -17,7 +17,7 @@ const LEDE_REST = "worth of production agent traces from FreeInference across di
 // The buttons under the lede: the first two scroll to the page's own sections, the first of them the primary one; the
 // others leave the site.
 const SITE_BUTTONS = Object.freeze([
-  Object.freeze({ title: "Session Explorer", href: "#sessions", className: "button button--primary" }),
+  Object.freeze({ title: "Session Explorer", href: SESSION_EXPLORER_ANCHOR, className: "button button--primary" }),
   Object.freeze({ title: "Insights", href: "#insights", className: "button" }),
 ]);
 const EXTERNAL_BUTTONS = Object.freeze([

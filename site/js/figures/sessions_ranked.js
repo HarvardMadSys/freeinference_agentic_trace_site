@@ -6,12 +6,13 @@
  * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. Every row of their queries is one rank bin:
  * its `percentile` (the bin's middle, in percent of the sessions ranked), one column per part holding the bin's mean
  * share of it, and `bin_sessions`, the bin's sessions. Every row also holds the same `ranked_bin` and `rows`, the
- * sessions ranked: the page counts the figure's rows as one bin, so the figure is hidden only when the whole selection
+ * sessions ranked: the page counts the figure's rows as one bin, so the figure is hidden only when the whole answer
  * has too few sessions, not when its rank bins are small. The parts are columns, not rows, so a figure's draw function
  * is given the parts its legend hides.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, TIP_STYLE } from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE } from "../shared/charts.js";
+import { percentTick } from "../axes/ticks.js";
 import { TIME_PART_COLOURS, TIME_PART_NAMES, TOKEN_PART_COLOURS } from "../theme/colours.js";
 import { formatCount, formatPercent, formatShare } from "../shared/format.js";
 import { TOKEN_PART_NAMES } from "../session/token_parts.js";
@@ -35,9 +36,10 @@ export const COST_SHARE_BY_SESSION = Object.freeze({
   caption: "Cached input accounts for 72.9% of modeled API cost, despite costing one-tenth as much per token as uncached input. Its enormous volume outweighs the pricing discount.",
   query: "figures/cost_share_by_session",
   binColumn: "ranked_bin",
-  seriesOverSameRows: true,
-  legend: costShareLegend,
-  draw: drawCostShare,
+  legend: () => partsLegend(COST_PARTS, new Map(Object.entries(TOKEN_PART_COLOURS))),
+  draw: (rows, body, colours, hidden) => drawRankedShares(rows, body, {
+    labels: COST_PARTS, colours: colours.series, hidden, yLabel: "Share of cost",
+  }),
 });
 
 /** The session time figure: each session's time in prefill, decode, tool wait and user idle, ranked by idle share. */
@@ -49,9 +51,10 @@ export const SESSION_TIME_BY_PART = Object.freeze({
   caption: "User idle time accounts for 50.3% of session duration and tool execution another 21.7%. Prefill and decoding together account for the remaining 28%.",
   query: "figures/session_time_by_part",
   binColumn: "ranked_bin",
-  seriesOverSameRows: true,
-  legend: sessionTimeLegend,
-  draw: drawSessionTime,
+  legend: () => partsLegend(TIME_PARTS, new Map(Object.entries(TIME_PART_COLOURS))),
+  draw: (rows, body, colours, hidden) => drawRankedShares(rows, body, {
+    labels: TIME_PARTS, colours: colours.series, hidden, yLabel: "Share of session time",
+  }),
 });
 
 /**
@@ -88,43 +91,12 @@ export function rankTips(rows, parts, labels) {
   return tips;
 }
 
-/** The cost share's legend: cached input, uncached input and output, in their token colours. */
-function costShareLegend() {
-  return partsLegend(COST_PARTS, new Map(Object.entries(TOKEN_PART_COLOURS)));
-}
-
-/** The session time's legend: prefill, decode, tool wait and user idle, in the paper's part colours. */
-function sessionTimeLegend() {
-  return partsLegend(TIME_PARTS, new Map(Object.entries(TIME_PART_COLOURS)));
-}
-
-/** Draw the cost share's rank bins as a stacked area of cached, uncached and output shares; hidden parts left out. */
-async function drawCostShare(rows, body, colours, hidden) {
-  await drawRankedShares(body, rows, {
-    labels: COST_PARTS,
-    colours: colours.series,
-    hidden,
-    xLabel: "Session percentile",
-    yLabel: "Share of cost",
-  });
-}
-
-/** Draw the session time's rank bins as a stacked area of prefill, decode, tool and user shares; hidden left out. */
-async function drawSessionTime(rows, body, colours, hidden) {
-  await drawRankedShares(body, rows, {
-    labels: TIME_PARTS,
-    colours: colours.series,
-    hidden,
-    xLabel: "Session percentile",
-    yLabel: "Share of session time",
-  });
-}
-
 /**
- * Draw `rows`, rank bins, into `body` as a stacked area over the percentile of each part of `labels` (part to label)
- * not in `hidden`, bottom up in that order, each in its colour of `colours`, with a tooltip per bin.
+ * Draw `rows`, rank bins, into `body` as a stacked area over the session percentile of each part of `labels` (part to
+ * label) not in `hidden`, bottom up in that order, each in its colour of `colours`, with a tooltip per bin; `yLabel`
+ * says what the shares are of.
  */
-async function drawRankedShares(body, rows, { labels, colours, hidden, xLabel, yLabel }) {
+async function drawRankedShares(rows, body, { labels, colours, hidden, yLabel }) {
   // Plot is loaded here, not at the top, so node can test the section's figure list.
   const { Plot } = await import("../shared/libraries.js");
   const shown = Object.keys(labels).filter((part) => !hidden.has(part));
@@ -136,15 +108,12 @@ async function drawRankedShares(body, rows, { labels, colours, hidden, xLabel, y
     color: colourScale(colours, shown),
     marks: [
       Plot.gridY(GRID_STYLE),
-      Plot.axisX({ ...AXIS_STYLE, label: xLabel, tickFormat: percentileTick }), // "0%" to "100%", as the y axis
+      // Its ticks run from "0%" to "100%", as the y axis's do.
+      Plot.axisX({ ...AXIS_STYLE, label: "Session percentile", tickFormat: percentTick }),
       Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: yLabel }),
       Plot.areaY(stackedSharePoints(rows, shown), { x: "percentile", y: "share", fill: "part", order: shown }),
-      Plot.tip(tips, Plot.pointerX({ ...TIP_STYLE, x: "percentile", y: "top", title: "text" })),
+      Plot.tip(tips, Plot.pointerX({ x: "percentile", y: "top", title: "text" })),
     ],
   });
   body.replaceChildren(chart);
-}
-
-function percentileTick(percentile) {
-  return `${percentile}%`;
 }

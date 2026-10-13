@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { donutArcs, pointAt, ringSegmentPath, sliceShares } from "../site/js/landing/arcs.js";
@@ -95,14 +94,10 @@ test("each legend entry names its slice, as the donut writes names, and its shar
   ]);
 });
 
-test("the harness mix and the sessions trend draw the page's one answer of sessions per week, not their own", () => {
-  const query = "explore/sessions_per_week_by_harness";
-  const readers = ["landing/donuts.js", "explore/trends.js"];
-  for (const reader of readers) {
-    const text = readFileSync(new URL(`../site/js/${reader}`, import.meta.url), "utf8");
-    assert.ok(!text.includes(`runQuery("${query}")`), `${reader} asks for ${query} itself`);
-    assert.ok(text.includes("await context.sessionsPerWeekByHarness"), `${reader} reads the page's answer`);
-  }
-  const page = readFileSync(new URL("../site/js/explore/start.js", import.meta.url), "utf8");
-  assert.equal(page.split(`runQuery("${query}")`).length - 1, 1, "the page asks for it once");
+test("a donut with no name format writes each slice's name as given", () => {
+  const slices = [{ name: "glm-5.3-flash", count: 1 }, { name: "Other", count: 1 }];
+  assert.deepEqual(legendSeries(slices), [
+    { name: "glm-5.3-flash", label: "glm-5.3-flash 50.0%" },
+    { name: "Other", label: "Other 50.0%" },
+  ]);
 });

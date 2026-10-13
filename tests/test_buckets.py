@@ -13,7 +13,6 @@ import pytest
 import site_data.__main__
 import site_data.answers
 import site_data.buckets
-import site_data.check_answers
 import site_data.paths
 
 import fixture_release
@@ -80,7 +79,7 @@ def test_a_bucket_holds_the_whole_tree_with_its_subagents_rows(data_directory: p
         "tree-root": 5, "tree-child": 2, "tree-sibling": 2, "tree-grandchild": 0}
 
 
-def test_a_value_is_kept_as_the_week_file_holds_it(data_directory: pathlib.Path) -> None:
+def test_a_value_is_kept_as_the_frame_holds_it(data_directory: pathlib.Path) -> None:
     entry = bucket_of(data_directory, FIRST_SUNDAY, TREE_ROOT)[TREE_ROOT]
     requests = [dict(zip(entry["requests"]["columns"], row)) for row in entry["requests"]["rows"]]
     root_requests = [request for request in requests if request["session_id"] == TREE_ROOT]
@@ -140,10 +139,13 @@ def test_a_bucket_is_gzipped_with_no_time_in_its_header(data_directory: pathlib.
         assert header[4:8] == b"\x00\x00\x00\x00", name  # the modification time, 0
 
 
-def test_a_rebuild_writes_identical_buckets(data_directory: pathlib.Path) -> None:
+def test_a_rebuild_writes_identical_buckets(connection: duckdb.DuckDBPyConnection, data_directory: pathlib.Path,
+                                           tmp_path: pathlib.Path) -> None:
+    data = tmp_path / "data"
+    shutil.copytree(data_directory, data)
+    site_data.buckets.write_buckets(connection, data)
     before = {name: (data_directory / name).read_bytes() for name in written_buckets(data_directory)}
-    site_data.buckets.write_buckets(data_directory)
-    after = {name: (data_directory / name).read_bytes() for name in written_buckets(data_directory)}
+    after = {name: (data / name).read_bytes() for name in written_buckets(data)}
     assert after == before
 
 
@@ -153,11 +155,10 @@ def test_the_bucket_queries_are_every_query_of_their_folder_and_are_hashed() -> 
     assert set(on_disk) <= set(site_data.answers.query_hashes())
 
 
-def test_a_bucket_query_edited_since_make_data_fails_the_check(data_directory: pathlib.Path,
-                                                               tmp_path: pathlib.Path) -> None:
+def test_a_bucket_query_edited_since_make_data_is_stale(data_directory: pathlib.Path,
+                                                        tmp_path: pathlib.Path) -> None:
     queries = tmp_path / "queries"
     shutil.copytree(site_database.QUERIES_FOLDER, queries)
     with (queries / "buckets" / "week_requests.sql").open("a") as query:
         query.write("-- edited\n")
-    stale = site_data.check_answers.stale_queries(data_directory, queries)
-    assert [query.name for query in stale] == ["buckets/week_requests"]
+    assert site_data.answers.stale_queries(data_directory, queries) == ["buckets/week_requests"]

@@ -1,6 +1,10 @@
 /**
- * The brackets of the Requests view: one vertical bracket in the list's left gutter per overlap group, joining the
- * rows of requests that ran at the same time.
+ * The brackets of the Requests view: the requests that ran at the same time, and one vertical bracket in the list's
+ * left gutter per overlap group, joining their rows.
+ *
+ * A request runs over `[start_ms, end_ms)`, so one that starts the moment another ends does not overlap it. An
+ * overlap group is a maximal set of requests linked by overlaps: each overlaps at least one other in the group, and
+ * none overlaps a request outside it. Agents run side by side, so a group usually joins requests of several sessions.
  *
  * A request hidden in a collapsed subagent group is stood for by the header of the outermost collapsed group around
  * it, so two collapsed subagents that ran side by side are joined at their headers. Brackets that cross take
@@ -14,6 +18,31 @@ export const MAX_LANES = 6;
 
 // The width of one lane of the gutter, in rem; six lanes fill the list's left padding.
 const LANE_WIDTH_REM = 0.4;
+
+/**
+ * The overlap groups of `requests`, each an array of indices into `requests` in start order, the groups in order of
+ * their first start. A request that overlaps no other is in no group.
+ */
+export function overlapGroups(requests) {
+  const startOrder = Array.from(requests.keys());
+  startOrder.sort((first, second) => requests[first].start_ms - requests[second].start_ms);
+  const groups = [];
+  let group = [];
+  let groupEnd = -Infinity; // the latest end of the requests in `group`
+  for (const index of startOrder) {
+    const request = requests[index];
+    if (request.start_ms < groupEnd) {
+      group.push(index);
+      groupEnd = Math.max(groupEnd, request.end_ms);
+    } else {
+      addIfOverlapping(groups, group);
+      group = [index];
+      groupEnd = request.end_ms;
+    }
+  }
+  addIfOverlapping(groups, group);
+  return groups;
+}
 
 /**
  * The lane of each span, `{ top, bottom }`, sorted by `top`: the first lane whose last bracket ends above the span's
@@ -87,4 +116,11 @@ function bracket(span, lane) {
   element.style.borderColor = SERIES_SLOTS[lane];
   element.title = `${span.requests} requests ran at overlapping times`;
   return element;
+}
+
+// A group of one request overlaps nothing.
+function addIfOverlapping(groups, group) {
+  if (group.length > 1) {
+    groups.push(group);
+  }
 }

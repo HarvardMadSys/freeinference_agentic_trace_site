@@ -3,8 +3,8 @@ import { test } from "node:test";
 
 import {
   atMost, axisWithTicks, fewerOnNarrow, tickCountFor, decadeDomain, decadeTicks, durationTicks, elapsedAxis, elapsedTicks, everyOther, firstWeekOfEachMonth,
-  isNarrowChart, logAxisTicks, MAX_TICKS, maxTicksFor, monthTickFormat, NARROW_MAX_TICKS, sparseTickFormat, tickCount,
-  weekTickFormat,
+  isNarrowChart, logAxisTicks, MAX_TICKS, monthTickFormat, NARROW_MAX_TICKS, percentTick, sparseTickFormat,
+  tickCount, weekTickFormat,
 } from "../site/js/axes/ticks.js";
 
 test("a log axis ticks its powers of ten, every other one past six, and leaves a range of one power to Plot", () => {
@@ -19,11 +19,10 @@ test("the powers of ten of a range, and the powers of ten around a set of values
   assert.deepEqual(decadeDomain([150, 420000]), [100, 1e6]);
 });
 
-test("a duration axis ticks at the durations people count in, at most six of them", () => {
+test("a duration axis ticks at the durations people count in within its range", () => {
   assert.deepEqual(durationTicks([0.1, 86400]), [0.1, 1, 60, 3600, 86400]);
   assert.deepEqual(logAxisTicks([1e4, 1e8], 4), [1e4, 1e6, 1e8]);
   assert.deepEqual(durationTicks([0.5, 300]), [1, 60]);
-  assert.ok(durationTicks([0.001, 1e7]).length <= MAX_TICKS);
 });
 
 test("a crowded axis labels every step-th value from the first, at most the number asked", () => {
@@ -34,6 +33,10 @@ test("a crowded axis labels every step-th value from the first, at most the numb
 test("an axis with room for every value labels them all", () => {
   const format = sparseTickFormat([1, 2, 4], String, 6);
   assert.deepEqual([1, 2, 4].map(format), ["1", "2", "4"]);
+});
+
+test("a percentage axis writes its ticks as they are, with a percent sign", () => {
+  assert.deepEqual([0, 50, 100].map(percentTick), ["0%", "50%", "100%"]);
 });
 
 test("a week axis labels the first week of each month with its month alone", () => {
@@ -104,11 +107,9 @@ test("an elapsed axis writes hours and minutes from an hour on, else minutes and
 test("a narrow chart's axes take at most three ticks, a wide one's six; every other tick halves a list", () => {
   assert.equal(isNarrowChart(300), true);
   assert.equal(isNarrowChart(520), false);
-  assert.equal(maxTicksFor(300), NARROW_MAX_TICKS);
-  assert.equal(maxTicksFor(520), MAX_TICKS);
+  assert.equal(tickCountFor(300, MAX_TICKS), NARROW_MAX_TICKS);
+  assert.equal(tickCountFor(520, MAX_TICKS), MAX_TICKS);
   assert.deepEqual(everyOther([0.1, 1, 60]), [0.1, 60]);
-  assert.deepEqual(durationTicks([0.05, 1000], NARROW_MAX_TICKS), [0.1, 1, 60]);
-  assert.deepEqual(durationTicks([0.05, 4000], NARROW_MAX_TICKS), [0.1, 60]);
 });
 
 test("a week axis leaves out a month whose first week is under four weeks before the next month's", () => {

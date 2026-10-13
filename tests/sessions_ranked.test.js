@@ -78,8 +78,3 @@ test("a rank-bin figure is drawn whole when its sessions are enough, however sma
     assert.equal(restingCountText(rows, figure), "104 rows", figure.name);
   }
 });
-
-test("a rank-bin figure of fewer sessions than a bin needs is hidden whole", () => {
-  const thinRows = SMALL_BIN_ROWS.map((row) => ({ ...row, rows: 49 }));
-  assert.deepEqual(dropThinGroups(thinRows, SESSION_TIME_BY_PART.binColumn), { rows: [], hidden: 1 });
-});

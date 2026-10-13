@@ -8,24 +8,28 @@
  */
 
 import {
-  AXIS_STYLE, chartFrame, colourScale, distinct, drawBars, GRID_STYLE, LINE_WIDTH, TIP_STYLE,
+  AXIS_STYLE, chartFrame, colourScale, distinct, drawBars, GRID_STYLE, LINE_WIDTH,
 } from "../shared/charts.js";
 import { drawCdf } from "../shared/cdf.js";
 import { axisWithTicks, decadeDomain, decadeTicks, sparseTickFormat, weekTickFormat } from "../axes/ticks.js";
-import { assignColours, ROLE_COLOURS, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
+import { ROLE_COLOURS, TOKEN_PART_COLOURS, VIOLET_SLOT } from "../theme/colours.js";
 import {
-  formatBinaryThousands, formatCount, formatCountTick, formatPercent, formatShare, formatTokens,
+  formatBinaryThousands, formatCompactCount, formatCount, formatCountTick, formatPercent, formatShare,
 } from "../shared/format.js";
-import { TOKEN_PART_NAMES } from "../session/token_parts.js";
-import { cdfSeries, seriesLegend } from "./figure_rows.js";
+import { INPUT_ROLES, TOKEN_PART_NAMES } from "../session/token_parts.js";
+import { cdfSeries, partsLegend, seriesLegend } from "./figure_rows.js";
 import { COST_SHARE_BY_SESSION } from "./sessions_ranked.js";
 
 // The series of the tokens-per-request CDF, by their name in the query, with the name each is drawn under.
 const TOKEN_SERIES = Object.freeze({
   input: "Input", uncached: TOKEN_PART_NAMES.uncached, output: TOKEN_PART_NAMES.output,
 });
+// Their colours: the two token parts in theirs, and the input, the whole prompt and not a part of it, in violet.
+const TOKEN_SERIES_COLOURS = Object.freeze({
+  input: VIOLET_SLOT, uncached: TOKEN_PART_COLOURS.uncached, output: TOKEN_PART_COLOURS.output,
+});
 
-// A request's token parts, bottom up in a stacked bar, each drawn in its token colour.
+// The token parts the growth figure draws a line for, in its legend's order.
 const TOKEN_PARTS = Object.freeze(["cached", "uncached", "output"]);
 
 // The median column of each token part in the token growth query.
@@ -33,18 +37,6 @@ const GROWTH_COLUMNS = Object.freeze({
   cached: "median_cached_tokens",
   uncached: "median_uncached_tokens",
   output: "median_output_tokens",
-});
-
-// The parts of a request's input, bottom up in a stacked bar; each takes its role's colour.
-const ROLES = Object.freeze(["system", "user", "assistant", "tool", "tool_definitions"]);
-
-// The label each part of a request's input has in the legend.
-const ROLE_LABELS = Object.freeze({
-  system: "System",
-  user: "User",
-  assistant: "Assistant",
-  tool: "Tool results",
-  tool_definitions: "Tool definitions",
 });
 
 const MIN_TOKENS_DRAWN = 1; // a token count below one (a request with nothing uncached) is drawn at one, on the log axis
@@ -67,7 +59,8 @@ export const FIGURES = Object.freeze([
     binColumn: "series",
     seriesColumn: "series",
     seriesOverSameRows: true,
-    legend: tokensPerRequestLegend,
+    legend: (rows, colours, seriesColumn) =>
+      seriesLegend(rows, seriesColumn, new Map(Object.entries(TOKEN_SERIES_COLOURS)), TOKEN_SERIES),
     draw: drawTokensPerRequest,
   }),
   Object.freeze({
@@ -79,7 +72,8 @@ export const FIGURES = Object.freeze([
     query: "figures/token_split_by_week",
     binColumn: "week",
     seriesColumn: "part",
-    legend: tokenSplitLegend,
+    legend: (rows, colours, seriesColumn) =>
+      seriesLegend(rows, seriesColumn, new Map(Object.entries(TOKEN_PART_COLOURS)), TOKEN_PART_NAMES),
     draw: drawTokenSplit,
   }),
   Object.freeze({
@@ -91,7 +85,7 @@ export const FIGURES = Object.freeze([
     drawsLines: true,
     query: "figures/token_growth_by_messages",
     binColumn: "bin_start",
-    legend: tokenGrowthLegend,
+    legend: () => partsLegend(TOKEN_PART_NAMES, new Map(Object.entries(TOKEN_PART_COLOURS))),
     draw: drawTokenGrowth,
   }),
   Object.freeze({
@@ -123,40 +117,22 @@ export const FIGURES = Object.freeze([
   COST_SHARE_BY_SESSION,
 ]);
 
-/** The tokens-per-request CDF's legend: input, uncached input and output, the last two in their token colours. */
-function tokensPerRequestLegend(rows, colours, seriesColumn) {
-  // Input is the whole prompt, not a part of it, so it takes violet, the one slot neither a token part nor a part of a
-  // session's time uses.
-  const tokenColours = new Map([
-    ["input", SERIES_SLOTS[6]],
-    ["uncached", TOKEN_PART_COLOURS.uncached],
-    ["output", TOKEN_PART_COLOURS.output],
-  ]);
-  return seriesLegend(rows, seriesColumn, tokenColours, TOKEN_SERIES);
-}
-
-/** The token split's legend: the token parts, in their colours. */
-function tokenSplitLegend(rows, colours, seriesColumn) {
-  return seriesLegend(rows, seriesColumn, tokenPartColours(), TOKEN_PART_NAMES);
-}
-
-/** The token growth's legend: the token parts, in their colours; each is a column of every row. */
-function tokenGrowthLegend() {
-  const series = TOKEN_PARTS.map((part) => ({ name: part, label: TOKEN_PART_NAMES[part] }));
-  return { series, colours: tokenPartColours() };
-}
-
-/** The context share's legend: the roles, in their order and colours. */
+/** The context share's legend: the input roles, in their stacking order and their colours. */
 function contextShareLegend(rows, colours, seriesColumn) {
-  const roleColours = new Map(ROLES.map((role) => [role, ROLE_COLOURS[role]]));
-  return seriesLegend(rows, seriesColumn, roleColours, ROLE_LABELS);
+  const roleColours = new Map();
+  const roleNames = {};
+  for (const inputRole of INPUT_ROLES) {
+    roleColours.set(inputRole.role, ROLE_COLOURS[inputRole.role]);
+    roleNames[inputRole.role] = inputRole.name;
+  }
+  return seriesLegend(rows, seriesColumn, roleColours, roleNames);
 }
 
 /** Draw the CDFs of input, uncached input and output tokens per request, on a log axis. */
 async function drawTokensPerRequest(rows, body, colours) {
   const series = cdfSeries(rows, Object.keys(TOKEN_SERIES), { labels: TOKEN_SERIES, floor: MIN_TOKENS_DRAWN });
   await drawCdf(body, series, {
-    xLabel: "Tokens", yLabel: "Share of requests", logX: true, format: formatTokens, xTickFormat: formatCountTick,
+    xLabel: "Tokens", yLabel: "Share of requests", logX: true, format: formatCompactCount, xTickFormat: formatCountTick,
     colours: colours.series,
   });
 }
@@ -167,9 +143,7 @@ async function drawTokenSplit(rows, body, colours) {
     x: "week",
     y: "share",
     fill: "part",
-    order: TOKEN_PARTS,
     colours: colours.series,
-    stacked: true,
     xLabel: null,
     yLabel: "Share of tokens",
     format: formatShare,
@@ -184,9 +158,7 @@ async function drawContextShare(rows, body, colours) {
     x: "bin_start",
     y: "share",
     fill: "role",
-    order: ROLES,
     colours: colours.series,
-    stacked: true,
     xLabel: "Input tokens",
     yLabel: "Share of input",
     format: formatShare,
@@ -216,7 +188,7 @@ async function drawTokenGrowth(rows, body, colours, hidden) {
     axisWithTicks(Plot.axisY, decadeTicks(yDomain), { ...AXIS_STYLE, label: "Median tokens", tickFormat: formatCountTick }),
     Plot.line(points, { x: "messages", y: "tokens", stroke: "part", strokeWidth: LINE_WIDTH }),
     Plot.dot(points, { x: "messages", y: "tokens", fill: "part", r: MARKER_RADIUS }),
-    Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "messages", y: "tokens", title: growthTipText })),
+    Plot.tip(points, Plot.pointer({ x: "messages", y: "tokens", title: growthTipText })),
   ];
   const chart = Plot.plot({
     ...chartFrame(body),
@@ -228,8 +200,11 @@ async function drawTokenGrowth(rows, body, colours, hidden) {
   body.replaceChildren(chart);
 }
 
-/** One point per bin and part of `parts` with a median: `{ part, messages, tokens, median, rows }`, each part's points in bin order. */
-function growthPoints(rows, parts) {
+/**
+ * One point per bin and part of `parts` (the parts shown) with a median: `{ part, messages, tokens, median, rows }`,
+ * each part's points in bin order.
+ */
+export function growthPoints(rows, parts) {
   const points = [];
   for (const part of parts) {
     for (const row of rows) {
@@ -245,11 +220,6 @@ function growthPoints(rows, parts) {
 function growthTipText(point) {
   const lastMessage = 2 * point.messages - 1; // a power-of-two bin runs to one below the next power of two
   const messages = `${formatCount(point.messages)}–${formatCount(lastMessage)} messages`;
-  const median = `median ${formatTokens(point.median)} tokens`;
+  const median = `median ${formatCompactCount(point.median)} tokens`;
   return `${TOKEN_PART_NAMES[point.part]}\n${messages}\n${median}\n${formatCount(point.rows)} requests`;
-}
-
-/** The token part colours as a map from part to colour, as the chart helpers take them. */
-function tokenPartColours() {
-  return new Map(Object.entries(TOKEN_PART_COLOURS));
 }

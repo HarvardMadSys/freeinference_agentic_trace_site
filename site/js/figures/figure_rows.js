@@ -1,7 +1,7 @@
 /**
- * What the Explore page does to a figure's rows before drawing them: the rows it draws, thin bins hidden, its line of
- * rows (the rows it rests on, the weeks not simulated and the bins hidden), the series its legend lists, and a CDF
- * query's points grouped into series.
+ * What the Explore page does to a figure's rows before drawing them: the rows of a series with a colour of its own,
+ * thin bins hidden, its line of rows (the rows it rests on, the weeks not simulated and the bins hidden), the series
+ * its legend lists, and a CDF query's points grouped into series.
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
  * a CDF series), or, when `binColumn` is null, each row alone. Every row of a bin carries the bin's count, the number
@@ -10,6 +10,7 @@
 
 import { dropThinBins, MIN_ROWS_PER_BIN } from "../shared/charts.js";
 import { formatCount } from "../shared/format.js";
+import { slottedColours } from "../theme/colours.js";
 
 // The column of every figure query that holds a bin's count: the number of rows of the data behind the bin.
 const COUNT_COLUMN = "rows";
@@ -24,11 +25,12 @@ const HIDDEN_NOUNS = Object.freeze({
 const DEFAULT_HIDDEN_NOUN = ["bin", "bins"];
 
 /**
- * The rows of a query's `rows` that `figure` draws: those its `drawnRows(rows, colours)` keeps, given the colours every
- * figure shares, or every row for a figure without one. The line of rows counts these and their thin bins are hidden.
+ * The rows whose `column` names a series with one of the eight series colours of `colours` (a Map from name to
+ * colour): a line per model or provider is drawn only for these, since one in the Other grey could not be told apart.
  */
-export function figureDrawnRows(figure, rows, colours) {
-  return figure.drawnRows === undefined ? rows : figure.drawnRows(rows, colours);
+export function rowsWithSeriesColour(rows, column, colours) {
+  const coloured = slottedColours(colours);
+  return rows.filter((row) => coloured.has(row[column]));
 }
 
 /**
@@ -76,22 +78,19 @@ export function restingCountText(rows, figure) {
 }
 
 /**
- * The selected weeks (`selection.weeks`, Sundays) that the cache simulation does not cover, by `weekEntries` (the
- * entries of `weeks.json`), for a figure drawn from the simulation (`isSimulation`) or with a column from it
- * (`isPartlySimulated`); none for any other figure.
+ * The weeks (Sundays) of `weekEntries` (the entries of `weeks.json`) that the cache simulation does not cover, for a
+ * figure drawn from the simulation, wholly or in one column (`isSimulation`); none for any other figure.
  */
-export function unsimulatedWeeks(figure, selection, weekEntries) {
-  if (figure.isSimulation !== true && figure.isPartlySimulated !== true) {
+export function unsimulatedWeeks(figure, weekEntries) {
+  if (figure.isSimulation !== true) {
     return [];
   }
-  const simulated = new Set(weekEntries.filter((entry) => entry.simulated).map((entry) => entry.week));
-  return selection.weeks.filter((week) => !simulated.has(week));
+  return weekEntries.filter((entry) => !entry.simulated).map((entry) => entry.week);
 }
 
 /**
  * A figure's line of rows, shown with its definition: the rows it rests on, the weeks `notSimulated`, and how many bins
- * were hidden: "1,234 rows · not simulated: 2026-08-16 · 2 bins hidden (fewer than 50 rows each)". The harnesses and
- * weeks every figure draws are stated once, under the page's title.
+ * were hidden: "1,234 rows · not simulated: 2026-08-16 · 2 bins hidden (fewer than 50 rows each)".
  */
 export function figureRowsText(figure, shownRows, hidden, notSimulated) {
   const parts = [restingCountText(shownRows, figure)];

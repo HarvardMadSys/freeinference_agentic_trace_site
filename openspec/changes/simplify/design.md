@@ -19,7 +19,10 @@ checksums of every file under `site/data/all_weeks`.
 
 After each task the script runs again and `diff -r` compares the two
 trees. The diff must be empty. The only differences this design allows
-are named here: task 2.1 may change an answer file's floats in their
+are named here: task 1.1 drops the attribute `fill-opacity="1"` from the
+trend bars, which the removed opacity function wrote and which was
+always 1 (pixel-identical, checked in both schemes and at two widths);
+task 2.1 may change an answer file's floats in their
 last bits (under 1e-9 relative), listed in the report; task 3.2 may
 change the SVG attribute that `TIP_STYLE` set, provided the rendered
 tooltip background is the card surface in both schemes (checked with
@@ -86,12 +89,13 @@ tool_calls,sessions,simulation}/` are deleted from the tree.
 
 Also dropped, since this reruns `make data` anyway: the queries no page
 reads (`explore/request_count`, `explore/headline_numbers`) with their
-tests, `trace_totals` becoming CONTRIBUTING's example; the frame columns
-no query reads (`requests.idle_gap_s`, `simulation.active_token_seconds`);
+tests, `trace_totals` becoming CONTRIBUTING's example; the frame column
+no query reads (`simulation.active_token_seconds`);
 the bucket columns no view reads (`n_tool_calls`, `main_model`,
 `user_id`, `call_index` in the SELECT). The figure queries
 `ttft_median_by_model` and `decode_median_by_model` stay: parity reads
-them.
+them. `requests.idle_gap_s` stays too: `idle_gap_bin` is computed from it,
+and the hand-counted gap tests read it.
 
 The parity tests read `site/data/all_weeks/<query>.json` into a frame
 instead of running the query live; the `selected_database` and scope

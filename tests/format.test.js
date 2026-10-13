@@ -3,21 +3,13 @@ import { test } from "node:test";
 
 import {
   cachedShare, elapsedSeconds, formatCount, formatDurationTick, formatElapsed, formatHours, formatMultiple,
-  formatOptionalShare, formatQuantity, formatSeconds, formatShare, formatTokens, monthName, shortSessionId, utcMinute,
+  formatOptionalShare, formatQuantity, formatSeconds, formatShare, monthName, shortSessionId, utcMinute,
   elapsedTickFormat, formatBinaryThousands, formatCompactCount, formatPercent, formatTtlName, monthAndDay,
   dateSpanText, formatCountTick, longMinute, shortMinute, shortMonth, formatWholeCount,
 } from "../site/js/shared/format.js";
 
 test("a count gets thousands separators", () => {
   assert.equal(formatCount(1186582), "1,186,582");
-});
-
-test("a token total is shown in its largest unit", () => {
-  assert.equal(formatTokens(512), "512");
-  assert.equal(formatTokens(129087), "129.1k");
-  assert.equal(formatTokens(1_200_000), "1.2M");
-  assert.equal(formatTokens(209_000_000_000), "209.0B");
-  assert.equal(formatTokens(2_036_000_000), "2.04B");
 });
 
 test("a duration keeps one decimal, in seconds only under a minute", () => {
@@ -112,7 +104,10 @@ test("a compact count is in its largest unit, lower-case k, one decimal kept", (
   assert.equal(formatCompactCount(300000), "300.0k");
   assert.equal(formatCompactCount(1000), "1.0k");
   assert.equal(formatCompactCount(1_800_000), "1.8M");
+  assert.equal(formatCompactCount(129087), "129.1k");
   assert.equal(formatCompactCount(2_000_000_000), "2.00B");
+  assert.equal(formatCompactCount(2_036_000_000), "2.04B");
+  assert.equal(formatCompactCount(209_000_000_000), "209.0B");
   assert.equal(formatCompactCount(250), "250");
 });
 

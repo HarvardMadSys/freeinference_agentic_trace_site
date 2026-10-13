@@ -8,14 +8,14 @@
  * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE, X_INSET } from "../shared/charts.js";
+import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, X_INSET } from "../shared/charts.js";
 import { axisWithTicks } from "../axes/ticks.js";
 import { slottedColours } from "../theme/colours.js";
 import { formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare } from "../shared/format.js";
 import { GAP_FIGURES } from "./caching_gaps.js";
 import { API_COST_BY_TTL, INFRASTRUCTURE_COST_BY_TTL } from "../simulation/costs.js";
 import { PREFILL_AGAINST_STORAGE } from "../simulation/prefill.js";
-import { seriesLegend } from "./figure_rows.js";
+import { rowsWithSeriesColour, seriesLegend } from "./figure_rows.js";
 
 // The idle-gap bins mirror the pipeline's `gaps.IDLE_GAP_EDGES_S`: 26 bins between 27 geometric edges from 10 s to
 // one hour, each 1.25 times as wide as the one before. tests/test_pipeline_mirrors.py checks these three constants
@@ -45,7 +45,7 @@ export const FIGURES = Object.freeze([
     query: "figures/hit_ratio_by_idle_gap",
     binColumn: null,
     seriesColumn: "provider",
-    drawnRows: drawnProviderRows,
+    drawnRows: (rows, colours) => rowsWithSeriesColour(rows, "provider", colours.providers),
     legend: idleGapLegend,
     draw: drawIdleGapRetention,
   }),
@@ -65,7 +65,7 @@ export function idleGapEdgeSeconds(edge) {
 
 /**
  * The idle-gap figure's legend: each provider of the rows among the eight with most requests as "Provider A", in the
- * order of their letters and in the colours every chart shares, so a provider keeps its colour whatever the selection.
+ * order of their letters and in the colours every chart shares, from an order over every week and harness.
  * A provider past the eighth would take the Other colour, which a named line cannot share, so it is not drawn.
  */
 export function idleGapLegend(rows, colours, seriesColumn) {
@@ -77,12 +77,6 @@ export function idleGapLegend(rows, colours, seriesColumn) {
     labels[provider] = providerLabel(provider);
   }
   return seriesLegend(rows, seriesColumn, drawnColours, labels);
-}
-
-/** The idle-gap rows the figure draws: those of a provider among the eight with most requests over every week. */
-export function drawnProviderRows(rows, colours) {
-  const drawnProviders = slottedColours(colours.providers);
-  return rows.filter((row) => drawnProviders.has(row.provider));
 }
 
 /** Draw one line per provider of the rows, its median hit ratio per idle-gap bin, on a log axis of seconds. */
@@ -111,7 +105,7 @@ async function drawIdleGapRetention(rows, body, colours) {
       Plot.axisY({ ...AXIS_STYLE, label: "Median hit ratio", tickFormat: formatPercent }),
       Plot.line(points, { x: "seconds", y: "hitRatio", stroke: "provider", strokeWidth: LINE_WIDTH }),
       Plot.dot(points, { x: "seconds", y: "hitRatio", fill: "provider", r: MARKER_RADIUS }),
-      Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "seconds", y: "hitRatio", title: idleGapTipText })),
+      Plot.tip(points, Plot.pointer({ x: "seconds", y: "hitRatio", title: idleGapTipText })),
     ],
   });
   body.replaceChildren(chart);

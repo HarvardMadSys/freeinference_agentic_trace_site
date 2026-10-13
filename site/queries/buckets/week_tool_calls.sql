@@ -6,7 +6,6 @@ SELECT
   root_session_id,
   session_id,
   step,
-  call_index,
   name,
   category,
   programs,

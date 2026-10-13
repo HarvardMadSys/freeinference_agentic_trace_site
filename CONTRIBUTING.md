@@ -13,7 +13,7 @@ binding, and `make test` checks the countable ones.
 - **Plain over clever.** No nested comprehensions, no lambdas or arrow
   functions longer than one expression, no state set on objects the code does
   not own, no side effects at import.
-- **Names are words.** `requests`, `sessions`, `weeks`, `selectedWeeks`.
+- **Names are words.** `requests`, `sessions`, `weeks`, `toolCalls`.
   A one-letter name is only a loop index. Python modules are imported by name
   without aliases; JavaScript uses named imports.
 - **One job per unit.** A function is at most 50 lines, a module at most 300.
@@ -27,28 +27,22 @@ binding, and `make test` checks the countable ones.
   No SQL is written in JavaScript, and no query is assembled from strings. A
   query reads the selection from the selection tables and from nothing else:
   - `selected_weeks(week)`: the selected weeks' Sundays; `make data` fills
-    it with every week, and the browser only with the switch off;
+    it with every week for the answers, and with one week at a time for the
+    bucket queries;
   - `selected_harnesses(harness)`: the selected harnesses; `make data` fills
     it with the paper's harnesses for the figures and with every harness for
     the Explore page's own answers (`EVERY_HARNESS_QUERIES` in
     `site_data/answers.py`: the Overview's mixes and trends, the session
-    list, its first page and the trace totals), and the browser only with
-    the switch off;
-  - `benchmark_harness(harness)`: not a choice but a fact, filled from
-    `harnesses.json` when the database opens: the harness that is not the
+    list, its first page and the trace totals);
+  - `benchmark_harness(harness)`: not a choice but a fact, filled from the
+    harness index when the database opens: the harness that is not the
     paper's population.
 
   A setup statement that fills a table takes its row as `?` parameters
-  (`setup/insert_*.sql`); no query takes one. The bucket queries
-  (`buckets/*.sql`) read `selected_weeks` too: `make data` selects one week
-  at a time and runs them. The view statements of
-  the week files, `setup/create_view_*.sql` but `create_view_session_time`,
-  hold the placeholder `{files}`, which the opener
-  replaces with the names of that kind's week files, each single-quoted and
-  separated by commas (`engine/duckdb_files.js` in the browser,
-  `site_data/site_database.py` in Python): HTTP has no directory listing, and
-  a file registered under its name is what the stream, with the switch off,
-  swaps for its bytes once it has fetched the file whole. One view reads the selection:
+  (`setup/insert_*.sql`); no query takes one. The tables `requests`,
+  `tool_calls`, `sessions` and `simulation` are the data step's frames of
+  rows, held in memory
+  (`site_data/site_database.py`). One view reads the selection:
   `setup/create_view_session_time.sql`, each selected top-level session's
   time in prefill, decode, tool and user idle, made after the selection
   tables; both figures of a session's time read it, so the breakdown has one
@@ -76,10 +70,12 @@ binding, and `make test` checks the countable ones.
   (the TTLs, the prices, the normalising TTL, the knee and the lowest-cost
   rules) and `figures/mutations_by_cause.sql` (the table's rows and which
   sessions count as appends), checked by `tests/test_pipeline_mirrors_caching.py`
-  and `tests/test_paper_parity_caching.py`. Otherwise a query filters,
-  groups, counts, sums and takes quantiles, and neither a query nor the
-  browser decides what a turn, a wait or a cache hit is; `site_data`
-  computes those by calling the pipeline's functions.
+  and `tests/test_paper_parity_caching.py`. README and `CLAUDE.md` point
+  here; `RESTATING_QUERIES` in `tests/test_pipeline_mirrors.py` is the copy
+  the tests read, and a new restating query is added to both. Otherwise a query filters, groups,
+  counts, sums and takes quantiles, and neither a query nor the browser
+  decides what a turn, a wait or a cache hit is; `site_data` computes those
+  by calling the pipeline's functions.
 - **No framework, no bundler, no npm dependency.** Plain HTML, CSS and ES
   modules. Libraries come from a CDN at exact versions, named only in
   `site/js/shared/libraries.js`.
@@ -89,57 +85,28 @@ binding, and `make test` checks the countable ones.
 ## How the site is put together
 
 ```
-make data:     queries/explore/, queries/figures/, setup/*_order  →  run over site/data/*.parquet  →  data/all_weeks/<page>/<query>.json
-               queries/buckets/, one week at a time                →  run over site/data/*.parquet  →  data/session_buckets/<week>/<xx>.json.gz
+make data:     queries/explore/, queries/figures/, setup/*_order  →  run over the rows in memory  →  data/all_weeks/<page>/<query>.json
+               queries/buckets/, one week at a time                →  run over the rows in memory  →  data/session_buckets/<week>/<xx>.json.gz
 Explore:       index.html  →  js/pages/explore.js  →  js/explore/start.js, section modules and js/shared/  →  data/all_weeks/<page>/<query>.json
 Session:       session.html  →  js/pages/session.js  →  js/session/bucket.js  →  data/session_buckets/<week>/<xx>.json.gz
 ```
 
-```
-js/pages/             one module per page
-js/shared/            what every page uses: the database, the selection, the libraries, formatting, charts, the
-                      histogram and CDF figures, the table, the header and footer
-js/landing/           the Explore page's own parts: the hero, the stats strip beside it, the model and harness
-                      donuts, the citation's copy button and the team
-js/theme/             the site's colours as the style tokens give them, and the colours every figure shares
-js/axes/              the ticks of every chart's axes: how many, where a log, duration or elapsed-time axis ticks, which
-                      week a week axis labels, and an axis mark that labels each tick it is given
-js/engine/            DuckDB in the page: starting it, its views and setup, and the stream of every week's files, kept
-                      behind the switch
-js/explore/           the Explore page's start (start.js) and its sections: the trends, the figure runner
-                      (figure_sections.js), the Insights' topic tabs (topic_tabs.js), the legend of buttons, the
-                      session list with its state and its month and harness filter, and the week and harness
-                      pickers, mounted only with the switch off
-js/figures/           the Insights' figures: one module per section, listing its figure entries, the modules a
-                      section takes entries from, and the row rules every figure shares (figure_rows.js)
-js/simulation/        the Prefix-caching section's figures of the cache simulation: prefill against storage, and the
-                      two costs by TTL
-js/comparison/        the Insights' figures that compare human-driven sessions with the benchmark's: the
-                      Human-driven-against-benchmark section's module, listing its figure entries, the modules that
-                      draw them, and the two scopes the figures compare (scopes.js)
-js/session/           the Session page's bucket (a session's rows from its week's bucket), address, agent tree,
-                      facts, legends, overlap grouping, token parts and chart frame
-js/session_requests/  the Session page's Requests view
-js/session_charts/    the Session page's Context and Timeline views, their series, bars, range slider and the
-                      Timeline's pointer
-```
-
-A folder holds one purpose and at most nine modules; `make test` counts them.
+README's Layout maps every folder and module. A folder holds one purpose and
+at most nine modules; `make test` counts them.
 
 - An HTML file is a shell: a header, titled sections with ids, a footer, and
   one `<script type="module">`. It holds no data and no inline script.
 - The page module mounts the header and footer, reads what it shows from the
-  URL, opens the database (the Explore page, through `explore/start.js`) or
-  fetches its session's bucket (the Session page), and fills each section.
+  URL, fetches its answers (the Explore page, through `explore/start.js`) or
+  its session's bucket (the Session page), and fills each section.
 - The site has two pages. The Explore page, `index.html` and
   `js/pages/explore.js`, is the landing page and holds, in order, the hero
   and stats strip, the Overview (`#overview`), the Session Explorer
   (`#sessions`), the Insights (`#insights`), Cite (`#cite`) and Team. Its
   module lists its sections in `SECTIONS` and calls `startPage` of
-  `explore/start.js` with them; `startPage` draws the footer and mounts the
-  Insights' tabs and figure cards (`FIGURE_SECTIONS` of
-  `explore/figure_sections.js`), fetches the indexes, draws the header,
-  opens the database and runs the sections. The header links the page's
+  `explore/start.js` with them; `startPage` mounts the Insights' tabs and
+  figure cards (`FIGURE_SECTIONS` of `explore/figure_sections.js`), fetches
+  the indexes, draws the header and the footer and runs the sections. The header links the page's
   sections by anchor (`LINKED_SECTIONS` of `shared/layout.js`, beside
   `EXPLORE_FILE`, the page's one file name); on a phone it is two rows, the
   brand and the four links, which wrap, and the page measures its height
@@ -147,30 +114,15 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   `index.html` with the URL's keys, which are the table's. Pages link one
   another by their `.html` names; the host serves each at its clean path
   with the query kept.
-- `shared/database.js` fetches `weeks.json` and `harnesses.json` and runs a
-  query by name: `runQuery("explore/request_count")` names
-  `queries/explore/request_count.sql`. An Explore or figure query is
-  answered from its file under `data/all_weeks/`, as is a colour order
-  (`setup/*_order`). The Explore page opens the database with `answersOnly`,
-  so a query with an answer file reads it whatever the selection; the page
-  runs no other, so DuckDB never starts there. Only with the switch off does
-  DuckDB load, the first time a query needs it (`engine/duckdb_views.js`): it
-  registers each week's Parquet files as the views `requests`, `tool_calls`,
-  `sessions` and `simulation` and fills `benchmark_harness`.
-- The Session page imports nothing from `shared/database.js` or `js/engine/`,
-  and `tests/test_repository.py` checks it; how it reads a session is below.
-- The figures are frozen: `FIGURES_ARE_FROZEN` in `explore/start.js` is
-  `true`. The browser query path stays in the code and its tests behind it.
-  Set to `false`, `shared/selection.js` reads the selection from the URL
-  keys `weeks`, `month` and `harnesses` (none for the default: every week
-  and the paper's harnesses), `explore/selection_pickers.js` draws the week
-  and harness pickers and calls the page back with each new selection, the
-  database fills the selection tables before a query whenever the selection
-  has changed, and any selection but the default runs in DuckDB. With the switch
-  off, setting `STREAM_ROWS_AFTER_DRAW` in `database.js` (now `false`) to
-  `true` streams every week's files into memory after the first view
-  (`streamRows`), so a narrowed selection reads no HTTP ranges.
-- While the figures are frozen, the URL keys `months` and `harnesses` belong
+- `shared/answers.js` fetches `weeks.json` and `harnesses.json` and reads a
+  query's answer by name: `readAnswer("explore/trace_totals")` reads
+  `data/all_weeks/explore/trace_totals.json`, which `make data` wrote by
+  running `queries/explore/trace_totals.sql`. Every Explore and figure
+  query, and every colour order (`setup/*_order`), has its answer file; the
+  page runs no query itself.
+- The Session page imports nothing from `shared/answers.js`, and
+  `tests/test_repository.py` checks it; how it reads a session is below.
+- The URL keys `months` and `harnesses` belong
   to the session list: `explore/sessions_filter.js` reads them (and the
   older `weeks`, `month`, `scope` and `harness`), filters the list's answer,
   which holds every harness's sessions, and writes them back; they reach
@@ -196,15 +148,13 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   anchor the page opened on. A
   chart reads its width from its card, and a hidden card has none, so
   `figure_sections.js` starts only a shown topic's figures, and showing a
-  topic runs the same start step a card coming into view does. Nothing is
-  drawn into a hidden topic.
+  topic starts its figures. Nothing is drawn into a hidden topic.
 
 **Adding a section to the Explore page.** Give it a place in the page's HTML,
 an element with an id, under a heading if it is a part of its own; write its
-module with `layout<Thing>(container)`, which shows the loading state, and
-`async run<Thing>(container, context)`, which lays out a fresh place in the
-container and draws its answer into it (`context` is described in
-`explore/start.js`); and add `{ id, layout, run }` to the page module's
+module with `async run<Thing>(container, context)`, which shows the loading
+state in the container at once and then draws its answer into it (`context` is
+described in `explore/start.js`); and add `{ id, run }` to the page module's
 `SECTIONS`. The answer of sessions per week by harness, which the harness
 mix and the sessions trend both draw, is asked for once a run and given as
 `context.sessionsPerWeekByHarness`. A new topic of figures is a section module of figure
@@ -213,34 +163,18 @@ Insights, where it becomes a tab.
 
 ## How a session is served
 
-The Session page runs no query. `make data` writes every session of every
-week, ahead of time, into gzipped JSON buckets (`site_data/buckets.py`):
-
-- It selects one week at a time and runs the three bucket queries,
-  `queries/buckets/week_tree.sql` (the facts card's and the agent tree's
-  columns), `week_requests.sql` and `week_tool_calls.sql`. Each returns
-  `root_session_id` first and is ordered by it.
-- It groups the rows by `root_session_id` and writes the top-level sessions
-  whose ids share their first two characters into one bucket,
-  `data/session_buckets/<week>/<xx>.json.gz`: an object from top-level id to
-  `{ tree, requests, tool_calls }`, each part `{ columns, rows }`, a row its
-  values in column order without `root_session_id`, which is the key. A
-  prefix only subagents' ids start with has an empty bucket, so a
-  subagent's link finds a file before the index; a prefix no id starts
-  with has no file. Beside the
-  buckets, `index.json.gz` maps every session id of the week, subagents
-  included, to its top-level id.
-- It gzips each file at a fixed level with no time in its header, and writes
-  keys sorted and rows in the queries' order, so a rebuild of the same rows
-  writes the same bytes and git sees no change. It records each bucket
-  query's hash in `all_weeks/queries.json`, so a bucket query edited since
-  fails `make test` until `make data` runs.
+The Session page runs no query. `make data` (`site_data/buckets.py`)
+selects one week at a time and runs the three bucket queries,
+`queries/buckets/week_tree.sql` (the facts card's and the agent tree's
+columns), `week_requests.sql` and `week_tool_calls.sql`, each returning
+`root_session_id` first and ordered by it, and writes the week's buckets and
+its index of session ids. The format, and why a rebuild of the same rows
+writes the same bytes, are defined in `site_data/buckets.py`'s docstring.
 
 `js/session/bucket.js` reads them: `fetchSession(dataUrl, week, id)` fetches
 the bucket the id's first two characters name, gunzips it in the browser
-with `DecompressionStream` when it starts with gzip's two magic bytes (a
-host may have removed the gzip layer already, and then the body is read as
-it is), and returns the id's entry as `{ tree, requests, toolCalls }`, each
+with `DecompressionStream` unless the host already removed the gzip layer,
+and returns the id's entry as `{ tree, requests, toolCalls }`, each
 a list of row objects from column name to value, which the facts card, the
 tree and the three views take. An id the bucket does not hold is looked up
 in the week's index, and its top-level session's bucket fetched; an id in
@@ -253,38 +187,46 @@ holds its kind of row, under `site/queries/buckets/`, in the place the
 views should find it, and to that query's list in `EXPECTED_COLUMNS` of
 `tests/test_queries.py`; read it by name from the row objects in the view
 that shows it, with a test of the view's pure function. Then run `make data
-PIPELINE=<the pipeline's checkout>`, which rewrites every bucket, and commit
-`site/data` with the change: a new column touches every bucket, about 80 MB
-in the repository's history, so gather columns into one change.
+PIPELINE=<the pipeline's checkout>` and commit `site/data` with the change:
+a new column rewrites every bucket, nearly the whole data folder in the
+repository's history, so gather columns into one change.
 `tests/test_buckets.py` checks a bucket's rows against its queries' on the
 fixture.
 
 ## Patterns to copy
 
-**A query** (`site/queries/explore/request_count.sql`):
+**A query** (`site/queries/explore/trace_totals.sql`):
 
 ```sql
--- The number of requests of the top-level sessions in the selected weeks and harnesses. No page runs it: it is the
--- example query of CONTRIBUTING.md, and tests/test_queries.py checks the count against the fixture.
-SELECT count(*) AS requests
-FROM requests
-WHERE is_top_level
+-- One row: the trace in the selected weeks and harnesses as the paper's summary table counts it; the data step answers
+-- it with every week and every harness, the benchmark's too, so it counts the whole trace, as the session list lists it.
+-- A top-level session is one no other session spawned, so it has no parent; its requests, tokens and tool calls are
+-- its own, a subagent's counted in neither. `benchmark_harnesses` counts the harnesses that are the benchmark's,
+-- which the stats strip writes apart from the others ("13 (+1)"). The strip does not show `output_tokens` and
+-- `cached_tokens`; tests/test_paper_parity.py compares them, with the rest, with the paper's summary.
+SELECT count(*) AS sessions,
+       coalesce(sum(requests), 0) AS requests,
+       coalesce(sum(input_tokens), 0) AS input_tokens,
+       coalesce(sum(output_tokens), 0) AS output_tokens,
+       coalesce(sum(cached_tokens), 0) AS cached_tokens,
+       coalesce(sum(tool_calls), 0) AS tool_calls,
+       count(DISTINCT harness) AS harnesses,
+       count(DISTINCT harness) FILTER (WHERE harness IN (SELECT harness FROM benchmark_harness)) AS benchmark_harnesses
+FROM sessions
+WHERE parent_session_id IS NULL
   AND week IN (SELECT week FROM selected_weeks)
   AND harness IN (SELECT harness FROM selected_harnesses);
 ```
 
 The first line says what one row is. Columns are named in words. Every
 query is run by `tests/test_queries.py` against the fixture data.
-`make data` also runs every query under `explore/` and `figures/` once with
-every week and the paper's harnesses selected (the Explore page's own,
-`EVERY_HARNESS_QUERIES`, with every harness), and the colour orders `setup/*_order`, and writes each answer to
-`site/data/all_weeks/`. **Rerun `make data` after editing one of those
-queries**: the Explore page reads the answer, not the query.
-`tests/test_answers.py` checks each answer written for the fixture against its
-query run live, and that the shipped answers under `site/data`, which the
-repository tracks, come from each query's current text: `make data` records
-the hash of each query in `all_weeks/queries.json`, and a query edited since
-fails `make test`, as it fails `make deploy` through `make check-answers`.
+**Rerun `make data` after editing a query under `explore/`, `figures/` or
+`buckets/`, or a colour order**: the pages read the answers, not the
+queries. `tests/test_answers.py` checks each answer written for the fixture
+against its query run live, and that the shipped answers come from each
+query's current text: `make data` records the hash of each query in
+`all_weeks/queries.json`, and a query edited since fails `make test` until
+`make data` runs again.
 
 **A pure JavaScript module with its test** (`site/js/shared/format.js`,
 `tests/format.test.js`): exported functions with one-line JSDoc, module-level
@@ -315,9 +257,10 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
   explaining what is drawn in plain words ("percentage of requests at or
   below each …", not "CDF"); spell out price units and explain technical
   terms where they are used instead of packing clauses into one sentence;
-  where the site draws more simply than the paper, `docs/differences.md`
-  says how, not the definition; shown behind the Definition control.
-- `query`: the query whose answer it draws, as `runQuery` names it
+  where the site draws more simply than the paper, README's "Where the
+  numbers come from" says how, not the definition; shown behind the
+  Definition control.
+- `query`: the query whose answer it draws, as `readAnswer` names it
   (`"figures/<name>"`).
 - `binColumn`: the column naming the bin or series each row belongs to, every
   row of a bin carrying the bin's count in `rows`; a bin under
@@ -327,13 +270,10 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
 - `seriesNouns` (optional): when the series count different things, each
   series' name with the plural noun of what it counts; the line of rows then
   gives each count ("84,239 turns · 12,002 sessions").
-- `isSimulation` (optional): true for a figure of the cache simulation, which
-  draws the harnesses the simulation replays (the paper's, and on its own the
-  benchmark replay) in the simulated weeks only; the line of rows names a
-  selected week the simulation does not cover.
-- `isPartlySimulated` (optional): true for a figure drawn from the selection
-  with one column from the cache simulation, as the mutation table's prefill;
-  the line of rows names the selected weeks the simulation does not cover.
+- `isSimulation` (optional): true for a figure that reads the cache
+  simulation, whole (the cost and prefill figures) or for one column (the
+  mutation table's prefill); the line of rows names a week the simulation
+  does not cover.
 - `drawsLines` (optional): true for a figure that draws its series as lines,
   whose legend then shows a short line per series instead of a square.
 - `isWide` (optional): true for a figure whose card takes its section's whole
@@ -351,15 +291,14 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
   the Other grey. The line of rows counts these, and thin bins are hidden
   among them.
 - `seriesColumn` (a figure whose rows each name their series): that column. A
-  hidden series' rows are left out before `draw` is called. A figure with a
-  `legend` and no `seriesColumn` holds its series in columns, and is given the
-  hidden series as a fourth argument instead.
-- `draw(rows, body, colours, hidden)`: draws the rows left after thin bins are
-  hidden into `body`; `colours` holds the model, category and provider colours every
-  figure shares (`{ models, categories, providers }`, each a Map from name to colour),
-  and, for a figure with a `legend`, its legend's colours as `series`, which
-  the chart colours its series by; `hidden`, the Set of hidden series' names,
-  is given only to a figure with a `legend` and no `seriesColumn`.
+  hidden series' rows are left out before `draw` is called; a figure with a
+  `legend` and no `seriesColumn` holds its series in columns and leaves out
+  those in `hidden` itself.
+- `draw(rows, body, colours, hidden)`: draws the rows, thin bins hidden, into
+  `body`. `colours` holds the colours every figure shares (`{ models,
+  categories, providers }`, each a Map from name to colour) and, for a figure
+  with a `legend`, the legend's as `series`; `hidden` is the Set of the
+  series names the legend hides.
 
 A **histogram figure** has no `binColumn` and no `draw`: its `query` is a
 bins query, `explore/<prefix>_bins` (each row a bin's `bin_start`, `bin_end`
@@ -377,15 +316,16 @@ summary and the tooltip), `tickFormat` (optional, a value on the axis),
 Object.freeze({
   name: "tokens_per_request_cdf",
   title: "Tokens per request",
-  insight: "Each request adds little to a large context.",
-  definition: "Share of requests with at most each number of input tokens, uncached input tokens (where the provider reports cache reads) and output tokens (where there are more than one).",
-  caption: "Input, uncached input and output tokens of each request.",
+  insight: "Huge inputs don't necessarily mean huge computation.",
+  definition: "Each line shows the percentage of requests with this many tokens or fewer, for total input, uncached input, and output. Uncached input counts only requests with reported cache usage. Output excludes responses with one token or fewer.",
+  caption: "A median request carries 129K input tokens, but only about 500 are uncached and require fresh processing. Outputs contain just a few hundred tokens.",
   drawsLines: true,
   query: "figures/tokens_per_request_cdf",
   binColumn: "series",
   seriesColumn: "series",
   seriesOverSameRows: true,
-  legend: tokensPerRequestLegend,
+  legend: (rows, colours, seriesColumn) =>
+    seriesLegend(rows, seriesColumn, new Map(Object.entries(TOKEN_SERIES_COLOURS)), TOKEN_SERIES),
   draw: drawTokensPerRequest,
 }),
 ```
@@ -396,8 +336,7 @@ words, and their tests. Nothing about it runs in the browser.
 
 1. **The query**, `site/queries/figures/<name>.sql`, as above: the population
    from the selection tables, so `make data` answers it for every week and the
-   paper's harnesses and the browser query path behind `FIGURES_ARE_FROZEN`
-   still runs it for any other selection; where thin bins are to be hidden, a
+   paper's harnesses; where thin bins are to be hidden, a
    column naming each row's bin or series and that bin's count in `rows`. List
    its columns in `EXPECTED_COLUMNS` of `tests/test_queries.py`, and test its
    numbers on the fixture, counted by hand, in its section's query test
@@ -409,8 +348,7 @@ words, and their tests. Nothing about it runs in the browser.
    `queries.json`, and commit `site/data` with the change. `tests/test_answers.py`
    runs every figure query live on the fixture and compares it with the answer
    written for it, and fails on a query with no rows there, so the fixture must
-   hold a case of the figure; it also fails while the shipped answer is older
-   than the query's text.
+   hold a case of the figure.
 3. **The entry and the draw function**, in its section's module or a module
    it takes entries from (`js/figures/`, `js/simulation/`, `js/comparison/`):
    a frozen figure entry with its `title`, an `insight` of one sentence and
@@ -427,20 +365,23 @@ words, and their tests. Nothing about it runs in the browser.
 4. **The legend**, for a figure of more than one series: `legend(rows,
    colours, seriesColumn)` (`seriesLegend` in `figures/figure_rows.js` builds
    one from rows that name their series), and either a `seriesColumn` or a
-   `draw` that takes `hidden` as a plain fourth parameter. A series that is a
+   `draw` that leaves out the series named in `hidden`. A series that is a
    model, category, cause, transition or gap bin takes that thing's colour.
 5. **Parity**, when the paper's `numbers.json` holds a number the figure
-   shows: compare it in `tests/test_paper_parity*.py`, which runs the query
-   on the shipped data with every week and the paper's harnesses selected.
+   shows: compare it in `tests/test_paper_parity*.py`, which reads the
+   query's shipped answer, `site/data/all_weeks/<query>.json`, through
+   `answer(name)`.
 6. **A mirror test**, when the query or a module restates a pipeline
    definition or copies a constant (a bin edge, a price, a list of causes): a
    test in `tests/test_pipeline_mirrors*.py` that parses the copy and compares
    it with the pipeline's own; then the query joins the list of restating
-   queries above, in `README.md`, in `CLAUDE.md` and in `RESTATING_QUERIES`
-   of `tests/test_pipeline_mirrors.py`, which checks the three agree.
+   queries in the rules above and `RESTATING_QUERIES` of
+   `tests/test_pipeline_mirrors.py`, which checks that a mirror test reads
+   it.
 7. **The differences.** Where the figure is drawn more simply than the paper,
-   an item of `docs/differences.md` says how, which `tests/test_differences.py`
-   checks; the definition says what is drawn and leaves the paper out.
+   an item of README's "Where the numbers come from" says how; the definition
+   says what is drawn and leaves the paper out, which
+   `tests/test_differences.py` checks.
 
 ## JavaScript style
 
@@ -448,9 +389,9 @@ words, and their tests. Nothing about it runs in the browser.
   extension; namespace imports only for a library in `libraries.js`.
 - Nothing outside `libraries.js` imports it statically: node cannot load
   the CDN's `https://` modules, so a module that did would be untestable.
-  A function that draws or opens the database loads what it needs where it
-  needs it, `const { Plot } = await import("./libraries.js");`, with a
-  one-line comment saying why. The module's pure functions then stay
+  A function that draws loads what it needs where it needs it,
+  `const { Plot } = await import("./libraries.js");`, with a one-line
+  comment saying why. The module's pure functions then stay
   testable with `node --test`.
 - Static markup is an `innerHTML` template; interactive elements are built
   with `document.createElement` so listeners attach to the element, not to a
@@ -460,8 +401,8 @@ words, and their tests. Nothing about it runs in the browser.
   wires listeners. State lives in the URL or in the arguments; no module
   keeps mutable state beyond what the page owns.
 - Loading and error states come from `shared/charts.js`: a section shows
-  `loading` until its query returns and `is-error` with the message if it
-  throws. One failed query never stops the others.
+  `loading` until its answer arrives and `is-error` with the message if it
+  throws. One failed answer never stops the others.
 - Numbers go through `shared/format.js`.
 
 ## Charts

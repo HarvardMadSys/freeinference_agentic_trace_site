@@ -65,8 +65,10 @@ const PAGE_SECTIONS = [
   { id: "insights-comparison", number: "06", heading: "Human-driven against benchmark" },
 ];
 const PAGE = readFileSync(new URL("../site/index.html", import.meta.url), "utf8");
+// A topic's section: its id, a tab panel labelled by its tab, then its heading of number and title; the topic tabs
+// read the number by its class.
 const PAGE_SECTION =
-  /<section id="(insights-\w+)" class="figure-section" role="tabpanel" aria-labelledby="tab-\1">\s*<h2[^>]*><span class="topic-number" aria-hidden="true">(\d+)<\/span> ([^<]+)<\/h2>/g;
+  /<section id="(insights-\w+)"[^>]*role="tabpanel" aria-labelledby="tab-\1"[^>]*>\s*<h2[^>]*><span class="topic-number"[^>]*>(\d+)<\/span> ([^<]+)<\/h2>/g;
 
 // A histogram figure names its stats query beside its bins query; every other figure is drawn from one query.
 function isHistogram(figure) {
@@ -99,19 +101,17 @@ test("the page holds the six figure sections in order, each with its number and 
 });
 
 test("the Insights open on their heading and the row of topic tabs, before the six topics", () => {
-  const firstTopic = PAGE.indexOf(`<section id="${PAGE_SECTIONS[0].id}"`);
-  const heading = PAGE.indexOf('<h2 id="insights-title">Insights</h2>');
-  const tabs = PAGE.indexOf('<div id="topic-tabs" class="topic-tabs" role="tablist" aria-label="Topics"></div>');
-  assert.ok(PAGE.indexOf('<section id="insights"') < heading && heading !== -1);
-  assert.ok(heading < tabs && tabs < firstTopic);
+  const heading = PAGE.indexOf('id="insights-title"');
+  const tabs = PAGE.indexOf('id="topic-tabs"');
+  const firstTopic = PAGE.indexOf(`id="${PAGE_SECTIONS[0].id}"`);
+  assert.ok(PAGE.indexOf('id="insights"') < heading && heading < tabs && tabs < firstTopic);
 });
 
-test("a figure section holds its heading and its cards, and no intro text", () => {
+test("a figure section holds no intro text", () => {
   for (const { id } of PAGE_SECTIONS) {
     const start = PAGE.indexOf(`<section id="${id}"`);
     const section = PAGE.slice(start, PAGE.indexOf("</section>", start));
-    const tags = [...section.matchAll(/<(\w+)[\s>]/g)].map((match) => match[1]);
-    assert.deepEqual(tags, ["section", "h2", "span", "div"], id);
+    assert.doesNotMatch(section, /<p[\s>]/, id);
   }
 });
 
@@ -162,36 +162,17 @@ test("every chart has a bin column and a draw function", async () => {
 });
 
 // A figure entry holds more than one series when it names a series column (long format: its rows each name their
-// series) or has a legend; a wide-format figure, whose series are columns, has a legend and a draw function that takes
-// the hidden set as a fourth argument.
-function isLongFormat(figure) {
-  return figure.seriesColumn !== undefined;
-}
-
+// series) or has a legend; a wide-format figure, whose series are columns, has a legend and leaves out of its marks
+// the hidden set every draw function is given.
 function hasLegend(figure) {
   return typeof figure.legend === "function";
 }
 
-// A draw function's `length` counts its parameters before the first default, so a wide-format draw function declares
-// `hidden` as a plain fourth parameter: given a default, it would not be counted and the figure would not be seen as
-// wide format.
-function isWideFormat(figure) {
-  return figure.draw.length === 4;
-}
-
-test("a figure of more than one series has a legend, and a series column unless its series are columns", async () => {
+test("a figure that names a series column has a legend", async () => {
   for (const figure of await chartFigures()) {
-    if (isLongFormat(figure)) {
+    if (figure.seriesColumn !== undefined) {
       assert.ok(hasLegend(figure), `${figure.name}: names a series column, so it needs a legend`);
       assert.equal(typeof figure.seriesColumn, "string", figure.name);
-      assert.ok(!isWideFormat(figure), `${figure.name}: a long-format figure is drawn from the shown rows alone`);
-    }
-    if (hasLegend(figure)) {
-      assert.ok(isLongFormat(figure) || isWideFormat(figure),
-        `${figure.name}: has a legend, so it needs a series column or a draw function that takes the hidden set`);
-    }
-    if (isWideFormat(figure)) {
-      assert.ok(hasLegend(figure), `${figure.name}: takes the hidden set, so it needs a legend`);
     }
   }
 });

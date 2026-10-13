@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { barOpacity, clickHint, tokenPartRows } from "../site/js/explore/trends.js";
+import { tokenPartRows } from "../site/js/explore/trends.js";
 
 test("each week's input becomes three rows, cached first, in the weeks' order", () => {
   const weekRows = [
@@ -16,17 +16,4 @@ test("each week's input becomes three rows, cached first, in the weeks' order", 
     { week: "2026-06-07", part: "uncached", tokens: 4800 },
     { week: "2026-06-07", part: "unreported", tokens: 0 },
   ]);
-});
-
-test("a selected week's bar is solid and any other is faint", () => {
-  const selectedWeeks = ["2026-08-09", "2026-08-16"];
-  assert.equal(barOpacity({ week: "2026-08-16" }, selectedWeeks), 1);
-  const faint = barOpacity({ week: "2026-08-23" }, selectedWeeks);
-  assert.ok(faint > 0 && faint < 1);
-});
-
-test("a trend's definition ends with the click hint only while a bar click selects a week", () => {
-  const hint = " Faint bars are weeks outside the selection; click a bar to select its week alone.";
-  assert.equal(clickHint(() => undefined), hint);
-  assert.equal(clickHint(null), "");
 });

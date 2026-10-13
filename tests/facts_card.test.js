@@ -4,12 +4,12 @@ import { test } from "node:test";
 import { requestsPerModel, sessionFacts } from "../site/js/session/facts_card.js";
 
 const TOP_LEVEL = {
-  depth: 0, harness: "claude-code", first_start_ms: Date.UTC(2026, 7, 9, 14, 3, 59),
+  parent_session_id: null, harness: "claude-code", first_start_ms: Date.UTC(2026, 7, 9, 14, 3, 59),
   duration_s: 754, user_steps: 4, requests: 30, subagents: 3, subagent_requests: 40, tool_calls: 25,
   input_tokens: 9_000, cached_tokens: 6_000, output_tokens: 500, reported_input_tokens: 8_000,
 };
 const SUBAGENT = {
-  depth: 1, harness: "claude-code", first_start_ms: 0, duration_s: 10, user_steps: 1,
+  parent_session_id: "top", harness: "claude-code", first_start_ms: 0, duration_s: 10, user_steps: 1,
   requests: 40, subagents: 0, subagent_requests: 0, tool_calls: 7,
   input_tokens: 1_000, cached_tokens: 0, output_tokens: 100, reported_input_tokens: 2_000,
 };

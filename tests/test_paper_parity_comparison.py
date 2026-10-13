@@ -2,19 +2,16 @@
 ratio equal the paper's, and each share of a tool group in the first and the last tenth of a turn that `numbers.json`
 quotes, human-driven and benchmark, equals the tool mix's.
 
-The queries run as the browser runs them, on the full site data with every week and the paper's harnesses selected,
-through the fixtures `agentic` and `paper_numbers` of `conftest.py`; their benchmark scope is the benchmark harness's
-sessions whatever harnesses are selected. Like `test_paper_parity.py`, these tests are skipped when the full site data
-or `numbers.json` is missing.
+The numbers are read from the shipped answers, which `make data` wrote with every week and the paper's harnesses
+selected; their benchmark scope is the benchmark harness's sessions whatever harnesses are selected. Like
+`test_paper_parity.py`, these tests are skipped when the shipped answers or `numbers.json` is missing.
 """
 
-import duckdb
 import pandas
 
-import site_database
 from paper.metrics import trajectories
 from release import population
-from test_paper_parity import RELATIVE_TOLERANCE, Comparison, assert_match
+from test_paper_parity import RELATIVE_TOLERANCE, Comparison, answer, assert_match
 
 SECTION = "benchmark_vs_production"
 # The item of `numbers.json` that quotes each scope of the tool mix, by the scope's name in the query.
@@ -38,12 +35,12 @@ def test_the_paper_counts_every_compared_item_in_both_scopes(paper_numbers: dict
         assert paper_numbers[SECTION][item]["scope"] == PAPER_SCOPE, item
 
 
-def test_the_medians_of_each_scope_cdf_and_their_ratio(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+def test_the_medians_of_each_scope_cdf_and_their_ratio(paper_numbers: dict) -> None:
     # Each scope CDF's `median` of each scope, and its `median_ratio`, against
     # `benchmark_vs_production.<item>.median_human`, `.median_benchmark` and `.ratio`.
     comparisons = []
     for query, item in SCOPE_CDF_ITEMS.items():
-        rows = site_database.run_query(agentic, query)
+        rows = answer(query)
         for scope, name in MEDIAN_NAMES.items():
             median = float(rows[rows.series == scope]["median"].iloc[0])
             comparisons.append(Comparison(SECTION, item, name, median, RELATIVE_TOLERANCE))
@@ -58,10 +55,10 @@ def group_share(rows: pandas.DataFrame, scope: str, tenth: int, group: str) -> f
     return float(found.share.iloc[0]) if len(found) == 1 else 0.0
 
 
-def test_the_tool_mix_in_the_first_and_last_tenth(agentic: duckdb.DuckDBPyConnection, paper_numbers: dict) -> None:
+def test_the_tool_mix_in_the_first_and_last_tenth(paper_numbers: dict) -> None:
     # `figures/tool_mix_by_turn_position`'s `share` of each scope, tenth and group against
     # `benchmark_vs_production.trajectory_mix_<human|benchmark>.<group>_share_<first|last>_tenth`.
-    rows = site_database.run_query(agentic, "figures/tool_mix_by_turn_position")
+    rows = answer("figures/tool_mix_by_turn_position")
     comparisons = []
     for scope, item in TOOL_MIX_ITEMS.items():
         for name in paper_numbers[SECTION][item]:

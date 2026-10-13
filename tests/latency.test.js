@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  drawnModelRows, modelCdfLegend, SPEEDUP_AXIS_HEADROOM, speedupAxisEnd, speedupBars,
+  modelCdfLegend, SPEEDUP_AXIS_HEADROOM, speedupAxisEnd, speedupBars, TTFT_CDF_BY_MODEL,
 } from "../site/js/figures/latency.js";
 import { assignColours, OTHER_SERIES } from "../site/js/theme/colours.js";
 
@@ -10,11 +10,11 @@ import { assignColours, OTHER_SERIES } from "../site/js/theme/colours.js";
 const MODEL_ORDER = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9", "m10"];
 const FIGURE_COLOURS = Object.freeze({ models: assignColours(MODEL_ORDER), categories: new Map(), providers: new Map() });
 
-// The CDF rows of a selection whose five models with most requests include the ninth and tenth over every week.
-const SELECTION_ROWS = ["m9", "m2", "m10", "m7", "m4"].map((model) => ({ series: model, x: 1, share: 0.5, rows: 60 }));
+// The CDF rows of an answer whose five models with most requests include the ninth and tenth over every week.
+const ANSWER_ROWS = ["m9", "m2", "m10", "m7", "m4"].map((model) => ({ series: model, x: 1, share: 0.5, rows: 60 }));
 
-test("a model CDF lists the selection's models among the eight with most requests, none in the Other grey", () => {
-  const legend = modelCdfLegend(SELECTION_ROWS, FIGURE_COLOURS, "series");
+test("a model CDF lists the answer's models among the eight with most requests, none in the Other grey", () => {
+  const legend = modelCdfLegend(ANSWER_ROWS, FIGURE_COLOURS, "series");
   assert.deepEqual(legend.series.map((one) => one.name), ["m2", "m4", "m7"]);
   const swatches = legend.series.map((one) => legend.colours.get(one.name));
   assert.ok(!swatches.includes(OTHER_SERIES));
@@ -22,12 +22,12 @@ test("a model CDF lists the selection's models among the eight with most request
 });
 
 test("a model CDF draws, and its caption counts, only the rows of the models its legend lists", () => {
-  const drawn = drawnModelRows(SELECTION_ROWS, FIGURE_COLOURS);
+  const drawn = TTFT_CDF_BY_MODEL.drawnRows(ANSWER_ROWS, FIGURE_COLOURS);
   assert.deepEqual(drawn.map((row) => row.series), ["m2", "m7", "m4"]);
 });
 
-test("a model keeps the colour of its place over every week, whatever the selection", () => {
-  const legend = modelCdfLegend(SELECTION_ROWS, FIGURE_COLOURS, "series");
+test("a model keeps the colour of its place over every week, whatever the answer's rows", () => {
+  const legend = modelCdfLegend(ANSWER_ROWS, FIGURE_COLOURS, "series");
   assert.equal(legend.colours.get("m7"), "var(--series-7)");
 });
 

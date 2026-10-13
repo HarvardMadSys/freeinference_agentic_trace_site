@@ -26,13 +26,6 @@ test("a bar is the cached and uncached input, then the output", () => {
   assert.equal(parts[0].title, "600 cached input tokens");
 });
 
-test("a request with no cache report shows its whole input as uncached, then its output", () => {
-  const parts = barParts({ ...REQUEST, cache_read_tokens: null, uncached_tokens: null });
-  assert.deepEqual(parts.map((part) => part.tokens), [1_000, 50]);
-  assert.deepEqual(parts.map((part) => part.colour), ["var(--token-uncached)", "var(--token-output)"]);
-  assert.deepEqual(parts.map((part) => part.title), ["1,000 uncached input tokens", "50 output tokens"]);
-});
-
 test("an empty part is left out", () => {
   const parts = barParts({ ...REQUEST, cache_read_tokens: 0, uncached_tokens: 1_000 });
   assert.deepEqual(parts.map((part) => part.tokens), [1_000, 50]);

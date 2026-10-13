@@ -15,11 +15,9 @@ JAVASCRIPT_FOLDER = ROOT / "site" / "js"
 LIBRARIES_MODULE = ROOT / "site" / "js" / "shared" / "libraries.js"  # the only file that names a library URL
 QUERIES_FOLDER = ROOT / "site" / "queries"  # the only place SQL is written
 SESSION_PAGE_MODULE = JAVASCRIPT_FOLDER / "pages" / "session.js"  # the Session page, which reads one bucket
-DATABASE_MODULE = JAVASCRIPT_FOLDER / "shared" / "database.js"  # the Explore page's answers and queries
-ENGINE_FOLDER = JAVASCRIPT_FOLDER / "engine"  # DuckDB in the page, which only the Explore page's switch can start
+ANSWERS_MODULE = JAVASCRIPT_FOLDER / "shared" / "answers.js"  # the Explore page's indexes and answers
 PAGES = ("index.html", "session.html")  # the site's pages: Explore, the landing page, and Session
 DATA_FOLDER = "site/data"  # built by `make data` and tracked, so a clone serves the site without building
-ROW_KINDS = ("requests", "sessions", "tool_calls")  # the kinds of row every week has a file of; the simulation has fewer weeks
 BUCKETS_FOLDER = "session_buckets"  # every week's folder of session buckets, beside its index `index.json.gz`
 CDN_HOSTS = ("cdn.jsdelivr.net", "unpkg.com", "cdnjs.cloudflare.com", "esm.sh")
 
@@ -141,15 +139,14 @@ def statically_imported_modules(page_module: pathlib.Path) -> set[pathlib.Path]:
     return found
 
 
-def test_the_session_page_loads_neither_the_database_nor_duckdb() -> None:
+def test_the_session_page_does_not_load_the_answers_module() -> None:
     for module in statically_imported_modules(SESSION_PAGE_MODULE):
-        assert module != DATABASE_MODULE.resolve(), f"the Session page imports {DATABASE_MODULE.relative_to(ROOT)}"
-        assert ENGINE_FOLDER.resolve() not in module.parents, f"the Session page imports {module.relative_to(ROOT)}"
+        assert module != ANSWERS_MODULE.resolve(), f"the Session page imports {ANSWERS_MODULE.relative_to(ROOT)}"
 
 
-def test_the_explore_page_s_start_imports_the_database() -> None:
-    # The check above is only as good as the import pattern: the Explore page's start does import the database module.
-    assert DATABASE_MODULE.resolve() in statically_imported_modules(JAVASCRIPT_FOLDER / "explore" / "start.js")
+def test_the_explore_page_s_start_imports_the_answers_module() -> None:
+    # The check above is only as good as the import pattern: the Explore page's start does import the answers module.
+    assert ANSWERS_MODULE.resolve() in statically_imported_modules(JAVASCRIPT_FOLDER / "explore" / "start.js")
 
 
 def test_the_site_has_two_pages_each_with_its_module() -> None:
@@ -181,8 +178,8 @@ def test_no_tracked_file_names_a_machine_path() -> None:
 
 
 def test_shipped_data_is_whole() -> None:
-    """Git tracks the indexes, the query hashes, every week's row files and every week's session buckets with their
-    index, so a clone serves every week and opens every session."""
+    """Git tracks the indexes, the query hashes and every week's session buckets with their index, so a clone serves
+    every week and opens every session; it tracks no row file."""
     tracked = subprocess.run(["git", "ls-files", DATA_FOLDER], cwd=ROOT, capture_output=True, text=True, check=True)
     tracked_files = set(tracked.stdout.split())
     for name in ("weeks.json", "harnesses.json", "all_weeks/queries.json"):
@@ -190,10 +187,9 @@ def test_shipped_data_is_whole() -> None:
     weeks = json.loads((ROOT / DATA_FOLDER / "weeks.json").read_text())
     assert weeks, "no weeks in the shipped data"
     for entry in weeks:
-        for kind in ROW_KINDS:
-            path = f"{DATA_FOLDER}/{kind}/week={entry['week']}/rows.parquet"
-            assert path in tracked_files, f"{path} is not tracked"
         index = f"{DATA_FOLDER}/{BUCKETS_FOLDER}/{entry['week']}/index.json.gz"
         assert index in tracked_files, f"{index} is not tracked"
         buckets = [name for name in tracked_files if name.startswith(f"{DATA_FOLDER}/{BUCKETS_FOLDER}/{entry['week']}/")]
         assert len(buckets) > 1, f"{DATA_FOLDER}/{BUCKETS_FOLDER}/{entry['week']}/ holds no tracked bucket"
+    row_files = sorted(name for name in tracked_files if name.endswith(".parquet"))
+    assert row_files == [], f"row files are tracked: {', '.join(row_files)}"

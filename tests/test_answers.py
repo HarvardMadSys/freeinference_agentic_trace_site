@@ -1,7 +1,7 @@
 """The answers the data step writes for the default selection equal the queries run live with that selection, the
 sessions table's run with every harness and marking the benchmark's, every Explore and figure query, and every colour
-order, has one, the hash of each one's text is recorded so a query edited
-since is found, and a failed run leaves the previous answers in place."""
+order, has one, even without a simulated week, and the hash of each one's text is recorded so a query edited since is
+found."""
 
 import json
 import math
@@ -15,7 +15,6 @@ import pytest
 import site_data.__main__
 import site_data.answers
 import site_data.buckets
-import site_data.check_answers
 import site_data.paths
 import site_data.site_database
 
@@ -23,7 +22,7 @@ import fixture_release
 import site_database
 
 RELATIVE_TOLERANCE = 1e-12  # an answer's number and the live query's are equal when this close
-# The queries that read the `simulation` view, which a data folder with no simulated week does not have.
+# The queries that read the `simulation` table, which has no rows when no week is simulated.
 SIMULATION_QUERIES = [
     "figures/api_cost_by_ttl", "figures/infrastructure_cost_by_ttl", "figures/prefill_against_storage",
 ]
@@ -36,15 +35,6 @@ FIRST_PAGE_QUERY = "explore/sessions_first_page"  # the Session Explorer's first
 # The Overview's answers, which count every harness as the stats strip does.
 OVERVIEW_QUERIES = ["explore/model_mix", "explore/requests_per_week_by_model", "explore/input_tokens_per_week",
                     "explore/sessions_per_week_by_harness"]
-
-
-def expected_answer_names(data_directory: pathlib.Path) -> list[str]:
-    """The queries the data folder has an answer of: every answered query, but when `weeks.json` marks no week
-    simulated, none of the simulation's."""
-    entries = json.loads((data_directory / "weeks.json").read_text())
-    if any(entry["simulated"] for entry in entries):
-        return site_data.answers.answered_query_names()
-    return [name for name in site_data.answers.answered_query_names() if name not in SIMULATION_QUERIES]
 
 
 def answer_files(names: list[str]) -> list[str]:
@@ -105,7 +95,7 @@ def test_an_answer_equals_its_query_run_live_with_the_selection_it_was_answered_
 
 def test_every_explore_and_figure_query_and_colour_order_has_an_answer_and_nothing_else_does(data_directory: pathlib.Path) -> None:
     assert site_data.answers.ANSWERED_PAGES == ["explore", "figures"]
-    assert written_files(data_directory) == answers_folder_files(expected_answer_names(data_directory))
+    assert written_files(data_directory) == answers_folder_files(site_data.answers.answered_query_names())
 
 
 @pytest.mark.parametrize("name", site_data.answers.COLOUR_ORDER_QUERIES)
@@ -175,17 +165,23 @@ def test_the_first_page_is_the_session_list_s_newest_twenty_with_its_count(data_
         assert {row["total_sessions"] for row in first_page} == {len(listed)}, data_folder
 
 
-def test_the_trace_totals_count_the_sessions_the_session_explorer_lists(data_directory: pathlib.Path) -> None:
+def test_the_trace_totals_count_the_sessions_the_session_explorer_lists_and_the_harnesses_the_index_lists(
+        data_directory: pathlib.Path) -> None:
     for data_folder in [data_directory, SHIPPED_DATA_FOLDER]:
         [totals] = read_answer(data_folder, TRACE_TOTALS_QUERY)
         assert totals["sessions"] == len(read_answer(data_folder, SESSIONS_TABLE_QUERY)), data_folder
         assert totals["benchmark_harnesses"] == 1, data_folder
+        listed_harnesses = json.loads((data_folder / site_data.paths.HARNESSES_FILE).read_text())
+        benchmarks = [entry for entry in listed_harnesses if entry["benchmark"]]
+        assert totals["harnesses"] == len(listed_harnesses), data_folder
+        assert totals["benchmark_harnesses"] == len(benchmarks), data_folder
 
 
-# 13 top-level requests of the paper's harnesses, counted by hand in tests/test_queries.py.
+# The whole fixture's totals, counted by hand in tests/test_explore_queries.py.
 def test_an_answer_is_one_line_of_json_with_integers_kept_integers(data_directory: pathlib.Path) -> None:
-    text = (data_directory / site_data.paths.ANSWERS_FOLDER / "explore" / "request_count.json").read_text()
-    assert text == '[{"requests":13}]\n'
+    text = (data_directory / site_data.paths.ANSWERS_FOLDER / "explore" / "trace_totals.json").read_text()
+    assert text == ('[{"sessions":6,"requests":16,"input_tokens":28500,"output_tokens":1600,"cached_tokens":15400,'
+                    '"tool_calls":12,"harnesses":4,"benchmark_harnesses":1}]\n')
 
 
 def test_a_nan_is_written_as_null_and_an_infinity_stops_the_writer() -> None:
@@ -194,27 +190,15 @@ def test_a_nan_is_written_as_null_and_an_infinity_stops_the_writer() -> None:
         site_data.answers.answer_text([{"share": math.inf}])
 
 
-def test_without_a_simulated_week_only_the_simulation_queries_have_no_answer(
-        tmp_path: pathlib.Path, capsys: pytest.CaptureFixture) -> None:
+def test_without_a_simulated_week_every_query_has_an_answer(tmp_path: pathlib.Path) -> None:
     fixture_release.write_fixture_release(tmp_path / "release", tmp_path / "simulation")
     (tmp_path / "simulation" / fixture_release.SIMULATED_WEEK / "sources.json").write_text(json.dumps({}))
     site_data.__main__.main(["--release", str(tmp_path / "release"), "--simulation", str(tmp_path / "simulation"),
                              "--out", str(tmp_path / "data")])
-    unanswered = []
-    for line in capsys.readouterr().out.splitlines():
-        if line.endswith(": no answer, because no week is simulated"):
-            unanswered.append(line.split(":")[0])
-    assert unanswered == SIMULATION_QUERIES
-    written = written_files(tmp_path / "data")
-    assert written == answers_folder_files(expected_answer_names(tmp_path / "data"))
-    every_answer = answers_folder_files(site_data.answers.answered_query_names())
-    assert sorted(set(every_answer) - set(written)) == answer_files(SIMULATION_QUERIES)
-    assert site_data.check_answers.stale_queries(tmp_path / "data") == []
-    connection = site_database.open_site_database(tmp_path / "data")
+    assert written_files(tmp_path / "data") == answers_folder_files(site_data.answers.answered_query_names())
     for name in SIMULATION_QUERIES:
-        with pytest.raises(duckdb.CatalogException, match="simulation"):
-            site_database.run_query(connection, name)
-    connection.close()
+        assert read_answer(tmp_path / "data", name) == [], name
+    assert site_data.answers.stale_queries(tmp_path / "data") == []
 
 
 def test_the_answers_record_the_hash_of_each_answered_query_s_text(data_directory: pathlib.Path) -> None:
@@ -224,74 +208,24 @@ def test_the_answers_record_the_hash_of_each_answered_query_s_text(data_director
                                        *site_data.buckets.BUCKET_PARTS.values(),
                                        *site_data.site_database.SELECTION_VIEW_STATEMENTS])
     assert recorded == site_data.answers.query_hashes()
-    assert site_data.check_answers.stale_queries(data_directory) == []
 
 
-def test_the_check_prints_how_many_queries_the_answers_match(data_directory: pathlib.Path,
-                                                             capsys: pytest.CaptureFixture) -> None:
-    site_data.check_answers.main(["--data", str(data_directory)])
-    count = (len(site_data.answers.answered_query_names()) + len(site_data.buckets.BUCKET_PARTS)
-             + len(site_data.site_database.SELECTION_VIEW_STATEMENTS))
-    assert capsys.readouterr().out == f"answers match {count} queries and views\n"
-
-
-def test_a_query_or_view_edited_or_added_since_make_data_fails_the_check(data_directory: pathlib.Path,
-                                                                 tmp_path: pathlib.Path) -> None:
+def test_a_query_or_view_edited_or_added_since_make_data_is_stale(data_directory: pathlib.Path,
+                                                                  tmp_path: pathlib.Path) -> None:
     queries = tmp_path / "queries"
     shutil.copytree(site_data.site_database.QUERIES_FOLDER, queries)
-    with (queries / "explore" / "request_count.sql").open("a") as query:
+    with (queries / "explore" / "trace_totals.sql").open("a") as query:
         query.write("-- edited\n")
     (queries / "figures" / "added_since.sql").write_text("SELECT 1 AS one;\n")
     with (queries / "setup" / "create_view_session_time.sql").open("a") as view:
         view.write("-- edited\n")
-    assert site_data.check_answers.stale_queries(data_directory, queries) == [
-        site_data.check_answers.StaleQuery(name="explore/request_count", reason=site_data.check_answers.CHANGED),
-        site_data.check_answers.StaleQuery(name="figures/added_since", reason=site_data.check_answers.UNRECORDED),
-        site_data.check_answers.StaleQuery(name="setup/create_view_session_time",
-                                           reason=site_data.check_answers.CHANGED),
+    assert site_data.answers.stale_queries(data_directory, queries) == [
+        "explore/trace_totals", "figures/added_since", "setup/create_view_session_time",
     ]
-
-
-def test_the_check_fails_and_names_each_stale_query(data_directory: pathlib.Path, tmp_path: pathlib.Path,
-                                                    capsys: pytest.CaptureFixture) -> None:
-    data = tmp_path / "data"
-    shutil.copytree(data_directory / site_data.paths.ANSWERS_FOLDER, data / site_data.paths.ANSWERS_FOLDER)
-    hashes_path = data / site_data.paths.ANSWERS_FOLDER / site_data.paths.QUERY_HASHES_FILE
-    recorded = json.loads(hashes_path.read_text())
-    recorded["explore/request_count"] = "0" * 64
-    hashes_path.write_text(json.dumps(recorded))
-    with pytest.raises(SystemExit) as exit_info:
-        site_data.check_answers.main(["--data", str(data)])
-    assert exit_info.value.code == 1
-    assert f"explore/request_count: {site_data.check_answers.CHANGED}" in capsys.readouterr().err
-
-
-def test_without_recorded_hashes_the_check_says_to_run_make_data(tmp_path: pathlib.Path,
-                                                                capsys: pytest.CaptureFixture) -> None:
-    with pytest.raises(SystemExit) as exit_info:
-        site_data.check_answers.main(["--data", str(tmp_path)])
-    assert exit_info.value.code == 1
-    assert "run make data first" in capsys.readouterr().err
-
-
-def test_a_failed_run_leaves_the_previous_answers_in_place(data_directory: pathlib.Path, tmp_path: pathlib.Path,
-                                                           monkeypatch: pytest.MonkeyPatch) -> None:
-    data = tmp_path / "data"
-    shutil.copytree(data_directory, data)
-    before = written_files(data)
-
-    def fail(rows: list[dict]) -> str:
-        raise RuntimeError("a query failed")
-
-    monkeypatch.setattr(site_data.answers, "answer_text", fail)
-    with pytest.raises(RuntimeError):
-        site_data.answers.write_answers(data)
-    assert written_files(data) == before
-    assert read_answer(data, "explore/request_count") == read_answer(data_directory, "explore/request_count")
 
 
 def test_shipped_answers_come_from_the_current_queries() -> None:
     """Every answer under the tracked `site/data` was written from its query's current text: a query edited since `make
     data`, or added since, fails here until `make data` is rerun."""
-    stale = site_data.check_answers.stale_queries(SHIPPED_DATA_FOLDER)
-    assert stale == [], "stale answers: " + ", ".join(f"{query.name} ({query.reason})" for query in stale)
+    stale = site_data.answers.stale_queries(SHIPPED_DATA_FOLDER)
+    assert stale == [], "edited or added since make data last ran, so rerun it: " + ", ".join(stale)

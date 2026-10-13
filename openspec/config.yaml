@@ -3,11 +3,11 @@ schema: spec-driven
 # Project context, shown to AI when creating artifacts.
 context: |
   The FreeInference trace site: a public, static, lightweight website that
-  lets anyone browse the FreeInference agentic trace week by week. A small
-  Python step turns the pipeline's per-week release into a few Parquet files;
-  plain HTML pages and ES modules query them in the browser with DuckDB-WASM
-  and draw them with Observable Plot. There is no server and no front-end
-  build step. The pipeline repository (freeinference-agentic-pipeline) owns
+  lets anyone browse the FreeInference agentic trace. A small Python step
+  turns the pipeline's per-week release into precomputed answers (JSON) and
+  gzipped session buckets; plain HTML pages and ES modules fetch them and
+  draw them with Observable Plot. There is no server, no database in the
+  browser and no front-end build step. The pipeline repository (freeinference-agentic-pipeline) owns
   every definition; this site imports them and only filters, counts and
   draws.
 

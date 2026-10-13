@@ -12,6 +12,7 @@
  */
 
 import { chartName, columnTotal, renderFigure, showError, showLoading } from "../shared/charts.js";
+import { readAnswer } from "../shared/answers.js";
 import { formatCompactCount, formatCount, formatQuantity, formatShare } from "../shared/format.js";
 import { barColours, HARNESS_FIRST_SLOT, OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
 import { drawWithLegend } from "../explore/legend.js";
@@ -24,8 +25,17 @@ const INNER_RADIUS = 62;
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
+/** Lay out the donuts in `container` and draw them; a donut whose query fails shows its error in its card. */
+export async function runMixes(container, context) {
+  const places = layoutMixes(container);
+  await Promise.all([
+    drawModelMix(places.models, context).catch((error) => showError(places.models, error)),
+    drawHarnessMix(places.harnesses, context).catch((error) => showError(places.harnesses, error)),
+  ]);
+}
+
 /** Fill `container` with the two donut cards, each loading: `{ models, harnesses }`. */
-export function layoutMixes(container) {
+function layoutMixes(container) {
   const models = document.createElement("article");
   const harnesses = document.createElement("article");
   for (const place of [models, harnesses]) {
@@ -34,15 +44,6 @@ export function layoutMixes(container) {
   }
   container.replaceChildren(models, harnesses);
   return { models, harnesses };
-}
-
-/** Lay out the donuts in `container` and draw them; a donut whose query fails shows its error in its card. */
-export async function runMixes(container, context) {
-  const places = layoutMixes(container);
-  await Promise.all([
-    drawModelMix(places.models, context).catch((error) => showError(places.models, error)),
-    drawHarnessMix(places.harnesses, context).catch((error) => showError(places.harnesses, error)),
-  ]);
 }
 
 /**
@@ -72,7 +73,7 @@ export function donutSlices(rows, nameColumn, countColumn, order) {
 
 async function drawModelMix(place, context) {
   const orderRows = await context.orders.models;
-  const rows = await context.database.runQuery("explore/model_mix");
+  const rows = await readAnswer("explore/model_mix");
   const order = orderRows.map((row) => row.model);
   await drawMix(place, donutSlices(rows, "model", "requests", order), barColours(order), {
     title: "Model mix",
@@ -83,7 +84,6 @@ async function drawModelMix(place, context) {
     singular: "request",
     plural: "requests",
     formatTotal: formatCompactCount, // a million requests is too wide for the centre written in full
-    nameText: modelText,
   });
 }
 
@@ -122,21 +122,21 @@ async function drawMix(place, slices, colours, text) {
 }
 
 /**
- * The legend's entries `[{ name, label }]` of `slices`, each labelled with its name as `nameText` writes it and its
- * share of them: "glm-5.3-flash 44.0%".
+ * The legend's entries `[{ name, label }]` of `slices`, each labelled with its name, as `nameText` writes it when
+ * given, and its share of them: "glm-5.3-flash 44.0%".
  */
 export function legendSeries(slices, nameText) {
   const total = columnTotal(slices, "count");
   const entries = [];
   for (const slice of slices) {
-    entries.push({ name: slice.name, label: `${nameText(slice.name)} ${formatShare(slice.count / total)}` });
+    entries.push({ name: slice.name, label: `${sliceName(slice.name, nameText)} ${formatShare(slice.count / total)}` });
   }
   return entries;
 }
 
-/** A model as the donut names it: as the release does. */
-function modelText(model) {
-  return model;
+/** A slice's name as the donut writes it: as `nameText` writes it when the card gives one, else as the release does. */
+function sliceName(name, nameText) {
+  return nameText === undefined ? name : nameText(name);
 }
 
 /** The line under the donut's total: what it counts, "requests", or "shown requests" while `hiddenCount` are hidden. */
@@ -172,7 +172,8 @@ function drawDonut(body, slices, colours, text) {
 function slicePath(arc, colours, text) {
   const path = svgElement("path", { d: arc.path, fill: colours.get(arc.name), class: "donut-slice" });
   const tooltip = svgElement("title", {});
-  tooltip.textContent = `${text.nameText(arc.name)}: ${formatShare(arc.share)} of ${text.unit} (${formatCount(arc.count)})`;
+  const name = sliceName(arc.name, text.nameText);
+  tooltip.textContent = `${name}: ${formatShare(arc.share)} of ${text.unit} (${formatCount(arc.count)})`;
   path.append(tooltip);
   return path;
 }

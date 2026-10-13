@@ -8,7 +8,7 @@
  */
 
 import {
-  AXIS_STYLE, categoryRowsFrame, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TALL_CHART_HEIGHT, TIP_STYLE,
+  AXIS_STYLE, categoryRowsFrame, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TALL_CHART_HEIGHT,
 } from "../shared/charts.js";
 import { TICK_COUNT, tickCountFor } from "../axes/ticks.js";
 import { BATCH_COLOURS } from "../theme/colours.js";
@@ -56,14 +56,9 @@ export const LATENCY_BY_BATCH_WIDTH = Object.freeze({
   drawsLines: true,
   query: "figures/latency_by_batch_width",
   binColumn: "width",
-  legend: batchLegend,
+  legend: () => partsLegend(BATCH_LINES, new Map(Object.entries(BATCH_COLOURS))),
   draw: drawLatencyByWidth,
 });
-
-/** The batch-width figure's legend: the batched calls in the colour of a tool wait, the serial line in ink. */
-export function batchLegend() {
-  return partsLegend(BATCH_LINES, new Map(Object.entries(BATCH_COLOURS)));
-}
 
 /** A width as its axis and tooltip write it: "3", or "8+" for the widest, which holds every wider request too. */
 export function widthLabel(width) {
@@ -103,7 +98,7 @@ async function drawCallsPerRequest(rows, body, colours) {
       Plot.axisX({ ...AXIS_STYLE, ticks, label: "Calls" }),
       Plot.axisY({ ...AXIS_STYLE, label: null }),
       Plot.barX(rows, { y: "category", x1: 0, x2: "mean_calls", fill: "category" }),
-      Plot.tip(rows, Plot.pointerY({ ...TIP_STYLE, y: "category", x: "mean_calls", title: callsTipText })),
+      Plot.tip(rows, Plot.pointerY({ y: "category", x: "mean_calls", title: callsTipText })),
     ],
   });
   body.replaceChildren(chart);
@@ -135,7 +130,7 @@ async function drawLatencyByWidth(rows, body, colours, hidden) {
   marks.push(
     Plot.axisX({ ...AXIS_STYLE, ticks: WIDTH_TICKS, tickFormat: widthLabel, label: "Calls in the request" }),
     Plot.axisY({ ...AXIS_STYLE, ticks: TICK_COUNT, tickFormat: formatDurationTick, label: null }),
-    Plot.tip(rows, Plot.pointerX({ ...TIP_STYLE, x: "width", y: "p50", title: widthTipText })),
+    Plot.tip(rows, Plot.pointerX({ x: "width", y: "p50", title: widthTipText })),
   );
   const chart = Plot.plot({
     ...chartFrame(body),

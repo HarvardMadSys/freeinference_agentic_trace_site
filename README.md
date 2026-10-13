@@ -7,10 +7,9 @@ opens any one to show how its context grew, what it cached, which tools it
 called and which subagents it spawned; its Insights draw the paper's charts
 over the paper's data, each with the one sentence it shows.
 
-Everything runs in the browser. The site is a folder of HTML pages, ES
-modules, JSON answers and gzipped JSON session buckets, with Observable Plot
-drawing the charts; the Parquet files the data step reads ship beside them,
-and no page fetches them. There is no server and no bundler.
+The site is a folder of HTML pages, ES modules, JSON answers and gzipped
+JSON session buckets, with Observable Plot drawing the charts in the
+browser. There is no server code and no bundler.
 
 ## Pages
 
@@ -19,25 +18,22 @@ and no page fetches them. There is no server and no bundler.
 | Explore | `index.html` | The landing page: a hero with buttons to the Session Explorer and the Insights and the stats strip (the whole trace as the paper's summary table counts it: weeks, sessions, requests, input tokens, tool calls, harnesses), the model and harness mixes and the weekly trends (Overview, `#overview`), the Session Explorer (`#sessions`), a table of every top-level session with its own filter, sort and page in the URL (`?months=2026-07&harnesses=codex`), the Insights (`#insights`), 29 of the paper's figures and two histograms in six topics shown one at a time behind a row of tabs, the shown topic in the URL's hash (`#insights-sessions`, `#insights-tokens`, `#insights-latency`, `#insights-tools`, `#insights-caching`, `#insights-comparison`: Session structure, Tokens and cost, Latency, Tools, Prefix caching, Human-driven against benchmark), the paper's citation (Cite, `#cite`) and the team (`#team`) |
 | Session | `session.html` | One session and its subagents: a bar per request with each tool call's programs and the skeleton of its arguments, context over time, and a timeline per agent |
 
-## Frozen figures
+## Where the pages get their data
 
-Every figure of the Insights is drawn over every week and the paper's
-harnesses (every harness but the benchmark replay `eval:swe-bench`, which
-appears only where a figure's legend names it), from answers precomputed
-when the data are built; the stats strip, the Overview's mixes and trends
-and the Session Explorer, which count the whole trace, are answered over
-every harness, the benchmark replay among them as `swe-bench`. `make data` runs
-every query under `site/queries/explore/` and `site/queries/figures/` and
-the colour orders under `site/queries/setup/` once with that selection, and
-writes each answer as `site/data/all_weeks/<page>/<query>.json`; the Explore
-page reads those files and nothing else, so it loads no DuckDB and no
-Parquet file. A topic of the Insights fetches its answers and draws its
-figures when its tab is first shown, so every chart is drawn at its card's
-width. **Rerun `make data` after editing any of those queries**: the page reads
-the answer, not the query. `make data` records the hash of each query's
-text in `all_weeks/queries.json`, and `make test` fails on a query edited
-since (`tests/test_answers.py`), as `make deploy` does through
-`make check-answers`.
+Every number the pages show is computed ahead of time by `make data`. The
+browser runs no query: it fetches the indexes (`weeks.json`,
+`harnesses.json`), the answers and the session buckets, filters the session
+list, hides thin bins and draws. Every figure of the Insights is drawn
+over every week and the paper's harnesses (every harness but the benchmark
+replay `eval:swe-bench`, which appears only where a figure's legend names
+it); the stats strip, the Overview's mixes and trends and the Session
+Explorer, which count the whole trace, are answered over every harness, the
+benchmark replay among them as `swe-bench`. `make data` runs every query
+under `site/queries/explore/` and `site/queries/figures/` and the colour
+orders under `site/queries/setup/` once with that selection, and writes each
+answer as `site/data/all_weeks/<page>/<query>.json`. A topic of the
+Insights fetches its answers and draws its figures when its tab is first
+shown, so every chart is drawn at its card's width.
 
 The one thing a visitor narrows is the Session Explorer's list. Its answer holds every
 harness's sessions, the benchmark's marked, and the list filters it in the
@@ -50,82 +46,35 @@ harness, writes no key, and the keys change no figure. A key naming several
 keeps its first; older links' `weeks`, `month`, `scope` and `harness` are
 read as the filter and rewritten.
 
-The browser query path stays in the code behind one switch:
-`FIGURES_ARE_FROZEN` in `site/js/explore/start.js` is `true`. Set to
-`false`, the page mounts the week and harness pickers again, and any
-selection but the default is computed by DuckDB-WASM over the Parquet files
-from the same queries. After the first view the page could then stream
-every week's row files into memory so that a narrowed selection reads no
-HTTP ranges; `STREAM_ROWS_AFTER_DRAW` in `site/js/shared/database.js` turns
-that on, and is `false`.
-
-The Session page runs no query. `make data` writes every session into
-gzipped JSON buckets, `site/data/session_buckets/<week>/<xx>.json.gz`, `xx`
-the first two characters of a top-level session's id, each holding the
-rows of its top-level sessions and their subagents; beside them, the week's
-`index.json.gz` maps every session id, subagents included, to its
-top-level id. The page fetches the one bucket its id names, gunzips it in
-the browser and draws; a subagent's id takes the index and its top-level
-session's bucket, three fetches at most. It loads no DuckDB module, no
-Parquet file and no SQL.
-
-Measured on the shipped data (16 weeks), served by `serve.py` (which does
-not compress) on the same machine, in headless Chromium, three runs each:
-
-- The Explore page draws the stats strip, the mixes, the trends, the session
-  list and the first topic's figures in 0.7–1.1 s (median 0.9 s). It makes
-  118 requests: 66 to the site (the page and its style sheet, 46 modules, 18
-  data files: `weeks.json`, `harnesses.json`, the four colour orders and 12
-  answers) and 52 to the CDN (Observable Plot with its modules, and the web
-  fonts). The site's own files come to 4.6 MB, 4.0 MB of them the session
-  list's answer, whose first page is drawn from a 20-row answer before it
-  arrives; gzipped, as a static host serves them, about 0.9 MB, plus 0.35 MB
-  of libraries and fonts as the CDN sends them. No `.wasm` and no `.parquet`
-  is fetched. Each other topic fetches its own answers when its tab is shown.
-- The Session page draws the Requests view of its largest session (5,040
-  requests, week of 2026-08-30) in 0.89–1.07 s (median 1.0 s), or 0.9 s
-  with 40 ms of latency and 50 Mbit/s: 35 requests, 31 to the site (the
-  page and its style sheet, 26 modules, and three data files: the session's
-  bucket, 0.30 MB, the category order and `weeks.json`, which the footer
-  counts) and 4 to the CDN for the web
-  fonts. The site's files come to 0.54 MB, 0.38 MB as a gzipping host
-  serves them. No `.wasm`, `.parquet` or `.sql` is fetched; the Context and
-  Timeline views add Observable Plot from the CDN. Reading the week's
-  Parquet files in DuckDB-WASM instead took 3.1 s, or 7.6 s with that
-  latency and bandwidth, with 126 requests, 13.6 MB of data and 7.5 MB of
-  libraries.
+The Session page runs no query either. `make data` writes every week's
+sessions into gzipped JSON buckets, the top-level sessions whose ids share
+their first two characters in one file, with an index per week from every
+session id to its top-level id; the page fetches the one bucket its id
+names, or, for a subagent's id, the index and then its top-level session's
+bucket. The format is defined in `site_data/buckets.py`'s docstring.
 
 ## Running it
 
 The built data ships with the repository, so a clone serves the site as it is:
 
 ```bash
-make serve           # http://localhost:8000, answering byte-range requests
+make serve           # http://localhost:8000
 make test            # the Python tests and the node tests (after make setup, below)
 make setup-browser   # a headless Chromium and Playwright, for checking pages by hand; make test does not need it
-make deploy          # publish site/ to Cloudflare as the Worker's static assets (after npm install and a Cloudflare login)
+make deploy          # publish site/ to Cloudflare as the Worker's static assets (see Hosting)
 ```
-
-`site/data/` is 3,364 files and 168.4 MB: one Parquet file per kind of row
-and week (requests 61.2 MB, tool calls 21.4 MB with each call's programs and
-argument skeleton, sessions 1.3 MB, the cache simulation 0.1 MB), the two
-indexes, 48 JSON files of answers and query hashes, 4.8 MB, and the session
-buckets: 3,234 buckets and 16 week indexes, 79.6 MB gzipped, the median
-bucket 15 KB and the largest 0.39 MB.
 
 Rebuilding the data is the maintainer's step, when the release gains a
 week, a column changes, or a query under `explore/`, `figures/` or
 `buckets/` or a colour order changes. It takes the pipeline repository,
-whose package
-defines every number the site shows and whose `data/v1` holds the release
-and the cache simulation of both the paper's harnesses and the benchmark
-replay. Name it with `PIPELINE=` on the command line:
+whose package defines every number the site shows and whose `data/v1` holds
+the release and the cache simulation of both the paper's harnesses and the
+benchmark replay. Name it with `PIPELINE=` on the command line:
 
 ```bash
 make setup PIPELINE=~/freeinference-agentic-pipeline   # a virtual environment with the pipeline's package and the test tools
-make data PIPELINE=~/freeinference-agentic-pipeline    # site/data/ from its release: a Parquet file per kind of row and week, the indexes, the answers, the session buckets
-make test PIPELINE=~/freeinference-agentic-pipeline    # with the paper-parity tests, which read its numbers.json and skip without it
-make check-answers   # check that no query changed since make data wrote its answer; make test and make deploy run it
+make data PIPELINE=~/freeinference-agentic-pipeline    # site/data/ from its release: the indexes, the answers, the session buckets
+make test PIPELINE=~/freeinference-agentic-pipeline    # with the paper-parity tests, which read its numbers.json and data/v1/release and skip without them
 ```
 
 `PIPELINE` defaults to a checkout beside this repository,
@@ -136,11 +85,13 @@ dataset instead, name its folders:
 make data RELEASE=~/freeinference_agentic_trace/release SIMULATION=~/freeinference_agentic_trace/simulation
 ```
 
-The rebuilt data is committed with the change that needed it. A rebuild of the
-same rows writes the same bytes, so git sees only what changed; one that
-rewrites every week's files (a new column, an edited bucket query) adds up to
-the data's size, about 170 MB, to the repository's history, so the data is
-rebuilt when the release, a column or a query changes, not routinely.
+`make data` prints what it wrote: each index's rows, the answers' files and
+bytes, and the buckets' count and size with the median and largest bucket.
+The rebuilt data is committed with the change that needed it. A rebuild of
+the same rows writes the same bytes, so git sees only what changed; one that
+rewrites every bucket (a new column, an edited bucket query) adds nearly the
+whole of `site/data` to the repository's history, so the data is rebuilt
+when the release, a column or a query changes, not routinely.
 
 ### Hosting
 
@@ -151,68 +102,67 @@ The site is a Cloudflare Worker with static assets and no code of its own:
 token made from the dashboard's "Edit Cloudflare Workers" template) and
 `CLOUDFLARE_ACCOUNT_ID`; set the repository variable
 `CLOUDFLARE_ACCOUNT_SUBDOMAIN` and the workflow also asks the deployed site
-for the Explore page (`/`), `weeks.json`
-and a Parquet file, and fails on any answer but 200. `make deploy` does the same from a machine with `npm install` done and
-the token in `CLOUDFLARE_API_TOKEN`. Static assets allow 20,000 files of
-25 MiB each; the site is about 3,400 files, the largest under 10 MB, and a
-new week adds about 210.
+for the Explore page (`/`), `weeks.json` and the newest week's bucket index,
+and fails on any answer but 200. `make deploy` publishes the same way from
+a machine with `npm install` done and the token in `CLOUDFLARE_API_TOKEN`;
+run `make test` first. Static assets allow 20,000 files of 25 MiB each:
+`find site -type f | wc -l` counts the files deployed, and the largest is the
+session list's answer, `site/data/all_weeks/explore/sessions_of_selection.json`.
 
-Three things the host may do differently from `make serve`. It answers a
-range request with the whole file (200, not 206): no page reads a range
-while the figures are frozen, and with the switch off DuckDB accepts a whole
-file where it asked for a range. It may serve a `.json.gz` file with its
-gzip layer removed, which the Session page reads as plain JSON all the same.
-And it redirects `page.html` to `page`, so `session.html?week=…` lands on
-`/session?week=…` and `index.html?months=…#sessions` on `/?months=…#sessions`,
-with the query kept; the pages link one another by their `.html` names.
+Two things the host does differently from `make serve`. It may serve a
+`.json.gz` file with its gzip layer removed, which the Session page reads as
+plain JSON all the same. And it redirects `page.html` to `page`, so
+`session.html?week=…` lands on `/session?week=…` and
+`index.html?months=…#sessions` on `/?months=…#sessions`, with the query
+kept; the pages link one another by their `.html` names.
 
 ## Layout
 
+The one map of the repository's folders and files; `CONTRIBUTING.md` has
+the rules, how the pieces fit together, and the patterns to copy.
+
 ```
 README.md          this file
-CONTRIBUTING.md    the rules, the patterns, and how to add a query, a figure or a page
+CONTRIBUTING.md    the rules, the patterns, and how to add a query, a section, a figure or a Session page column
 CLAUDE.md          a pointer to the two files above, the rules that matter most and the git rules
-Makefile           setup · setup-browser · data · serve · test · check-answers · deploy
+Makefile           setup · setup-browser · data · serve · test · deploy
+.github/workflows/deploy.yml
+                   deploys site/ on every push to main, then asks the published site for three files
+.nvmrc             the Node version the workflow installs
 wrangler.jsonc     the Cloudflare Worker that serves site/ as static assets: its name, its hostnames
 package.json       sets ES modules for node --test; wrangler, the one dev dependency, deploys the site
-serve.py           what make serve runs: a local server that answers byte-range requests, as the host does
+package-lock.json  wrangler's exact version and its dependencies', which npm ci installs
 pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
-package.json       sets ES modules for node --test; no dependencies
-docs/              differences.md: where the site draws more simply than the paper
-site_data/         builds site/data/ from a release, and opens a database over it as the browser does
-  __main__.py      the step make data runs: loads and checks every week, writes the files, the indexes, the answers,
-                   the session buckets
+site_data/         builds site/data/ from a release, running the queries over its rows in memory
+  __main__.py      the step make data runs: loads and checks every week, builds the frames, writes the indexes, the
+                   answers, the session buckets
   loading.py, weeks.py, harnesses.py
                    reading the release week by week; the indexes weeks.json and harnesses.json
   requests.py, tool_calls.py, sessions.py, session_tree.py, simulation.py
                    one module per kind of row, each column from the pipeline's functions
-  site_database.py the browser's database in Python DuckDB: the views over the week files, the selection tables
+  site_database.py the site's database in Python DuckDB: the four frames of rows as tables, the selection tables
   answers.py       the answers: every Explore and figure query and colour order, run once over every week and the
-                   paper's harnesses; the Overview's, the session list's and its first page's over every harness
+                   paper's harnesses; the Overview's, the session list's and its first page's over every harness;
+                   each query's text hash, and the queries edited since the answers were written
   buckets.py       the session buckets: every week's sessions, gzipped JSON by the first two characters of the
                    top-level id, and each week's index of session ids
-  check_answers.py what make deploy checks first: every answered and bucket query's text is the one make data ran
   paths.py         the names of the folders and files the step writes
 site/              exactly the files that are deployed
   *.html           one file per page: index (Explore, the landing page) and session
   style.css        tokens, layout and components
   favicon.svg      the brand mark, for the browser tab
-  js/shared/       database (answer files and queries by name), selection (the selection
-                   and its notes), libraries, format, charts, histogram (the histogram figures), cdf (the CDF
-                   figures), table, layout (the header and footer)
+  js/shared/       answers (the indexes, and the answer files by query name), libraries, format, charts, histogram
+                   (the histogram figures), cdf (the CDF figures), table, layout (the header and footer)
   js/landing/      the landing page's own parts: hero (the title, lede and buttons), stats (the stats strip beside
                    it), donuts (the model and harness mixes), arcs (a donut's shares and ring segments), cite (the
                    citation's copy button) and team (the authors)
-  js/engine/       DuckDB in the page, kept behind the switch: duckdb_start (starting it), duckdb_views (its views and
-                   setup), duckdb_files (the week files' names, and the stream of every week's files)
   js/theme/        colours, the site's colours as the style tokens give them, and the colours every figure shares
   js/axes/         ticks, the ticks of every chart's axes: how many, and where a log, duration or week axis ticks
   js/pages/        one module per page: explore, session
-  js/explore/      the Explore page's start and sections: start (the page's start, with FIGURES_ARE_FROZEN), trends,
+  js/explore/      the Explore page's start and sections: start (the page's start), trends,
                    figure_sections (the figure runner), topic_tabs (the Insights' tabs, one topic shown at a time),
                    legend (the legend of buttons that hides and shows a series), sessions_table, sessions_table_state
-                   (its columns and its state in the URL), sessions_filter (its month and harness filter), and
-                   selection_pickers (the week and harness pickers, mounted only with the switch off)
+                   (its columns and its state in the URL), and sessions_filter (its month and harness filter)
   js/figures/      one module per figure section (sessions, tokens, latency, tools, caching), the modules they take
                    figures from (sessions_ranked, tools_batching, caching_gaps), and figure_rows, the row rules every
                    figure shares
@@ -222,18 +172,15 @@ site/              exactly the files that are deployed
                    user prompt size and the tool mix are listed in the Session-structure and Tools sections), and
                    scopes, the two scopes they compare
   js/session/      the Session page's bucket (a session's rows from its week's bucket, and the category order),
-                   address, agent tree, facts, legends, overlap grouping, token parts and chart frame
+                   address, agent tree, facts, legends, token parts and view_chart (the Context and Timeline
+                   views' chart start and request click)
   js/session_requests/  the Requests view: a row per request, its details (each call's programs and argument
-                        skeleton), brackets and legend
-  js/session_charts/    the Context and Timeline views, the series and bars they draw, their range slider and
-                        the Timeline's pointer
-  queries/         one .sql file per chart or table, in one folder per purpose: explore (13), figures (31: the 29
-                   figures, and two per-model medians only the paper-parity test reads), buckets (3: the session
-                   buckets' tree, requests and tool calls, run per week by make data), setup (17)
+                        skeleton), the brackets that group overlapping requests, and its legend
+  js/session_charts/    the Context and Timeline views, the series and bars they draw, and their range slider
+  queries/         one .sql file per chart or table, in one folder per purpose: explore, figures (and two per-model
+                   medians only the paper-parity test reads), buckets (the session buckets' tree, requests and tool
+                   calls, run per week by make data), setup (the selection tables, the one view, the colour orders)
   data/            built by make data and tracked, so a clone serves the site without building
-    requests/, tool_calls/, sessions/, simulation/
-                   one folder per kind of row, with one file per week, week=<sunday>/rows.parquet; the simulation,
-                   of both the paper's harnesses and the benchmark replay, only for the weeks it covers
     harnesses.json, weeks.json
                    the indexes of harnesses and weeks, read before anything else
     all_weeks/     the answers, <page>/<query>.json, and queries.json, each answered and bucket query's text hash
@@ -242,8 +189,8 @@ site/              exactly the files that are deployed
                    ids start with xx and of their subagents, and index.json.gz, every session id to its top-level id
 tests/             what make test runs
   conftest.py, fixture_release.py, site_database.py
-                   a two-week fixture release, the site data built from it, and a database over it set up as
-                   the browser sets it up (site_data/site_database.py, under the names the tests use)
+                   a two-week fixture release, the site data built from it, the fixture's frames and a database
+                   over them (site_data/site_database.py, under the names the tests use)
   test_fixture_release.py   the fixture is a release the pipeline's reader accepts
   test_weeks.py, test_harnesses.py, test_loading.py, test_requests.py, test_sessions.py, test_session_tree.py,
   test_tool_calls.py, test_simulation.py, test_build.py, test_site_database.py, test_buckets.py
@@ -252,16 +199,14 @@ tests/             what make test runs
   test_caching_queries.py, test_caching_simulation_queries.py, test_comparison_queries.py
                    every .sql file run against the fixture data, its columns and its numbers
   test_answers.py           every answer make data writes for the fixture, against its query run live there; and the
-                            shipped answers come from the queries' current text
+                            shipped answers come from the queries' current text, so a query edited since fails
   test_paper_parity.py, test_paper_parity_sessions.py, test_paper_parity_caching.py,
   test_paper_parity_comparison.py
-                   on the shipped data, the numbers a figure shares with the paper's numbers.json
+                   on the shipped answers, the numbers a figure shares with the paper's numbers.json
   test_pipeline_mirrors.py, test_pipeline_mirrors_caching.py
-                   the pipeline constants the browser holds a copy of, against the pipeline's own
-  test_differences.py       docs/differences.md holds the queries' and pipeline's numbers, and no figure
-                            definition names the paper
-  test_repository.py, test_serve.py
-                   the repository's countable rules; make serve's byte ranges
+                   the pipeline constants the queries and modules hold a copy of, against the pipeline's own
+  test_differences.py       no figure's definition names the paper
+  test_repository.py        the repository's countable rules
   *.test.js        node --test, one file per JavaScript module with pure functions
 openspec/          the specifications and the changes that built the site
 ```
@@ -270,28 +215,46 @@ openspec/          the specifications and the changes that built the site
 
 Every definition comes from the pipeline. The ones the site shows (session,
 turn, wait, cached share, idle gap) are computed by the pipeline's own
-functions when `make data` runs. Where a query restates one in SQL (the cost
-share's prices, the rank bins, the wait classes, what a tool wait is and how
-long it counts for, the tool groups, the cache simulation's TTLs and costs, the
-mutation table), a mirror test ties each copied constant to the pipeline's and a
-parity test ties the number to the paper's; ten queries do,
-`figures/cost_share_by_session.sql`, `figures/session_time_by_part.sql`,
-`figures/speedup_if_twice_as_fast.sql`, `figures/calls_per_request_by_category.sql`,
-`figures/latency_by_batch_width.sql`, `figures/tool_mix_by_turn_position.sql`,
-`figures/prefill_against_storage.sql`, `figures/api_cost_by_ttl.sql`,
-`figures/infrastructure_cost_by_ttl.sql` and `figures/mutations_by_cause.sql`;
-the two time figures read a session's time breakdown from one view,
-`setup/create_view_session_time.sql`.
-Otherwise the queries, which `make data` runs
-for the answers and the session buckets, only filter,
-count, sum and take quantiles, and the session list only filters its
-answer. Every number a figure shares with the paper equals the paper's, and
-`tests/test_paper_parity*.py` checks each one against the shipped data.
-`tests/test_pipeline_mirrors.py` checks that a mirror test reads each of the
-ten queries and that this file, `CONTRIBUTING.md` and `CLAUDE.md` list
-exactly them. Where a figure is drawn more simply than the paper,
-`docs/differences.md` says how; the figure's Definition says what is drawn
-and leaves the paper out.
+functions when `make data` runs. A few figure queries restate a pipeline
+definition in SQL, such as the cost share's prices; `CONTRIBUTING.md` lists
+them, each with the mirror test that ties its copied constants to the
+pipeline's. Otherwise the queries only filter, count, sum and take
+quantiles, and the session list only filters its answer. Every number a
+figure shares with the paper equals the paper's, and
+`tests/test_paper_parity*.py` checks each one against the shipped answers.
+
+A figure's Definition says what the site draws and leaves the paper out.
+Where the site draws more simply than the paper:
+
+- **Every figure**: a bin with fewer than 50 rows is hidden, and the figure
+  says how many were; the paper also drops thin size bins, but merges an
+  idle-gap bin of fewer than 20 requests into the next one.
+- **Token growth with the context**: fixed power-of-two bins of the messages
+  in a request, where the paper fits its bins to the data.
+- **Context share by role**: each role's share of the input pooled per
+  power-of-two bin of input tokens, tool definitions included, where the paper
+  takes each request's share per bin of messages and its main figure leaves
+  tool definitions out.
+- **Token split by week**: plain token shares per week, where the paper
+  weights tokens by price and ranks sessions; **Cost breakdown by session** does
+  that, as the paper does, at the pipeline's prices: cached, uncached and
+  output at 1 : 10 : 50.
+- **Time to first token by model** and **Decode time by model**: the five
+  models with most requests that are among the eight with most requests over
+  every week, where the paper draws two fixed models, each with its decode
+  time and an estimate of its queueing time; the site draws no queueing
+  estimate.
+- **Tool latency by category** and **Tool result size by category**:
+  percentiles per category, where the paper also marks the mean.
+- **Cache reuse by wait type**: each bar from 0%, where the paper starts its
+  bars at 70% so that their differences show.
+- **Cache reuse by provider**: the pipeline's fixed idle-gap bins, each
+  drawn at its middle, a line for each of the eight providers with most
+  requests, where the paper merges a thin bin into the next, draws each bin at
+  its requests' median gap and shows the four providers with most idle gaps.
+
+As in the paper, the hit ratio after a context change leaves out a switch to
+another model or provider: it is routing, not a change of context.
 
 - Dataset: https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace
 - Pipeline: https://github.com/HarvardMadSys/freeinference_agentic_trace

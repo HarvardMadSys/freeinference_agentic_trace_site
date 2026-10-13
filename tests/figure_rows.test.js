@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  cdfSeries, dropThinGroups, figureDrawnRows, figureRowsText, hiddenText, partsLegend, restingCountText, restingRowCount,
-  seriesLegend, unsimulatedWeeks,
+  cdfSeries, dropThinGroups, figureRowsText, hiddenText, partsLegend, restingCountText, restingRowCount,
+  rowsWithSeriesColour, seriesLegend, unsimulatedWeeks,
 } from "../site/js/figures/figure_rows.js";
 
 // Two CDF series of two points each: `requests` over 120 sessions, `tool_steps` over 30.
@@ -102,19 +102,15 @@ const WEEK_ENTRIES = [
   { week: "2026-08-09", simulated: true },
   { week: "2026-08-16", simulated: false },
 ];
-test("a figure of the selection leaves no week unsimulated; a simulation figure names the selected weeks not simulated", () => {
-  const selection = { harnesses: ["codex"], weeks: ["2026-08-09", "2026-08-16"] };
-  assert.deepEqual(unsimulatedWeeks({}, selection, WEEK_ENTRIES), []);
-  assert.deepEqual(unsimulatedWeeks({ isSimulation: true }, selection, WEEK_ENTRIES), ["2026-08-16"]);
-  assert.deepEqual(unsimulatedWeeks({ isPartlySimulated: true }, selection, WEEK_ENTRIES), ["2026-08-16"]);
+test("a figure of the trace leaves no week unsimulated; a simulation figure names the weeks not simulated", () => {
+  assert.deepEqual(unsimulatedWeeks({}, WEEK_ENTRIES), []);
+  assert.deepEqual(unsimulatedWeeks({ isSimulation: true }, WEEK_ENTRIES), ["2026-08-16"]);
 });
 
-test("a figure draws the rows its drawnRows keeps given the shared colours, or every row without one", () => {
-  const colours = { providers: new Map([["A", "red"]]) };
-  const keepsColoured = { drawnRows: (rows, shared) => rows.filter((row) => shared.providers.has(row.provider)) };
-  const rows = [{ provider: "A" }, { provider: "B" }];
-  assert.deepEqual(figureDrawnRows(keepsColoured, rows, colours), [{ provider: "A" }]);
-  assert.deepEqual(figureDrawnRows({}, rows, colours), rows);
+test("the rows drawn as lines are those of a series with a series colour, never one in the Other grey", () => {
+  const colours = new Map([["A", "var(--series-1)"], ["B", "var(--series-other)"]]);
+  const rows = [{ provider: "A" }, { provider: "B" }, { provider: "C" }];
+  assert.deepEqual(rowsWithSeriesColour(rows, "provider", colours), [{ provider: "A" }]);
 });
 
 test("a figure's line of rows counts its rows, names the weeks not simulated and notes hidden bins, never the population", () => {

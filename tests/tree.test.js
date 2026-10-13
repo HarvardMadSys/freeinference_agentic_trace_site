@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  agentLabel, agentsInStartOrder, agentTree, callsByRequest, largestRequestTokens, requestKey,
+  agentLabel, agentsInStartOrder, agentTree, callsByRequest, largestRequestTokens, requestKey, topLevelSession,
 } from "../site/js/session/tree.js";
 
 // The fixture's tree: `root` spawns `child` and `sibling` from step 1, and `child` spawns `grandchild` from step 0.
@@ -26,6 +26,10 @@ const REQUESTS = [
 function outline(agent) {
   return [agent.session.session_id, agent.rows.map((row) => [row.request.step, row.subagents.map(outline)])];
 }
+
+test("the top-level session is the one no other session spawned, wherever it is listed", () => {
+  assert.equal(topLevelSession([...SESSIONS].reverse()).session_id, "root");
+});
 
 test("each subagent sits under the row of the step that spawned it, nested to any depth", () => {
   assert.deepEqual(outline(agentTree(SESSIONS, REQUESTS)), [
@@ -56,9 +60,9 @@ test("a subagent whose spawning step has no request sits under its parent's last
 
 test("tool calls are grouped by their request, in the order given", () => {
   const calls = [
-    { session_id: "a", step: 0, call_index: 0 },
-    { session_id: "a", step: 0, call_index: 1 },
-    { session_id: "b", step: 0, call_index: 0 },
+    { session_id: "a", step: 0, name: "Read" },
+    { session_id: "a", step: 0, name: "Edit" },
+    { session_id: "b", step: 0, name: "Read" },
   ];
   const grouped = callsByRequest(calls);
   assert.deepEqual(grouped.get(requestKey("a", 0)), [calls[0], calls[1]]);

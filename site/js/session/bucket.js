@@ -2,11 +2,12 @@
  * The Session page's data, as the data step precomputed it: a session's rows from its week's bucket, the order of the
  * tool categories, and the number of weeks.
  *
- * A bucket is `session_buckets/<week>/<xx>.json.gz` in the data folder, `xx` the first two characters of a top-level
- * session's id: an object from each top-level id whose id starts with `xx` to its entry, `{ tree, requests,
- * tool_calls }`, each part `{ columns, rows }` with a row's values in column order (`site_data/buckets.py`). Beside the
- * buckets, the week's `index.json.gz` maps every session id of the week, subagents included, to its top-level id. A
- * prefix with no top-level session in the week has no bucket.
+ * A week's buckets, `session_buckets/<week>/<xx>.json.gz` in the data folder, and its index of session ids,
+ * `index.json.gz`, are defined in `site_data/buckets.py`'s docstring. A session is read from the bucket its id's first
+ * two characters name first, and from the week's index only when that bucket does not hold it.
+ *
+ * Every function is given the data folder as `dataUrl`: an absolute URL ending in a slash, so that a file's path
+ * resolves inside the folder.
  */
 
 // The folder of every week's buckets in the data folder.
@@ -31,15 +32,15 @@ const WEEKS_FILE = "weeks.json";
 // file with its gzip layer removed, and is read as it is.
 const GZIP_MAGIC = Object.freeze([0x1f, 0x8b]);
 
-// The status of a file that does not exist: a bucket of a prefix no top-level session of the week has, or a week the
-// data does not hold.
+// The status of a file that does not exist: a bucket of a prefix no session id of the week starts with, or a week
+// the data does not hold.
 const NOT_FOUND = 404;
 
 /**
  * `{ tree, requests, toolCalls }`, the rows of the top-level session that holds the session `id` of the week `week`
- * (a Sunday), from the data folder at `dataUrl` (an absolute URL), each row an object from column name to value; null
- * when the week holds no session `id`. The id's bucket is fetched first; an id it does not hold, a subagent's, is
- * looked up in the week's index, and its top-level session's bucket fetched unless it is the same one.
+ * (a Sunday), from the data folder at `dataUrl`, each row an object from column name to value; null when the week
+ * holds no session `id`. The id's bucket is fetched first; an id it does not hold, a subagent's, is looked up in the
+ * week's index, and its top-level session's bucket fetched unless it is the same one.
  */
 export async function fetchSession(dataUrl, week, id) {
   const bucket = await fetchJsonOrNull(bucketUrl(dataUrl, week, id));
@@ -125,11 +126,9 @@ function weekFileUrl(dataUrl, week, name) {
   return fileUrl(dataUrl, `${BUCKETS_FOLDER}/${encodeURIComponent(week)}/${name}`);
 }
 
-/** The absolute URL of the file `path` in the data folder at `dataUrl`, with or without its trailing slash. */
+/** The absolute URL of the file `path` in the data folder at `dataUrl`. */
 function fileUrl(dataUrl, path) {
-  // Without the slash, the URL resolution would put the file beside the data folder instead of in it.
-  const folderUrl = dataUrl.endsWith("/") ? dataUrl : `${dataUrl}/`;
-  return new URL(path, folderUrl).href;
+  return new URL(path, dataUrl).href;
 }
 
 /** The JSON value of the file at `url`, gzipped or not; null when it does not exist; throws on any other failure. */

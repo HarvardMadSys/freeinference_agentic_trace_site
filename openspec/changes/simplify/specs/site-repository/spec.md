@@ -10,6 +10,38 @@
 
 ## MODIFIED Requirements
 
+### Requirement: Navigation
+The site SHALL have two pages, Explore (`index.html`, the landing page)
+and Session (`session.html`).
+Both SHALL share one sticky header: the brand "FreeInference Agentic
+Dataset" linking to the Explore page, the in-page links Overview, Session Explorer,
+Insights and Cite, and no link off the site. On a phone the header SHALL
+be two rows, the brand on the first and the four links on the second,
+wrapping as they need; nothing in the header SHALL scroll sideways or be
+cut off. The header SHALL NOT name the lab nor link the
+dataset, the paper, the code or Open Data; the hero and the footer do.
+The header SHALL stay at the top while the page scrolls,
+and every anchored section SHALL land below it. There SHALL be no About
+page and no About paragraph; the definitions live behind each card's control, the differences
+from the paper in README's "Where the numbers come from", and the credits
+and citation on the landing page.
+
+#### Scenario: Moving between pages
+- **WHEN** the visitor opens a session from the list and follows the header's Session Explorer link
+- **THEN** the Explore page SHALL open at the Session Explorer with the list's state kept
+
+#### Scenario: Scrolling
+- **WHEN** the visitor scrolls any page
+- **THEN** the header SHALL remain visible at the top
+
+#### Scenario: The current page
+- **WHEN** the visitor is on the Session page
+- **THEN** the header's Session Explorer link SHALL be marked and the others not
+
+#### Scenario: A phone
+- **WHEN** the page is opened 360 pixels wide
+- **THEN** all four links SHALL be visible under the brand without scrolling the header
+
 ### Requirement: Repository layout
 The repository SHALL have this layout, and git SHALL track nothing beyond it
 and `.gitignore`:
@@ -21,7 +53,9 @@ CLAUDE.md         a pointer to the two files above and the git rules
 Makefile          make setup, setup-browser, data, serve, test, deploy
 wrangler.jsonc    the Cloudflare Worker that serves site/ as static assets
 pyproject.toml    Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
-package.json      sets ES modules for node --test; wrangler, the one dev dependency
+package.json      sets ES modules for node --test; wrangler, the one dev dependency; package-lock.json pins it
+.nvmrc            the Node version the deploy workflow uses
+.github/          workflows/deploy.yml: the deploy on every push to main
 site_data/        builds site/data/ from a release folder: the indexes, the answers, the session buckets
 site/             exactly the files that are deployed
   *.html          one file per page: index (Explore, the landing page), session
@@ -35,7 +69,7 @@ site/             exactly the files that are deployed
   js/explore/     the Explore page's start and its sections: the trends, the session list, the figure sections, the topic tabs
   js/figures/, js/simulation/, js/comparison/
                   the figure sections' modules
-  js/session/     the Session page's bucket loader, address, agent tree, facts card, legends, token parts and chart frame
+  js/session/     the Session page's bucket loader, address, agent tree, facts card, legends, token parts, and the views' chart start and request click
   js/session_requests/  the Requests view
   js/session_charts/    the Context and Timeline views, their series, bars, range slider and pointer
   queries/        one .sql file per chart or table, in one folder per purpose: explore, figures, buckets, setup

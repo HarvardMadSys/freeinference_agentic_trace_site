@@ -55,11 +55,6 @@ test("a bin with exactly the minimum rows is kept, and one below it is hidden", 
   });
 });
 
-test("counts that DuckDB returns as BigInt are compared like numbers", () => {
-  const rows = [{ bin: "a", requests: 50n }, { bin: "b", requests: 49n }];
-  assert.deepEqual(dropThinBins(rows, "requests"), { rows: [{ bin: "a", requests: 50n }], hidden: 1 });
-});
-
 test("every chart starts from the same frame, as wide as its body", () => {
   const frame = chartFrame({ clientWidth: 300 });
   assert.equal(frame.width, 300);

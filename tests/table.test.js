@@ -2,8 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  bringIntoRow, cellContent, columnSortState, filterRows, markMoreBeyondEdge, pageRows, ROWS_PER_PAGE, searchRows,
-  sortRows,
+  bringIntoRow, cellContent, columnSortState, markMoreBeyondEdge, pageRows, ROWS_PER_PAGE, searchRows, sortRows,
 } from "../site/js/shared/table.js";
 
 const SESSIONS = [
@@ -59,67 +58,42 @@ test("an empty search returns every row", () => {
   assert.deepEqual(ids(searchRows(SESSIONS, "id", "")), ["a1", "B2", "c3", "d4"]);
 });
 
-test("an equals filter keeps rows with that exact value", () => {
-  const conditions = [{ key: "harness", equals: "claude-code" }];
-  assert.deepEqual(ids(filterRows(SESSIONS, conditions)), ["a1", "c3"]);
-});
-
-test("an atLeast filter keeps rows at or above the number", () => {
-  assert.deepEqual(ids(filterRows(SESSIONS, [{ key: "requests", atLeast: 12 }])), ["a1", "c3"]);
-});
-
-test("combined filters keep rows matching every condition", () => {
-  const conditions = [
-    { key: "harness", equals: "claude-code" },
-    { key: "requests", atLeast: 13 },
-  ];
-  assert.deepEqual(ids(filterRows(SESSIONS, conditions)), ["c3"]);
-});
-
-test("an empty filter list returns every row", () => {
-  assert.deepEqual(ids(filterRows(SESSIONS, [])), ["a1", "B2", "c3", "d4"]);
-});
-
-test("a condition with neither equals nor atLeast is an error", () => {
-  assert.throws(() => filterRows(SESSIONS, [{ key: "requests", below: 5 }]), /needs "equals" or "atLeast"/);
-});
-
 test("the first page holds the first rows", () => {
-  const page = pageRows(numbered(120), 1, 50);
+  const page = pageRows(numbered(50), 1);
   assert.equal(page.pageNumber, 1);
   assert.equal(page.pageCount, 3);
-  assert.equal(page.rows.length, 50);
+  assert.equal(page.rows.length, 20);
   assert.equal(page.rows[0].id, 1);
-  assert.equal(page.rows[49].id, 50);
+  assert.equal(page.rows[19].id, 20);
 });
 
 test("the last page holds the remaining rows", () => {
-  const page = pageRows(numbered(120), 3, 50);
+  const page = pageRows(numbered(50), 3);
   assert.equal(page.pageNumber, 3);
-  assert.equal(page.rows.length, 20);
-  assert.equal(page.rows[0].id, 101);
-  assert.equal(page.rows[19].id, 120);
+  assert.equal(page.rows.length, 10);
+  assert.equal(page.rows[0].id, 41);
+  assert.equal(page.rows[9].id, 50);
 });
 
 test("a page number below one is clamped to the first page", () => {
-  const page = pageRows(numbered(120), 0, 50);
+  const page = pageRows(numbered(50), 0);
   assert.equal(page.pageNumber, 1);
   assert.equal(page.rows[0].id, 1);
 });
 
 test("a page number past the end is clamped to the last page", () => {
-  const page = pageRows(numbered(120), 9, 50);
+  const page = pageRows(numbered(50), 9);
   assert.equal(page.pageNumber, 3);
-  assert.equal(page.rows.length, 20);
-  assert.equal(page.rows[0].id, 101);
+  assert.equal(page.rows.length, 10);
+  assert.equal(page.rows[0].id, 41);
 });
 
 test("an exact multiple of the page size has no empty last page", () => {
-  assert.equal(pageRows(numbered(100), 1, 50).pageCount, 2);
+  assert.equal(pageRows(numbered(40), 1).pageCount, 2);
 });
 
 test("an empty array has one empty page", () => {
-  assert.deepEqual(pageRows([], 4, 50), { rows: [], pageCount: 1, pageNumber: 1 });
+  assert.deepEqual(pageRows([], 4), { rows: [], pageCount: 1, pageNumber: 1 });
 });
 
 test("a page holds twenty rows", () => {

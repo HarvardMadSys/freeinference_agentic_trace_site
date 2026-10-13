@@ -1,8 +1,8 @@
 /**
  * The ticks of a chart's axes: how many a linear axis asks for, where a log axis of counts or of seconds ticks and how
- * many fewer a narrow chart takes, which ticks of a week axis or a crowded band axis carry a label, an elapsed-time
- * axis, and an axis mark that labels each tick it is given. These are plain functions, tested with `node --test`; the
- * drawing modules give what they return to Plot.
+ * many fewer a narrow chart takes, which ticks of a week axis or a crowded band axis carry a label, how a percentage
+ * axis writes its ticks, an elapsed-time axis, and an axis mark that labels each tick it is given. These are plain
+ * functions, tested with `node --test`; the drawing modules give what they return to Plot.
  */
 
 import { elapsedTickFormat, formatElapsed, shortMonth } from "../shared/format.js";
@@ -52,12 +52,9 @@ export function logAxisTicks([low, high], maxTicks = MAX_TICKS) {
   return powers.filter((power, index) => index % step === 0);
 }
 
-/**
- * The ticks of a log axis of seconds over `[low, high]`: the durations of `DURATION_TICKS_S` within it, every second one
- * when there are more than `maxTicks`.
- */
-export function durationTicks([low, high], maxTicks = MAX_TICKS) {
-  return atMost(DURATION_TICKS_S.filter((seconds) => seconds >= low && seconds <= high), maxTicks);
+/** The ticks of a log axis of seconds over `[low, high]`: the durations of `DURATION_TICKS_S` within it. */
+export function durationTicks([low, high]) {
+  return DURATION_TICKS_S.filter((seconds) => seconds >= low && seconds <= high);
 }
 
 /** `ticks`, or every other one of them when there are more than `maxTicks`. */
@@ -70,7 +67,10 @@ export function fewerOnNarrow(ticks, width) {
   return isNarrowChart(width) ? everyOther(ticks) : ticks;
 }
 
-/** The tick count a linear axis of a chart `width` pixels wide asks Plot for: `count`, or fewer on a narrow chart. */
+/**
+ * The ticks an axis of a chart `width` pixels wide asks for or labels at most: `count`, or `NARROW_MAX_TICKS` on a
+ * narrow chart.
+ */
 export function tickCountFor(width, count) {
   return isNarrowChart(width) ? NARROW_MAX_TICKS : count;
 }
@@ -78,11 +78,6 @@ export function tickCountFor(width, count) {
 /** Whether a chart `width` pixels wide is narrow, so its axes take at most `NARROW_MAX_TICKS` ticks. */
 export function isNarrowChart(width) {
   return width < NARROW_CHART_WIDTH;
-}
-
-/** The most ticks an axis of a chart `width` pixels wide labels: `NARROW_MAX_TICKS` on a narrow one, else `MAX_TICKS`. */
-export function maxTicksFor(width) {
-  return isNarrowChart(width) ? NARROW_MAX_TICKS : MAX_TICKS;
 }
 
 /** The first, third, fifth… of `ticks`: half as many, from the first. */
@@ -134,6 +129,11 @@ export function sparseTickFormat(values, format, maxLabels) {
   const step = Math.max(1, Math.ceil(values.length / maxLabels));
   const labelled = new Set(values.filter((value, index) => index % step === 0));
   return (value) => (labelled.has(value) ? format(value) : "");
+}
+
+/** A tick of an axis in percent, from 0 to 100, as it is written: 50 → "50%". */
+export function percentTick(percent) {
+  return `${percent}%`;
 }
 
 /**

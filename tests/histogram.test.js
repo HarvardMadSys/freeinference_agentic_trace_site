@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { FIGURES } from "../site/js/figures/sessions.js";
-import { formatSeconds, formatTokens } from "../site/js/shared/format.js";
+import { formatCompactCount, formatSeconds } from "../site/js/shared/format.js";
 import {
   binsFromRows, cardTicks, countAxis, drawableBins, histogramCard, rowsText, summaryText,
 } from "../site/js/shared/histogram.js";
@@ -12,11 +12,11 @@ const TOKENS_CARD = {
   title: "Tokens per request",
   definition: "Tokens of each request.",
   bins: [],
-  percentiles: { p50: 129087, p75: 260000, p90: 512300, p95: 801000 },
+  percentiles: { p50: 129087, p95: 801000 },
   count: 1186582,
   max: 2000000,
   logScale: true,
-  format: formatTokens,
+  format: formatCompactCount,
   countLabel: "Requests",
 };
 
@@ -26,13 +26,13 @@ test("the summary gives the median and the 95th percentile in the card's format,
 });
 
 test("a duration card's summary writes its values as durations", () => {
-  const durationCard = { ...TOKENS_CARD, percentiles: { p50: 724, p75: 1800, p90: 3780, p95: 5400 }, max: 42.5,
+  const durationCard = { ...TOKENS_CARD, percentiles: { p50: 724, p95: 5400 }, max: 42.5,
     format: formatSeconds };
   assert.equal(summaryText(durationCard), "median 12.1 min · p95 90.0 min");
 });
 
 test("a card with no rows has an empty summary, and its line of rows says 0", () => {
-  const emptyCard = { ...TOKENS_CARD, percentiles: { p50: null, p75: null, p90: null, p95: null }, count: 0, max: null };
+  const emptyCard = { ...TOKENS_CARD, percentiles: { p50: null, p95: null }, count: 0, max: null };
   assert.equal(summaryText(emptyCard), "");
   assert.equal(rowsText(emptyCard), "0 requests");
 });
@@ -58,10 +58,10 @@ test("a log card ticks its powers of ten over its bins, or its own ticks; a line
   assert.equal(cardTicks({ ...TOKENS_CARD, bins, logScale: false }), undefined);
 });
 
-test("bins keep the rows' order and become numbers", () => {
+test("bins keep the rows' order", () => {
   const rows = [
-    { bin_start: 2048, bin_end: 4096, rows: 7n },
-    { bin_start: 1024, bin_end: 2048, rows: 1532n },
+    { bin_start: 2048, bin_end: 4096, rows: 7 },
+    { bin_start: 1024, bin_end: 2048, rows: 1532 },
   ];
   assert.deepEqual(binsFromRows(rows), [
     { x0: 2048, x1: 4096, count: 7 },
@@ -97,7 +97,7 @@ test("a card takes its bins from the bins query and its percentiles, count and m
       { x0: 0, x1: 1, count: 5 },
       { x0: 2, x1: 4, count: 1 },
     ],
-    percentiles: { p50: 0, p75: 0, p90: 1.5, p95: 2.25 },
+    percentiles: { p50: 0, p95: 2.25 },
     count: 6,
     max: 3,
   });

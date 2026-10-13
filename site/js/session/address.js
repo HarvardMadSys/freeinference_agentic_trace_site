@@ -1,8 +1,10 @@
 /**
  * The Session page's URL: `week` and `id` name the session, `view` the view shown, `step` a request to point at.
- * Every other key is the selection the visitor came from, carried by the header and the link back to the Session
- * Explorer.
+ * Every other key is the sessions table's (its filter, search, sort and page), carried by the header and the link back
+ * to the Session Explorer, which reopens the table as it was.
  */
+
+import { EXPLORE_FILE, queryString, SESSION_EXPLORER_ANCHOR } from "../shared/layout.js";
 
 /** The views of the Session page, in the order of their tabs. */
 export const VIEW_NAMES = Object.freeze(["requests", "context", "timeline"]);
@@ -32,13 +34,21 @@ export function readAddress(params) {
   };
 }
 
-/** A copy of `params` without the Session page's own keys: the selection a link to another page carries. */
-export function selectionParameters(params) {
-  const selection = new URLSearchParams(params);
+/** A copy of `params` without the Session page's own keys: the sessions table's, which a link to another page carries. */
+export function tableParameters(params) {
+  const tableKeys = new URLSearchParams(params);
   for (const key of SESSION_KEYS) {
-    selection.delete(key);
+    tableKeys.delete(key);
   }
-  return selection;
+  return tableKeys;
+}
+
+/**
+ * The link back to the Session Explorer from the Session page's `params`: the Explore page with the sessions table's
+ * keys, so the table reopens as it was, at the Session Explorer's anchor.
+ */
+export function backLinkHref(params) {
+  return `${EXPLORE_FILE}${queryString(tableParameters(params))}${SESSION_EXPLORER_ANCHOR}`;
 }
 
 /** A copy of `params` that opens `view`, without a step to point at. */

@@ -42,7 +42,7 @@ BATCH_WIDTH_QUERY = FIGURE_QUERIES / "latency_by_batch_width.sql"  # what a tool
 BATCHING_MODULE = SITE_FOLDER / "js" / "figures" / "tools_batching.js"  # the widest width drawn on its own
 EDGE_TOLERANCE = 1e-9  # relative; the browser computes the geometric edges itself, so they agree only to rounding
 # The figure queries that restate a pipeline definition in SQL, each with its figure's title. Each is read by a mirror
-# test, and the repository's documents name exactly these.
+# test, and CONTRIBUTING.md lists them.
 RESTATING_QUERIES = {
     "cost_share_by_session": "Cost breakdown by session",
     "session_time_by_part": "Where session time goes",
@@ -56,8 +56,6 @@ RESTATING_QUERIES = {
     "infrastructure_cost_by_ttl": "Serving cost by cache retention time",
 }
 MIRROR_TESTS = sorted(pathlib.Path(__file__).resolve().parent.glob("test_pipeline_mirrors*.py"))  # read the copies
-# The documents that list the restating queries, each as `figures/<name>.sql`.
-RESTATING_LISTS = [SITE_FOLDER.parent / name for name in ("README.md", "CONTRIBUTING.md", "CLAUDE.md")]
 # The folders of every figure entry: the first three sections', the cache simulation's and the comparison section's.
 FIGURE_FOLDERS = [SITE_FOLDER / "js" / folder for folder in ("figures", "simulation", "comparison")]
 
@@ -255,8 +253,3 @@ def test_each_restating_query_draws_the_figure_named_for_it(query: str) -> None:
     # From the title to the query within one entry: the match may not pass the next entry's title.
     entry = rf'title: "{re.escape(RESTATING_QUERIES[query])}",(?:(?!title: ).)*?query: "figures/{query}"'
     assert re.search(entry, entries, re.DOTALL)
-
-
-@pytest.mark.parametrize("path", RESTATING_LISTS, ids=lambda path: path.name)
-def test_the_documents_list_exactly_the_restating_queries(path: pathlib.Path) -> None:
-    assert set(re.findall(r"figures/(\w+)\.sql", path.read_text())) == set(RESTATING_QUERIES)

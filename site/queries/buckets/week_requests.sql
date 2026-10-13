@@ -26,8 +26,7 @@ SELECT
   transition,
   cause,
   waited_for,
-  wait_s,
-  n_tool_calls
+  wait_s
 FROM requests
 WHERE week IN (SELECT week FROM selected_weeks)
 ORDER BY root_session_id, session_id, step;

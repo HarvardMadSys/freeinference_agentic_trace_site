@@ -1,17 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { drawnProviderRows, idleGapEdgeSeconds, idleGapLegend } from "../site/js/figures/caching.js";
-import {
-  causeLegend, GAP_FIGURES, gapBinColours, gapBinLegend, meanHitRatioBars, mutationTableLines, transitionLegend,
-} from "../site/js/figures/caching_gaps.js";
+import { FIGURES, idleGapEdgeSeconds, idleGapLegend } from "../site/js/figures/caching.js";
+import { GAP_FIGURES, gapBinColours, meanHitRatioBars, mutationTableLines } from "../site/js/figures/caching_gaps.js";
 import {
   API_COST_BY_TTL, calloutPoint, costLegend, costStacks, kneeText, lowestText,
 } from "../site/js/simulation/costs.js";
 import { prefillPoints, retainedDomain, ttlLabel } from "../site/js/simulation/prefill.js";
 import { scopeLegend } from "../site/js/comparison/scopes.js";
 import { decadeTicks } from "../site/js/axes/ticks.js";
-import { assignColours, causeColours, OTHER_SERIES } from "../site/js/theme/colours.js";
+import { assignColours, OTHER_SERIES } from "../site/js/theme/colours.js";
 
 // The colours every figure shares, as the page gives a legend function: the providers in their fixed order.
 const FIGURE_COLOURS = Object.freeze({
@@ -32,16 +30,15 @@ test("the gap bins take the six gap-bin colours, shortest gap first, whichever b
   const colours = gapBinColours();
   assert.deepEqual([...colours.keys()], ["<1m", "1–5m", "5–15m", "15–30m", "30m–1h", ">1h"]);
   assert.deepEqual([...colours.values()], [1, 2, 3, 4, 5, 6].map((slot) => `var(--gap-bin-${slot})`));
-  const legend = gapBinLegend([{ series: ">1h" }, { series: "<1m" }], FIGURE_COLOURS, "series");
+  const legend = GAP_FIGURES.hitRatioByGapBin.legend([{ series: ">1h" }, { series: "<1m" }], FIGURE_COLOURS, "series");
   assert.deepEqual(legend.series, [{ name: "<1m", label: "Under 1 min" }, { name: ">1h", label: "Over 1 h" }]);
   assert.equal(legend.colours.get(">1h"), "var(--gap-bin-6)");
 });
 
 test("the cause legend names the causes as the paper does, in its order, each in its cause colour", () => {
-  const legend = causeLegend([{ series: "user" }, { series: "tool" }], FIGURE_COLOURS, "series");
+  const legend = GAP_FIGURES.gapByCause.legend([{ series: "user" }, { series: "tool" }], FIGURE_COLOURS, "series");
   assert.deepEqual(legend.series, [{ name: "tool", label: "Tool wait" }, { name: "user", label: "User idle" }]);
   assert.equal(legend.colours.get("user"), "var(--cause-user)");
-  assert.deepEqual([...causeColours().keys()], ["tool", "ask_user_tool", "user", "subagent"]);
 });
 
 test("the mean-hit-ratio bars come in the paper's order, each with its mean", () => {
@@ -56,7 +53,8 @@ test("the mean-hit-ratio bars come in the paper's order, each with its mean", ()
 });
 
 test("the transition legend lists appends, then mutations, each in its transition colour", () => {
-  const legend = transitionLegend([{ series: "mutation" }, { series: "append" }], FIGURE_COLOURS, "series");
+  const rows = [{ series: "mutation" }, { series: "append" }];
+  const legend = GAP_FIGURES.hitRatioByTransition.legend(rows, FIGURE_COLOURS, "series");
   assert.deepEqual(legend.series, [{ name: "append", label: "Append" }, { name: "mutation", label: "Mutation" }]);
   assert.equal(legend.colours.get("append"), "var(--transition-append)");
   assert.equal(legend.colours.get("mutation"), "var(--transition-mutation)");
@@ -78,7 +76,8 @@ test("the idle-gap figure lists and draws only the eight providers with most req
   for (const { name } of legend.series) {
     assert.notEqual(legend.colours.get(name), OTHER_SERIES, name);
   }
-  assert.deepEqual(drawnProviderRows(rows, colours).map((row) => row.provider), providers.slice(0, 8));
+  const idleGapFigure = FIGURES.find((figure) => figure.name === "hit_ratio_by_idle_gap");
+  assert.deepEqual(idleGapFigure.drawnRows(rows, colours).map((row) => row.provider), providers.slice(0, 8));
 });
 
 // Rows of the prefill query: two TTLs of the paper's harnesses and three of the benchmark replay, in the query's order.
@@ -172,11 +171,6 @@ test("the mutation table's lines come in the paper's order, causes after transit
     { name: "mutation", isCause: false, cells: ["Mutation", "4.0%", "56.4%", "—"] },
     { name: "compaction", isCause: true, cells: ["Compaction", "<0.1%", "3.7%", "0.6%"] },
   ]);
-});
-
-test("the mutation table names a week without a simulation, its prefill column being simulated", () => {
-  assert.equal(GAP_FIGURES.mutationsByCause.isPartlySimulated, true);
-  assert.equal(GAP_FIGURES.mutationsByCause.isSimulation, undefined);
 });
 
 test("the API cost's legend lists every part its stack draws, the output included", () => {

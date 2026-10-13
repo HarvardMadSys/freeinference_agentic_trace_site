@@ -1,8 +1,9 @@
 /**
- * A table the visitor sorts, searches, filters and pages in the browser, and, for a table or any row that scrolls
- * sideways, the fade at its right edge and the scroll that brings one of its items into view. The pure functions take
- * an array of row objects and return a new one; the page chains them and passes the result to `mountTable`, which
- * draws one page of it. The module keeps no state: the page calls `mountTable` again whenever anything changes.
+ * A table the visitor sorts, searches and pages in the browser, and, for a table or any row that scrolls sideways, the
+ * fade at its right edge and the scroll that brings one of its items into view. The pure functions take an array of
+ * row objects and return a new one; the page chains them, with its own filters, and passes the result to
+ * `mountTable`, which draws one page of it. The module keeps no state: the page calls `mountTable` again whenever
+ * anything changes.
  */
 
 // Rows shown on one page of a table: few enough that a page is one card, with the pager under its last row.
@@ -26,24 +27,20 @@ export function searchRows(rows, key, text) {
   return rows.filter((row) => String(row[key]).toLowerCase().includes(wanted));
 }
 
-/** The rows matching every condition, each `{ key, equals: value }` or `{ key, atLeast: number }`; every row when there is none. */
-export function filterRows(rows, conditions) {
-  return rows.filter((row) => matchesEveryCondition(row, conditions));
-}
-
 /**
- * Page `pageNumber` (1-based, clamped into 1 to `pageCount`) of `rows`: `{ rows, pageCount, pageNumber }`; `pageCount`
- * is at least 1, counted over `rowCount` rows, all of `rows` unless they are the first page of more.
+ * Page `pageNumber` (1-based, clamped into 1 to `pageCount`) of `rows`, `ROWS_PER_PAGE` rows to a page: `{ rows,
+ * pageCount, pageNumber }`; `pageCount` is at least 1, counted over `rowCount` rows, all of `rows` unless they are the
+ * first page of more.
  */
-export function pageRows(rows, pageNumber, rowsPerPage, rowCount = rows.length) {
-  const pageCount = Math.max(1, Math.ceil(rowCount / rowsPerPage));
+export function pageRows(rows, pageNumber, rowCount = rows.length) {
+  const pageCount = Math.max(1, Math.ceil(rowCount / ROWS_PER_PAGE));
   const clampedPageNumber = Math.min(Math.max(pageNumber, 1), pageCount);
-  const start = (clampedPageNumber - 1) * rowsPerPage;
-  return { rows: rows.slice(start, start + rowsPerPage), pageCount, pageNumber: clampedPageNumber };
+  const start = (clampedPageNumber - 1) * ROWS_PER_PAGE;
+  return { rows: rows.slice(start, start + ROWS_PER_PAGE), pageCount, pageNumber: clampedPageNumber };
 }
 
 /**
- * Fill `container` with an optional summary line, one page of `rows` as a table, and a pager.
+ * Fill `container` with a summary line, `summary`, one page of `rows` as a table, and a pager.
  * `columns` is `[{ key, title, format, isNumber, href, mark }]`; `format(value, row)` writes a cell's value, as text by
  * default; `href(row)`, when given, makes the cell a link to that address; `mark(row)`, when given, is a chip after
  * the cell's text, `{ text, title }`, or null for none. `sort` is `{ key, direction }`.
@@ -53,7 +50,7 @@ export function pageRows(rows, pageNumber, rowsPerPage, rowCount = rows.length) 
  */
 export function mountTable(container, options) {
   const { columns, rows, sort, pageNumber, summary, onSort, onPage, onRowClick, isWaiting = false } = options;
-  const page = pageRows(rows, pageNumber, ROWS_PER_PAGE, options.rowCount ?? rows.length);
+  const page = pageRows(rows, pageNumber, options.rowCount ?? rows.length);
   // A sort from the keyboard redraws the table; its button is focused again in the new header.
   const focusedSortKey = container.contains(document.activeElement) ? document.activeElement.dataset.sortKey : undefined;
   const wrap = document.createElement("div");
@@ -62,11 +59,7 @@ export function mountTable(container, options) {
   table.className = "data-table";
   table.append(tableHead(columns, sort, onSort, isWaiting), tableBody(columns, page.rows, onRowClick));
   wrap.append(table);
-  container.replaceChildren();
-  if (summary) {
-    container.append(summaryLine(summary));
-  }
-  container.append(wrap, pager(page, onPage, isWaiting));
+  container.replaceChildren(summaryLine(summary), wrap, pager(page, onPage, isWaiting));
   focusSortButton(wrap, focusedSortKey);
   showSortedColumn(wrap);
   mountScrollingRow(wrap);
@@ -151,20 +144,6 @@ function compareValues(first, second, sign) {
   return sign * String(first).localeCompare(String(second));
 }
 
-function matchesEveryCondition(row, conditions) {
-  return conditions.every((condition) => matchesCondition(row, condition));
-}
-
-function matchesCondition(row, condition) {
-  if ("equals" in condition) {
-    return row[condition.key] === condition.equals;
-  }
-  if ("atLeast" in condition) {
-    return row[condition.key] >= condition.atLeast;
-  }
-  throw new Error(`A filter condition on "${condition.key}" needs "equals" or "atLeast".`);
-}
-
 function summaryLine(summary) {
   const line = document.createElement("p");
   line.className = "table-count";
@@ -182,16 +161,12 @@ function tableHead(columns, sort, onSort, isWaiting) {
   return head;
 }
 
-// A column's header: its title, or, where the table sorts, its sort button, the header's aria-sort its sort state.
+// A column's header: its sort button, the header's aria-sort its sort state.
 function headerCell(column, sort, onSort, isWaiting) {
   const cell = document.createElement("th");
   cell.scope = "col";
   if (column.isNumber) {
     cell.classList.add("is-number");
-  }
-  if (!onSort) {
-    cell.textContent = column.title;
-    return cell;
   }
   const state = columnSortState(column, sort);
   cell.setAttribute("aria-sort", state);
@@ -249,10 +224,8 @@ function bodyRow(columns, row, onRowClick) {
     }
     tableRow.append(cell);
   }
-  if (onRowClick) {
-    tableRow.classList.add("is-clickable");
-    tableRow.addEventListener("click", () => onRowClick(row));
-  }
+  tableRow.classList.add("is-clickable");
+  tableRow.addEventListener("click", () => onRowClick(row));
   return tableRow;
 }
 
@@ -291,8 +264,6 @@ function pagerButton(label, targetPageNumber, isDisabled, onPage) {
   button.type = "button";
   button.textContent = label;
   button.disabled = isDisabled;
-  if (onPage) {
-    button.addEventListener("click", () => onPage(targetPageNumber));
-  }
+  button.addEventListener("click", () => onPage(targetPageNumber));
   return button;
 }

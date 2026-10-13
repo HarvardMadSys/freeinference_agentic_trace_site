@@ -1,1 +1,1 @@
-[{"sessions":12002,"requests":1186582,"input_tokens":209199292539,"tool_calls":1213347,"harnesses":14,"benchmark_harnesses":1}]
+[{"sessions":12002,"requests":1186582,"input_tokens":209199292539,"output_tokens":552524061,"cached_tokens":197064717672,"tool_calls":1213347,"harnesses":14,"benchmark_harnesses":1}]

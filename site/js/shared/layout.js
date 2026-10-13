@@ -1,13 +1,11 @@
 /**
- * The header and footer every page shares.
+ * The header and footer every page shares, and the query string of the URL keys their links carry (`queryString`).
  *
  * They link the Explore page's sections. From another page, the links carry the URL keys the page gives them, the
  * sessions table's filter, search, sort and page, so that moving from the table to a session and back by the header
  * keeps them. On the Explore page itself a link is its section's anchor alone, so following it scrolls the page rather
  * than loading it again.
  */
-
-import { selectionQuery } from "./selection.js";
 
 /** Every address outside the site that a page links, each written once. */
 export const URLS = Object.freeze({
@@ -23,17 +21,23 @@ export const URLS = Object.freeze({
 /** The Explore page, the landing page, which holds the sections the header and footer link. */
 export const EXPLORE_FILE = "index.html";
 
+/**
+ * The anchor of the Explore page's Session Explorer, where the header's link, the hero's first button and the Session
+ * page's link back lead.
+ */
+export const SESSION_EXPLORER_ANCHOR = "#sessions";
+
 /** The Explore page's sections, linked from the header and from the footer's "On this site": `{ anchor, title }`. */
 export const LINKED_SECTIONS = Object.freeze([
   Object.freeze({ anchor: "#overview", title: "Overview" }),
-  Object.freeze({ anchor: "#sessions", title: "Session Explorer" }),
+  Object.freeze({ anchor: SESSION_EXPLORER_ANCHOR, title: "Session Explorer" }),
   Object.freeze({ anchor: "#insights", title: "Insights" }),
   Object.freeze({ anchor: "#cite", title: "Cite" }),
 ]);
 
 // The section whose header link a page marks as current, by the page's file: the Session page is opened from the
 // Session Explorer. The Explore page marks none, since all four are on it.
-const MARKED_SECTIONS = Object.freeze({ "session.html": "#sessions" });
+const MARKED_SECTIONS = Object.freeze({ "session.html": SESSION_EXPLORER_ANCHOR });
 
 // The footer's "Elsewhere": the dataset, the paper, the code told apart from the lab's GitHub, then the projects
 // around it. The header links nothing off the site; the hero and the footer do.
@@ -62,13 +66,20 @@ export function weekCountText(weekCount) {
   return `${weekCount} ${weekCount === 1 ? "week" : "weeks"}`;
 }
 
+/** The query string of `params` for the address bar or a link: "?" and the keys, commas left plain; "" for no keys. */
+export function queryString(params) {
+  // A comma needs no escaping in a query string and reads back the same, so `harnesses=a,b` stays readable.
+  const query = params.toString().replaceAll("%2C", ",");
+  return query === "" ? "" : `?${query}`;
+}
+
 /**
  * Fill `container` with the site header: the brand and the links to the Explore page's sections, the one the page
  * was opened from marked.
  * `activeFile` is the page's own file name; `carried` is the URLSearchParams every link to the Explore page carries.
  */
 export function renderHeader(container, activeFile, carried) {
-  const query = selectionQuery(carried);
+  const query = queryString(carried);
   const sectionLinks = LINKED_SECTIONS.map((section) => headerSectionLink(section, activeFile, query));
   container.innerHTML = `
     <div class="header-inner">
@@ -109,7 +120,7 @@ function measureHeader(container) {
  * `activeFile` and `carried` are as `renderHeader` takes them.
  */
 export function renderFooter(container, activeFile, carried, weekCount) {
-  const query = selectionQuery(carried);
+  const query = queryString(carried);
   const sectionLinks = LINKED_SECTIONS.map((section) => footerSectionLink(section, activeFile, query));
   const elsewhereLinks = ELSEWHERE_LINKS.map((link) => externalLink(link, "footer-link"));
   container.innerHTML = `

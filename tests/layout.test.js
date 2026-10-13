@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { LINKED_SECTIONS, renderFooter, renderHeader } from "../site/js/shared/layout.js";
+import { LINKED_SECTIONS, renderFooter, renderHeader, queryString } from "../site/js/shared/layout.js";
 
 // The Explore page, whose sections the header and footer link by anchor.
 const EXPLORE_PAGE = new URL("../site/index.html", import.meta.url);
@@ -101,10 +101,9 @@ test("the footer's section links lead where the header's do, with the URL keys f
   ]);
 });
 
-test("the footer holds the brand, its line and the two lists of links, and nothing else", () => {
+test("the footer holds the brand, its line and the two lists of links, with no headings and no copyright or policy text", () => {
   const markup = rendered(renderFooter, "index.html", "");
   assert.match(markup, /FreeInference <em>Agentic Dataset<\/em>/);
-  assert.match(markup, /<p>16 weeks worth of coding agent traces from FreeInference\.<\/p>/);
   const titles = [...markup.matchAll(/<p class="footer-nav-title">([^<]+)<\/p>/g)].map((match) => match[1]);
   assert.deepEqual(titles, ["On this site", "Elsewhere"]);
   assert.doesNotMatch(markup, /<h[1-6]/, "the footer's list titles are no headings");
@@ -124,7 +123,7 @@ test("the Explore page runs Overview, Session Explorer, Insights, Cite and Team,
   const page = readFileSync(EXPLORE_PAGE, "utf8");
   const order = [...page.matchAll(/<section (?:id="([a-z-]+)" )?class="([a-z -]+)"/g)].map((match) => match[1] ?? match[2]);
   assert.deepEqual(order, [
-    "hero", "selection", "overview", "sessions", "insights", "insights-sessions", "insights-tokens", "insights-latency",
+    "hero", "overview", "sessions", "insights", "insights-sessions", "insights-tokens", "insights-latency",
     "insights-tools", "insights-caching", "insights-comparison", "cite", "team",
   ]);
   for (const section of LINKED_SECTIONS) {
@@ -138,23 +137,29 @@ test("the Explore page runs Overview, Session Explorer, Insights, Cite and Team,
 test("the Session Explorer's line under its heading says what a click does, and no line says what a month holds", () => {
   const page = readFileSync(EXPLORE_PAGE, "utf8");
   const section = page.slice(page.indexOf('<section id="sessions"'), page.indexOf('<section id="insights"'));
-  const heading = '<h2 id="session-list-heading">Session Explorer</h2>';
-  const guide = '<p class="section-guide">Click a session to open its requests, context and timeline.</p>';
-  assert.ok(section.includes(`${heading}\n        ${guide}`), "the guide line is not under the heading");
-  assert.ok(section.indexOf(guide) < section.indexOf('<div id="sessions-table"'));
-  const table = readFileSync(new URL("../site/js/explore/sessions_table.js", import.meta.url), "utf8");
-  assert.doesNotMatch(page + table, /A month holds/);
+  const heading = section.indexOf('id="session-list-heading"');
+  const guide = section.indexOf("Click a session to open its requests, context and timeline.");
+  assert.ok(heading !== -1 && heading < guide && guide < section.indexOf('id="sessions-table"'));
+  assert.doesNotMatch(page, /A month holds/);
 });
 
 test("the Session page's link back reads Session Explorer and opens the Explore page at it", () => {
   const page = readFileSync(new URL("../site/session.html", import.meta.url), "utf8");
   assert.match(page, /<a id="back-link" href="index\.html#sessions">← Session Explorer<\/a>/);
-  const module = readFileSync(new URL("../site/js/pages/session.js", import.meta.url), "utf8");
-  assert.ok(module.includes("`index.html${selectionQuery(selection)}#sessions`"), "the link back drops the table's keys");
 });
 
 test("the footer's line counts the weeks in digits as the hero's lede does, and says Weeks while the count is unknown", () => {
   assert.match(rendered(renderFooter, "index.html", "", 17), /<p>17 weeks worth of coding agent traces from FreeInference\.<\/p>/);
   assert.match(rendered(renderFooter, "index.html", "", 1), /<p>1 week worth of coding agent traces/);
   assert.match(rendered(renderFooter, "session.html", "", null), /<p>Weeks worth of coding agent traces/);
+});
+
+test("the query string keeps the commas of a list of names plain", () => {
+  const params = new URLSearchParams("sort=requests");
+  params.set("harnesses", "hermes,codex");
+  assert.equal(queryString(params), "?sort=requests&harnesses=hermes,codex");
+});
+
+test("no keys give an empty query string", () => {
+  assert.equal(queryString(new URLSearchParams()), "");
 });

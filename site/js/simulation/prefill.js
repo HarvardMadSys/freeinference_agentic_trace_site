@@ -7,9 +7,11 @@
  * Its figure entry, whose fields CONTRIBUTING.md defines, is listed in `figures/caching.js` with the section's others.
  */
 
-import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_WIDTH, TIP_STYLE } from "../shared/charts.js";
-import { axisWithTicks, isNarrowChart, logAxisTicks, maxTicksFor } from "../axes/ticks.js";
-import { formatCountTick, formatMultiple, formatTokens, formatTtlName } from "../shared/format.js";
+import {
+  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH,
+} from "../shared/charts.js";
+import { axisWithTicks, isNarrowChart, logAxisTicks, MAX_TICKS, tickCountFor } from "../axes/ticks.js";
+import { formatCompactCount, formatCountTick, formatMultiple, formatTtlName } from "../shared/format.js";
 import { SCOPE_LABELS, scopeLegend } from "../comparison/scopes.js";
 
 // tests/test_pipeline_mirrors_caching.py checks the TTL names and the labelled TTLs below against the pipeline.
@@ -39,7 +41,6 @@ const LABEL_PLACEMENTS = Object.freeze({
   below: Object.freeze({ textAnchor: "end", dx: -6, dy: 12 }),
   left: Object.freeze({ textAnchor: "end", dx: -6, dy: 0 }),
 });
-const LABEL_HALO = 4; // pixels of the card's colour around a TTL's name, so no curve crosses it
 
 // The prefill axis runs from just under the no-TTL floor to above the shortest TTL's prefill, as the paper's does, and
 // marks these multiples of the floor.
@@ -109,7 +110,7 @@ async function drawPrefillAgainstStorage(rows, body, colours) {
   const points = prefillPoints(rows, isNarrowChart(frame.width) ? NARROW_LABELLED_TTLS : LABELLED_TTLS);
   const scopes = [...colours.series.keys()].filter((scope) => points.some((point) => point.scope === scope));
   const domain = retainedDomain(points);
-  const retainedTicks = logAxisTicks(domain, maxTicksFor(frame.width));
+  const retainedTicks = logAxisTicks(domain, tickCountFor(frame.width, MAX_TICKS));
   const chart = Plot.plot({
     ...frame,
     x: { type: "log", domain },
@@ -125,28 +126,26 @@ async function drawPrefillAgainstStorage(rows, body, colours) {
       Plot.line(points, { x: "retained", y: "prefill", stroke: "scope", strokeWidth: LINE_WIDTH }),
       Plot.dot(points, { x: "retained", y: "prefill", fill: "scope", r: MARKER_RADIUS }),
       ...ttlNameMarks(Plot, points),
-      Plot.tip(points, Plot.pointer({ ...TIP_STYLE, x: "retained", y: "prefill", title: prefillTipText })),
+      Plot.tip(points, Plot.pointer({ x: "retained", y: "prefill", title: prefillTipText })),
     ],
   });
   body.replaceChildren(chart);
 }
 
-/** One text mark per placement, naming the TTL of each point placed there. */
+/** One text mark per placement, naming the TTL of each point placed there, on a halo so that no curve crosses it. */
 function ttlNameMarks(Plot, points) {
   const marks = [];
   for (const [placement, options] of Object.entries(LABEL_PLACEMENTS)) {
     const placed = points.filter((point) => point.placement === placement);
-    const ink = {
-      fill: "var(--chart-label)", stroke: "var(--color-surface)", strokeWidth: LABEL_HALO, paintOrder: "stroke",
-    };
-    marks.push(Plot.text(placed, { x: "retained", y: "prefill", text: "label", ...ink, ...options }));
+    marks.push(Plot.text(placed, { x: "retained", y: "prefill", text: "label", ...LINE_LABEL_STYLE, ...options }));
   }
   return marks;
 }
 
 function prefillTipText(point) {
   const prefill = `prefill ${formatMultiple(point.prefill, MULTIPLE_DECIMALS)} the no-TTL floor`;
-  return `${SCOPE_LABELS[point.scope]}\nTTL ${point.label}\n${prefill}\n${formatTokens(point.retained)} tokens retained`;
+  const retained = `${formatCompactCount(point.retained)} tokens retained`;
+  return `${SCOPE_LABELS[point.scope]}\nTTL ${point.label}\n${prefill}\n${retained}`;
 }
 
 /** A multiple as an axis writes it, as it is: "2×"; Plot also passes a tick's index, which is no number of decimals. */
