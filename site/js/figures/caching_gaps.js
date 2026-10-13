@@ -9,13 +9,14 @@
  */
 
 import { AXIS_STYLE, BAR_INSET, chartFrame, colourScale, TALL_CHART_HEIGHT } from "../shared/charts.js";
-import { drawCdf } from "../shared/cdf.js";
+import { drawCdfSeries } from "../shared/cdf.js";
+import { cdfSeries } from "../charts/cdf.js";
 import { durationTicks, fewerOnNarrow } from "../axes/ticks.js";
 import { CAUSE_COLOURS, GAP_BIN_SLOTS, TIME_PART_NAMES, TRANSITION_COLOURS } from "../theme/colours.js";
 import {
   formatCount, formatDurationTick, formatPercent, formatSeconds, formatShare, MISSING_TEXT,
 } from "../shared/format.js";
-import { cdfSeries, seriesLegend } from "./figure_rows.js";
+import { seriesLegend } from "./figure_rows.js";
 
 // The gap bins' labels, shortest gap first, as the pipeline's `gaps.GAP_BINS` names them. tests/
 // test_pipeline_mirrors_caching.py checks them, the causes and the two gap limits below against the pipeline.
@@ -213,7 +214,7 @@ function mutationTableRow(line) {
 /** Draw one CDF line of the hit ratio per gap bin, the shortest and the longest gaps named on their lines. */
 async function drawHitRatioByGapBin(rows, body, colours) {
   const series = cdfSeries(rows, GAP_BIN_LABELS, { labels: GAP_BIN_TEXT });
-  await drawCdf(body, series, {
+  await drawCdfSeries(body, series, {
     xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, xTickFormat: formatPercent, format: formatShare,
     colours: colours.series, lineLabels: GAP_BIN_END_LABELS,
   });
@@ -224,7 +225,7 @@ async function drawGapByCause(rows, body, colours) {
   const series = cdfSeries(rows, Object.keys(CAUSE_NAMES), { labels: CAUSE_NAMES, floor: MIN_GAP_DRAWN_S });
   const xDomain = [MIN_GAP_DRAWN_S, MAX_GAP_DRAWN_S];
   const ticks = durationTicks(xDomain);
-  await drawCdf(body, series, {
+  await drawCdfSeries(body, series, {
     yLabel: "Share of gaps", logX: true, xDomain, xTicks: fewerOnNarrow(ticks, chartFrame(body).width),
     xTickFormat: formatDurationTick, format: formatSeconds, colours: colours.series,
   });
@@ -233,7 +234,7 @@ async function drawGapByCause(rows, body, colours) {
 /** Draw one CDF line of the hit ratio per transition. */
 async function drawHitRatioByTransition(rows, body, colours) {
   const series = cdfSeries(rows, Object.keys(TRANSITION_NAMES), { labels: TRANSITION_NAMES });
-  await drawCdf(body, series, {
+  await drawCdfSeries(body, series, {
     xLabel: "Hit ratio", xDomain: HIT_RATIO_DOMAIN, xTickFormat: formatPercent, format: formatShare,
     colours: colours.series, height: TALL_CHART_HEIGHT,
   });

@@ -300,41 +300,60 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
   `body`. `colours` holds the colours every figure shares (`{ models,
   categories, providers }`, each a Map from name to colour) and, for a figure
   with a `legend`, the legend's as `series`; `hidden` is the Set of the
-  series names the legend hides.
+  series names the legend hides. It is one call to the figure's chart kind
+  (below), its columns and labels written out.
 
-A **histogram figure** has no `binColumn` and no `draw`: its `query` is a
-bins query, `explore/<prefix>_bins` (each row a bin's `bin_start`, `bin_end`
-and `rows`), and its `statsQuery` the matching `explore/<prefix>_stats` (one
-row of `count`, `max` and the 50th, 75th, 90th and 95th percentiles). The page
-draws it with `shared/histogram.js`, every bin shown, one line above it of
-the median, the 95th percentile and, with `showsMaximum`, the maximum, and
-its count as its line of rows, from the fields `countLabel` (what a bin
-counts), `xLabel` (optional, the value axis's title), `format` (a value in the
-summary and the tooltip), `tickFormat` (optional, a value on the axis),
-`logScale`, `logCounts` (optional, a log count axis) and
-`ticks(domain, maxTicks)` (optional, a log axis's ticks).
+**The chart kinds** (`js/charts/`), one module per shape several figures
+share: `cdf` (CDF lines), `week_bars` (stacked bars per week), `ranges`
+(quantile ranges per category), `histogram`, `ranked` (stacked shares over
+ranked sessions), `knee_lines` (cost against cache TTL with one TTL called
+out) and `donut`. Each exports a draw function, `drawCdf(rows, body, colours,
+{ named parameters }, hidden)`, and, where it has series, a legend function,
+`cdfLegend(rows, colours, { named parameters })`, `colours` there being the
+Map of its series' colours in the legend's order; its module says what rows
+it takes and its draw function what each parameter decides. A kind takes only
+parameters two or more figures use. A note the kind does not draw, such as
+the scope CDFs' ratio of medians, is a short named function in the figure's
+module, given to the kind as its `callout`. A figure that would need a
+parameter no other figure uses keeps a plain draw function of its own.
+
+A **histogram figure** has no `binColumn`: its `query` is a bins query,
+`explore/<prefix>_bins` (each row a bin's `bin_start`, `bin_end` and `rows`),
+and its `draw` calls `drawHistogram` with the matching stats query,
+`explore/<prefix>_stats` (one row of `count`, `max` and the 50th, 75th, 90th
+and 95th percentiles), as its `statsQuery`. The kind draws every bin, one
+line above them of the median, the 95th percentile and, with `showsMaximum`,
+the maximum, and writes the count as the figure's line of rows.
 
 ```js
 Object.freeze({
-  name: "tokens_per_request_cdf",
-  title: "Tokens per request",
-  insight: "Huge inputs don't necessarily mean huge computation.",
-  definition: "Each line shows the percentage of requests with this many tokens or fewer, for total input, uncached input, and output. Uncached input counts only requests with reported cache usage. Output excludes responses with one token or fewer.",
-  caption: "A median request carries 129K input tokens, but only about 500 are uncached and require fresh processing. Outputs contain just a few hundred tokens.",
+  name: "requests_per_session_cdf",
+  title: "Requests and steps per session",
+  insight: "A handful of user prompts can trigger hundreds of LLM and tool interactions.",
+  definition: "Each line shows the percentage of main sessions with this many requests or fewer. …",
+  caption: "A median session contains just 4 user steps, compared with 42 LLM requests and 36 tool steps. …",
   drawsLines: true,
-  query: "figures/tokens_per_request_cdf",
+  query: "figures/requests_per_session_cdf",
   binColumn: "series",
   seriesColumn: "series",
   seriesOverSameRows: true,
-  legend: (rows, colours, seriesColumn) =>
-    seriesLegend(rows, seriesColumn, new Map(Object.entries(TOKEN_SERIES_COLOURS)), TOKEN_SERIES),
-  draw: drawTokensPerRequest,
+  legend: (rows) => cdfLegend(rows, SESSION_COUNT_COLOURS, { labels: SESSION_COUNT_SERIES }),
+  draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
+    labels: SESSION_COUNT_SERIES,
+    floor: MIN_COUNT_DRAWN,
+    logScale: true,
+    xTickFormat: formatCountTick,
+    xLabel: "Requests or steps",
+    yLabel: "Share of sessions",
+    valueFormat: formatCount,
+  }, hidden),
 }),
 ```
 
 **Adding a figure.** A figure ends at its answer and its words: one query,
-answered by `make data`, one draw function over the answer's rows, its card's
-words, and their tests. Nothing about it runs in the browser.
+answered by `make data`, one entry whose draw calls a chart kind over the
+answer's rows, its card's words, and their tests. Nothing about it runs in
+the browser.
 
 1. **The query**, `site/queries/figures/<name>.sql`, as above: the population
    from the selection tables, so `make data` answers it for every week and the
@@ -351,22 +370,23 @@ words, and their tests. Nothing about it runs in the browser.
    runs every figure query live on the fixture and compares it with the answer
    written for it, and fails on a query with no rows there, so the fixture must
    hold a case of the figure.
-3. **The entry and the draw function**, in its section's module or a module
+3. **The entry and its draw**, in its section's module or a module
    it takes entries from (`js/figures/`, `js/simulation/`, `js/comparison/`):
    a frozen figure entry with its `title`, an `insight` of one sentence and
    at most twenty words, a `caption` of up to three sentences and forty
    words total, and a `definition` of up to three
-   short sentences and at most sixty words in total, and a
-   draw function that loads Plot where it needs it and colours its series
-   from `colours`. Its
-   pure parts (rows to series, bars or stacks) are exported and tested with
-   `node --test`. Add its name to its section's list in `SECTION_FIGURES` of
+   short sentences and at most sixty words in total, and a `draw` that is
+   one call to its chart kind; a figure no kind fits, or one that would
+   need a parameter of its own, has a plain draw function that loads Plot
+   where it needs it and colours its series from `colours`, its pure parts
+   (rows to series, bars or stacks) exported and tested with `node --test`. Add its name to its section's list in `SECTION_FIGURES` of
    `tests/figure_sections.test.js`, which checks the legend's shape;
    `tests/figure_words.test.js` counts the words of its insight, caption and
    definition, and of each section's takeaway.
 4. **The legend**, for a figure of more than one series: `legend(rows,
-   colours, seriesColumn)` (`seriesLegend` in `figures/figure_rows.js` builds
-   one from rows that name their series), and either a `seriesColumn` or a
+   colours, seriesColumn)`, a call to its kind's legend function (or, beside
+   a plain draw, `seriesLegend` in `figures/figure_rows.js`, which builds one
+   from rows that name their series), and either a `seriesColumn` or a
    `draw` that leaves out the series named in `hidden`. A series that is a
    model, category, cause, transition or gap bin takes that thing's colour.
 5. **Parity**, when the paper's `numbers.json` holds a number the figure

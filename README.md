@@ -156,11 +156,16 @@ site/              exactly the files that are deployed
   *.html           one file per page: index (Explore, the landing page) and session
   style.css        tokens, layout and components
   favicon.svg      the brand mark, for the browser tab
-  js/shared/       answers (the indexes, and the answer files by query name), libraries, format, charts, histogram
-                   (the histogram figures), cdf (the CDF figures), table, layout (the header and footer)
+  js/shared/       answers (the indexes, and the answer files by query name), libraries, format, charts (what every
+                   chart shares: the frame, the ink, the colour scale, the card), cdf (the CDF drawing of the figures
+                   the CDF kind does not draw yet), table, layout (the header and footer)
+  js/charts/       the chart kinds, each a draw function with named parameters that several figures call: cdf (CDF
+                   lines), week_bars (stacked bars per week), ranges (quantile ranges per category), histogram,
+                   ranked (stacked shares over ranked sessions), knee_lines (cost against cache TTL, the knee
+                   called out) and donut
   js/landing/      the landing page's own parts: hero (the title, lede and buttons), stats (the stats strip beside
-                   it), donuts (the model and harness mixes), arcs (a donut's shares and ring segments), cite (the
-                   citation's copy button) and team (the authors)
+                   it), donuts (the model and harness mixes), cite (the citation's copy button) and team (the
+                   authors)
   js/theme/        colours, the site's colours as the style tokens give them, and the colours every figure shares
   js/axes/         ticks, the ticks of every chart's axes: how many, and where a log, duration or week axis ticks
   js/pages/        one module per page: explore, session

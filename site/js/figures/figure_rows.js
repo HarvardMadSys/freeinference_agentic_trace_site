@@ -1,7 +1,7 @@
 /**
  * What the Explore page does to a figure's rows before drawing them: the rows of a series with a colour of its own,
- * thin bins hidden, its line of rows (the rows it rests on, the weeks not simulated and the bins hidden), the series
- * its legend lists, and a CDF query's points grouped into series.
+ * thin bins hidden, its line of rows (the rows it rests on, the weeks not simulated and the bins hidden), and the series
+ * its legend lists.
  *
  * A figure's rows belong to bins: the rows sharing the value of the figure's `binColumn` (a size bin, a week, or
  * a CDF series), or, when `binColumn` is null, each row alone. Every row of a bin carries the bin's count, the number
@@ -134,27 +134,6 @@ export function seriesLegend(rows, seriesColumn, colours, labels = {}) {
 export function partsLegend(labels, colours) {
   const series = Object.entries(labels).map(([name, label]) => ({ name, label }));
   return { series, colours };
-}
-
-/**
- * The series of a CDF query's rows `{ series, x, share }`, in the order of `names` (series names in the rows), as
- * `[{ name, label, points: [{ x, share }] }]`; a series' label is `labels[name]` when given, else its name.
- * A series with no rows is left out. An `x` below `floor` is drawn at `floor`, so a zero has a place on a log axis.
- */
-export function cdfSeries(rows, names, { labels = {}, floor = -Infinity } = {}) {
-  const series = [];
-  for (const name of names) {
-    const points = [];
-    for (const row of rows) {
-      if (row.series === name) {
-        points.push({ x: Math.max(row.x, floor), share: row.share });
-      }
-    }
-    if (points.length > 0) {
-      series.push({ name, label: Object.hasOwn(labels, name) ? labels[name] : name, points });
-    }
-  }
-  return series;
 }
 
 // Each bin's name and count, `[{ name, count }]`, in the order the bins first appear in the rows.

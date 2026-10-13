@@ -23,7 +23,7 @@ CACHING_GAPS_MODULE = SITE_FOLDER / "js" / "figures" / "caching_gaps.js"  # the 
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the causes' colours
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the causes a wait bar names
 RETENTION_MODULE = SITE_FOLDER / "js" / "simulation" / "prefill.js"  # the scopes' names, the labelled TTLs
-COSTS_MODULE = SITE_FOLDER / "js" / "simulation" / "costs.js"  # how high a cost figure's callout rises
+COSTS_KIND_MODULE = SITE_FOLDER / "js" / "charts" / "knee_lines.js"  # how high a cost figure's callout rises
 PREFILL_QUERY = SITE_FOLDER / "queries" / "figures" / "prefill_against_storage.sql"  # orders the TTLs
 API_COST_QUERY = SITE_FOLDER / "queries" / "figures" / "api_cost_by_ttl.sql"  # the API's prices, the knee
 INFRASTRUCTURE_COST_QUERY = SITE_FOLDER / "queries" / "figures" / "infrastructure_cost_by_ttl.sql"  # the provider's
@@ -141,7 +141,7 @@ def test_a_cost_is_counted_per_million_tokens_and_normalised_at_the_pipeline_s_t
 
 
 def test_a_cost_figure_s_callout_rises_as_the_paper_s() -> None:
-    rise = test_pipeline_mirrors.javascript_number(COSTS_MODULE, "CALLOUT_RISE_SHARE")
+    rise = test_pipeline_mirrors.javascript_number(COSTS_KIND_MODULE, "CALLOUT_RISE_SHARE")
     assert rise == cache_retention.CALLOUT_RISE_SHARE
 
 

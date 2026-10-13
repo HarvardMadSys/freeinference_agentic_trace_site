@@ -2,8 +2,8 @@
  * The figure sections of the Explore page's Insights: the Session-structure, Tokens-and-cost, Latency, Tools,
  * Prefix-caching and Human-driven-against-benchmark figures, each a card in its section's grid, drawn from its query's
  * answer over every week and the paper's harnesses, its thin bins hidden and its line of rows written behind its
- * Definition control. A histogram figure, one with a `statsQuery`, is drawn by `shared/histogram.js` from its two
- * queries' answers, every bin shown.
+ * Definition control. A histogram figure, one with no `binColumn`, is drawn whole by its draw function, which writes
+ * its own line of rows (`charts/histogram.js`).
  *
  * Only the figures of a shown topic are drawn: a hidden topic's cards have no width to draw a chart at, so its figures
  * start when the topic is shown (`startFigures`). A figure started is not started again, unless its topic was hidden
@@ -21,7 +21,6 @@
 import { MIN_ROWS_PER_BIN, nameChart, renderFigure, showError, showLoading, showNote } from "../shared/charts.js";
 import { readAnswer } from "../shared/answers.js";
 import { figureColours } from "../theme/colours.js";
-import { drawHistogram, histogramCard, rowsText } from "../shared/histogram.js";
 import { dropThinGroups, figureRowsText, unsimulatedWeeks } from "../figures/figure_rows.js";
 import { drawWithLegend, shownRows } from "./legend.js";
 
@@ -116,23 +115,24 @@ async function drawFigureInRun(figure, place, run) {
 /** Draw one figure into `place`, a histogram or a chart of one query's rows; its error stays in its own card. */
 async function drawFigure(figure, place, context) {
   try {
-    if (figure.statsQuery === undefined) {
-      await drawQueryFigure(figure, place, context);
+    if (figure.binColumn === undefined) {
+      await drawHistogramFigure(figure, place, context);
     } else {
-      await drawHistogramFigure(figure, place);
+      await drawQueryFigure(figure, place, context);
     }
   } catch (error) {
     showError(place.body, error);
   }
 }
 
-/** Run a histogram figure's bins and stats queries and draw its histogram into `place`, its count as its line of rows. */
-async function drawHistogramFigure(figure, place) {
-  const binRows = await readAnswer(figure.query);
-  const statsRows = await readAnswer(figure.statsQuery);
-  const card = histogramCard(figure, binRows, statsRows[0]);
-  place.rows.textContent = rowsText(card);
-  await drawHistogram(place.body, card);
+/**
+ * Draw a histogram figure, one with no bin column, into `place` from its query's bins, every bin shown; its draw
+ * function reads its stats and writes its summary and its line of rows.
+ */
+async function drawHistogramFigure(figure, place, context) {
+  const colours = await figureColours(context.orders);
+  const rows = await readAnswer(figure.query);
+  await figure.draw(rows, place.body, colours, new Set());
   nameChart(place.body);
 }
 

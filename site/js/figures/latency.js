@@ -11,11 +11,12 @@
  */
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE } from "../shared/charts.js";
-import { cdfPoints, drawCdf } from "../shared/cdf.js";
+import { drawCdfSeries } from "../shared/cdf.js";
+import { cdfPoints, cdfSeries } from "../charts/cdf.js";
 import { durationTicks, extent, fewerOnNarrow, tickCountFor } from "../axes/ticks.js";
 import { formatCount, formatDurationTick, formatMultiple, formatSeconds } from "../shared/format.js";
 import { slottedColours, TIME_PART_COLOURS, TIME_PART_NAMES } from "../theme/colours.js";
-import { cdfSeries, rowsWithSeriesColour, seriesLegend } from "./figure_rows.js";
+import { rowsWithSeriesColour, seriesLegend } from "./figure_rows.js";
 import { SESSION_TIME_BY_PART } from "./sessions_ranked.js";
 
 // The parts of the machine time, by their name in the speed-up query, top down, with the name each bar is drawn under.
@@ -125,7 +126,7 @@ async function drawModelCdf(rows, body, colours) {
   const seconds = cdfPoints(series).map((point) => point.x);
   const ticks = durationTicks(extent(seconds));
   const xTicks = fewerOnNarrow(ticks, chartFrame(body).width);
-  await drawCdf(body, series, {
+  await drawCdfSeries(body, series, {
     logX: true, xTicks, xTickFormat: formatDurationTick, format: formatSeconds,
     colours: colours.series,
   });

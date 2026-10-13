@@ -10,14 +10,16 @@
 import {
   AXIS_STYLE, chartFrame, colourScale, distinct, drawBars, GRID_STYLE, LINE_WIDTH,
 } from "../shared/charts.js";
-import { drawCdf } from "../shared/cdf.js";
+import { drawCdfSeries } from "../shared/cdf.js";
+import { cdfSeries } from "../charts/cdf.js";
+import { drawHistogram } from "../charts/histogram.js";
 import { axisWithTicks, decadeDomain, decadeTicks, sparseTickFormat, weekTickFormat } from "../axes/ticks.js";
 import { ROLE_COLOURS, TOKEN_PART_COLOURS, VIOLET_SLOT } from "../theme/colours.js";
 import {
   formatBinaryThousands, formatCompactCount, formatCount, formatCountTick, formatPercent, formatShare,
 } from "../shared/format.js";
 import { INPUT_ROLES, TOKEN_PART_NAMES } from "../session/token_parts.js";
-import { cdfSeries, partsLegend, seriesLegend } from "./figure_rows.js";
+import { partsLegend, seriesLegend } from "./figure_rows.js";
 import { COST_SHARE_BY_SESSION } from "./sessions_ranked.js";
 
 // The series of the tokens-per-request CDF, by their name in the query, with the name each is drawn under.
@@ -107,12 +109,16 @@ export const FIGURES = Object.freeze([
     definition: "The percentage of each request’s input tokens read from cache, grouped into 5% ranges. Only main-session requests with reported cache usage are included. The vertical axis counts requests on a log scale.",
     caption: "Requests typically reuse nearly all their input tokens. Across requests with reported cache usage, cached tokens account for more than 97% of total token volume.",
     query: "explore/cached_fraction_bins",
-    statsQuery: "explore/cached_fraction_stats",
-    countLabel: "Requests",
-    format: formatShare,
-    tickFormat: formatPercent,
-    logScale: false,
-    logCounts: true,
+    draw: (rows, body, colours) => drawHistogram(rows, body, colours, {
+      statsQuery: "explore/cached_fraction_stats",
+      countLabel: "Requests",
+      xLabel: null,
+      valueFormat: formatShare,
+      xTickFormat: formatPercent,
+      logScale: false,
+      logCounts: true,
+      showsMaximum: false,
+    }),
   }),
   COST_SHARE_BY_SESSION,
 ]);
@@ -131,7 +137,7 @@ function contextShareLegend(rows, colours, seriesColumn) {
 /** Draw the CDFs of input, uncached input and output tokens per request, on a log axis. */
 async function drawTokensPerRequest(rows, body, colours) {
   const series = cdfSeries(rows, Object.keys(TOKEN_SERIES), { labels: TOKEN_SERIES, floor: MIN_TOKENS_DRAWN });
-  await drawCdf(body, series, {
+  await drawCdfSeries(body, series, {
     xLabel: "Tokens", yLabel: "Share of requests", logX: true, format: formatCompactCount, xTickFormat: formatCountTick,
     colours: colours.series,
   });

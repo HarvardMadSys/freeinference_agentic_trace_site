@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  INPUT_PER_REQUEST_BY_SCOPE, medianRatioText, medianSummary, scopeMedians, SESSION_DURATION_BY_SCOPE,
+  INPUT_PER_REQUEST_BY_SCOPE, medianComparison, medianRatioText, medianSummary, scopeMedians, SESSION_DURATION_BY_SCOPE,
   TURN_DURATION_BY_SCOPE, USER_PROMPT_TOKENS_BY_SCOPE,
 } from "../site/js/comparison/scope_cdfs.js";
 import { scopeLegend, SCOPES } from "../site/js/comparison/scopes.js";
@@ -57,4 +57,20 @@ test("the legend names the scope whose median is the larger and by how much, or 
   const reversed = ROWS.map((row) => ({ ...row, median: row.series === "SWE-Bench" ? 0.1 : row.median }));
   assert.equal(medianSummary(reversed, "more"), "human-driven 376.6× more");
   assert.equal(medianSummary(ROWS.filter((row) => row.series === "SWE-Bench"), "longer"), "");
+});
+
+// A stand-in for Plot that gives each mark as its kind, its data and the ends of a rule.
+const RECORDING_PLOT = Object.freeze({
+  ruleY: (data, options) => ({ mark: "rule", data, x1: options.x1, x2: options.x2 }),
+  text: (data) => ({ mark: "text", data }),
+});
+
+test("the callout links the two medians and writes the note comparing them; with one scope, neither", () => {
+  const marks = medianComparison(RECORDING_PLOT, ROWS, FLOOR, "longer");
+  assert.deepEqual(marks.map((mark) => mark.mark), ["rule", "text"]);
+  assert.deepEqual([marks[0].x1, marks[0].x2], [1, 188.3]);
+  assert.deepEqual(marks[1].data, ["benchmark 376.6× longer"]);
+  const benchmarkOnly = medianComparison(RECORDING_PLOT, ROWS.slice(2), FLOOR, "longer");
+  assert.deepEqual(benchmarkOnly.map((mark) => mark.mark), ["text"]);
+  assert.deepEqual(benchmarkOnly[0].data, []);
 });

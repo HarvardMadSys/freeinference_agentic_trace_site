@@ -1,19 +1,18 @@
 /**
- * A histogram figure: the bins a query computed, and above them one line of the exact median, 95th percentile and,
- * where the card asks, the maximum, which a second query computed.
+ * The histogram kind: the bins a query computed, every bin shown, and above them one line of the exact median, 95th
+ * percentile and, where asked, the maximum, which a second query, its stats query, computed.
  *
- * The module runs no query. A histogram figure's entry names its bins query in `query` and its stats query in
- * `statsQuery`; `histogramCard` joins their answers into a card, `{ ...entry, bins, percentiles, count, max }`, which
- * `drawHistogram` draws. Of the entry's fields, `countLabel` names what a bin counts, `xLabel` (optional) titles the
- * value axis, `format` writes a value in the summary and the tooltip, `tickFormat` (else `format`) on the axis,
- * `logScale` says whether the value axis is a log one, `logCounts` whether the count axis is, `showsMaximum` whether
- * the summary ends with the maximum, and `ticks(domain, maxTicks)`, when given, picks at most `maxTicks` of a log
- * axis's ticks over its `[low, high]`.
+ * Its rows are a bins query's: one bin per row, `bin_start`, `bin_end` and `rows`, how many rows (requests or
+ * sessions) fall in it. Its stats query's one row holds `count`, `max` and the percentiles `p50` to `p95`; the kind
+ * reads it by name, and `histogramCard` joins the two with the parameters into a card,
+ * `{ ...parameters, bins, percentiles, count, max }`, which the drawing reads. The count is also the figure's line of
+ * rows, which the kind writes.
  */
 
-import { AXIS_STYLE, BAR_INSET, chartFrame, GRID_STYLE, legendPlace, X_INSET } from "./charts.js";
+import { AXIS_STYLE, BAR_INSET, chartFrame, GRID_STYLE, legendPlace, rowsPlace, X_INSET } from "../shared/charts.js";
+import { readAnswer } from "../shared/answers.js";
 import { axisWithTicks, extent, logAxisTicks, MAX_TICKS, TICK_COUNT, tickCountFor } from "../axes/ticks.js";
-import { formatCount, formatCountTick } from "./format.js";
+import { formatCount, formatCountTick } from "../shared/format.js";
 
 // The columns of a bins query's rows: where a bin starts, where it ends, and how many rows (requests or
 // sessions, as the card counts) fall in it.
@@ -32,9 +31,9 @@ export function summaryText(card) {
   if (card.count === 0) {
     return "";
   }
-  const parts = [`median ${card.format(card.percentiles.p50)}`, `p95 ${card.format(card.percentiles.p95)}`];
+  const parts = [`median ${card.valueFormat(card.percentiles.p50)}`, `p95 ${card.valueFormat(card.percentiles.p95)}`];
   if (card.showsMaximum) {
-    parts.push(`max ${card.format(card.max)}`);
+    parts.push(`max ${card.valueFormat(card.max)}`);
   }
   return parts.join(" · ");
 }
@@ -58,10 +57,10 @@ export function cardTicks(card, maxTicks = MAX_TICKS) {
   return card.ticks === undefined ? logAxisTicks(domain, maxTicks) : card.ticks(domain, maxTicks);
 }
 
-/** The histogram card of `entry` from its bins query's rows and its stats query's one row, as `drawHistogram` takes it. */
-export function histogramCard(entry, binRows, statsRow) {
+/** The histogram card of `parameters`, its bins query's rows and its stats query's one row, as the drawing reads it. */
+export function histogramCard(parameters, binRows, statsRow) {
   return {
-    ...entry,
+    ...parameters,
     bins: binsFromRows(binRows),
     percentiles: { p50: statsRow.p50, p95: statsRow.p95 },
     count: statsRow.count,
@@ -87,10 +86,21 @@ export function drawableBins(card) {
 }
 
 /**
- * Draw the histogram `card` into a figure's `body`, replacing what it held, its summary line in the figure's legend
- * place above it.
+ * Draw `rows`, a bins query's, into `body` as a histogram, its summary line in the figure's legend place above it and
+ * its count as the figure's line of rows. It takes no series colours and hides no series. Its named parameters:
+ * - `statsQuery`: the query whose one row holds the count, the maximum and the percentiles, read here by name.
+ * - `countLabel`: what a bin counts, "Sessions": the count axis's title and the line of rows' noun.
+ * - `xLabel`: the value axis's title, none when null.
+ * - `valueFormat`: how a value is written in the summary and the tooltip; `xTickFormat`: on the value axis.
+ * - `logScale`: whether the value axis is a log one; `logCounts`: whether the count axis is.
+ * - `showsMaximum`: whether the summary ends with the maximum.
+ * - `ticks(domain, maxTicks)`: at most `maxTicks` of a log value axis's ticks over its `[low, high]`; else its powers
+ *   of ten.
  */
-export async function drawHistogram(body, card) {
+export async function drawHistogram(rows, body, colours, parameters) {
+  const [statsRow] = await readAnswer(parameters.statsQuery);
+  const card = histogramCard(parameters, rows, statsRow);
+  rowsPlace(body).textContent = rowsText(card);
   if (card.count === 0) {
     body.replaceChildren(emptyNote());
     return;
@@ -100,7 +110,7 @@ export async function drawHistogram(body, card) {
   summary.textContent = summaryText(card);
   legendPlace(body).replaceChildren(summary);
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
-  const { Plot } = await import("./libraries.js");
+  const { Plot } = await import("../shared/libraries.js");
   body.replaceChildren(histogramChart(Plot, card, body));
 }
 
@@ -116,7 +126,7 @@ function histogramChart(Plot, card, body) {
     marks: [
       Plot.gridY({ ...GRID_STYLE, ticks: counts.ticks }),
       axisWithTicks(Plot.axisX, ticks, {
-        ...AXIS_STYLE, tickFormat: card.tickFormat ?? card.format, label: card.xLabel ?? null,
+        ...AXIS_STYLE, tickFormat: card.xTickFormat, label: card.xLabel,
       }),
       Plot.axisY({ ...AXIS_STYLE, ticks: counts.ticks, tickFormat: formatCountTick, label: card.countLabel }),
       Plot.rectY(drawableBins(card), {
@@ -146,7 +156,7 @@ export function countAxis(card) {
 }
 
 function binDescription(card, bin) {
-  return `${card.format(bin.x0)} – ${card.format(bin.x1)}\n${card.countLabel}: ${formatCount(bin.count)}`;
+  return `${card.valueFormat(bin.x0)} – ${card.valueFormat(bin.x1)}\n${card.countLabel}: ${formatCount(bin.count)}`;
 }
 
 function emptyNote() {

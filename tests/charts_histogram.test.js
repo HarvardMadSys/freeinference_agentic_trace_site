@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { FIGURES } from "../site/js/figures/sessions.js";
-import { formatCompactCount, formatSeconds } from "../site/js/shared/format.js";
+import { subagentTicks } from "../site/js/figures/sessions.js";
+import { formatCompactCount, formatSeconds, formatWholeCount } from "../site/js/shared/format.js";
 import {
   binsFromRows, cardTicks, countAxis, drawableBins, histogramCard, rowsText, summaryText,
-} from "../site/js/shared/histogram.js";
+} from "../site/js/charts/histogram.js";
 
 // A card of token counts on a log axis, drawn but for its bins.
 const TOKENS_CARD = {
@@ -16,7 +16,7 @@ const TOKENS_CARD = {
   count: 1186582,
   max: 2000000,
   logScale: true,
-  format: formatCompactCount,
+  valueFormat: formatCompactCount,
   countLabel: "Requests",
 };
 
@@ -27,7 +27,7 @@ test("the summary gives the median and the 95th percentile in the card's format,
 
 test("a duration card's summary writes its values as durations", () => {
   const durationCard = { ...TOKENS_CARD, percentiles: { p50: 724, p95: 5400 }, max: 42.5,
-    format: formatSeconds };
+    valueFormat: formatSeconds };
   assert.equal(summaryText(durationCard), "median 12.1 min · p95 90.0 min");
 });
 
@@ -82,17 +82,27 @@ test("a log card draws only the bins that start above 0, a linear card every bin
   assert.deepEqual(drawableBins({ ...TOKENS_CARD, bins, logScale: false }), bins);
 });
 
-// The Sessions section's histogram figure: its entry as the page draws it.
-const SUBAGENTS_ENTRY = FIGURES.find((figure) => figure.name === "subagents_per_session");
+// The subagents histogram's parameters, as its figure entry gives them.
+const SUBAGENTS_PARAMETERS = {
+  statsQuery: "explore/subagents_per_session_stats",
+  countLabel: "Sessions",
+  xLabel: "Subagents",
+  valueFormat: formatWholeCount,
+  xTickFormat: formatWholeCount,
+  logScale: true,
+  logCounts: false,
+  showsMaximum: true,
+  ticks: subagentTicks,
+};
 
-test("a card takes its bins from the bins query and its percentiles, count and maximum from the stats row", () => {
+test("a card takes its parameters, its bins from the bins query and its percentiles, count and maximum from the stats row", () => {
   const binRows = [
     { bin_start: 0, bin_end: 1, rows: 5 },
     { bin_start: 2, bin_end: 4, rows: 1 },
   ];
   const statsRow = { count: 6, max: 3, p50: 0, p75: 0, p90: 1.5, p95: 2.25 };
-  assert.deepEqual(histogramCard(SUBAGENTS_ENTRY, binRows, statsRow), {
-    ...SUBAGENTS_ENTRY,
+  assert.deepEqual(histogramCard(SUBAGENTS_PARAMETERS, binRows, statsRow), {
+    ...SUBAGENTS_PARAMETERS,
     bins: [
       { x0: 0, x1: 1, count: 5 },
       { x0: 2, x1: 4, count: 1 },
@@ -105,7 +115,7 @@ test("a card takes its bins from the bins query and its percentiles, count and m
 
 test("a card with no rows has no bins and a count of 0", () => {
   const statsRow = { count: 0, max: null, p50: null, p75: null, p90: null, p95: null };
-  const card = histogramCard(SUBAGENTS_ENTRY, [], statsRow);
+  const card = histogramCard(SUBAGENTS_PARAMETERS, [], statsRow);
   assert.deepEqual(card.bins, []);
   assert.equal(card.count, 0);
   assert.equal(rowsText(card), "0 sessions");

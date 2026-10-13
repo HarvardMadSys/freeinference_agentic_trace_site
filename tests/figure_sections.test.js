@@ -70,9 +70,10 @@ const PAGE = readFileSync(new URL("../site/index.html", import.meta.url), "utf8"
 const PAGE_SECTION =
   /<section id="(insights-\w+)"[^>]*role="tabpanel" aria-labelledby="tab-\1"[^>]*>\s*<h2[^>]*><span class="topic-number"[^>]*>(\d+)<\/span> ([^<]+)<\/h2>/g;
 
-// A histogram figure names its stats query beside its bins query; every other figure is drawn from one query.
+// A histogram figure has no bin column: its kind draws every bin from its bins query, and reads its stats query itself.
+// Every other figure is drawn from one figure query, its thin bins hidden.
 function isHistogram(figure) {
-  return figure.statsQuery !== undefined;
+  return figure.binColumn === undefined;
 }
 
 // Every figure of every section.
@@ -138,22 +139,18 @@ test("every chart runs the query of its own name, and that query file exists", a
   }
 });
 
-test("every histogram runs a bins and a stats query of one Explore name, and both query files exist", async () => {
+test("every histogram runs an Explore bins query with its stats query beside it, and has a draw function", async () => {
   const histograms = (await sections()).flatMap((section) => section.figures.filter(isHistogram));
   assert.deepEqual(histograms.map((figure) => figure.name), ["subagents_per_session", "cached_fraction_per_request"]);
   for (const figure of histograms) {
-    const prefix = figure.query.replace(/_bins$/, "");
-    assert.ok(prefix.startsWith("explore/"), figure.name);
-    assert.equal(figure.statsQuery, `${prefix}_stats`, figure.name);
-    for (const query of [figure.query, figure.statsQuery]) {
+    assert.match(figure.query, /^explore\/\w+_bins$/, figure.name);
+    const statsQuery = figure.query.replace(/_bins$/, "_stats");
+    for (const query of [figure.query, statsQuery]) {
       assert.ok(existsSync(new URL(`${query}.sql`, QUERIES_FOLDER)), `${query}.sql`);
     }
-    assert.equal(typeof figure.logScale, "boolean", figure.name);
-    assert.equal(typeof figure.format, "function", figure.name);
-    assert.equal(figure.draw, undefined, `${figure.name}: shared/histogram.js draws it`);
+    assert.equal(typeof figure.draw, "function", figure.name);
   }
 });
-
 test("every chart has a bin column and a draw function", async () => {
   for (const figure of await chartFigures()) {
     assert.ok(typeof figure.binColumn === "string" || figure.binColumn === null, figure.name);

@@ -1,7 +1,7 @@
 /**
  * What every chart shares: its frame and ink, folding series past the eighth into "Other", loading and error states,
- * the figure card, and the bar drawing; the CDF drawing is in `cdf.js`. The colours a chart draws in come from
- * `theme/colours.js`. The drawing functions load Plot themselves; the rest is plain functions, tested with `node --test`.
+ * the figure card and its places, and the bar drawing; the chart kinds are in `js/charts/`. The colours a chart draws
+ * in come from `theme/colours.js`. The drawing functions load Plot themselves; the rest is plain functions, tested with `node --test`.
  */
 
 import { OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
@@ -180,6 +180,11 @@ export function nameChart(body) {
 /** The place above a figure's body, as `renderFigure` lays it out, where its legend goes. */
 export function legendPlace(body) {
   return body.closest(".figure").querySelector(".figure-legend");
+}
+
+/** The place behind a figure's Definition control, as `renderFigure` lays it out, where its line of rows goes. */
+export function rowsPlace(body) {
+  return body.closest(".figure").querySelector(".figure-rows");
 }
 
 /**

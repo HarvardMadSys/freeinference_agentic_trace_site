@@ -1,6 +1,6 @@
 /**
- * The CDF drawing every CDF figure shares: one line per series of the share of rows at or below each value, a dashed
- * rule at the median, and, where asked, a series' label written on its line.
+ * The CDF drawing of the CDF figures not yet drawn by the CDF kind (`charts/cdf.js`): one line per series of the share
+ * of rows at or below each value, a dashed rule at the median, and, where asked, a series' label written on its line.
  */
 
 import {
@@ -8,6 +8,7 @@ import {
 } from "./charts.js";
 import { formatPercent, formatShare } from "./format.js";
 import { axisWithTicks, extent, logAxisTicks, TICK_COUNT } from "../axes/ticks.js";
+import { cdfPoints } from "../charts/cdf.js";
 
 const MEDIAN_SHARE = 0.5; // the share of rows at which a CDF crosses its median
 const LABEL_ABOVE_OFFSET = -9; // pixels from a point up to a label written above it on its line
@@ -27,7 +28,7 @@ const MIN_WIDTH_FOR_END_LABELS = 420;
  * when null; `height`, when given, replaces the chart's height; `lineLabels`, when given, are the series whose label
  * is written by its line, as `lineLabelPoints` takes them.
  */
-export async function drawCdf(body, series, options) {
+export async function drawCdfSeries(body, series, options) {
   const { xLabel = null, yLabel = "Share of requests", logX = false, format = String, xTickFormat, colours } = options;
   const { xDomain, height = CHART_HEIGHT, lineLabels = [] } = options;
   // Plot is loaded here, not at the top, so node can test this module's pure functions.
@@ -59,17 +60,6 @@ export async function drawCdf(body, series, options) {
     ],
   });
   body.replaceChildren(chart);
-}
-
-/** The points of CDF series `[{ name, label, points: [{ x, share }] }]` as one list: `[{ name, label, x, share }]`. */
-export function cdfPoints(series) {
-  const points = [];
-  for (const one of series) {
-    for (const point of one.points) {
-      points.push({ name: one.name, label: one.label, x: point.x, share: point.share });
-    }
-  }
-  return points;
 }
 
 function cdfTipText(point, format) {

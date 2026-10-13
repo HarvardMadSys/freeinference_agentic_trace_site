@@ -2,26 +2,19 @@
  * The weekly trends: top-level sessions per week stacked by harness, their requests per week stacked by model, and
  * their input tokens per week split by whether the provider reports cache reads, over every week. Each chart's legend
  * is a row of buttons that hide and show its series (`explore/legend.js`). Each chart is a card of its own, laid out as
- * the figure cards.
+ * the figure cards, and drawn by the week-bars kind (`charts/week_bars.js`).
  *
  * A section's `context` is what the page gives every section; see `explore/start.js`.
  */
 
-import {
-  columnTotal, drawBars, foldToOther, nameChart, renderFigure, showError, showLoading, sumFolded,
-} from "../shared/charts.js";
+import { columnTotal, nameChart, renderFigure, showError, showLoading } from "../shared/charts.js";
 import { readAnswer } from "../shared/answers.js";
-import { monthTickFormat } from "../axes/ticks.js";
-import { barColours, HARNESS_FIRST_SLOT, OTHER_SERIES, SERIES_SLOTS, TOKEN_PART_COLOURS } from "../theme/colours.js";
-import { seriesLegend } from "../figures/figure_rows.js";
-import { formatCompactCount, formatCountTick, formatQuantity } from "../shared/format.js";
+import { barColours, HARNESS_FIRST_SLOT, OTHER_SERIES, TOKEN_PART_COLOURS } from "../theme/colours.js";
+import { formatCompactCount, formatCount, formatCountTick, formatQuantity } from "../shared/format.js";
 import { TOKEN_PART_NAMES } from "../session/token_parts.js";
-import { drawWithLegend, shownRows } from "./legend.js";
+import { drawWeekBars, weekBarsLegend } from "../charts/week_bars.js";
+import { drawWithLegend } from "./legend.js";
 import { harnessText } from "./sessions_table_state.js";
-
-// A trend names as many series as the donut above it, the harnesses or models that hold the eight series colours, and
-// folds the rest into "Other", so the donut's legend is also the trend's.
-const NAMED_SERIES = SERIES_SLOTS.length;
 
 // A trend's margins, in pixels: room on the left for a count tick ("150k") and little on the right, so the bars take the
 // card's width; the card's title names what the bars count, so the y axis has no title to keep room for.
@@ -87,7 +80,14 @@ async function drawSessionsPerWeek(place, context) {
   const colours = barColours(order, HARNESS_FIRST_SLOT);
   // The benchmark replay's harness is named as the Session Explorer names it, "swe-bench".
   const labels = Object.fromEntries(order.map((harness) => [harness, harnessText(harness)]));
-  await drawTrend(body, rows, context, { y: "sessions", fill: "harness", order, colours, labels, yLabel: "Sessions" });
+  await drawTrend(body, rows, context, {
+    seriesColumn: "harness",
+    valueColumn: "sessions",
+    colours,
+    labels,
+    valueLabel: "Sessions",
+    valueFormat: formatCount,
+  });
 }
 
 async function drawRequestsPerWeek(place, context) {
@@ -100,9 +100,15 @@ async function drawRequestsPerWeek(place, context) {
     rows: formatQuantity(columnTotal(rows, "requests"), "request", "requests"),
   });
   // The models' order, which every figure colours them by: the eight with most requests take the series colours.
-  const order = modelRows.map((row) => row.model);
-  const colours = barColours(order);
-  await drawTrend(body, rows, context, { y: "requests", fill: "model", order, colours, yLabel: "Requests" });
+  const colours = barColours(modelRows.map((row) => row.model));
+  await drawTrend(body, rows, context, {
+    seriesColumn: "model",
+    valueColumn: "requests",
+    colours,
+    labels: {},
+    valueLabel: "Requests",
+    valueFormat: formatCount,
+  });
 }
 
 async function drawInputTokensPerWeek(place, context) {
@@ -115,50 +121,44 @@ async function drawInputTokensPerWeek(place, context) {
     rows: formatQuantity(columnTotal(rows, "requests"), "request", "requests"),
   });
   await drawTrend(body, tokenPartRows(rows), context, {
-    y: "tokens",
-    fill: "part",
-    order: TOKEN_PARTS.map((part) => part.part),
+    seriesColumn: "part",
+    valueColumn: "tokens",
     colours: new Map(TOKEN_PARTS.map((part) => [part.part, part.colour])),
     labels: TOKEN_PART_LABELS,
-    yLabel: "Input tokens",
-    format: formatCompactCount,
+    valueLabel: "Input tokens",
+    valueFormat: formatCompactCount,
     legendTopDown: true,
   });
 }
 
 /**
- * Draw into `body` a trend's bars of `rows`, one stack per week, `options` saying which column is the height (`y`),
- * which the series (`fill`), the series' `order`, `colours` and, where a series' name is not its label, `labels`, and
- * how a y value reads (`yLabel`, `format`). Above them goes the legend that hides and shows a series, in the order of
- * `colours`, or, with `legendTopDown`, in the order the stack draws them from the top down; a series past the eighth
- * of the order is first folded into "Other", so the legend hides "Other" as one.
+ * Draw into `body` a trend's bars of `rows`, one stack per week of every week, `trend` saying which column names the
+ * series (`seriesColumn`) and which holds the height (`valueColumn`), the series' `colours` (a Map from name to colour,
+ * the eight series colours first) and, where a series' name is not its label, `labels`, and how a value reads
+ * (`valueLabel`, `valueFormat`). Above them goes the legend that hides and shows a series, in the order of `colours`,
+ * or, with `legendTopDown`, in the order the stack draws them from the top down.
  */
-async function drawTrend(body, rows, context, options) {
-  const { y, fill, order, colours, labels = {}, legendTopDown = false, yLabel, format } = options;
-  const folded = sumFolded(foldToOther(rows, fill, order.slice(0, NAMED_SERIES)), { x: "week", y, fill });
-  const legend = seriesLegend(folded, fill, colours, labels);
+async function drawTrend(body, rows, context, trend) {
+  const { seriesColumn, valueColumn, colours, labels, legendTopDown = false } = trend;
+  const legend = weekBarsLegend(rows, colours, { seriesColumn, valueColumn, labels });
   if (legendTopDown) {
     legend.series.reverse();
   }
-  const barOptions = { ...weekBarOptions(context), y, fill, colours, yLabel, format };
-  const drawShown = (hidden) => drawTrendBars(body, shownRows(folded, fill, hidden), barOptions);
-  await drawWithLegend(body, legend, drawShown);
+  await drawWithLegend(body, legend, (hidden) => drawTrendBars(rows, body, context, trend, hidden));
 }
 
-async function drawTrendBars(body, rows, barOptions) {
-  await drawBars(body, rows, barOptions);
-  nameChart(body);
-}
-
-// What every trend chart shares: one stacked bar per week of every week.
-function weekBarOptions(context) {
-  return {
-    x: "week",
-    xLabel: null,
-    yAxisLabel: null, // the card's title names what the bars count
-    xTickFormat: monthTickFormat(context.weeks),
-    margins: TREND_MARGINS,
-    xDomain: context.weeks.map((entry) => entry.week),
+// Draw a trend's bars of the series not in `hidden`, with no y-axis title, since the card's title names what the bars
+// count, and name the chart.
+async function drawTrendBars(rows, body, context, trend, hidden) {
+  await drawWeekBars(rows, body, { series: trend.colours }, {
+    seriesColumn: trend.seriesColumn,
+    valueColumn: trend.valueColumn,
+    valueLabel: trend.valueLabel,
+    yLabel: null,
+    valueFormat: trend.valueFormat,
     yTickFormat: formatCountTick,
-  };
+    weeks: context.weeks,
+    margins: TREND_MARGINS,
+  }, hidden);
+  nameChart(body);
 }

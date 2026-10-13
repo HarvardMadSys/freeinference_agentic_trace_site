@@ -10,7 +10,10 @@ import { drawFigureSeries, newFigureRun, startFigures } from "../site/js/explore
 function figuresOfTwoTopics() {
   const shownTopic = { hidden: false };
   const hiddenTopic = { hidden: true };
-  const cards = [{ figure: { name: "first" }, topic: shownTopic }, { figure: { name: "second" }, topic: hiddenTopic }];
+  const cards = [
+    { figure: { name: "first", binColumn: null }, topic: shownTopic },
+    { figure: { name: "second", binColumn: null }, topic: hiddenTopic },
+  ];
   const places = new Map();
   for (const { figure, topic } of cards) {
     places.set(figure.name, { body: { replaceChildren: () => undefined }, rows: {}, topic });
