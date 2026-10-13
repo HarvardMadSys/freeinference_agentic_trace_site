@@ -32,6 +32,10 @@ FIRST_SUNDAY = fixture_release.FIRST_WEEK.split("_")[0]  # a week folder is name
 SECOND_SUNDAY = fixture_release.SECOND_WEEK.split("_")[0]
 SESSIONS_TABLE_QUERY = "explore/sessions_of_selection"  # the Session Explorer's answer, every harness's sessions
 TRACE_TOTALS_QUERY = "explore/trace_totals"  # the stats strip's answer, the whole trace
+FIRST_PAGE_QUERY = "explore/sessions_first_page"  # the Session Explorer's first page, before its full list
+# The Overview's answers, which count every harness as the stats strip does.
+OVERVIEW_QUERIES = ["explore/model_mix", "explore/requests_per_week_by_model", "explore/input_tokens_per_week",
+                    "explore/sessions_per_week_by_harness"]
 
 
 def expected_answer_names(data_directory: pathlib.Path) -> list[str]:
@@ -126,7 +130,7 @@ def test_the_default_selection_is_every_week_and_every_harness_but_the_benchmark
 
 def test_the_sessions_table_s_answer_holds_every_harness_s_sessions_with_the_benchmark_s_marked(
         data_directory: pathlib.Path) -> None:
-    assert site_data.answers.EVERY_HARNESS_QUERIES == [SESSIONS_TABLE_QUERY, TRACE_TOTALS_QUERY]
+    assert SESSIONS_TABLE_QUERY in site_data.answers.EVERY_HARNESS_QUERIES
     assert sorted(site_data.answers.every_harness(data_directory)) == sorted(fixture_release.EVERY_HARNESS)
     answer = read_answer(data_directory, SESSIONS_TABLE_QUERY)
     assert {row["session_id"]: (row["harness"], row["benchmark"]) for row in answer} == {
@@ -135,13 +139,40 @@ def test_the_sessions_table_s_answer_holds_every_harness_s_sessions_with_the_ben
     }
 
 
-def test_after_the_sessions_table_s_answer_the_next_query_is_answered_with_the_default_selection_again(
+def test_the_overview_and_the_session_explorer_are_answered_over_every_harness_and_the_figures_over_the_paper_s() -> None:
+    every_harness = site_data.answers.EVERY_HARNESS_QUERIES
+    assert sorted(every_harness) == sorted(OVERVIEW_QUERIES + [SESSIONS_TABLE_QUERY, FIRST_PAGE_QUERY,
+                                                                TRACE_TOTALS_QUERY])
+    assert not any(name.startswith("figures/") for name in every_harness)
+
+
+def test_after_an_answer_over_every_harness_the_next_query_is_answered_with_the_default_selection_again(
         data_directory: pathlib.Path) -> None:
     names = site_data.answers.answered_query_names()
-    after = names[names.index(SESSIONS_TABLE_QUERY) + 1]
-    assert after == "explore/sessions_per_week_by_harness"
-    harnesses_answered = {row["harness"] for row in read_answer(data_directory, after)}
-    assert sorted(harnesses_answered) == sorted(fixture_release.PAPER_HARNESSES)
+    after = names[names.index("explore/sessions_per_week_by_harness") + 1]
+    assert after not in site_data.answers.EVERY_HARNESS_QUERIES
+    harness_answer = read_answer(data_directory, "explore/sessions_per_week_by_harness")
+    assert sorted({row["harness"] for row in harness_answer}) == sorted(fixture_release.EVERY_HARNESS)
+    [stats] = read_answer(data_directory, after.replace("_bins", "_stats"))
+    listed = read_answer(data_directory, SESSIONS_TABLE_QUERY)
+    assert stats["count"] == len([row for row in listed if not row["benchmark"]])
+
+
+def test_the_donuts_count_what_the_stats_strip_counts(data_directory: pathlib.Path) -> None:
+    for data_folder in [data_directory, SHIPPED_DATA_FOLDER]:
+        [totals] = read_answer(data_folder, TRACE_TOTALS_QUERY)
+        sessions = sum(row["sessions"] for row in read_answer(data_folder, "explore/sessions_per_week_by_harness"))
+        requests = sum(row["requests"] for row in read_answer(data_folder, "explore/model_mix"))
+        assert (sessions, requests) == (totals["sessions"], totals["requests"]), data_folder
+
+
+def test_the_first_page_is_the_session_list_s_newest_twenty_with_its_count(data_directory: pathlib.Path) -> None:
+    for data_folder in [data_directory, SHIPPED_DATA_FOLDER]:
+        listed = read_answer(data_folder, SESSIONS_TABLE_QUERY)
+        first_page = read_answer(data_folder, FIRST_PAGE_QUERY)
+        newest = sorted(listed, key=lambda row: -row["first_start_ms"])[:20]
+        assert [row["session_id"] for row in first_page] == [row["session_id"] for row in newest], data_folder
+        assert {row["total_sessions"] for row in first_page} == {len(listed)}, data_folder
 
 
 def test_the_trace_totals_count_the_sessions_the_session_explorer_lists(data_directory: pathlib.Path) -> None:

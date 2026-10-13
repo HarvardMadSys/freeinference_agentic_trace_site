@@ -275,3 +275,17 @@ def test_the_sessions_table_keeps_to_the_selected_weeks_and_harnesses(connection
     select(connection, [SECOND_SUNDAY], fixture_release.PAPER_HARNESSES)
     rows = records(connection, "explore/sessions_of_selection")
     assert [row["session_id"] for row in rows] == ["mutation", "idle-week-2"]
+
+
+def test_the_sessions_table_s_first_page_is_the_full_list_s_newest_sessions_with_its_count(
+        connection: duckdb.DuckDBPyConnection, fixture_weeks: list[str]) -> None:
+    select(connection, fixture_weeks, fixture_release.EVERY_HARNESS)
+    listed = records(connection, "explore/sessions_of_selection")
+    first_page = records(connection, "explore/sessions_first_page")
+    # The table sorts the full list by start, newest first, keeping the list's order among equal starts.
+    newest_first = sorted(listed, key=lambda row: -row["first_start_ms"])
+    assert [row["session_id"] for row in first_page] == [row["session_id"] for row in newest_first[:20]]
+    assert {row["total_sessions"] for row in first_page} == {len(listed)}
+    for row in first_page:
+        listed_row = next(candidate for candidate in listed if candidate["session_id"] == row["session_id"])
+        assert {key: value for key, value in row.items() if key != "total_sessions"} == listed_row

@@ -1,7 +1,8 @@
 /**
- * The Overview's two donuts: the model mix, each model's share of the human-driven requests (`explore/model_mix`), and the harness
- * mix, each harness's share of the human-driven sessions (`explore/sessions_per_week_by_harness`, which the page asks
- * for once and the sessions trend draws too, summed over the weeks).
+ * The Overview's two donuts, over every harness, the benchmark's included, as the stats strip counts: the model mix,
+ * each model's share of the requests (`explore/model_mix`), and the harness mix, each harness's share of the sessions
+ * (`explore/sessions_per_week_by_harness`, which the page asks for once and the sessions trend draws too, summed over
+ * the weeks).
  * A donut names the series that hold the eight colours of its colour order (`setup/model_order`,
  * `setup/harness_order`), in those colours, as the trends colour them, and folds the rest into "Other"; its slices run
  * largest first, "Other" last. Its legend hides and shows a slice (`explore/legend.js`); once one is hidden, the shares
@@ -14,6 +15,7 @@ import { chartName, columnTotal, renderFigure, showError, showLoading } from "..
 import { formatCompactCount, formatCount, formatQuantity, formatShare } from "../shared/format.js";
 import { barColours, HARNESS_FIRST_SLOT, OTHER_NAME, SERIES_SLOTS } from "../theme/colours.js";
 import { drawWithLegend } from "../explore/legend.js";
+import { harnessText } from "../explore/sessions_table_state.js";
 import { donutArcs } from "./arcs.js";
 
 // The donut's size in the SVG's own units, which the page scales to the card: the outer and inner radii.
@@ -74,13 +76,14 @@ async function drawModelMix(place, context) {
   const order = orderRows.map((row) => row.model);
   await drawMix(place, donutSlices(rows, "model", "requests", order), barColours(order), {
     title: "Model mix",
-    caption: "Each model's share of the human-driven requests.",
+    caption: "Each model's share of the requests.",
     definition: "Requests of the top-level sessions of the paper's harnesses over every week, by the model they "
       + "asked for. The eight models with most requests over every harness are named, as the trends name them; the "
       + "rest are Other.",
     singular: "request",
     plural: "requests",
     formatTotal: formatCompactCount, // a million requests is too wide for the centre written in full
+    nameText: modelText,
   });
 }
 
@@ -91,13 +94,14 @@ async function drawHarnessMix(place, context) {
   const colours = barColours(order, HARNESS_FIRST_SLOT);
   await drawMix(place, donutSlices(rows, "harness", "sessions", order), colours, {
     title: "Harness mix",
-    caption: "Each harness's share of the human-driven sessions.",
+    caption: "Each harness's share of the sessions.",
     definition: "Top-level sessions of the paper's harnesses over every week, by harness. The harnesses among the eight "
       + "with most sessions over every harness are named, as the trends name them; the benchmark replay holds a "
       + "colour but is not drawn, and the rest are Other.",
     singular: "session",
     plural: "sessions",
     formatTotal: formatCount,
+    nameText: harnessText, // the benchmark replay's harness as the Session Explorer names it, "swe-bench"
   });
 }
 
@@ -111,17 +115,29 @@ async function drawMix(place, slices, colours, text) {
     rows: formatQuantity(columnTotal(slices, "count"), text.singular, text.plural),
   });
   // The legend lists the slices in the donut's order, largest first, each with its share of every slice.
-  const legend = { series: legendSeries(slices), colours };
+  const legend = { series: legendSeries(slices, text.nameText), colours };
   const drawShown = (hidden) => drawDonut(body, slices.filter((slice) => !hidden.has(slice.name)), colours, {
     ...text, unit: centreUnit(text.plural, hidden.size),
   });
   await drawWithLegend(body, legend, drawShown);
 }
 
-/** The legend's entries `[{ name, label }]` of `slices`, each labelled with its share of them: "glm-5.3-flash 44.0%". */
-export function legendSeries(slices) {
+/**
+ * The legend's entries `[{ name, label }]` of `slices`, each labelled with its name as `nameText` writes it and its
+ * share of them: "glm-5.3-flash 44.0%".
+ */
+export function legendSeries(slices, nameText) {
   const total = columnTotal(slices, "count");
-  return slices.map((slice) => ({ name: slice.name, label: `${slice.name} ${formatShare(slice.count / total)}` }));
+  const entries = [];
+  for (const slice of slices) {
+    entries.push({ name: slice.name, label: `${nameText(slice.name)} ${formatShare(slice.count / total)}` });
+  }
+  return entries;
+}
+
+/** A model as the donut names it: as the release does. */
+function modelText(model) {
+  return model;
 }
 
 /** The line under the donut's total: what it counts, "requests", or "shown requests" while `hiddenCount` are hidden. */
@@ -157,7 +173,7 @@ function drawDonut(body, slices, colours, text) {
 function slicePath(arc, colours, text) {
   const path = svgElement("path", { d: arc.path, fill: colours.get(arc.name), class: "donut-slice" });
   const tooltip = svgElement("title", {});
-  tooltip.textContent = `${arc.name}: ${formatShare(arc.share)} of ${text.unit} (${formatCount(arc.count)})`;
+  tooltip.textContent = `${text.nameText(arc.name)}: ${formatShare(arc.share)} of ${text.unit} (${formatCount(arc.count)})`;
   path.append(tooltip);
   return path;
 }

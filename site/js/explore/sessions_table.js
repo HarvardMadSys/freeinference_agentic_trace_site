@@ -3,7 +3,8 @@
  * and a minimum of requests, sorted and paged in the browser. Its state lives in the URL
  * (`explore/sessions_table_state.js`), read back on every change. Above it, one row of form controls: the month and
  * harness drop-downs, the model drop-down, the minimum of requests and the search box. A row click opens the Session
- * page.
+ * page. On its default view the table draws its first page from `explore/sessions_first_page` before the full list,
+ * `explore/sessions_of_selection`, has arrived, and enables its controls once it has.
  *
  * While `context.filterInTable`, there is no selection to choose: the answer holds every week's sessions of every
  * harness and the table filters them itself by month and harness (`explore/sessions_filter.js`). It then owns the keys
@@ -24,8 +25,8 @@ import {
   EVERY_HARNESS_TEXT, harnessChoices, monthChoices, readTableFilter, rowsInFilter, unknownFilterNote, writeTableFilter,
 } from "./sessions_filter.js";
 import {
-  choices, COLUMNS, isStateFiltered, nextSort, readTableState, rowsOfHarnesses, sessionCountLine, shownSessions,
-  wholeNumberOrNull, withCachedShare, withFirstPage, writeTableState,
+  choices, COLUMNS, firstPageCountLine, isDefaultState, isStateFiltered, nextSort, readTableState, rowsOfHarnesses,
+  sessionCountLine, shownSessions, wholeNumberOrNull, withCachedShare, withFirstPage, writeTableState,
 } from "./sessions_table_state.js";
 
 // The text of the model drop-down's first choice, which filters nothing.
@@ -89,21 +90,46 @@ export function sessionLink(row, exploreParams, context) {
 // section's context, the month and harness filter (null unless the table filters itself), and where the note naming
 // the URL's unknown months and harnesses goes.
 
+/**
+ * Draw the table into `place`. On the default view of the table that filters itself, its first page is drawn at once
+ * from the small answer of the 20 newest sessions, the controls disabled; the full list follows and is drawn over it.
+ */
 async function drawSessions(place, context, filter) {
+  const notePlace = document.createElement("div");
+  notePlace.className = "table-note";
+  const view = { rows: [], tablePlace: document.createElement("div"), context, filter, notePlace };
+  if (filter !== null && filter.month === "" && filter.harness === "" && isDefaultState(currentState())) {
+    drawFirstPage(place, view, await context.database.runQuery("explore/sessions_first_page"));
+  }
   const queryRows = await context.database.runQuery("explore/sessions_of_selection");
   // The table that filters itself lists every harness; otherwise it lists the page's selected harnesses alone.
   const listed = filter === null ? rowsOfHarnesses(queryRows, context.selection.harnesses) : queryRows;
-  const view = {
-    rows: listed.map(withCachedShare),
-    tablePlace: document.createElement("div"),
-    context,
-    filter,
-    notePlace: document.createElement("div"),
-  };
-  view.notePlace.className = "table-note";
+  view.rows = listed.map(withCachedShare);
   place.replaceChildren(controlsRow(view), view.notePlace, view.tablePlace);
   drawUnknownNote(view);
   drawTable(view);
+}
+
+/** Draw the first page of `firstPageRows` into `place`, its count over the full list, every control disabled. */
+function drawFirstPage(place, view, firstPageRows) {
+  const firstPage = firstPageRows.map(withCachedShare);
+  const controls = controlsRow({ ...view, rows: firstPage });
+  for (const control of controls.querySelectorAll("select, input")) {
+    control.disabled = true; // the choices come from the full list, which is on its way
+  }
+  place.replaceChildren(controls, view.notePlace, view.tablePlace);
+  mountTable(view.tablePlace, {
+    columns: linkedColumns(view.context, currentParams()),
+    rows: firstPage,
+    rowCount: firstPage.length === 0 ? 0 : firstPage[0].total_sessions,
+    sort: currentState().sort,
+    pageNumber: 1,
+    summary: firstPageCountLine(firstPage),
+    onSort: () => undefined, // the sort buttons are drawn disabled
+    onPage: () => undefined,
+    onRowClick: (row) => window.location.assign(sessionLink(row, currentParams(), view.context)),
+    isWaiting: true,
+  });
 }
 
 function currentParams() {

@@ -17,6 +17,7 @@ import { seriesLegend } from "../figures/figure_rows.js";
 import { formatCountTick, formatQuantity, formatTokens } from "../shared/format.js";
 import { TOKEN_PART_NAMES } from "../session/token_parts.js";
 import { drawWithLegend, shownRows } from "./legend.js";
+import { harnessText } from "./sessions_table_state.js";
 
 // A trend names as many series as the donut above it, the harnesses or models that hold the eight series colours, and
 // folds the rest into "Other", so the donut's legend is also the trend's.
@@ -97,7 +98,9 @@ async function drawSessionsPerWeek(place, context) {
   });
   const order = harnessRows.map((row) => row.harness);
   const colours = barColours(order, HARNESS_FIRST_SLOT);
-  await drawTrend(body, rows, context, { y: "sessions", fill: "harness", order, colours, yLabel: "Sessions" });
+  // The benchmark replay's harness is named as the Session Explorer names it, "swe-bench".
+  const labels = Object.fromEntries(order.map((harness) => [harness, harnessText(harness)]));
+  await drawTrend(body, rows, context, { y: "sessions", fill: "harness", order, colours, labels, yLabel: "Sessions" });
 }
 
 async function drawRequestsPerWeek(place, context) {

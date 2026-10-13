@@ -4,6 +4,7 @@ import { test } from "node:test";
 
 import { donutArcs, pointAt, ringSegmentPath, sliceShares } from "../site/js/landing/arcs.js";
 import { centreUnit, donutSlices, legendSeries } from "../site/js/landing/donuts.js";
+import { harnessText } from "../site/js/explore/sessions_table_state.js";
 
 // Ten models, most requests first, as `setup/model_order` gives them.
 const MODEL_ORDER = ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8", "m9", "m10"];
@@ -86,10 +87,10 @@ test("one slice of the whole turn is drawn as the whole ring, two circles of two
     + "M 0 -60 A 60 60 0 1 0 0 60 A 60 60 0 1 0 0 -60 Z");
 });
 
-test("each legend entry names its slice and its share of every slice", () => {
-  const slices = [{ name: "glm", count: 3 }, { name: "Other", count: 1 }];
-  assert.deepEqual(legendSeries(slices), [
-    { name: "glm", label: "glm 75.0%" },
+test("each legend entry names its slice, as the donut writes names, and its share of every slice", () => {
+  const slices = [{ name: "eval:swe-bench", count: 3 }, { name: "Other", count: 1 }];
+  assert.deepEqual(legendSeries(slices, harnessText), [
+    { name: "eval:swe-bench", label: "swe-bench 75.0%" },
     { name: "Other", label: "Other 25.0%" },
   ]);
 });

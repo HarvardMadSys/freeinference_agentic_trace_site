@@ -11,9 +11,11 @@ The default selection is every week of `weeks.json` and every harness of
 `harnesses.json` that is not the benchmark's. The database is opened and the
 selection tables filled by `site_database`, with the browser's own setup
 statements, so an answer holds the rows the browser's query would return.
-The sessions table's query and the trace totals are the exceptions: they are
-answered with every week and every harness, the benchmark's included, and the
-tables are then filled with the default selection again.
+The Explore page's own queries are the exceptions (`EVERY_HARNESS_QUERIES`):
+the Overview's mixes and trends, the sessions table's list and first page, and
+the trace totals are answered with every week and every harness, the
+benchmark's included, and the tables are then filled with the default
+selection again. The figure queries keep the paper's harnesses.
 The colour orders read every week and every harness whatever the selection,
 so their answers hold for any selection, not only the default.
 
@@ -42,10 +44,20 @@ ANSWERED_PAGES = ["explore", "figures"]  # the folders whose queries are answere
 # The setup queries that fix each harness's, model's, category's and provider's colour from every week and harness;
 # answered so a page draws its colours without DuckDB.
 COLOUR_ORDER_QUERIES = ["setup/category_order", "setup/harness_order", "setup/model_order", "setup/provider_order"]
-# The queries answered with every harness selected, the benchmark's too: the sessions table filters its answer in the
-# browser, so the answer holds every row any harness filter can show, its `benchmark` column marking the benchmark's;
-# and the trace totals the stats strip shows count the whole trace, as the session list lists it.
-EVERY_HARNESS_QUERIES = ["explore/sessions_of_selection", "explore/trace_totals"]
+# The queries answered with every harness selected, the benchmark's too: the Overview, the session list and the stats
+# strip show the whole trace. The sessions table filters its answer in the browser, so the answer holds every row any
+# harness filter can show, its `benchmark` column marking the benchmark's, and its first page is that list's; the
+# trace totals count the sessions it lists; and the donuts and trends count what the stats strip counts, so the
+# donuts' centres equal its numbers.
+EVERY_HARNESS_QUERIES = [
+    "explore/model_mix",
+    "explore/requests_per_week_by_model",
+    "explore/input_tokens_per_week",
+    "explore/sessions_per_week_by_harness",
+    "explore/sessions_first_page",
+    "explore/sessions_of_selection",
+    "explore/trace_totals",
+]
 # Commas and colons without spaces: the answers are fetched by every visitor, the sessions table's above all.
 JSON_SEPARATORS = (",", ":")
 

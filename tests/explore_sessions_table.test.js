@@ -1,12 +1,16 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { linkedColumns, sessionLink } from "../site/js/explore/sessions_table.js";
+import { ROWS_PER_PAGE } from "../site/js/shared/table.js";
 import {
   benchmarkMark,
   choices,
   COLUMNS,
+  firstPageCountLine,
   harnessText,
+  isDefaultState,
   isStateFiltered,
   nextSort,
   readTableState,
@@ -222,4 +226,22 @@ test("a state with a search, a harness, a model or a minimum is filtered; the de
   assert.equal(isStateFiltered({ ...DEFAULT_STATE, search: "ab" }), true);
   assert.equal(isStateFiltered({ ...DEFAULT_STATE, minRequests: 0 }), true);
   assert.equal(isStateFiltered({ ...DEFAULT_STATE, sort: { key: "requests", direction: "ascending" } }), false);
+});
+
+test("the default view is no search, no filter, the newest first and the first page; anything else is not", () => {
+  assert.equal(isDefaultState(readTableState(new URLSearchParams(""))), true);
+  assert.equal(isDefaultState(readTableState(new URLSearchParams("page=1"))), true);
+  for (const query of ["page=2", "sort=requests", "direction=ascending", "search=ab", "model=glm", "min_requests=5"]) {
+    assert.equal(isDefaultState(readTableState(new URLSearchParams(query))), false, query);
+  }
+});
+
+test("the first page's count line reads the full list's count its rows carry", () => {
+  assert.equal(firstPageCountLine([{ total_sessions: 12002 }, { total_sessions: 12002 }]), "12,002 sessions");
+  assert.equal(firstPageCountLine([]), "0 sessions");
+});
+
+test("the first page's answer holds one page of the table", () => {
+  const query = readFileSync(new URL("../site/queries/explore/sessions_first_page.sql", import.meta.url), "utf8");
+  assert.match(query, new RegExp(`\\bLIMIT ${ROWS_PER_PAGE};`));
 });

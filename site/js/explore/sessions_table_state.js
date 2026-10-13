@@ -133,6 +133,18 @@ export function sessionCountLine(shown, listed, isFiltered) {
   return formatQuantity(listed.length, "session", "sessions");
 }
 
+/** Whether `state` is the table's default view: no search or filter, the newest sessions first, the first page. */
+export function isDefaultState(state) {
+  const isDefaultSort = state.sort.key === DEFAULT_SORT.key && state.sort.direction === DEFAULT_SORT.direction;
+  return !isStateFiltered(state) && isDefaultSort && state.pageNumber === 1;
+}
+
+/** The line over the first page, from `firstPageRows` (rows of `explore/sessions_first_page`): "12,002 sessions". */
+export function firstPageCountLine(firstPageRows) {
+  const total = firstPageRows.length === 0 ? 0 : firstPageRows[0].total_sessions;
+  return formatQuantity(total, "session", "sessions");
+}
+
 /** Whether `state` searches or filters by harness, model or a minimum of requests. */
 export function isStateFiltered(state) {
   return state.search !== "" || state.harness !== "" || state.model !== "" || state.minRequests !== null;
