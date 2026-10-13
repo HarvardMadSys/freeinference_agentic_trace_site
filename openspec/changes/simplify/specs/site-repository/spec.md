@@ -53,7 +53,9 @@ CLAUDE.md         a pointer to the two files above and the git rules
 Makefile          make setup, setup-browser, data, serve, test, deploy
 wrangler.jsonc    the Cloudflare Worker that serves site/ as static assets
 pyproject.toml    Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
-package.json      sets ES modules for node --test; wrangler, the one dev dependency
+package.json      sets ES modules for node --test; wrangler, the one dev dependency; package-lock.json pins it
+.nvmrc            the Node version the deploy workflow uses
+.github/          workflows/deploy.yml: the deploy on every push to main
 site_data/        builds site/data/ from a release folder: the indexes, the answers, the session buckets
 site/             exactly the files that are deployed
   *.html          one file per page: index (Explore, the landing page), session

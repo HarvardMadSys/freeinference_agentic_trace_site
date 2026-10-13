@@ -53,3 +53,34 @@ size, and the Explore page SHALL draw from the answers alone.
 #### Scenario: A week without a simulation
 - **WHEN** a release week has no simulation rows
 - **THEN** the simulated answers SHALL still be written, from the other weeks' rows
+
+### Requirement: Session buckets
+`make data` SHALL write, for each week, the rows of every top-level
+session and its subagents into `session_buckets/<week>/<xx>.json.gz`,
+`xx` the first two characters of the top-level session id, as an object
+from top-level id to `{tree, requests, tool_calls}`, each part
+`{columns, rows}` with the columns of its query under `queries/buckets/`
+less `root_session_id` (the key) and each row its values in column
+order; and
+`session_buckets/<week>/index.json.gz` from every session id of the week,
+subagents included, to its top-level id. Both SHALL be written with
+sorted keys, the queries' row order and a gzip header without a time, so
+that a rebuild of the same rows writes the
+same bytes; `site_data/buckets.py`'s docstring is the format's one
+statement. A prefix only subagents' ids start with SHALL have an empty
+bucket; a prefix no session id of the week starts with SHALL have no
+file. The
+bucket queries SHALL be hashed in `queries.json` as the answers' are. The
+step SHALL print the buckets' count and size.
+
+#### Scenario: A session's rows
+- **WHEN** a bucket holds top-level session S
+- **THEN** its `requests` rows SHALL equal `week_requests.sql`'s rows for S and its subagents, ordered by session and step
+
+#### Scenario: The same bytes twice
+- **WHEN** `make data` runs twice on the same release
+- **THEN** every bucket and index SHALL be byte-identical between the runs
+
+#### Scenario: A bucket query edited after the data was built
+- **WHEN** the text of a bucket query changes and `make data` has not been rerun
+- **THEN** `make test` SHALL fail naming the query
