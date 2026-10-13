@@ -69,7 +69,7 @@ site/             exactly the files that are deployed
   js/explore/     the Explore page's start and its sections: the trends, the session list, the figure sections, the topic tabs
   js/figures/, js/simulation/, js/comparison/
                   the figure sections' modules
-  js/session/     the Session page's bucket loader, address, agent tree, facts card, legends, token parts and chart frame
+  js/session/     the Session page's bucket loader, address, agent tree, facts card, legends, token parts, and the views' chart start and request click
   js/session_requests/  the Requests view
   js/session_charts/    the Context and Timeline views, their series, bars, range slider and pointer
   queries/        one .sql file per chart or table, in one folder per purpose: explore, figures, buckets, setup
