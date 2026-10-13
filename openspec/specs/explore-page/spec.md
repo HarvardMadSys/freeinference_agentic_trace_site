@@ -121,9 +121,10 @@ histograms, drawn from the shipped answers, in six numbered topics shown
 one at a time behind a row of tabs under the heading: each topic with
 its heading, a takeaway sentence of at most twenty words under it, and
 no other intro text; each card with a title, an insight of at most
-twelve words under the title (one sentence saying what the chart means,
+twenty words under the title (one sentence saying what the chart means,
 a number in it only where the number is the point), a caption of at most
-twelve words under the chart, and its definition (at most forty words)
+forty words in at most three sentences under the chart, and its
+definition (at most sixty words in at most three sentences)
 and row count behind a control. A click on a tab SHALL show its topic
 and hide the others, and SHALL write the topic's anchor to the URL's
 hash, so that a link with that hash opens the Insights on that topic and
@@ -143,14 +144,22 @@ Every series a chart draws SHALL be in its legend.
 | 05 Prefix caching (`#insights-caching`) | `hit_ratio_cdf_by_gap_bin`, `hit_ratio_by_idle_gap`, `gap_cdf_by_cause`, `mean_hit_ratio_by_cause`, `hit_ratio_cdf_by_transition`, `mutations_by_cause`, `prefill_against_storage`, `api_cost_by_ttl`, `infrastructure_cost_by_ttl` |
 | 06 Human-driven against benchmark (`#insights-comparison`) | `turn_duration_by_scope`, `session_duration_by_scope`, `input_per_request_by_scope` |
 
-Each figure SHALL stay one query
-file answered by `make data` and one chart function, with the definitions,
-parity and legend behaviour of the archived change `calmer-explore`.
+Each figure SHALL be one query
+file answered by `make data` and one entry whose `draw` is one call to
+a chart kind in `js/charts/` with its columns, where they vary, and its labels
+written out,
+plus, where the paper's callout needs it, one short named function; a
+kind SHALL take only parameters two or more figures use, with two
+exceptions: a kind kept whole may take a one-figure parameter when the
+alternative is a near-copy of the kind, and a frame or axis setting is a
+plain setting; a figure that needs more SHALL keep a plain draw function
+of its own. The definitions,
+parity and legend behaviour stay as they are.
 Nothing on the page SHALL run a query in the browser.
 
 #### Scenario: Opening the page
 - **WHEN** a visitor opens the page
-- **THEN** the first topic SHALL be shown and its figures drawn from their answer files, and no DuckDB module and no Parquet file SHALL be fetched
+- **THEN** the first topic SHALL be shown and its figures drawn from their answer files, and no database module, no row file and no query file SHALL be fetched
 
 #### Scenario: A figure for one month
 - **WHEN** the URL carries `months=2026-07`
@@ -169,7 +178,7 @@ Nothing on the page SHALL run a query in the browser.
 - **THEN** every number a figure shares with the paper SHALL equal the paper's
 
 #### Scenario: A caption that grew
-- **WHEN** a caption or an insight exceeds twelve words, a takeaway twenty, or a card has no insight
+- **WHEN** an insight or a takeaway exceeds twenty words, a caption forty, a definition sixty, or a card has no insight
 - **THEN** the node test that counts them SHALL fail
 
 #### Scenario: The topic bar
@@ -195,6 +204,10 @@ Nothing on the page SHALL run a query in the browser.
 #### Scenario: A series in the legend
 - **WHEN** the API cost figure draws
 - **THEN** its legend SHALL list every part the stack draws, the output part included
+
+#### Scenario: Adding a figure
+- **WHEN** a maintainer adds a figure of an existing kind
+- **THEN** the change SHALL be one `.sql` file, one entry whose `draw` calls the kind, its lines in the tests that list queries and figures, `make data` and `make snapshots`
 
 ### Requirement: Same definitions as the paper
 With the default selection, every number a figure shares with the paper's
