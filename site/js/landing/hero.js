@@ -1,24 +1,17 @@
 /**
- * The Explore page's hero: the dataset's name as its title, a lede whose first clause counts the weeks of `weeks.json`
- * and whose rest says what the trace holds, and the buttons to the page's Session Explorer and Insights, the dataset,
- * the paper and the code.
+ * The Explore page's hero: the dataset's name as its title, a lede saying what the trace holds and what it is for,
+ * and the buttons to the page's Session Explorer and Insights, the dataset, the paper and the code.
  */
 
 import { URLS } from "../shared/layout.js";
-
-// The numbers under twenty, and the tens, as words.
-const ONES = Object.freeze([
-  "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
-  "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen",
-]);
-const TENS = Object.freeze(["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]);
 
 // The title, the dataset's name: its first phrase, and its second, drawn in the accent.
 const TITLE = "FreeInference";
 const TITLE_ACCENT = "Agentic Dataset";
 
-// The lede after its first clause, which counts the weeks.
-const LEDE_REST = "anonymised: every request, tool call and subagent of the agent sessions FreeInference served.";
+// The lede: what the trace is, what it holds, what it is for.
+const LEDE = "Production agent traces from FreeInference across 13 diverse agent harnesses, covering prefix-block hashes, "
+  + "request timing, and sessions for studying KV-cache reuse and agent serving.";
 
 // The buttons under the lede: the first two scroll to the page's own sections, the first of them the primary one; the
 // others leave the site.
@@ -32,34 +25,8 @@ const EXTERNAL_BUTTONS = Object.freeze([
   Object.freeze({ title: "Code", url: URLS.code }),
 ]);
 
-/** A whole number from 0 to 99 in words, "sixteen", "twenty-one"; a larger one in digits, "120". */
-export function countInWords(count) {
-  if (count < ONES.length) {
-    return ONES[count];
-  }
-  if (count >= 100) {
-    return String(count);
-  }
-  const tens = TENS[Math.floor(count / 10)];
-  const ones = count % 10;
-  return ones === 0 ? tens : `${tens}-${ONES[ones]}`;
-}
-
-/**
- * The lede's first clause for `weekCount` weeks: "Sixteen weeks of coding agents,", "One week of coding agents,";
- * "Weeks of coding agents," when the count is not known (null), as when `weeks.json` could not be read.
- */
-export function ledeOpening(weekCount) {
-  if (weekCount === null) {
-    return "Weeks of coding agents,";
-  }
-  const words = countInWords(weekCount);
-  const capitalised = words.charAt(0).toUpperCase() + words.slice(1);
-  return `${capitalised} ${weekCount === 1 ? "week" : "weeks"} of coding agents,`;
-}
-
-/** Fill `container` with the hero's copy for the `weekCount` weeks the trace holds (null when not known). */
-export function renderHero(container, weekCount) {
+/** Fill `container` with the hero's copy: the title, the lede and the five buttons. */
+export function renderHero(container) {
   const siteButtons = SITE_BUTTONS.map(
     (button) => `<a class="${button.className}" href="${button.href}">${button.title}</a>`,
   );
@@ -68,7 +35,7 @@ export function renderHero(container, weekCount) {
   );
   container.innerHTML = `
     <h1 id="hero-title">${TITLE} <em>${TITLE_ACCENT}</em></h1>
-    <p class="hero-lede">${ledeOpening(weekCount)} ${LEDE_REST}</p>
+    <p class="hero-lede">${LEDE}</p>
     <div class="hero-actions">
       ${siteButtons.join("")}
       ${externalButtons.join("")}

@@ -56,7 +56,7 @@ const ELSEWHERE_LINKS = Object.freeze([
 ]);
 
 const AFFILIATION = "Harvard SEAS · MadSys Lab";
-const FOOTER_LINE = "A trace of agent sessions served by FreeInference.";
+const FOOTER_LINE = "Sixteen weeks worth of coding agent traces from FreeInference.";
 
 /**
  * Fill `container` with the site header: the brand, the affiliation, the links to the Explore page's sections, the one

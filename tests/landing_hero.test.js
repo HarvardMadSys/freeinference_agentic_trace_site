@@ -1,31 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { countInWords, ledeOpening, renderHero } from "../site/js/landing/hero.js";
+import { renderHero } from "../site/js/landing/hero.js";
 
-test("a count under a hundred is written in words, a larger one in digits", () => {
-  assert.equal(countInWords(1), "one");
-  assert.equal(countInWords(16), "sixteen");
-  assert.equal(countInWords(20), "twenty");
-  assert.equal(countInWords(21), "twenty-one");
-  assert.equal(countInWords(52), "fifty-two");
-  assert.equal(countInWords(99), "ninety-nine");
-  assert.equal(countInWords(104), "104");
-});
-
-test("the lede's first clause counts the weeks, one week in the singular, and names none it does not know", () => {
-  assert.equal(ledeOpening(16), "Sixteen weeks of coding agents,");
-  assert.equal(ledeOpening(1), "One week of coding agents,");
-  assert.equal(ledeOpening(52), "Fifty-two weeks of coding agents,");
-  assert.equal(ledeOpening(null), "Weeks of coding agents,");
-});
-
-test("the hero holds the dataset's name as its title, the lede counting the weeks and the five buttons", () => {
+test("the hero holds the dataset's name as its title, the lede and the five buttons", () => {
   const container = { innerHTML: "" };
-  renderHero(container, 16);
+  renderHero(container);
   assert.doesNotMatch(container.innerHTML, /class="eyebrow"/);
   assert.match(container.innerHTML, /^\s*<h1 id="hero-title">FreeInference <em>Agentic Dataset<\/em><\/h1>/);
-  assert.match(container.innerHTML, /<p class="hero-lede">Sixteen weeks of coding agents, anonymised: /);
+  assert.match(container.innerHTML, /<p class="hero-lede">Production agent traces from FreeInference across 13 diverse agent harnesses, /);
+  assert.doesNotMatch(container.innerHTML, /anonymised/);
   const buttons = [...container.innerHTML.matchAll(/<a class="button[^"]*" href="([^"]*)"[^>]*>([^<]*)<\/a>/g)];
   assert.deepEqual(buttons.map((match) => [match[2], match[1]]), [
     ["Session Explorer", "#sessions"],
@@ -38,7 +22,7 @@ test("the hero holds the dataset's name as its title, the lede counting the week
 
 test("the two site buttons come first, the Session Explorer's the primary one, and open on this tab", () => {
   const container = { innerHTML: "" };
-  renderHero(container, 16);
+  renderHero(container);
   const buttons = [...container.innerHTML.matchAll(/<a class="([^"]*)" href="[^"]*"([^>]*)>([^<]*)<\/a>/g)];
   assert.deepEqual(buttons.slice(0, 2).map((match) => [match[3], match[1], match[2]]), [
     ["Session Explorer", "button button--primary", ""],

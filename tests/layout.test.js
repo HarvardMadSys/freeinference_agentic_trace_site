@@ -105,7 +105,7 @@ test("the footer's section links lead where the header's do, with the URL keys f
 test("the footer holds the brand, its line and the two lists of links, and nothing else", () => {
   const markup = rendered(renderFooter, "index.html", "");
   assert.match(markup, /FreeInference <em>Agentic Dataset<\/em>/);
-  assert.match(markup, /A trace of agent sessions served by FreeInference\./);
+  assert.match(markup, /Sixteen weeks worth of coding agent traces from FreeInference\./);
   assert.deepEqual([...markup.matchAll(/<h2>([^<]+)<\/h2>/g)].map((match) => match[1]), ["On this site", "Elsewhere"]);
   assert.doesNotMatch(markup, /Copyright|Accessibility|footer-legal/);
 });
