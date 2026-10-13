@@ -18,9 +18,9 @@ not write it SHALL be able to follow any module on a first read.
 - **Docstrings and comments.** A module header says what the module holds
   and the shape of what crosses its boundary; an export's docstring states
   its definition; a comment inside a function says why, in one line. None
-  refers to
-  history, people or paper figure numbers, and none is cut to a count: a
-  header over ten lines is reviewed for sentences a reader does not need.
+  refers to history, people or paper figure numbers, and none is cut to a
+  count: a header over ten lines is reviewed for sentences a reader does
+  not need.
 - **SQL is a literal.** Each query, and the statements that create the views
   and selection tables, is one `.sql` file under `site/queries/` that names
   its columns in words. No SQL is written in JavaScript and no query is
