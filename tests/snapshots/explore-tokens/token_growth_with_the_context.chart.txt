@@ -1,0 +1,155 @@
+<svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" width="528" height="240" viewBox="0 0 528 240" role="img" aria-label="Token growth with the context: Contexts keep growing, but each step adds surprisingly little." style="color: var(--chart-label); background: transparent; font-family: var(--font-sans);">
+<style>:where(.plot-d6a7b5) { --plot-background: white; display: block; height: auto; height: intrinsic; max-width: 100%; } :where(.plot-d6a7b5 text), :where(.plot-d6a7b5 tspan) { white-space: pre; }</style>
+<g aria-label="x-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0.5,0)">
+<line x1="72" x2="72" y1="32" y2="192">
+</line>
+<line x1="178" x2="178" y1="32" y2="192">
+</line>
+<line x1="284" x2="284" y1="32" y2="192">
+</line>
+<line x1="389.99999999999994" x2="389.99999999999994" y1="32" y2="192">
+</line>
+<line x1="496" x2="496" y1="32" y2="192">
+</line>
+</g>
+<g aria-label="y-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0,0.5)">
+<line x1="72" x2="496" y1="192" y2="192">
+</line>
+<line x1="72" x2="496" y1="152" y2="152">
+</line>
+<line x1="72" x2="496" y1="111.99999999999997" y2="111.99999999999997">
+</line>
+<line x1="72" x2="496" y1="72" y2="72">
+</line>
+<line x1="72" x2="496" y1="32" y2="32">
+</line>
+</g>
+<g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0.5,0)">
+<path transform="translate(72,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(178,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(284,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(389.99999999999994,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(496,192)" d="M0,0L0,6">
+</path>
+</g>
+<g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0.5,9.5)">
+<text y="0.71em" transform="translate(72,192)">1</text>
+<text y="0.71em" transform="translate(178,192)">10</text>
+<text y="0.71em" transform="translate(284,192)">100</text>
+<text y="0.71em" transform="translate(389.99999999999994,192)">1k</text>
+<text y="0.71em" transform="translate(496,192)">10k</text>
+</g>
+<g aria-label="x-axis label" text-anchor="end" transform="translate(29.5,45.5)">
+<text transform="translate(496,192)">Messages in the request</text>
+</g>
+<g aria-label="y-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0,0.5)">
+<path transform="translate(72,192)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,152)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,111.99999999999997)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,72)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,32)" d="M0,0L-6,0">
+</path>
+</g>
+<g aria-label="y-axis tick label" text-anchor="end" font-variant="tabular-nums" transform="translate(-8.5,0.5)">
+<text y="0.32em" transform="translate(72,192)">100</text>
+<text y="0.32em" transform="translate(72,152)">1k</text>
+<text y="0.32em" transform="translate(72,111.99999999999997)">10k</text>
+<text y="0.32em" transform="translate(72,72)">100k</text>
+<text y="0.32em" transform="translate(72,32)">1M</text>
+</g>
+<g aria-label="y-axis label" text-anchor="start" transform="translate(-68.5,-28.5)">
+<text y="0.71em" transform="translate(72,32)">Median tokens</text>
+</g>
+<g aria-label="line" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" transform="translate(0.5,0.5)">
+<path stroke="var(--token-cached)" d="M103.909,140.668L135.818,101.137L167.728,95.845L199.637,90.489L231.546,84.136L263.455,78.018L295.364,71.458L327.273,64.144L359.183,54.126L391.092,45.325L423.001,38.39L454.91,34.212">
+</path>
+<path stroke="var(--token-uncached)" d="M103.909,112.91L135.818,150.392L167.728,150.922L199.637,154.58L231.546,158.346L263.455,161.735L295.364,164.111L327.273,165.49L359.183,166.742L391.092,168.18L423.001,170.895L454.91,169.039">
+</path>
+<path stroke="var(--token-output)" d="M103.909,183.835L135.818,182.179L167.728,178.865L199.637,176.433L231.546,175.67L263.455,176.292L295.364,177.607L327.273,178.224L359.183,177.836L391.092,178.224L423.001,182.278L454.91,188.833">
+</path>
+</g>
+<g aria-label="dot" transform="translate(0.5,0.5)">
+<circle cx="103.909179540382" cy="140.66795085185802" r="3" fill="var(--token-cached)">
+</circle>
+<circle cx="135.818359080764" cy="101.13748698270777" r="3" fill="var(--token-cached)">
+</circle>
+<circle cx="167.727538621146" cy="95.84499360362402" r="3" fill="var(--token-cached)">
+</circle>
+<circle cx="199.636718161528" cy="90.48925043317497" r="3" fill="var(--token-cached)">
+</circle>
+<circle cx="231.54589770191" cy="84.13596028860795" r="3" fill="var(--token-cached)">
+</circle>
+<circle cx="263.455077242292" cy="78.01830991979932" r="3" fill="var(--token-cached)">
+</circle>
+<circle cx="295.364256782674" cy="71.45819954188165" r="3" fill="var(--token-cached)">
+</circle>
+<circle cx="327.273436323056" cy="64.1436665418793" r="3" fill="var(--token-cached)">
+</circle>
+<circle cx="359.182615863438" cy="54.1255949095379" r="3" fill="var(--token-cached)">
+</circle>
+<circle cx="391.09179540382" cy="45.324910078562965" r="3" fill="var(--token-cached)">
+</circle>
+<circle cx="423.000974944202" cy="38.39013389674208" r="3" fill="var(--token-cached)">
+</circle>
+<circle cx="454.910154484584" cy="34.21185154947818" r="3" fill="var(--token-cached)">
+</circle>
+<circle cx="103.909179540382" cy="112.9102667946325" r="3" fill="var(--token-uncached)">
+</circle>
+<circle cx="135.818359080764" cy="150.3917348970116" r="3" fill="var(--token-uncached)">
+</circle>
+<circle cx="167.727538621146" cy="150.92233488163882" r="3" fill="var(--token-uncached)">
+</circle>
+<circle cx="199.636718161528" cy="154.57970936701147" r="3" fill="var(--token-uncached)">
+</circle>
+<circle cx="231.54589770191" cy="158.3456211818058" r="3" fill="var(--token-uncached)">
+</circle>
+<circle cx="263.455077242292" cy="161.73455567016606" r="3" fill="var(--token-uncached)">
+</circle>
+<circle cx="295.364256782674" cy="164.11082628961128" r="3" fill="var(--token-uncached)">
+</circle>
+<circle cx="327.273436323056" cy="165.48968673273703" r="3" fill="var(--token-uncached)">
+</circle>
+<circle cx="359.182615863438" cy="166.74224923947313" r="3" fill="var(--token-uncached)">
+</circle>
+<circle cx="391.09179540382" cy="168.18015112697702" r="3" fill="var(--token-uncached)">
+</circle>
+<circle cx="423.000974944202" cy="170.89480396514648" r="3" fill="var(--token-uncached)">
+</circle>
+<circle cx="454.910154484584" cy="169.03874929089125" r="3" fill="var(--token-uncached)">
+</circle>
+<circle cx="103.909179540382" cy="183.83520069376303" r="3" fill="var(--token-output)">
+</circle>
+<circle cx="135.818359080764" cy="182.17949328743404" r="3" fill="var(--token-output)">
+</circle>
+<circle cx="167.727538621146" cy="178.86481586245048" r="3" fill="var(--token-output)">
+</circle>
+<circle cx="199.636718161528" cy="176.4333566254187" r="3" fill="var(--token-output)">
+</circle>
+<circle cx="231.54589770191" cy="175.67040138752606" r="3" fill="var(--token-output)">
+</circle>
+<circle cx="263.455077242292" cy="176.29212186961337" r="3" fill="var(--token-output)">
+</circle>
+<circle cx="295.364256782674" cy="177.6065807064045" r="3" fill="var(--token-output)">
+</circle>
+<circle cx="327.273436323056" cy="178.22430905259557" r="3" fill="var(--token-output)">
+</circle>
+<circle cx="359.182615863438" cy="177.83566243410397" r="3" fill="var(--token-output)">
+</circle>
+<circle cx="391.09179540382" cy="178.22430905259557" r="3" fill="var(--token-output)">
+</circle>
+<circle cx="423.000974944202" cy="182.27847805254822" r="3" fill="var(--token-output)">
+</circle>
+<circle cx="454.910154484584" cy="188.83275015809502" r="3" fill="var(--token-output)">
+</circle>
+</g>
+<g aria-label="tip" fill="var(--plot-background)" stroke="currentColor" pointer-events="none" text-anchor="start" transform="translate(0.5,0.5)">
+</g>
+</svg>

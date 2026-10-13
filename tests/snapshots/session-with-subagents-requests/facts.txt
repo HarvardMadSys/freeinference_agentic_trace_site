@@ -1,0 +1,11 @@
+Harness: kilo
+Models: glm-5.3-flash 22 requests
+Started: Aug 31, 2026, 22:09 UTC
+Duration: 18.2 min
+Turns: 2 + 2 in subagents
+Requests: 12 + 10 in subagents
+Input tokens: 549.4k
+Cached share (reported): 78.6% 420.8k cached
+Output tokens: 46.2k
+Subagents: 2
+Tool calls: 17 + 15 in subagents

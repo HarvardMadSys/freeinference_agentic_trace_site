@@ -20,8 +20,8 @@ The rules in `CONTRIBUTING.md` are binding. The ones that matter most:
   has tests.
 - The pages read what `make data` wrote, never a query: after editing a
   query, a colour order or a column, run
-  `make data PIPELINE=<the pipeline's checkout>` and commit `site/data` with
-  the change.
+  `make data PIPELINE=<the pipeline's checkout>`, then `make snapshots`, and
+  commit `site/data` and `tests/snapshots` with the change.
 
 ## Verifying a change
 

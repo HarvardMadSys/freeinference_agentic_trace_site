@@ -1,0 +1,774 @@
+<svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" width="1131" height="88" viewBox="0 0 1131 88" role="img" aria-label="Where the time went: Each agent's time in the parts' colours; subagent waits in violet." style="color: var(--chart-label); background: transparent; font-family: var(--font-sans);">
+<style>:where(.plot-d6a7b5) { --plot-background: white; display: block; height: auto; height: intrinsic; max-width: 100%; } :where(.plot-d6a7b5 text), :where(.plot-d6a7b5 tspan) { white-space: pre; }</style>
+<g aria-label="x-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0.5,0)">
+<line x1="116" x2="116" y1="8" y2="40">
+</line>
+<line x1="189.43074206544154" x2="189.43074206544154" y1="8" y2="40">
+</line>
+<line x1="262.86148413088307" x2="262.86148413088307" y1="8" y2="40">
+</line>
+<line x1="336.29222619632463" x2="336.29222619632463" y1="8" y2="40">
+</line>
+<line x1="409.72296826176614" x2="409.72296826176614" y1="8" y2="40">
+</line>
+<line x1="483.15371032720776" x2="483.15371032720776" y1="8" y2="40">
+</line>
+<line x1="556.5844523926493" x2="556.5844523926493" y1="8" y2="40">
+</line>
+<line x1="630.0151944580908" x2="630.0151944580908" y1="8" y2="40">
+</line>
+<line x1="703.4459365235323" x2="703.4459365235323" y1="8" y2="40">
+</line>
+<line x1="776.876678588974" x2="776.876678588974" y1="8" y2="40">
+</line>
+<line x1="850.3074206544155" x2="850.3074206544155" y1="8" y2="40">
+</line>
+<line x1="923.738162719857" x2="923.738162719857" y1="8" y2="40">
+</line>
+<line x1="997.1689047852985" x2="997.1689047852985" y1="8" y2="40">
+</line>
+<line x1="1070.5996468507399" x2="1070.5996468507399" y1="8" y2="40">
+</line>
+</g>
+<g aria-label="rect">
+<rect x="116" y="11.84" width="12.454588161719528" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="128.45458816171953" y="11.84" width="1.83870578131868" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="130.2932939430382" y="29.12" width="0.5544021025940822" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="130.2932939430382" y="29.12" width="0.5544021025940822" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="130.2932939430382" y="29.12" width="0.5544021025940822" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="130.2932939430382" y="11.84" width="0.5544021025940822" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="130.8476960456323" y="11.84" width="0.34365587286626464" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="131.19135191849855" y="11.84" width="17.78492572824993" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="148.97627764674849" y="29.12" width="1.2189503182863177" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="148.97627764674849" y="29.12" width="1.2189503182863177" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="148.97627764674849" y="29.12" width="1.2189503182863177" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="148.97627764674849" y="29.12" width="1.2189503182863177" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="148.97627764674849" y="29.12" width="1.2189503182863177" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="148.97627764674849" y="29.12" width="1.2189503182863177" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="148.97627764674849" y="11.84" width="1.2189503182863177" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="150.1952279650348" y="11.84" width="0.5588079471180265" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="150.75403591215283" y="11.84" width="2.174284272557742" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="152.92832018471057" y="29.12" width="8.64940710788835" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="152.92832018471057" y="11.84" width="8.64940710788835" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="161.57772729259892" y="11.84" width="1.2042641698732268" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="162.78199146247215" y="11.84" width="22.506522443057833" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="185.28851390552998" y="29.12" width="3.572405601483723" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="185.28851390552998" y="29.12" width="3.572405601483723" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="185.28851390552998" y="29.12" width="3.572405601483723" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="185.28851390552998" y="11.84" width="3.572405601483723" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="188.8609195070137" y="11.84" width="0.29005143115850274" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="189.1509709381722" y="11.84" width="58.65721106929536" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="247.80818200746756" y="29.12" width="2.883625240909879" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="247.80818200746756" y="11.84" width="2.883625240909879" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="250.69180724837744" y="11.84" width="13.506850695517329" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="264.1986579438948" y="11.84" width="22.900111220528572" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="287.09876916442335" y="29.12" width="0.46481659727430724" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="287.09876916442335" y="11.84" width="0.4648165972742504" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="287.5635857616976" y="11.84" width="0.2122148445691323" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="287.7758006062667" y="11.84" width="95.65455615154747" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="383.4303567578142" y="29.12" width="0.6770314418433827" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="383.43035675781414" y="11.84" width="0.6770314418433827" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="384.1073881996575" y="11.84" width="0.5911174736268094" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="384.69850567328433" y="11.84" width="10.73410587512626" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="395.4326115484106" y="29.12" width="1.4994557529763028" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="395.43261154841065" y="11.84" width="1.4994557529763028" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="396.93206730138695" y="11.84" width="0.4038690813598578" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="397.3359363827468" y="11.84" width="2.4937080005424264" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="399.82964438328924" y="29.12" width="0.5132808870374106" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="399.82964438328924" y="11.84" width="0.5132808870374106" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="400.34292527032665" y="11.84" width="0.228369607823538" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="400.5712948781502" y="11.84" width="2.984959664960229" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="403.5562545431104" y="29.12" width="0.6469248375964867" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="403.5562545431104" y="11.84" width="0.6469248375965435" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="404.20317938070696" y="11.84" width="0.2283696078234243" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="404.4315489885304" y="11.84" width="1.6213507848050313" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="406.0528997733354" y="29.12" width="0.6873117457325293" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="406.0528997733354" y="11.84" width="0.6873117457325293" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="406.74021151906794" y="11.84" width="0.28197404953124305" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="407.0221855685992" y="11.84" width="0.20707469262458744" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="407.22926026122377" y="29.12" width="32.685491908169354" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="407.22926026122377" y="11.84" width="32.685491908169354" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="439.9147521693931" y="11.84" width="0.2518674452844607" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="440.1666196146776" y="11.84" width="7.014104482090943" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="447.18072409676853" y="29.12" width="0.8224243111330338" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="447.18072409676853" y="29.12" width="0.8224243111330338" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="447.1807240967685" y="11.84" width="0.822424311132977" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="448.00314840790145" y="11.84" width="0.4479275265992442" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="448.4510759345007" y="11.84" width="2.489302156018482" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="450.9403780905192" y="29.12" width="0.5184210389820123" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="450.9403780905192" y="11.84" width="0.5184210389820123" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="451.4587991295012" y="11.84" width="0.26361636401492206" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="451.7224154935161" y="11.84" width="2.073684155928049" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="453.79609964944416" y="29.12" width="0.822424311132977" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="453.79609964944416" y="11.84" width="0.822424311132977" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="454.61852396057714" y="11.84" width="0.23644698945065556" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="454.8549709500278" y="11.84" width="2.0281570958475186" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="456.8831280458753" y="29.12" width="1.3489227317421637" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="456.8831280458753" y="29.12" width="1.3489227317421637" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="456.8831280458753" y="29.12" width="1.3489227317421637" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="456.8831280458753" y="11.84" width="1.3489227317421637" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="458.2320507776175" y="11.84" width="5.5880794711800945" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="463.82013024879757" y="11.84" width="5.7701877115024445" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="469.5903179603" y="11.84" width="0.4633479824328788" height="15.36" fill="var(--wait-user)">
+</rect>
+<rect x="470.0536659427329" y="11.84" width="0.3135492686195107" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="470.3672152113524" y="11.84" width="9.230244277625957" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="479.59745948897836" y="29.12" width="0.7365103429163469" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="479.5974594889784" y="11.84" width="0.7365103429163469" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="480.33396983189476" y="11.84" width="0.2599448269116351" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="480.5939146588064" y="11.84" width="3.714126933670059" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="484.30804159247646" y="29.12" width="1.1102728200294791" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="484.30804159247646" y="11.84" width="1.1102728200294791" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="485.41831441250594" y="11.84" width="0.30914342409550954" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="485.72745783660145" y="11.84" width="6.6462164643431265" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="492.3736743009446" y="29.12" width="0.63297299660411" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="492.3736743009446" y="11.84" width="0.63297299660411" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="493.0066472975487" y="11.84" width="0.3157521908813692" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="493.32239948843005" y="11.84" width="3.9358877747076235" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="497.2582872631377" y="29.12" width="0.9883777882008644" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="497.2582872631377" y="11.84" width="0.9883777882008644" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="498.24666505133854" y="11.84" width="0.3164864983020266" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="498.56315154964057" y="11.84" width="4.924999870329202" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="503.48815141996977" y="29.12" width="1.002329629193298" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="503.48815141996977" y="11.84" width="1.002329629193298" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="504.49048104916307" y="11.84" width="0.313549268619397" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="504.80403031778246" y="11.84" width="1.4693491487295205" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="506.273379466512" y="29.12" width="0.7350417280750889" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="506.273379466512" y="29.12" width="0.7350417280750889" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="506.273379466512" y="11.84" width="0.7350417280750889" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="507.0084211945871" y="11.84" width="0.3700909400098453" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="507.3785121345969" y="11.84" width="1.1646115691578416" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="508.54312370375476" y="11.84" width="0.45967644532970553" height="15.36" fill="var(--wait-user)">
+</rect>
+<rect x="509.00280014908446" y="11.84" width="0.41782092235234813" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="509.4206210714368" y="11.84" width="9.120098164527803" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="518.5407192359646" y="29.12" width="0.6160839259291606" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="518.5407192359646" y="11.84" width="0.6160839259290469" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="519.1568031618937" y="11.84" width="0.3355784912390618" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="519.4923816531327" y="11.84" width="2.4988481524869712" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="521.9912298056197" y="29.12" width="0.7937863217274526" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="521.9912298056197" y="11.84" width="0.7937863217274526" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="522.7850161273471" y="11.84" width="0.4310384559241811" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="523.2160545832713" y="11.84" width="0.5044691979895788" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="523.7205237812609" y="29.12" width="0.525029805767872" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="523.7205237812609" y="11.84" width="0.525029805767872" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="524.2455535870288" y="11.84" width="0.3230952650879999" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="524.5686488521168" y="11.84" width="0.1196921095666994" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="524.6883409616835" y="29.12" width="1.146253883641407" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="524.6883409616835" y="11.84" width="1.146253883641407" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="525.8345948453249" y="11.84" width="0.49492320152114644" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="526.329518046846" y="11.84" width="3.1854255907989" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="529.5149436376449" y="29.12" width="0.6131466962464174" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="529.5149436376449" y="29.12" width="0.6131466962464174" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="529.5149436376449" y="29.12" width="0.6131466962464174" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="529.5149436376449" y="11.84" width="0.6131466962464174" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="530.1280903338914" y="11.84" width="0.36935663258918794" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="530.4974469664805" y="11.84" width="1.7645407318325397" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="532.2619876983131" y="11.84" width="47.472974745307965" height="15.36" fill="var(--wait-user)">
+</rect>
+<rect x="579.734962443621" y="11.84" width="2.1162739863259503" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="581.851236429947" y="11.84" width="23.830478722497787" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="605.6817151524448" y="29.12" width="2.3226143715298804" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="605.6817151524448" y="29.12" width="2.3226143715298804" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="605.6817151524448" y="29.12" width="2.3226143715298804" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="605.6817151524448" y="11.84" width="2.3226143715298804" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="608.0043295239747" y="11.84" width="1.0052668588758706" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="609.0095963828505" y="11.84" width="19.44152326924643" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="628.451119652097" y="29.12" width="0.498594738624206" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="628.451119652097" y="11.84" width="0.498594738624206" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="628.9497143907212" y="11.84" width="0.5213582686646987" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="629.4710726593859" y="11.84" width="11.903123288808047" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="641.3741959481939" y="29.12" width="0.6417846856520555" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="641.3741959481939" y="29.12" width="0.6417846856520555" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="641.3741959481938" y="11.84" width="0.6417846856521692" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="642.015980633846" y="11.84" width="0.3855113958434231" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="642.4014920296894" y="11.84" width="1.3430482723770183" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="643.7445403020664" y="29.12" width="1.091180827092444" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="643.7445403020664" y="11.84" width="1.091180827092444" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="644.8357211291589" y="11.84" width="1.47228637841215" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="646.308007507571" y="11.84" width="1.1866407917775632" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="647.4946482993486" y="29.12" width="0.5448561061255077" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="647.4946482993487" y="11.84" width="0.5448561061255077" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="648.0395044054742" y="11.84" width="1.7432458166334754" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="649.7827502221077" y="11.84" width="0.003671537103286937" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="649.786421759211" y="29.12" width="1.1337706574902313" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="649.7864217592111" y="11.84" width="1.1337706574902313" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="650.9201924167013" y="11.84" width="0.43838153013086867" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="651.3585739468322" y="11.84" width="5.407439845698946" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="656.7660137925311" y="29.12" width="0.8488593782764156" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="656.7660137925311" y="29.12" width="0.8488593782764156" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="656.7660137925311" y="29.12" width="0.8488593782764156" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="656.7660137925312" y="11.84" width="0.8488593782764156" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="657.6148731708076" y="11.84" width="0.5595422545386555" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="658.1744154253463" y="11.84" width="1.9216825198526521" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="660.096097945199" y="11.84" width="0.41708661493169075" height="15.36" fill="var(--wait-user)">
+</rect>
+<rect x="660.5131845601306" y="11.84" width="0.4435216820753567" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="660.956706242206" y="11.84" width="7.346745743647375" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="668.3034519858534" y="29.12" width="2.3138026824819917" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="668.3034519858534" y="11.84" width="2.3138026824819917" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="670.6172546683354" y="11.84" width="0.6234270001356208" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="671.240681668471" y="11.84" width="3.205986198577193" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="674.4466678670482" y="11.84" width="0.42369538171760723" height="15.36" fill="var(--wait-user)">
+</rect>
+<rect x="674.8703632487658" y="11.84" width="0.36862232516841686" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="675.2389855739342" y="11.84" width="8.694934167968995" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="683.9339197419032" y="29.12" width="1.8254882477468755" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="683.9339197419032" y="11.84" width="1.8254882477468755" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="685.7594079896501" y="11.84" width="0.43324137818615327" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="686.1926493678362" y="11.84" width="4.093029562727679" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="690.2856789305639" y="11.84" width="4.99108753818814" height="15.36" fill="var(--wait-user)">
+</rect>
+<rect x="695.276766468752" y="11.84" width="1.343048272376791" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="696.6198147411288" y="11.84" width="62.73482017618937" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="759.3546349173182" y="29.12" width="0.5477933358081373" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="759.3546349173182" y="11.84" width="0.5477933358081373" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="759.9024282531263" y="11.84" width="0.5896488587854947" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="760.4920771119118" y="11.84" width="1.113944357132823" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="761.6060214690447" y="29.12" width="0.6785000566846975" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="761.6060214690447" y="29.12" width="0.6785000566846975" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="761.6060214690448" y="11.84" width="0.6785000566845838" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="762.2845215257294" y="11.84" width="0.6248956149769356" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="762.9094171407063" y="11.84" width="2.896108467061026" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="765.8055256077673" y="29.12" width="0.5360444170777328" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="765.8055256077673" y="11.84" width="0.5360444170777328" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="766.341570024845" y="11.84" width="0.420758152034864" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="766.7623281768799" y="11.84" width="3.0099261172624665" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="769.7722542941424" y="29.12" width="0.5492619506495657" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="769.7722542941423" y="11.84" width="0.5492619506495657" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="770.3215162447918" y="11.84" width="0.5360444170778464" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="770.8575606618697" y="11.84" width="19.335048693251224" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="790.1926093551209" y="29.12" width="0.547793335808251" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="790.1926093551209" y="11.84" width="0.547793335808251" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="790.7404026909292" y="11.84" width="0.8936521309364025" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="791.6340548218656" y="11.84" width="15.255236664095605" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="806.8892914859612" y="29.12" width="0.677031441843269" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="806.8892914859612" y="29.12" width="0.677031441843269" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="806.8892914859612" y="11.84" width="0.677031441843269" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="807.5663229278044" y="11.84" width="1.3239562794398125" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="808.8902792072442" y="11.84" width="7.549414591748246" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="816.4396937989925" y="29.12" width="0.6550022192237748" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="816.4396937989925" y="29.12" width="0.6550022192237748" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="816.4396937989924" y="11.84" width="0.6550022192237748" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="817.0946960182162" y="11.84" width="0.7673512545839003" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="817.8620472728" y="11.84" width="1.6727523042507073" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="819.5347995770508" y="29.12" width="0.6579394489062906" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="819.5347995770509" y="11.84" width="0.6579394489062906" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="820.1927390259572" y="11.84" width="0.6527992969618026" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="820.845538322919" y="11.84" width="14.49375986887685" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="835.3392981917958" y="29.12" width="1.1102728200294223" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="835.3392981917958" y="29.12" width="1.1102728200294223" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="835.3392981917958" y="29.12" width="1.1102728200294223" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="835.3392981917958" y="29.12" width="1.1102728200294223" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="835.3392981917959" y="11.84" width="1.1102728200294223" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="836.4495710118254" y="11.84" width="1.4788951451979528" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="837.9284661570233" y="11.84" width="2.1845645764467463" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="840.11303073347" y="29.12" width="0.5382473393397049" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="840.1130307334702" y="11.84" width="0.5382473393397049" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="840.6512780728099" y="11.84" width="0.6895146679944446" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="841.3407927408043" y="11.84" width="0.5492619506496794" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="841.890054691454" y="29.12" width="1.423087781228105" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="841.890054691454" y="11.84" width="1.423087781228105" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="843.3131424726821" y="11.84" width="0.45306767854367536" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="843.7662101512258" y="11.84" width="16.021853611258734" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="859.7880637624845" y="29.12" width="0.5448561061256214" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="859.7880637624845" y="11.84" width="0.5448561061256214" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="860.3329198686101" y="11.84" width="0.5272327280299578" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="860.8601525966401" y="11.84" width="7.545743054644618" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="868.4058956512847" y="29.12" width="0.5007976608862919" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="868.4058956512847" y="11.84" width="0.5007976608862919" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="868.906693312171" y="11.84" width="0.4303041485036374" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="869.3369974606746" y="11.84" width="7.617705181868814" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="876.9547026425435" y="29.12" width="0.544121798704964" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="876.9547026425435" y="11.84" width="0.544121798704964" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="877.4988244412484" y="11.84" width="0.590383166206152" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="878.0892076074546" y="11.84" width="7.511230605874061" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="885.6004382133286" y="29.12" width="0.804066625616656" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="885.6004382133285" y="11.84" width="0.8040666256165423" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="886.4045048389451" y="11.84" width="0.9164156609768952" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="887.320920499922" y="11.84" width="3.0796853222245772" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="890.4006058221465" y="29.12" width="0.6116780814051026" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="890.4006058221465" y="11.84" width="0.6116780814051026" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="891.0122839035516" y="11.84" width="1.0478566892737717" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="892.0601405928254" y="11.84" width="5.392753697286025" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="897.4528942901114" y="29.12" width="1.557466039208066" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="897.4528942901114" y="11.84" width="1.557466039208066" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="899.0103603293195" y="11.84" width="0.4846428976320567" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="899.4950032269516" y="11.84" width="6.77765749264006" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="906.2726607195916" y="29.12" width="1.471552070991379" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="906.2726607195918" y="11.84" width="1.4715520709912653" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="907.7442127905831" y="11.84" width="0.6234270001356208" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="908.3676397907187" y="11.84" width="3.120072230360506" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="911.4877120210792" y="29.12" width="0.7467906468057208" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="911.4877120210792" y="29.12" width="0.7467906468057208" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="911.4877120210792" y="11.84" width="0.7467906468057208" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="912.234502667885" y="11.84" width="0.5911174736269231" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="912.8256201415119" y="11.84" width="2.2668070075600326" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="915.0924271490719" y="11.84" width="0.5654167139038009" height="15.36" fill="var(--wait-user)">
+</rect>
+<rect x="915.6578438629757" y="11.84" width="0.6366445337074538" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="916.2944883966832" y="11.84" width="6.608766785889884" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="922.903255182573" y="29.12" width="1.617679247701517" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="922.903255182573" y="11.84" width="1.617679247701517" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="924.5209344302746" y="11.84" width="0.9443193429616485" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="925.4652537732362" y="11.84" width="1.6837669155604544" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="927.1490206887967" y="11.84" width="0.4604107527503629" height="15.36" fill="var(--wait-user)">
+</rect>
+<rect x="927.609431441547" y="11.84" width="0.7056694312489071" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="928.3151008727959" y="11.84" width="12.016206631588943" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="940.3313075043849" y="29.12" width="0.5279670354505015" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="940.3313075043849" y="11.84" width="0.5279670354505015" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="940.8592745398354" y="11.84" width="0.5323728799743321" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="941.3916474198097" y="11.84" width="3.055453177342997" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="944.4471005971527" y="29.12" width="1.850454700049113" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="944.4471005971527" y="11.84" width="1.850454700049113" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="946.2975552972018" y="11.84" width="0.588914551364951" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="946.8864698485668" y="11.84" width="2.5216116825272366" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="949.408081531094" y="29.12" width="0.6454562227552287" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="949.408081531094" y="29.12" width="0.6454562227552287" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="949.408081531094" y="11.84" width="0.6454562227552287" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="950.0535377538492" y="11.84" width="0.5022662757276066" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="950.5558040295768" y="11.84" width="1.078697600941382" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="951.6345016305182" y="11.84" width="18.111692530441132" height="15.36" fill="var(--wait-user)">
+</rect>
+<rect x="969.7461941609594" y="11.84" width="1.4627403819434903" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="971.2089345429029" y="11.84" width="26.740539030551304" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="997.9494735734542" y="29.12" width="3.8727373365313724" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="997.9494735734542" y="11.84" width="3.8727373365313724" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1001.8222109099855" y="11.84" width="1.1675487988404711" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1002.989759708826" y="11.84" width="7.660295012266829" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="1010.6500547210928" y="29.12" width="2.7081257673736445" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1010.6500547210928" y="11.84" width="2.7081257673736445" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1013.3581804884665" y="11.84" width="0.5147495018786685" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1013.8729299903451" y="11.84" width="33.14590266091966" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="1047.0188326512648" y="29.12" width="0.7592738729567827" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1047.0188326512648" y="11.84" width="0.7592738729567827" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1047.7781065242216" y="11.84" width="0.5610108693797429" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1048.3391173936013" y="11.84" width="9.023903892422368" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="1057.3630212860237" y="29.12" width="1.210872936658916" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1057.3630212860237" y="29.12" width="1.210872936658916" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1057.3630212860237" y="11.84" width="1.210872936658916" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1058.5738942226826" y="11.84" width="1.077228986100181" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1059.6511232087828" y="11.84" width="2.516471530582521" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="1062.1675947393653" y="29.12" width="0.5558707174354822" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1062.1675947393653" y="11.84" width="0.5558707174352548" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1062.7234654568006" y="11.84" width="0.718152657399969" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1063.4416181142005" y="11.84" width="1.5053302123417325" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="1064.9469483265423" y="29.12" width="1.283569371304111" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1064.9469483265423" y="29.12" width="1.283569371304111" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1064.9469483265423" y="29.12" width="1.283569371304111" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1064.9469483265423" y="11.84" width="1.283569371304111" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1066.2305176978464" y="11.84" width="0.7901147846239382" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1067.0206324824703" y="11.84" width="1.2064670921354264" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="1068.2270995746057" y="29.12" width="0.7695541768457588" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1068.2270995746057" y="11.84" width="0.7695541768457588" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1068.9966537514515" y="11.84" width="0.8517966079591588" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1069.8484503594107" y="11.84" width="5.794419856383911" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="1075.6428702157946" y="29.12" width="1.2923810603515449" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1075.6428702157946" y="29.12" width="1.2923810603515449" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1075.6428702157946" y="29.12" width="1.2923810603515449" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1075.6428702157946" y="11.84" width="1.2923810603515449" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1076.9352512761461" y="11.84" width="0.6961234347804748" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1077.6313747109266" y="11.84" width="4.030613431972142" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="1081.6619881428987" y="29.12" width="3.2449044918721484" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1081.6619881428987" y="11.84" width="3.244904491871921" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1084.9068926347707" y="11.84" width="0.6102094665636741" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1085.5171021013343" y="11.84" width="3.327881230406092" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="1088.8449833317404" y="29.12" width="2.3343632902603986" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1088.8449833317404" y="11.84" width="2.3343632902603986" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1091.1793466220008" y="11.84" width="0.6065379294602735" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1091.785884551461" y="11.84" width="3.7978379796247737" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="1095.5837225310859" y="29.12" width="0.6887803605736735" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1095.5837225310859" y="11.84" width="0.6887803605736735" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1096.2725028916595" y="11.84" width="0.547793335808592" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1096.8202962274681" y="11.84" width="2.471678777922534" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="1099.2919750053907" y="29.12" width="1.3929811769814933" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1099.2919750053907" y="29.12" width="1.3929811769814933" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1099.2919750053907" y="29.12" width="1.3929811769814933" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1099.2919750053907" y="29.12" width="1.3929811769814933" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1099.2919750053907" y="11.84" width="1.3929811769814933" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1100.6849561823722" y="11.84" width="0.7622111026394123" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1101.4471672850116" y="11.84" width="0.3311726467150038" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="1101.7783399317266" y="29.12" width="1.8115364067546125" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1101.7783399317266" y="11.84" width="1.811536406754385" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1103.589876338481" y="11.84" width="0.6403160708107407" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1104.2301924092917" y="11.84" width="0.7959892439894247" height="15.36" fill="var(--part-decode)">
+</rect>
+<rect x="1105.0261816532811" y="29.12" width="0.7056694312486798" height="7.040000000000003" fill="var(--part-tool)">
+</rect>
+<rect x="1105.0261816532811" y="11.84" width="0.7056694312486798" height="15.36" fill="var(--wait-tool)">
+</rect>
+<rect x="1105.7318510845298" y="11.84" width="0.9516624171683361" height="15.36" fill="var(--part-prefill)">
+</rect>
+<rect x="1106.6835135016981" y="11.84" width="0.31648649830185605" height="15.36" fill="var(--part-decode)">
+</rect>
+</g>
+<g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0.5,0)">
+<path transform="translate(116,40)" d="M0,0L0,6">
+</path>
+<path transform="translate(336.29222619632463,40)" d="M0,0L0,6">
+</path>
+<path transform="translate(556.5844523926493,40)" d="M0,0L0,6">
+</path>
+<path transform="translate(776.876678588974,40)" d="M0,0L0,6">
+</path>
+<path transform="translate(997.1689047852985,40)" d="M0,0L0,6">
+</path>
+</g>
+<g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0.5,9.5)">
+<text y="0.71em" transform="translate(116,40)">0:00</text>
+<text y="0.71em" transform="translate(336.29222619632463,40)">5:00</text>
+<text y="0.71em" transform="translate(556.5844523926493,40)">10:00</text>
+<text y="0.71em" transform="translate(776.876678588974,40)">15:00</text>
+<text y="0.71em" transform="translate(997.1689047852985,40)">20:00</text>
+</g>
+<g aria-label="x-axis label" text-anchor="end" transform="translate(21.5,45.5)">
+<text transform="translate(1107,40)">Time since first request (m:ss)</text>
+</g>
+<g aria-label="y-axis tick label" text-anchor="end" font-variant="tabular-nums" transform="translate(-8.5,0.5)">
+<text y="0.32em" transform="translate(116,24)">Main</text>
+</g>
+</svg>

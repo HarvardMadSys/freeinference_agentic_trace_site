@@ -1,0 +1,5 @@
+title: Token growth with the context
+insight: Contexts keep growing, but each step adds surprisingly little.
+caption: As request histories grow, cached input reaches hundreds of thousands of tokens, while newly processed input falls toward roughly 1K tokens and output remains near 200 tokens per request.
+definition: Median cached input, uncached input, and output tokens per request, grouped by how many messages the request contains. The groups are 1 message, 2–3 messages, 4–7 messages, and so on.
+rows: 1,077,395 rows · 1 bin hidden (fewer than 50 rows each)

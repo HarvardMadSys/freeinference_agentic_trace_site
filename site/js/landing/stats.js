@@ -25,7 +25,7 @@ export async function runStats(container, context) {
  * top-level sessions, requests, input tokens and tool calls, and its harnesses. The three largest are written
  * compactly.
  */
-export function statsRows(totalsRow, weeks) {
+function statsRows(totalsRow, weeks) {
   return [
     { value: formatCount(weeks.length), label: "weeks" },
     { value: formatCount(totalsRow.sessions), label: "sessions" },

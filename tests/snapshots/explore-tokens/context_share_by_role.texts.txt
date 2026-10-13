@@ -1,0 +1,5 @@
+title: Context share by role
+insight: The agent's own responses eventually dominate its context.
+caption: System prompts dominate initially, followed by growing tool results. In longer contexts, tool history is pruned while assistant messages continue accumulating and become the largest component.
+definition: Each bar shows the percentage of input tokens from system instructions, users, the assistant, tool results, and tool definitions. Requests are grouped by input size, with each group twice the size of the previous one. Here, 4k means 4,096 tokens.
+rows: 1,125,586 rows · 3 bins hidden (fewer than 50 rows each)

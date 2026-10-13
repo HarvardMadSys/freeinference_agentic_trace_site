@@ -1,0 +1,5 @@
+deepseek-v4-flash | pressed=true | legend-swatch is-line background: var(--series-1);
+glm-5.2 | pressed=true | legend-swatch is-line background: var(--series-2);
+glm-5.1 | pressed=true | legend-swatch is-line background: var(--series-3);
+minimax-m3 | pressed=true | legend-swatch is-line background: var(--series-4);
+glm-5.3-flash | pressed=true | legend-swatch is-line background: var(--series-6);

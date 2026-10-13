@@ -1,0 +1,5 @@
+title: Cache reuse by wait type
+insight: Cache reuse suffers most when control returns to the user.
+caption: Ordinary tool calls preserve an average cache-hit ratio of 97.5%, compared with just 84% following user idle periods. Subagent and Ask User waits also reduce reuse.
+definition: The average percentage of input tokens read from cache, grouped by what the session waited for before the request. For each request, this percentage is cached input divided by total input.
+rows: 1,069,993 rows

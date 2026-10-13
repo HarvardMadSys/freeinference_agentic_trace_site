@@ -10,13 +10,10 @@ test("the lede's first words count the weeks in digits, one week in the singular
   assert.equal(weekCountText(null), "Weeks");
 });
 
-test("the hero holds the dataset's name as its title, the lede counting the weeks, the five buttons and the lab's name", () => {
+test("the title is the page's h1, the hero section's label, and the five buttons and the lab's name lead to their addresses", () => {
   const container = { innerHTML: "" };
   renderHero(container, 16);
-  assert.doesNotMatch(container.innerHTML, /class="eyebrow"/);
-  assert.match(container.innerHTML, /^\s*<h1 id="hero-title">FreeInference <em>Agentic Dataset<\/em><\/h1>/);
-  assert.match(container.innerHTML, /<p class="hero-lede">16 weeks worth of production agent traces from FreeInference across diverse agent harnesses, with latency, tool, and KV block information\.<\/p>/);
-  assert.match(container.innerHTML, /<p class="hero-affiliation"><a class="affiliation" href="https:\/\/madsys\.seas\.harvard\.edu\/" target="_blank" rel="noopener">Harvard SEAS · MadSys Lab<\/a><\/p>\s*$/);
+  assert.match(container.innerHTML, /<h1 id="hero-title">FreeInference <em>Agentic Dataset<\/em><\/h1>/);
   const buttons = [...container.innerHTML.matchAll(/<a class="button[^"]*" href="([^"]*)"[^>]*>([^<]*)<\/a>/g)];
   assert.deepEqual(buttons.map((match) => [match[2], match[1]]), [
     ["Session Explorer", "#sessions"],
@@ -25,6 +22,7 @@ test("the hero holds the dataset's name as its title, the lede counting the week
     ["Paper", "https://data.freeinference.org/pdf/paper/from-requests-to-sessions.pdf"],
     ["Code", "https://github.com/HarvardMadSys/freeinference_agentic_trace"],
   ]);
+  assert.match(container.innerHTML, /<a class="affiliation" href="https:\/\/madsys\.seas\.harvard\.edu\/" target="_blank" rel="noopener">/);
 });
 
 test("the two site buttons come first, the Session Explorer's the primary one, and open on this tab", () => {

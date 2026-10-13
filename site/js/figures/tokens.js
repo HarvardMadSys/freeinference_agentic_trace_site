@@ -3,21 +3,22 @@
  * cached input, uncached input and output, how they grow with the context, which roles fill the input, how much of a
  * request's input is cached, and how a session's cost splits, drawn in `sessions_ranked.js`.
  *
- * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. A figure of more than one series colours each
- * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
+ * Each figure is a figure entry, whose fields CONTRIBUTING.md defines, drawn by one call to its chart kind (`charts/`);
+ * the token growth, which no kind fits, has a plain draw function. A figure of more than one series colours each from
+ * its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
  */
 
-import {
-  AXIS_STYLE, chartFrame, colourScale, distinct, drawBars, GRID_STYLE, LINE_WIDTH,
-} from "../shared/charts.js";
-import { drawCdf } from "../shared/cdf.js";
-import { axisWithTicks, decadeDomain, decadeTicks, sparseTickFormat, weekTickFormat } from "../axes/ticks.js";
-import { ROLE_COLOURS, TOKEN_PART_COLOURS, VIOLET_SLOT } from "../theme/colours.js";
+import { AXIS_STYLE, chartFrame, colourScale, distinct, GRID_STYLE, LINE_WIDTH } from "../shared/charts.js";
+import { cdfLegend, drawCdf } from "../charts/cdf.js";
+import { drawStackedBars, stackedBarsLegend, weekTicks } from "../charts/stacked_bars.js";
+import { drawHistogram } from "../charts/histogram.js";
+import { axisWithTicks, decadeDomain, decadeTicks, sparseTickFormat } from "../axes/ticks.js";
+import { ROLE_COLOURS, TOKEN_PART_COLOUR_MAP, TOKEN_PART_COLOURS, VIOLET_SLOT } from "../theme/colours.js";
 import {
   formatBinaryThousands, formatCompactCount, formatCount, formatCountTick, formatPercent, formatShare,
 } from "../shared/format.js";
 import { INPUT_ROLES, TOKEN_PART_NAMES } from "../session/token_parts.js";
-import { cdfSeries, partsLegend, seriesLegend } from "./figure_rows.js";
+import { partsLegend } from "../shared/series.js";
 import { COST_SHARE_BY_SESSION } from "./sessions_ranked.js";
 
 // The series of the tokens-per-request CDF, by their name in the query, with the name each is drawn under.
@@ -25,9 +26,14 @@ const TOKEN_SERIES = Object.freeze({
   input: "Input", uncached: TOKEN_PART_NAMES.uncached, output: TOKEN_PART_NAMES.output,
 });
 // Their colours: the two token parts in theirs, and the input, the whole prompt and not a part of it, in violet.
-const TOKEN_SERIES_COLOURS = Object.freeze({
-  input: VIOLET_SLOT, uncached: TOKEN_PART_COLOURS.uncached, output: TOKEN_PART_COLOURS.output,
-});
+const TOKEN_SERIES_COLOURS = new Map([
+  ["input", VIOLET_SLOT], ["uncached", TOKEN_PART_COLOURS.uncached], ["output", TOKEN_PART_COLOURS.output],
+]);
+
+// The input roles of the context share, by their name in the query, in their stacking order, bottom up: the name each
+// is drawn under, and its colour.
+const ROLE_NAMES = Object.freeze(Object.fromEntries(INPUT_ROLES.map((inputRole) => [inputRole.role, inputRole.name])));
+const INPUT_ROLE_COLOURS = new Map(INPUT_ROLES.map((inputRole) => [inputRole.role, ROLE_COLOURS[inputRole.role]]));
 
 // The token parts the growth figure draws a line for, in its legend's order.
 const TOKEN_PARTS = Object.freeze(["cached", "uncached", "output"]);
@@ -41,7 +47,10 @@ const GROWTH_COLUMNS = Object.freeze({
 
 const MIN_TOKENS_DRAWN = 1; // a token count below one (a request with nothing uncached) is drawn at one, on the log axis
 const MARKER_RADIUS = 3; // pixels; the small markers on the token growth lines
-const MAX_BAR_LABELS = 5; // a bar chart's axis labels at most this many bars, so the labels fit a phone's width
+const MAX_BAR_LABELS = 5; // the input-size axis labels at most this many bars, so the labels fit a phone's width
+
+// The cached-share histogram's stats query: the median, 95th percentile and count its bins are summarised by.
+const CACHED_FRACTION_STATS_QUERY = "explore/cached_fraction_stats";
 
 /** The Tokens-and-cost topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
 export const TAKEAWAY = "Most input tokens are cached, and cache reads account for most API cost at the stated prices.";
@@ -59,9 +68,16 @@ export const FIGURES = Object.freeze([
     binColumn: "series",
     seriesColumn: "series",
     seriesOverSameRows: true,
-    legend: (rows, colours, seriesColumn) =>
-      seriesLegend(rows, seriesColumn, new Map(Object.entries(TOKEN_SERIES_COLOURS)), TOKEN_SERIES),
-    draw: drawTokensPerRequest,
+    legend: (rows) => cdfLegend(rows, TOKEN_SERIES_COLOURS, { labels: TOKEN_SERIES }),
+    draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
+      labels: TOKEN_SERIES,
+      floor: MIN_TOKENS_DRAWN,
+      logScale: true,
+      xTickFormat: formatCountTick,
+      xLabel: "Tokens",
+      yLabel: "Share of requests",
+      valueFormat: formatCompactCount,
+    }, hidden),
   }),
   Object.freeze({
     name: "token_split_by_week",
@@ -72,9 +88,20 @@ export const FIGURES = Object.freeze([
     query: "figures/token_split_by_week",
     binColumn: "week",
     seriesColumn: "part",
-    legend: (rows, colours, seriesColumn) =>
-      seriesLegend(rows, seriesColumn, new Map(Object.entries(TOKEN_PART_COLOURS)), TOKEN_PART_NAMES),
-    draw: drawTokenSplit,
+    legend: (rows) => stackedBarsLegend(rows, TOKEN_PART_COLOUR_MAP, {
+      seriesColumn: "part", labels: TOKEN_PART_NAMES,
+    }),
+    draw: (rows, body, colours, hidden) => drawStackedBars(rows, body, colours, {
+      xColumn: "week",
+      xLabel: null,
+      xTickFormat: weekTicks(rows, "week"),
+      seriesColumn: "part",
+      valueColumn: "share",
+      valueLabel: "Share of tokens",
+      yLabel: "Share of tokens",
+      valueFormat: formatShare,
+      yTickFormat: formatPercent,
+    }, hidden),
   }),
   Object.freeze({
     name: "token_growth_by_messages",
@@ -85,7 +112,7 @@ export const FIGURES = Object.freeze([
     drawsLines: true,
     query: "figures/token_growth_by_messages",
     binColumn: "bin_start",
-    legend: () => partsLegend(TOKEN_PART_NAMES, new Map(Object.entries(TOKEN_PART_COLOURS))),
+    legend: () => partsLegend(TOKEN_PART_NAMES, TOKEN_PART_COLOUR_MAP),
     draw: drawTokenGrowth,
   }),
   Object.freeze({
@@ -97,8 +124,18 @@ export const FIGURES = Object.freeze([
     query: "figures/context_share_by_role",
     binColumn: "bin_start",
     seriesColumn: "role",
-    legend: contextShareLegend,
-    draw: drawContextShare,
+    legend: (rows) => stackedBarsLegend(rows, INPUT_ROLE_COLOURS, { seriesColumn: "role", labels: ROLE_NAMES }),
+    draw: (rows, body, colours, hidden) => drawStackedBars(rows, body, colours, {
+      xColumn: "bin_start",
+      seriesColumn: "role",
+      valueColumn: "share",
+      xLabel: "Input tokens",
+      xTickFormat: inputSizeTicks(rows),
+      valueLabel: "Share of input",
+      yLabel: "Share of input",
+      valueFormat: formatShare,
+      yTickFormat: formatPercent,
+    }, hidden),
   }),
   Object.freeze({
     name: "cached_fraction_per_request",
@@ -107,64 +144,27 @@ export const FIGURES = Object.freeze([
     definition: "The percentage of each request’s input tokens read from cache, grouped into 5% ranges. Only main-session requests with reported cache usage are included. The vertical axis counts requests on a log scale.",
     caption: "Requests typically reuse nearly all their input tokens. Across requests with reported cache usage, cached tokens account for more than 97% of total token volume.",
     query: "explore/cached_fraction_bins",
-    statsQuery: "explore/cached_fraction_stats",
-    countLabel: "Requests",
-    format: formatShare,
-    tickFormat: formatPercent,
-    logScale: false,
-    logCounts: true,
+    statsQuery: CACHED_FRACTION_STATS_QUERY,
+    draw: (rows, body, colours) => drawHistogram(rows, body, colours, {
+      statsQuery: CACHED_FRACTION_STATS_QUERY,
+      countLabel: "Requests",
+      xLabel: null,
+      valueFormat: formatShare,
+      xTickFormat: formatPercent,
+      logScale: false,
+      logCounts: true,
+      showsMaximum: false,
+    }),
   }),
   COST_SHARE_BY_SESSION,
 ]);
 
-/** The context share's legend: the input roles, in their stacking order and their colours. */
-function contextShareLegend(rows, colours, seriesColumn) {
-  const roleColours = new Map();
-  const roleNames = {};
-  for (const inputRole of INPUT_ROLES) {
-    roleColours.set(inputRole.role, ROLE_COLOURS[inputRole.role]);
-    roleNames[inputRole.role] = inputRole.name;
-  }
-  return seriesLegend(rows, seriesColumn, roleColours, roleNames);
-}
-
-/** Draw the CDFs of input, uncached input and output tokens per request, on a log axis. */
-async function drawTokensPerRequest(rows, body, colours) {
-  const series = cdfSeries(rows, Object.keys(TOKEN_SERIES), { labels: TOKEN_SERIES, floor: MIN_TOKENS_DRAWN });
-  await drawCdf(body, series, {
-    xLabel: "Tokens", yLabel: "Share of requests", logX: true, format: formatCompactCount, xTickFormat: formatCountTick,
-    colours: colours.series,
-  });
-}
-
-/** Draw one stacked bar per week of its cached, uncached and output shares. */
-async function drawTokenSplit(rows, body, colours) {
-  await drawBars(body, rows, {
-    x: "week",
-    y: "share",
-    fill: "part",
-    colours: colours.series,
-    xLabel: null,
-    yLabel: "Share of tokens",
-    format: formatShare,
-    yTickFormat: formatPercent,
-    xTickFormat: weekTickFormat(distinct(rows.map((row) => row.week))),
-  });
-}
-
-/** Draw one stacked bar per input-size bin of each role's share of the input. */
-async function drawContextShare(rows, body, colours) {
-  await drawBars(body, rows, {
-    x: "bin_start",
-    y: "share",
-    fill: "role",
-    colours: colours.series,
-    xLabel: "Input tokens",
-    yLabel: "Share of input",
-    format: formatShare,
-    yTickFormat: formatPercent,
-    xTickFormat: sparseTickFormat(distinct(rows.map((row) => row.bin_start)), formatBinaryThousands, MAX_BAR_LABELS),
-  });
+/**
+ * The input-size axis's tick format: the bins' starts, `row.bin_start`, in binary thousands ("4k"), on at most
+ * `MAX_BAR_LABELS` of them, evenly spaced from the first; the others are left unlabelled.
+ */
+export function inputSizeTicks(rows) {
+  return sparseTickFormat(distinct(rows.map((row) => row.bin_start)), formatBinaryThousands, MAX_BAR_LABELS);
 }
 
 /**

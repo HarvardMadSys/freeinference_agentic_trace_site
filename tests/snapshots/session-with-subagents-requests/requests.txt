@@ -1,0 +1,350 @@
+<div class="request-list has-brackets">
+<div class="bracket-gutter">
+<div class="bracket" title="6 requests ran at overlapping times" style="top: 120.438px; height: 173.5px; left: 0rem; border-color: var(--series-1);">
+</div>
+</div>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">Turn 1</span>
+<span class="request-elapsed">0:00–0:15</span>
+<span class="request-bar">
+<span class="bar-part" title="11,128 uncached input tokens" style="width: 24.281%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="92 output tokens" style="width: 0.200742%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">Turn 2</span>
+<span class="request-elapsed">0:55–1:32</span>
+<span class="request-bar">
+<span class="bar-part" title="11,008 cached input tokens" style="width: 24.0192%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="1,612 uncached input tokens" style="width: 3.51735%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="1,207 output tokens" style="width: 2.63365%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="todowrite · Other · ok" style="--chip-color: var(--series-other);">todowrite</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 2</span>
+<span class="request-elapsed">1:32–3:08</span>
+<span class="request-bar">
+<span class="bar-part" title="12,608 cached input tokens" style="width: 27.5104%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="1,369 uncached input tokens" style="width: 2.98713%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="4,918 output tokens" style="width: 10.731%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="task · Subagent · ok" style="--chip-color: var(--tool-category-subagent);">task</span>
+<span class="chip" title="task · Subagent · ok" style="--chip-color: var(--tool-category-subagent);">task</span>
+<span class="chip" title="task · Subagent · ok" style="--chip-color: var(--tool-category-subagent);">task</span>
+<span class="chip" title="task · Subagent · ok" style="--chip-color: var(--tool-category-subagent);">task</span>
+<span class="chip" title="task · Subagent · ok" style="--chip-color: var(--tool-category-subagent);">task</span>
+<span class="chip" title="task · Subagent · ok" style="--chip-color: var(--tool-category-subagent);">task</span>
+</span>
+</button>
+<div class="subagent-group" data-session-id="e4cea2893359de48fdfd9f79bd19a643">
+<button type="button" class="group-header" aria-expanded="false">↳ subagent e4cea289 · 5 requests · 7.1 min · 117.8k tokens</button>
+<div class="group-rows" hidden="">
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">Turn 1</span>
+<span class="request-elapsed">3:09–3:16</span>
+<span class="request-bar">
+<span class="bar-part" title="7,680 cached input tokens" style="width: 16.7576%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="802 uncached input tokens" style="width: 1.74995%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="160 output tokens" style="width: 0.349116%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="bash · *File Ops · ls, ls · ok" style="--chip-color: var(--tool-category-file-ops);">bash</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 1</span>
+<span class="request-elapsed">3:16–3:28</span>
+<span class="request-bar">
+<span class="bar-part" title="8,448 cached input tokens" style="width: 18.4333%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="340 uncached input tokens" style="width: 0.741872%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="344 output tokens" style="width: 0.7506%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="webfetch · Browser · ok" style="--chip-color: var(--tool-group-browser-web);">webfetch</span>
+<span class="chip" title="webfetch · Browser · ok" style="--chip-color: var(--tool-group-browser-web);">webfetch</span>
+<span class="chip" title="webfetch · Browser · ok" style="--chip-color: var(--tool-group-browser-web);">webfetch</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 2</span>
+<span class="request-elapsed">3:29–3:44</span>
+<span class="request-bar">
+<span class="bar-part" title="8,768 cached input tokens" style="width: 19.1316%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="10,102 uncached input tokens" style="width: 22.0423%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="419 output tokens" style="width: 0.914248%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="webfetch · Browser · ok" style="--chip-color: var(--tool-group-browser-web);">webfetch</span>
+<span class="chip" title="webfetch · Browser · ok" style="--chip-color: var(--tool-group-browser-web);">webfetch</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 3</span>
+<span class="request-elapsed">3:50–8:59</span>
+<span class="request-bar">
+<span class="bar-part" title="18,816 cached input tokens" style="width: 41.0561%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="7,139 uncached input tokens" style="width: 15.5771%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="13,801 output tokens" style="width: 30.1135%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="write · Write · ok" style="--chip-color: var(--tool-group-write-edit);">write</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 4</span>
+<span class="request-elapsed">9:43–10:13</span>
+<span class="request-bar">
+<span class="bar-part" title="25,920 cached input tokens" style="width: 56.5568%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="13,845 uncached input tokens" style="width: 30.2095%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="1,258 output tokens" style="width: 2.74493%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+</span>
+</button>
+</div>
+</div>
+<div class="subagent-group" data-session-id="938201be3805b8c17338188095ab7ea4">
+<button type="button" class="group-header" aria-expanded="true">↳ subagent 938201be · 5 requests · 6.5 min · 98.1k tokens</button>
+<div class="group-rows">
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">Turn 1</span>
+<span class="request-elapsed">3:45–5:03</span>
+<span class="request-bar">
+<span class="bar-part" title="7,680 cached input tokens" style="width: 16.7576%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="1,004 uncached input tokens" style="width: 2.1907%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="2,928 output tokens" style="width: 6.38883%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="webfetch · Browser · ok" style="--chip-color: var(--tool-group-browser-web);">webfetch</span>
+<span class="chip" title="webfetch · Browser · ok" style="--chip-color: var(--tool-group-browser-web);">webfetch</span>
+<span class="chip" title="webfetch · Browser · ok" style="--chip-color: var(--tool-group-browser-web);">webfetch</span>
+<span class="chip" title="webfetch · Browser · ok" style="--chip-color: var(--tool-group-browser-web);">webfetch</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 1</span>
+<span class="request-elapsed">5:50–5:57</span>
+<span class="request-bar">
+<span class="bar-part" title="8,640 cached input tokens" style="width: 18.8523%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="6,946 uncached input tokens" style="width: 15.156%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="135 output tokens" style="width: 0.294567%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="webfetch · Browser · ok" style="--chip-color: var(--tool-group-browser-web);">webfetch</span>
+<span class="chip" title="webfetch · Browser · ok" style="--chip-color: var(--tool-group-browser-web);">webfetch</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 2</span>
+<span class="request-elapsed">5:58–7:17</span>
+<span class="request-bar">
+<span class="bar-part" title="15,552 cached input tokens" style="width: 33.9341%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="6,789 uncached input tokens" style="width: 14.8134%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="2,871 output tokens" style="width: 6.26446%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="bash · *File Ops · mkdir, ls · ok" style="--chip-color: var(--tool-category-file-ops);">bash</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 3</span>
+<span class="request-elapsed">7:40–10:05</span>
+<span class="request-bar">
+<span class="bar-part" title="3,584 cached input tokens" style="width: 7.82021%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="21,636 uncached input tokens" style="width: 47.2093%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="6,160 output tokens" style="width: 13.441%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="write · Write · ok" style="--chip-color: var(--tool-group-write-edit);">write</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 4</span>
+<span class="request-elapsed">10:14–10:15</span>
+<span class="request-bar">
+<span class="bar-part" title="14,138 uncached input tokens" style="width: 30.8488%; background: var(--token-uncached);">
+</span>
+</span>
+<span class="request-chips">
+</span>
+</button>
+</div>
+</div>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 3</span>
+<span class="request-elapsed">14:11–14:17</span>
+<span class="request-bar">
+<span class="bar-part" title="13,952 cached input tokens" style="width: 30.4429%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="11,951 uncached input tokens" style="width: 26.0768%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="106 output tokens" style="width: 0.23129%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="bash · *File Ops · ls, wc · ok" style="--chip-color: var(--tool-category-file-ops);">bash</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 4</span>
+<span class="request-elapsed">14:17–14:24</span>
+<span class="request-bar">
+<span class="bar-part" title="25,856 cached input tokens" style="width: 56.4172%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="497 uncached input tokens" style="width: 1.08444%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="166 output tokens" style="width: 0.362208%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="read · Read · ok" style="--chip-color: var(--tool-group-read);">read</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 5</span>
+<span class="request-elapsed">14:25–14:35</span>
+<span class="request-bar">
+<span class="bar-part" title="26,304 cached input tokens" style="width: 57.3947%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="6,740 uncached input tokens" style="width: 14.7065%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="342 output tokens" style="width: 0.746236%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="bash · *Search · rg, head · ok" style="--chip-color: var(--tool-group-search);">bash</span>
+<span class="chip" title="bash · *Search · rg · ok" style="--chip-color: var(--tool-group-search);">bash</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 6</span>
+<span class="request-elapsed">14:35–14:42</span>
+<span class="request-bar">
+<span class="bar-part" title="33,024 cached input tokens" style="width: 72.0576%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="390 uncached input tokens" style="width: 0.850971%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="107 output tokens" style="width: 0.233472%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="grep · Read · ok" style="--chip-color: var(--tool-group-read);">grep</span>
+<span class="chip" title="grep · Read · ok" style="--chip-color: var(--tool-group-read);">grep</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 7</span>
+<span class="request-elapsed">14:42–15:14</span>
+<span class="request-bar">
+<span class="bar-part" title="33,408 cached input tokens" style="width: 72.8955%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="651 uncached input tokens" style="width: 1.42047%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="1,348 output tokens" style="width: 2.9413%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="todowrite · Other · ok" style="--chip-color: var(--series-other);">todowrite</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 8</span>
+<span class="request-elapsed">15:14–17:48</span>
+<span class="request-bar">
+<span class="bar-part" title="34,048 cached input tokens" style="width: 74.2919%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="1,509 uncached input tokens" style="width: 3.2926%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="9,270 output tokens" style="width: 20.2269%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="write · Write · ok" style="--chip-color: var(--tool-group-write-edit);">write</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 9</span>
+<span class="request-elapsed">17:48–17:54</span>
+<span class="request-bar">
+<span class="bar-part" title="35,520 cached input tokens" style="width: 77.5038%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="9,315 uncached input tokens" style="width: 20.3251%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="57 output tokens" style="width: 0.124373%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="bash · *File Ops · wc, ls · ok" style="--chip-color: var(--tool-category-file-ops);">bash</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 10</span>
+<span class="request-elapsed">17:55–18:03</span>
+<span class="request-bar">
+<span class="bar-part" title="44,800 cached input tokens" style="width: 97.7526%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="395 uncached input tokens" style="width: 0.861881%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="129 output tokens" style="width: 0.281475%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+<span class="chip" title="todowrite · Other · ok" style="--chip-color: var(--series-other);">todowrite</span>
+</span>
+</button>
+<button type="button" class="request-row" aria-expanded="false">
+<span class="request-label">↳ step 11</span>
+<span class="request-elapsed">18:03–18:14</span>
+<span class="request-bar">
+<span class="bar-part" title="45,184 cached input tokens" style="width: 98.5904%; background: var(--token-cached);">
+</span>
+<span class="bar-part" title="289 uncached input tokens" style="width: 0.630591%; background: var(--token-uncached);">
+</span>
+<span class="bar-part" title="357 output tokens" style="width: 0.778966%; background: var(--token-output);">
+</span>
+</span>
+<span class="request-chips">
+</span>
+</button>
+</div>

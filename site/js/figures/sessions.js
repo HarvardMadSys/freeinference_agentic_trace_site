@@ -1,17 +1,18 @@
 /**
  * The Session-structure section of the Explore page's figures: how many requests and steps a session holds, how long
  * its turns and the session last, how many subagents it spawns, and how long its user prompts are, human-driven
- * against benchmark, drawn in `comparison/scope_cdfs.js`.
+ * against benchmark, a figure listed in `comparison/scope_cdfs.js` and drawn by the CDF kind.
  *
- * Each figure is a figure entry, whose fields CONTRIBUTING.md defines. A figure of more than one series colours each
- * from its legend's colours, `colours.series`, so its chart and its legend agree whichever series are hidden.
+ * Each figure is a figure entry, whose fields CONTRIBUTING.md defines, drawn by one call to its chart kind
+ * (`charts/`). A figure of more than one series colours each from its legend's colours, `colours.series`, so its chart
+ * and its legend agree whichever series are hidden.
  */
 
-import { drawCdf } from "../shared/cdf.js";
+import { cdfLegend, drawCdf } from "../charts/cdf.js";
+import { drawHistogram } from "../charts/histogram.js";
 import { atMost } from "../axes/ticks.js";
 import { assignColours } from "../theme/colours.js";
 import { formatCount, formatCountTick, formatDurationTick, formatSeconds, formatWholeCount } from "../shared/format.js";
-import { cdfSeries, seriesLegend } from "./figure_rows.js";
 import { USER_PROMPT_TOKENS_BY_SCOPE } from "../comparison/scope_cdfs.js";
 
 // The series of the requests-per-session CDF, by their name in the query, with the name each is drawn under.
@@ -32,6 +33,9 @@ const DURATION_TICKS_S = Object.freeze([1, 60, 3600, 86400]); // a second, a min
 // their edges, 1, 2, 4, 8, and each bar starts and ends at a labelled tick.
 const SUBAGENT_BIN_FACTOR = 2;
 
+// The subagents histogram's stats query: the median, 95th percentile, maximum and count its bins are summarised by.
+const SUBAGENTS_STATS_QUERY = "explore/subagents_per_session_stats";
+
 /** The Session-structure topic's takeaway, one sentence under its heading: the paper's finding in plain words. */
 export const TAKEAWAY = "Sessions have a few user prompts, dozens of model requests, and long waits between prompts.";
 
@@ -48,8 +52,16 @@ export const FIGURES = Object.freeze([
     binColumn: "series",
     seriesColumn: "series",
     seriesOverSameRows: true,
-    legend: (rows, colours, seriesColumn) => seriesLegend(rows, seriesColumn, SESSION_COUNT_COLOURS, SESSION_COUNT_SERIES),
-    draw: drawRequestsPerSession,
+    legend: (rows) => cdfLegend(rows, SESSION_COUNT_COLOURS, { labels: SESSION_COUNT_SERIES }),
+    draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
+      labels: SESSION_COUNT_SERIES,
+      floor: MIN_COUNT_DRAWN,
+      logScale: true,
+      xTickFormat: formatCountTick,
+      xLabel: "Requests or steps",
+      yLabel: "Share of sessions",
+      valueFormat: formatCount,
+    }, hidden),
   }),
   Object.freeze({
     name: "duration_cdf",
@@ -62,8 +74,17 @@ export const FIGURES = Object.freeze([
     binColumn: "series",
     seriesColumn: "series",
     seriesNouns: Object.freeze({ turn: "turns", session: "sessions" }),
-    legend: (rows, colours, seriesColumn) => seriesLegend(rows, seriesColumn, DURATION_COLOURS, DURATION_SERIES),
-    draw: drawDurations,
+    legend: (rows) => cdfLegend(rows, DURATION_COLOURS, { labels: DURATION_SERIES }),
+    draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
+      labels: DURATION_SERIES,
+      floor: MIN_SECONDS_DRAWN,
+      logScale: true,
+      xTicks: DURATION_TICKS_S,
+      xTickFormat: formatDurationTick,
+      xLabel: null,
+      yLabel: "Share of turns or sessions",
+      valueFormat: formatSeconds,
+    }, hidden),
   }),
   Object.freeze({
     name: "subagents_per_session",
@@ -72,13 +93,18 @@ export const FIGURES = Object.freeze([
     definition: "The number of subagents started by each main session, including subagents started by other subagents. Sessions with no subagents count toward the summary statistics but are not shown on the log scale.",
     caption: "Nearly 90% of sessions never invoke subagents. Even when used, most subagent calls spawn just one child rather than multiple agents in parallel. Sessions with zero subagents are excluded from the bars.",
     query: "explore/subagents_per_session_bins",
-    statsQuery: "explore/subagents_per_session_stats",
-    countLabel: "Sessions",
-    xLabel: "Subagents",
-    format: formatWholeCount,
-    logScale: true,
-    showsMaximum: true,
-    ticks: subagentTicks,
+    statsQuery: SUBAGENTS_STATS_QUERY,
+    draw: (rows, body, colours) => drawHistogram(rows, body, colours, {
+      statsQuery: SUBAGENTS_STATS_QUERY,
+      countLabel: "Sessions",
+      xLabel: "Subagents",
+      valueFormat: formatWholeCount,
+      xTickFormat: formatWholeCount,
+      logScale: true,
+      logCounts: false,
+      showsMaximum: true,
+      ticks: subagentTicks,
+    }),
   }),
   USER_PROMPT_TOKENS_BY_SCOPE,
 ]);
@@ -95,21 +121,4 @@ export function subagentTicks([low, high], maxTicks) {
     }
   }
   return atMost(edges, maxTicks);
-}
-
-/** Draw the CDFs of requests, user steps and tool steps per session, on a log axis. */
-async function drawRequestsPerSession(rows, body, colours) {
-  const series = cdfSeries(rows, Object.keys(SESSION_COUNT_SERIES), { labels: SESSION_COUNT_SERIES, floor: MIN_COUNT_DRAWN });
-  await drawCdf(body, series, {
-    xLabel: "Requests or steps", yLabel: "Share of sessions", logX: true, format: formatCount, xTickFormat: formatCountTick,
-    colours: colours.series,
-  });
-}
-
-/** Draw the CDFs of turn and session durations, in seconds on a log axis. */
-async function drawDurations(rows, body, colours) {
-  const series = cdfSeries(rows, Object.keys(DURATION_SERIES), { labels: DURATION_SERIES, floor: MIN_SECONDS_DRAWN });
-  await drawCdf(body, series, {
-    yLabel: "Share of turns or sessions", logX: true, xTicks: DURATION_TICKS_S, xTickFormat: formatDurationTick, format: formatSeconds, colours: colours.series,
-  });
 }

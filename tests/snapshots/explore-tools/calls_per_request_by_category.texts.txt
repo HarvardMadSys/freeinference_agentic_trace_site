@@ -1,0 +1,5 @@
+title: Calls per request by category
+insight: Agents rarely exploit parallel tool execution.
+caption: Among tool-calling requests, 84.5% issue just one tool call and only 3.3% issue four or more. Batching appears in many sessions but remains infrequent at the request level.
+definition: The average number of tool calls per main-session request, grouped by the first tool’s category. Each request counts once. Requests whose first tool is Ask User are excluded.
+rows: 1,039,617 rows

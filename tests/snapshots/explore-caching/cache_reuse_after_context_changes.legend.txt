@@ -1,0 +1,2 @@
+Append | pressed=true | legend-swatch is-line background: var(--transition-append);
+Mutation | pressed=true | legend-swatch is-line background: var(--transition-mutation);

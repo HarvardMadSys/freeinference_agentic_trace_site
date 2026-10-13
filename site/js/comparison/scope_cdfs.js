@@ -1,10 +1,9 @@
 /**
  * The Human-driven-against-benchmark CDFs of turn duration, session duration, input per request and user prompt tokens:
- * each a CDF per scope, human-driven and benchmark, each median marked with its value and a dotted line between the two
- * medians, as the paper draws them; a note in the chart's lower right corner says which scope's median is the larger
- * and by how much. The
- * first three are listed in `comparison.js`, the user prompt size in the Session-structure section
- * (`figures/sessions.js`).
+ * each a CDF per scope, human-driven and benchmark, drawn by the CDF kind (`charts/cdf.js`), each median marked with
+ * its value and, as the paper draws them, a dotted line between the two medians and a note in the chart's lower right
+ * corner saying which scope's median is the larger and by how much: the callout `medianComparison`. The first three
+ * are listed in `comparison.js`; the user prompt size in the Session-structure section (`figures/sessions.js`).
  *
  * Every row of their queries is one CDF point of one scope: `series` (the scope, by the pipeline's name of it), `x` and
  * `share`; the same on every row of a scope, `rows` (what the scope's CDF is over) and `median`; and the same on every
@@ -12,77 +11,22 @@
  * is drawn.
  */
 
+import { AXIS_STYLE, LINE_LABEL_STYLE } from "../shared/charts.js";
+import { drawCdf, MEDIAN_SHARE } from "../charts/cdf.js";
 import {
-  AXIS_STYLE, chartFrame, colourScale, GRID_STYLE, LINE_LABEL_STYLE, LINE_WIDTH, X_INSET,
-} from "../shared/charts.js";
-import { cdfPoints } from "../shared/cdf.js";
-import { axisWithTicks, isNarrowChart } from "../axes/ticks.js";
-import {
-  formatCompactCount, formatCountTick, formatDurationTick, formatMultiple, formatPercent, formatSeconds, formatShare,
+  formatCompactCount, formatCountTick, formatDurationTick, formatMultiple, formatSeconds,
 } from "../shared/format.js";
-import { cdfSeries } from "../figures/figure_rows.js";
 import { SCOPE_LABELS, scopeLegend, SCOPES } from "./scopes.js";
 
 const MIN_DURATION_DRAWN_S = 1; // the pipeline's comparison.MIN_DURATION_DRAWN_S: a shorter turn or session is drawn at it
 const MIN_INPUT_DRAWN = 1000; // comparison.MIN_INPUT_DRAWN: the input axis starts at 1k
 const MIN_PROMPT_DRAWN = 1; // comparison.MIN_PROMPT_DRAWN: the user prompt axis starts at one token
+const ONE_DAY_S = 86400; // the turn duration axis ends at a day, as the paper's does
+const ONE_WEEK_S = 604800; // the session duration axis ends at a week, as the paper's does
 
-const MEDIAN_SHARE = 0.5; // the share at which a CDF crosses its median
-const MEDIAN_RADIUS = 3; // pixels; the dot on each median
-const MEDIAN_LABEL_OFFSET = 8; // pixels from a median's dot to its label, along each axis
 const RATIO_DECIMALS = 1; // the ratio of the medians as the paper writes it: 3.1×
 const MEDIAN_LINK_DASH = "1 3"; // the dotted line between the medians
 const SUMMARY_INSET = 6; // pixels between the chart's lower right corner and the note comparing the medians
-// A median's label: in the chart's ink, ringed in the card's colour so that a line it crosses does not cut its text.
-const MEDIAN_LABEL_STYLE = Object.freeze({
-  fill: "currentColor", stroke: "var(--color-surface)", strokeWidth: 3, paintOrder: "stroke",
-});
-
-// Each figure's x axis, from the pipeline's floor to the paper's end, its ticks (at most six) and, where they differ, its
-// ticks on a narrow chart, how they are written, its title where its ticks carry no unit, how a value is written in a
-// median's label and the tooltip, what the CDF counts, and the word the legend compares the medians by.
-const TURN_DURATION_AXIS = Object.freeze({
-  floor: MIN_DURATION_DRAWN_S,
-  end: 86400, // a day
-  ticks: Object.freeze([1, 60, 3600, 86400]),
-  tickFormat: formatDurationTick,
-  xLabel: null,
-  valueFormat: formatSeconds,
-  noun: "turns",
-  comparative: "longer",
-});
-const SESSION_DURATION_AXIS = Object.freeze({
-  floor: MIN_DURATION_DRAWN_S,
-  end: 604800, // a week
-  ticks: Object.freeze([1, 60, 3600, 86400, 604800]),
-  narrowTicks: Object.freeze([1, 60, 3600, 86400]), // on a phone "1 d" and "7 d" would touch
-  tickFormat: formatDurationTick,
-  xLabel: null,
-  valueFormat: formatSeconds,
-  noun: "sessions",
-  comparative: "longer",
-});
-const INPUT_AXIS = Object.freeze({
-  floor: MIN_INPUT_DRAWN,
-  end: 1e6,
-  ticks: Object.freeze([1e3, 1e4, 1e5, 1e6]),
-  tickFormat: formatCountTick,
-  xLabel: "Input tokens",
-  valueFormat: formatCompactCount,
-  noun: "requests",
-  comparative: "more",
-});
-const PROMPT_AXIS = Object.freeze({
-  floor: MIN_PROMPT_DRAWN,
-  end: 1e5,
-  ticks: Object.freeze([1, 10, 100, 1e3, 1e4, 1e5]),
-  narrowTicks: Object.freeze([1, 100, 1e4]), // on a phone six labels would touch
-  tickFormat: formatCountTick,
-  xLabel: "Tokens",
-  valueFormat: formatCompactCount,
-  noun: "prompts",
-  comparative: "longer",
-});
 
 /** The turn duration figure entry, whose fields CONTRIBUTING.md defines. */
 export const TURN_DURATION_BY_SCOPE = Object.freeze({
@@ -97,7 +41,20 @@ export const TURN_DURATION_BY_SCOPE = Object.freeze({
   seriesColumn: "series",
   seriesNouns: Object.freeze({ Agentic: "human-driven turns", "SWE-Bench": "benchmark turns" }),
   legend: scopeLegend,
-  draw: (rows, body, colours) => drawScopeCdf(rows, body, colours, TURN_DURATION_AXIS),
+  draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
+    labels: SCOPE_LABELS,
+    floor: MIN_DURATION_DRAWN_S,
+    logScale: true,
+    xDomain: [MIN_DURATION_DRAWN_S, ONE_DAY_S],
+    xTicks: [1, 60, 3600, ONE_DAY_S],
+    xTickFormat: formatDurationTick,
+    xLabel: null,
+    yLabel: "Share of turns",
+    valueFormat: formatSeconds,
+    medianColumn: "median",
+    shareNoun: "turns",
+    callout: (Plot, drawn, medians) => medianComparison(Plot, drawn, medians, "longer"),
+  }, hidden),
 });
 
 /** The session duration figure entry. */
@@ -113,7 +70,21 @@ export const SESSION_DURATION_BY_SCOPE = Object.freeze({
   seriesColumn: "series",
   seriesNouns: Object.freeze({ Agentic: "human-driven sessions", "SWE-Bench": "benchmark sessions" }),
   legend: scopeLegend,
-  draw: (rows, body, colours) => drawScopeCdf(rows, body, colours, SESSION_DURATION_AXIS),
+  draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
+    labels: SCOPE_LABELS,
+    floor: MIN_DURATION_DRAWN_S,
+    logScale: true,
+    xDomain: [MIN_DURATION_DRAWN_S, ONE_WEEK_S],
+    xTicks: [1, 60, 3600, ONE_DAY_S, ONE_WEEK_S],
+    narrowXTicks: [1, 60, 3600, ONE_DAY_S], // on a phone "1 d" and "7 d" would touch
+    xTickFormat: formatDurationTick,
+    xLabel: null,
+    yLabel: "Share of sessions",
+    valueFormat: formatSeconds,
+    medianColumn: "median",
+    shareNoun: "sessions",
+    callout: (Plot, drawn, medians) => medianComparison(Plot, drawn, medians, "longer"),
+  }, hidden),
 });
 
 /** The input per request figure entry. */
@@ -130,7 +101,20 @@ export const INPUT_PER_REQUEST_BY_SCOPE = Object.freeze({
   seriesColumn: "series",
   seriesNouns: Object.freeze({ Agentic: "human-driven requests", "SWE-Bench": "benchmark requests" }),
   legend: scopeLegend,
-  draw: (rows, body, colours) => drawScopeCdf(rows, body, colours, INPUT_AXIS),
+  draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
+    labels: SCOPE_LABELS,
+    floor: MIN_INPUT_DRAWN,
+    logScale: true,
+    xDomain: [MIN_INPUT_DRAWN, 1e6],
+    xTicks: [1e3, 1e4, 1e5, 1e6],
+    xTickFormat: formatCountTick,
+    xLabel: "Input tokens",
+    yLabel: "Share of requests",
+    valueFormat: formatCompactCount,
+    medianColumn: "median",
+    shareNoun: "requests",
+    callout: (Plot, drawn, medians) => medianComparison(Plot, drawn, medians, "more"),
+  }, hidden),
 });
 
 /** The user prompt figure entry. */
@@ -146,37 +130,33 @@ export const USER_PROMPT_TOKENS_BY_SCOPE = Object.freeze({
   seriesColumn: "series",
   seriesNouns: Object.freeze({ Agentic: "human-driven prompts", "SWE-Bench": "benchmark prompts" }),
   legend: scopeLegend,
-  draw: (rows, body, colours) => drawScopeCdf(rows, body, colours, PROMPT_AXIS),
+  draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
+    labels: SCOPE_LABELS,
+    floor: MIN_PROMPT_DRAWN,
+    logScale: true,
+    xDomain: [MIN_PROMPT_DRAWN, 1e5],
+    xTicks: [1, 10, 100, 1e3, 1e4, 1e5],
+    narrowXTicks: [1, 100, 1e4], // on a phone six labels would touch
+    xTickFormat: formatCountTick,
+    xLabel: "Tokens",
+    yLabel: "Share of prompts",
+    valueFormat: formatCompactCount,
+    medianColumn: "median",
+    shareNoun: "prompts",
+    callout: (Plot, drawn, medians) => medianComparison(Plot, drawn, medians, "longer"),
+  }, hidden),
 });
 
 /**
- * The medians of the scopes the rows hold, smallest first: `[{ series, median, x }]`, `median` the scope's own and `x`
- * where it is drawn, raised to `floor` as its CDF is.
+ * The chart's note comparing the medians it labels (`seriesMedians`, smallest first): the scope whose median is the
+ * larger, the ratio and `comparative`, "benchmark 3.1× longer"; "" unless the rows hold both scopes and a ratio.
  */
-export function scopeMedians(rows, floor) {
-  const medians = new Map();
-  for (const row of rows) {
-    medians.set(row.series, row.median);
-  }
-  const drawn = [];
-  for (const series of SCOPES) {
-    if (medians.has(series)) {
-      drawn.push({ series, median: medians.get(series), x: Math.max(medians.get(series), floor) });
-    }
-  }
-  return drawn.sort((first, second) => first.median - second.median);
-}
-
-/**
- * The chart's note comparing the medians it labels: the scope whose median is the larger, the ratio and
- * `comparative`, "benchmark 3.1× longer"; "" unless the rows hold both scopes and a ratio.
- */
-export function medianSummary(rows, comparative) {
+export function medianSummary(rows, medians, comparative) {
   const ratio = medianRatioText(rows);
   if (ratio === null) {
     return "";
   }
-  const larger = scopeMedians(rows, 0).at(-1).series;
+  const larger = medians.at(-1).series;
   return `${SCOPE_LABELS[larger].toLowerCase()} ${ratio} ${comparative}`;
 }
 
@@ -193,57 +173,18 @@ export function medianRatioText(rows) {
 }
 
 /**
- * Draw one CDF per scope of the rows on `axis`, a log axis from its floor to its end, each scope in its legend's
- * colour, with the medians, the dotted line between them and their ratio.
+ * A scope CDF's callout, the marks comparing the medians the CDF marked (`seriesMedians`, smallest first) from the
+ * rows drawn: with both scopes, a dotted line between the medians where they are drawn, and the note in the lower
+ * right corner, "benchmark 3.1× longer", `comparative` saying how the larger compares.
  */
-async function drawScopeCdf(rows, body, colours, axis) {
-  // Plot is loaded here, not at the top, so node can test the section's figure list.
-  const { Plot } = await import("../shared/libraries.js");
-  const series = cdfSeries(rows, SCOPES, { labels: SCOPE_LABELS, floor: axis.floor });
-  const points = cdfPoints(series);
-  const frame = chartFrame(body);
-  const ticks = isNarrowChart(frame.width) ? (axis.narrowTicks ?? axis.ticks) : axis.ticks;
-  const chart = Plot.plot({
-    ...frame,
-    x: { type: "log", domain: [axis.floor, axis.end], inset: X_INSET },
-    y: { domain: [0, 1] },
-    color: colourScale(colours.series, series.map((one) => one.name)),
-    marks: [
-      Plot.gridX(ticks, GRID_STYLE),
-      Plot.gridY(GRID_STYLE),
-      axisWithTicks(Plot.axisX, ticks, { ...AXIS_STYLE, tickFormat: axis.tickFormat, label: axis.xLabel }),
-      Plot.axisY({ ...AXIS_STYLE, tickFormat: formatPercent, label: `Share of ${axis.noun}` }),
-      Plot.line(points, { x: "x", y: "share", stroke: "name", strokeWidth: LINE_WIDTH, clip: true }),
-      ...medianMarks(Plot, rows, axis),
-      summaryMark(Plot, medianSummary(rows, axis.comparative)),
-      Plot.tip(points, Plot.pointerX({ x: "x", y: "share", title: (point) => tipText(point, axis) })),
-    ],
-  });
-  body.replaceChildren(chart);
-}
-
-/**
- * The marks of the medians: a dot on each, the smaller's value above it to the left and the larger's below it to the
- * right, as the paper places them; with both scopes, the dotted line between them, whose ratio the chart's note gives.
- */
-function medianMarks(Plot, rows, axis) {
-  const medians = scopeMedians(rows, axis.floor);
-  const marks = [
-    Plot.dot(medians, { x: "x", y: MEDIAN_SHARE, fill: "series", r: MEDIAN_RADIUS }),
-    Plot.text(medians.slice(0, 1), {
-      ...MEDIAN_LABEL_STYLE, x: "x", y: MEDIAN_SHARE, text: (median) => axis.valueFormat(median.median),
-      textAnchor: "end", dx: -MEDIAN_LABEL_OFFSET, dy: -MEDIAN_LABEL_OFFSET,
-    }),
-    Plot.text(medians.slice(1), {
-      ...MEDIAN_LABEL_STYLE, x: "x", y: MEDIAN_SHARE, text: (median) => axis.valueFormat(median.median),
-      textAnchor: "start", dx: MEDIAN_LABEL_OFFSET, dy: MEDIAN_LABEL_OFFSET,
-    }),
-  ];
+export function medianComparison(Plot, rows, medians, comparative) {
+  const marks = [];
   if (medianRatioText(rows) !== null) {
-    marks.push(
-      Plot.ruleY([MEDIAN_SHARE], { ...AXIS_STYLE, x1: medians[0].x, x2: medians[1].x, strokeDasharray: MEDIAN_LINK_DASH }),
-    );
+    marks.push(Plot.ruleY([MEDIAN_SHARE], {
+      ...AXIS_STYLE, x1: medians[0].x, x2: medians[1].x, strokeDasharray: MEDIAN_LINK_DASH,
+    }));
   }
+  marks.push(summaryMark(Plot, medianSummary(rows, medians, comparative)));
   return marks;
 }
 
@@ -257,8 +198,4 @@ function summaryMark(Plot, text) {
     ...LINE_LABEL_STYLE, text: (note) => note, frameAnchor: "bottom-right", textAnchor: "end",
     dx: -SUMMARY_INSET, dy: -SUMMARY_INSET,
   });
-}
-
-function tipText(point, axis) {
-  return `${point.label}\n${axis.valueFormat(point.x)}\n${formatShare(point.share)} of ${axis.noun}`;
 }

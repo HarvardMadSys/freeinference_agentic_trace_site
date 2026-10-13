@@ -1,0 +1,12 @@
+Tokens
+Cached input | legend-dash color: var(--token-cached); background: var(--token-cached);
+Uncached input | legend-dash color: var(--token-uncached); background: var(--token-uncached);
+Output | legend-dash color: var(--token-output); background: var(--token-output);
+Tool calls
+Read | legend-dash color: var(--tool-group-read); background: var(--tool-group-read);
+*Search | legend-dash color: var(--tool-group-search); background: var(--tool-group-search);
+*File Ops | legend-dash color: var(--tool-category-file-ops); background: var(--tool-category-file-ops);
+Write | legend-dash color: var(--tool-group-write-edit); background: var(--tool-group-write-edit);
+Browser | legend-dash color: var(--tool-group-browser-web); background: var(--tool-group-browser-web);
+Subagent | legend-dash color: var(--tool-category-subagent); background: var(--tool-category-subagent);
+Other | legend-dash color: var(--series-other); background: var(--series-other);

@@ -119,27 +119,11 @@ test("the benchmark's harness chosen alone lists its sessions alone", () => {
   assert.equal(rewritten("harnesses=eval:swe-bench"), "?harnesses=eval%3Aswe-bench");
 });
 
-test("a link from an earlier release: weeks are read as their month and rewritten as months", () => {
-  assert.equal(filterOf("weeks=2026-07-05,2026-07-12&scope=All").month, "2026-07");
-  assert.equal(rewritten("weeks=2026-07-05,2026-07-12&scope=All"), "?months=2026-07");
-  assert.equal(rewritten("weeks=2026-06-28,2026-07-05"), "?months=2026-06");
-});
-
-test("a link from the first release: weeks=all and scope are the default and are rewritten away", () => {
-  assert.deepEqual(filterOf("weeks=all&scope=All"), filterOf(""));
-  assert.equal(rewritten("weeks=all&scope=All"), "");
-});
-
-test("an older month or harness key is read as the filter and rewritten in the new keys", () => {
-  assert.equal(rewritten("month=2026-07"), "?months=2026-07");
-  assert.equal(rewritten("harness=codex"), "?harnesses=codex");
-  assert.equal(rewritten("months=2026-08&month=2026-07&weeks=2026-06-28"), "?months=2026-08");
-});
-
-test("an unknown week is left out with a note, and the filter keeps the month of the others", () => {
-  const filter = filterOf("weeks=2026-07-05,2025-01-05&scope=All");
-  assert.equal(filter.month, "2026-07");
-  assert.equal(unknownFilterNote(filter), "Not in the data, so not used: week 2025-01-05.");
+test("a link with an old key opens every month and harness, with no note, and the key stays in the URL", () => {
+  const filter = filterOf("weeks=2026-07-05&scope=All&month=2026-07&harness=codex");
+  assert.deepEqual(filter, { month: "", harness: "", unknown: [] });
+  assert.equal(unknownFilterNote(filter), "");
+  assert.equal(rewritten("weeks=2026-07-05&scope=All"), "?weeks=2026-07-05&scope=All");
 });
 
 test("an unknown month or harness is ignored and named; with none known, every one", () => {
@@ -151,7 +135,9 @@ test("an unknown month or harness is ignored and named; with none known, every o
 });
 
 test("writing the filter keeps the table's other keys, and a filter key already there keeps its place", () => {
-  assert.equal(rewritten("sort=requests&weeks=2026-08-02&page=2"), "?sort=requests&page=2&months=2026-08");
+  const august = { month: "2026-08", harness: "", unknown: [] };
+  const written = writeTableFilter(new URLSearchParams("sort=requests&page=2"), august);
+  assert.equal(queryString(written), "?sort=requests&page=2&months=2026-08");
   assert.equal(rewritten("harnesses=codex&sort=requests&months=2026-07"), "?harnesses=codex&sort=requests&months=2026-07");
 });
 

@@ -43,8 +43,7 @@ The month and harness drop-downs choose one of each, and the URL holds them
 as `months` and `harnesses` (`?months=2026-07&harnesses=codex`), so a
 filtered list can be shared as a link; the default, every month and every
 harness, writes no key, and the keys change no figure. A key naming several
-keeps its first; older links' `weeks`, `month`, `scope` and `harness` are
-read as the filter and rewritten.
+keeps its first, and a key the list does not read is left as it is.
 
 The Session page runs no query either. `make data` writes every week's
 sessions into gzipped JSON buckets, the top-level sessions whose ids share
@@ -59,10 +58,15 @@ The built data ships with the repository, so a clone serves the site as it is:
 
 ```bash
 make serve           # http://localhost:8000
-make test            # the Python tests and the node tests (after make setup, below)
-make setup-browser   # a headless Chromium and Playwright, for checking pages by hand; make test does not need it
+make test            # the Python tests, the node tests and the snapshot test (after make setup, below)
+make snapshots       # rewrite tests/snapshots/ when a change is meant to alter what a page shows
+make setup-browser   # the headless Chromium the snapshot test opens the pages in; without it make test skips them
 make deploy          # publish site/ to Cloudflare as the Worker's static assets (see Hosting)
 ```
+
+The test tools `make setup` installs include Playwright, pinned to the
+version whose Chromium wrote the snapshots; a virtual environment made
+before Playwright joined them needs `make setup` again.
 
 Rebuilding the data is the maintainer's step, when the release gains a
 week, a column changes, or a query under `explore/`, `figures/` or
@@ -87,8 +91,9 @@ make data RELEASE=~/freeinference_agentic_trace/release SIMULATION=~/freeinferen
 
 `make data` prints what it wrote: each index's rows, the answers' files and
 bytes, and the buckets' count and size with the median and largest bucket.
-The rebuilt data is committed with the change that needed it. A rebuild of
-the same rows writes the same bytes, so git sees only what changed; one that
+The rebuilt data is committed with the change that needed it, with the
+snapshots `make snapshots` rewrites from it. A rebuild of the same rows
+writes the same bytes, so git sees only what changed; one that
 rewrites every bucket (a new column, an edited bucket query) adds nearly the
 whole of `site/data` to the repository's history, so the data is rebuilt
 when the release, a column or a query changes, not routinely.
@@ -125,14 +130,14 @@ the rules, how the pieces fit together, and the patterns to copy.
 README.md          this file
 CONTRIBUTING.md    the rules, the patterns, and how to add a query, a section, a figure or a Session page column
 CLAUDE.md          a pointer to the two files above, the rules that matter most and the git rules
-Makefile           setup · setup-browser · data · serve · test · deploy
+Makefile           setup · setup-browser · data · serve · test · snapshots · deploy
 .github/workflows/deploy.yml
                    deploys site/ on every push to main, then asks the published site for three files
 .nvmrc             the Node version the workflow installs
 wrangler.jsonc     the Cloudflare Worker that serves site/ as static assets: its name, its hostnames
 package.json       sets ES modules for node --test; wrangler, the one dev dependency, deploys the site
 package-lock.json  wrangler's exact version and its dependencies', which npm ci installs
-pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest for tests
+pyproject.toml     Python 3.12; the pipeline's package, pyarrow, pandas, duckdb; pytest and Playwright (pinned) for tests
 site_data/         builds site/data/ from a release, running the queries over its rows in memory
   __main__.py      the step make data runs: loads and checks every week, builds the frames, writes the indexes, the
                    answers, the session buckets
@@ -151,21 +156,27 @@ site/              exactly the files that are deployed
   *.html           one file per page: index (Explore, the landing page) and session
   style.css        tokens, layout and components
   favicon.svg      the brand mark, for the browser tab
-  js/shared/       answers (the indexes, and the answer files by query name), libraries, format, charts, histogram
-                   (the histogram figures), cdf (the CDF figures), table, layout (the header and footer)
+  js/shared/       answers (the indexes, and the answer files by query name), libraries, format, charts (what every
+                   chart shares: the frame, the ink, the colour scale, the card), series (a chart's shown rows, the
+                   rows of its series with a colour of their own, and its legend), table, layout (the header and
+                   footer)
+  js/charts/       the chart kinds, each a draw function with named parameters that several figures call: cdf (CDF
+                   lines), stacked_bars (stacked bars per week or bin), ranges (quantile ranges per category),
+                   histogram, ranked (stacked shares over ranked sessions), knee_lines (cost against cache TTL, the
+                   knee called out) and donut
   js/landing/      the landing page's own parts: hero (the title, lede and buttons), stats (the stats strip beside
-                   it), donuts (the model and harness mixes), arcs (a donut's shares and ring segments), cite (the
-                   citation's copy button) and team (the authors)
+                   it), donuts (the model and harness mixes), cite (the citation's copy button) and team (the
+                   authors)
   js/theme/        colours, the site's colours as the style tokens give them, and the colours every figure shares
   js/axes/         ticks, the ticks of every chart's axes: how many, and where a log, duration or week axis ticks
   js/pages/        one module per page: explore, session
   js/explore/      the Explore page's start and sections: start (the page's start), trends,
-                   figure_sections (the figure runner), topic_tabs (the Insights' tabs, one topic shown at a time),
+                   figure_sections (the figure runner), figure_rows (the row rules it applies to every figure: thin
+                   bins hidden, the line of rows), topic_tabs (the Insights' tabs, one topic shown at a time),
                    legend (the legend of buttons that hides and shows a series), sessions_table, sessions_table_state
                    (its columns and its state in the URL), and sessions_filter (its month and harness filter)
   js/figures/      one module per figure section (sessions, tokens, latency, tools, caching), the modules they take
-                   figures from (sessions_ranked, tools_batching, caching_gaps), and figure_rows, the row rules every
-                   figure shares
+                   figures from (sessions_ranked, tools_batching, caching_gaps, caching_cdfs)
   js/simulation/   the Prefix-caching section's figures of the cache simulation: prefill and costs
   js/comparison/   the figures that compare human-driven sessions with the benchmark's: the Human-driven-against-
                    benchmark section's module, comparison, the modules that draw them (scope_cdfs, tool_mix; the
@@ -207,7 +218,13 @@ tests/             what make test runs
                    the pipeline constants the queries and modules hold a copy of, against the pipeline's own
   test_differences.py       no figure's definition names the paper
   test_repository.py        the repository's countable rules
+  snapshot.py, snapshot_units.py, test_snapshot.py, test_snapshot_units.py
+                   the snapshot test: twelve states of the pages opened in headless Chromium (the Explore page with
+                   each topic shown, two fixed sessions in each view), each unit they show (a chart, a table, a legend,
+                   a block of text) read as text and compared with tests/snapshots/
+  snapshots/       one folder per page state, one text file per unit, rewritten by make snapshots
   *.test.js        node --test, one file per JavaScript module with pure functions
+  module_headers.test.js    the module headers over ten lines, listed as a warning for review, never failed
 openspec/          the specifications and the changes that built the site
 ```
 

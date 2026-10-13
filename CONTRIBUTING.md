@@ -18,11 +18,18 @@ binding, and `make test` checks the countable ones.
   without aliases; JavaScript uses named imports.
 - **One job per unit.** A function is at most 50 lines, a module at most 300.
   A function that computes two things is split.
-- **Docstrings state definitions; comments explain why.** Every exported
-  function has a one-line docstring (Python) or JSDoc line (JavaScript) that
-  says what it returns. A constant that is a decision gets a name and a
-  one-line comment saying what it decides. Neither refers to history, people
-  or paper figure numbers.
+- **Docstrings state definitions; comments explain why.** A module's header
+  (its docstring in Python, its opening comment in JavaScript) says what the
+  module holds and the shape of what crosses its boundary: the rows it reads,
+  the objects it takes and returns. Every export has a docstring (Python) or
+  JSDoc (JavaScript) that states its definition: what it returns, for which
+  input. A constant that is a decision gets a name and a one-line comment
+  saying what it decides. A comment inside a function says why, in one line.
+  None tells how the code came to be, who did what, or a paper figure number;
+  history is in git. A header over ten lines is a sign to look again, not a
+  failure: `tests/module_headers.test.js` lists each as a warning, and a
+  sentence a first-time reader needs stays, however long the header; none is
+  cut to reach a count.
 - **SQL is a literal.** Every query is one `.sql` file under `site/queries/`.
   No SQL is written in JavaScript, and no query is assembled from strings. A
   query reads the selection from the selection tables and from nothing else:
@@ -123,10 +130,12 @@ at most nine modules; `make test` counts them.
 - The Session page imports nothing from `shared/answers.js`, and
   `tests/test_repository.py` checks it; how it reads a session is below.
 - The URL keys `months` and `harnesses` belong
-  to the session list: `explore/sessions_filter.js` reads them (and the
-  older `weeks`, `month`, `scope` and `harness`), filters the list's answer,
-  which holds every harness's sessions, and writes them back; they reach
-  nothing else.
+  to the session list: `explore/sessions_filter.js` reads them, filters the
+  list's answer, which holds every harness's sessions, and writes them back;
+  they reach nothing else. With the table's own `search`, `model`,
+  `min_requests`, `sort`, `direction` and `page`
+  (`explore/sessions_table_state.js`) they are the only keys the table
+  reads; any other key is left as it is.
 - A figure is a figure entry (below), listed in its section's module, in the
   page's order: `js/figures/sessions.js` (Session structure), `tokens.js` (Tokens and
   cost), `latency.js` (Latency), `tools.js` (Tools), `caching.js` (Prefix
@@ -229,19 +238,24 @@ query's current text: `make data` records the hash of each query in
 `make data` runs again.
 
 **A pure JavaScript module with its test** (`site/js/shared/format.js`,
-`tests/format.test.js`): exported functions with one-line JSDoc, module-level
-constants with a comment, helpers below the exports, and a `node --test` file
-with one `test()` per behaviour.
+`tests/format.test.js`): a header saying what the module holds, exported
+functions each with a JSDoc stating its definition, module-level constants
+with a comment, helpers below the exports, and a `node --test` file with one
+`test()` per behaviour.
 
 **A Python module with its test** (`site_data/weeks.py`, `tests/test_weeks.py`):
 a module docstring stating the definition, a frozen dataclass for anything
 that crosses a boundary, and functions that each do one job.
 
 **A figure entry** (listed in its section module's `FIGURES`). Every
-figure of the Insights is one frozen object with these fields; the
-page draws its card (title, insight, legend, chart, caption, and a Definition
-control that opens on the definition and the line of rows), reads its query's
-answer, hides its thin bins, writes its line of rows and calls `draw`:
+figure of the Insights is one frozen object of the fields below, and of no
+other: `ENTRY_FIELDS` in `tests/figure_sections.test.js` lists them, and a
+field added here is added there. The page draws its card (title, insight,
+legend, chart, caption, and a Definition control that opens on the
+definition and the line of rows), reads its query's answer, hides its thin
+bins, writes its line of rows and calls `draw`.
+
+Its card and its drawing:
 
 - `name`: the figure's id, also the id of its card on the page.
 - `title`: the card's heading.
@@ -260,24 +274,12 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
   where the site draws more simply than the paper, README's "Where the
   numbers come from" says how, not the definition; shown behind the
   Definition control.
-- `query`: the query whose answer it draws, as `readAnswer` names it
-  (`"figures/<name>"`).
-- `binColumn`: the column naming the bin or series each row belongs to, every
-  row of a bin carrying the bin's count in `rows`; a bin under
-  `MIN_ROWS_PER_BIN` is hidden whole. `null` when every row is a bin of its own.
-- `seriesOverSameRows` (optional): true when every series is drawn from the
-  same rows, so the line of rows counts them once rather than summing them.
-- `seriesNouns` (optional): when the series count different things, each
-  series' name with the plural noun of what it counts; the line of rows then
-  gives each count ("84,239 turns · 12,002 sessions").
-- `isSimulation` (optional): true for a figure that reads the cache
-  simulation, whole (the cost and prefill figures) or for one column (the
-  mutation table's prefill); the line of rows names a week the simulation
-  does not cover.
-- `drawsLines` (optional): true for a figure that draws its series as lines,
-  whose legend then shows a short line per series instead of a square.
 - `isWide` (optional): true for a figure whose card takes its section's whole
   width: one that needs the room, or that would otherwise sit alone in a row.
+- `drawsLines` (optional): true for a figure that draws its series as lines,
+  whose legend then shows a short line per series instead of a square.
+- `query`: the query whose answer it draws, as `readAnswer` names it
+  (`"figures/<name>"`).
 - `legend` (a figure of more than one series): `legend(rows, colours, seriesColumn)`
   returns the series its legend lists and their colours, `{ series, colours }`,
   each series `{ name, label }`. The page draws the legend as buttons that
@@ -285,54 +287,104 @@ answer, hides its thin bins, writes its line of rows and calls `draw`:
   rows it already has; from the keyboard the legend is one tab stop, the
   arrow keys moving between its buttons. It lists every series the chart
   draws.
+- `draw(rows, body, colours, hidden)`: draws the rows, thin bins hidden, into
+  `body`. `colours` holds the colours every figure shares (`{ models,
+  categories, providers }`, each a Map from name to colour) and, for a figure
+  with a `legend`, the legend's as `series`; `hidden` is the Set of the
+  series names the legend hides. It is one call to the figure's chart kind
+  (below), its columns where they vary, and its labels.
+
+What its rows are, which the page reads to hide thin bins, leave out hidden
+series and write the line of rows (`explore/figure_rows.js`); each is a
+fact about the query's rows, not a choice of how to draw them:
+
+- `binColumn`: the column naming the bin each row belongs to (a size bin, a
+  week, a category, a CDF series), every row of a bin carrying the bin's
+  count in `rows`; `null` when every row is a bin of its own. A bin under
+  `MIN_ROWS_PER_BIN` is hidden whole, and the line of rows sums the bins'
+  counts. The line of rows names a hidden bin by this column (`HIDDEN_NOUNS`
+  in `explore/figure_rows.js`): a `series`, `week`, `category` or, for
+  `waited_for`, a cause; any other column's a "bin".
+- `seriesColumn` (rows that each name their series): that column. A hidden
+  series' rows are left out before `draw` is called; a figure with a
+  `legend` and no `seriesColumn` holds its series in columns and leaves out
+  those in `hidden` itself.
+- `seriesOverSameRows` (optional): true when every series is drawn from the
+  same rows, so the line of rows counts them once rather than summing them.
+- `seriesNouns` (optional): when the series count different things, each
+  series' name with the plural noun of what it counts; the line of rows then
+  gives each count ("84,239 turns · 12,002 sessions").
 - `drawnRows` (optional): `drawnRows(rows, colours)` returns the rows of the
   query the figure draws, when it draws fewer: a line or CDF per provider or
   model draws only those with one of the eight series colours, never one in
   the Other grey. The line of rows counts these, and thin bins are hidden
   among them.
-- `seriesColumn` (a figure whose rows each name their series): that column. A
-  hidden series' rows are left out before `draw` is called; a figure with a
-  `legend` and no `seriesColumn` holds its series in columns and leaves out
-  those in `hidden` itself.
-- `draw(rows, body, colours, hidden)`: draws the rows, thin bins hidden, into
-  `body`. `colours` holds the colours every figure shares (`{ models,
-  categories, providers }`, each a Map from name to colour) and, for a figure
-  with a `legend`, the legend's as `series`; `hidden` is the Set of the
-  series names the legend hides.
+- `readsSimulation` (optional): true when the rows come from the cache
+  simulation, whole (the cost and prefill figures) or in one column (the
+  mutation table's prefill); the line of rows names a week the simulation
+  does not cover.
+- `statsQuery` (a histogram's): the query summarising its rows, which are
+  bins (below).
 
-A **histogram figure** has no `binColumn` and no `draw`: its `query` is a
-bins query, `explore/<prefix>_bins` (each row a bin's `bin_start`, `bin_end`
-and `rows`), and its `statsQuery` the matching `explore/<prefix>_stats` (one
-row of `count`, `max` and the 50th, 75th, 90th and 95th percentiles). The page
-draws it with `shared/histogram.js`, every bin shown, one line above it of
-the median, the 95th percentile and, with `showsMaximum`, the maximum, and
-its count as its line of rows, from the fields `countLabel` (what a bin
-counts), `xLabel` (optional, the value axis's title), `format` (a value in the
-summary and the tooltip), `tickFormat` (optional, a value on the axis),
-`logScale`, `logCounts` (optional, a log count axis) and
-`ticks(domain, maxTicks)` (optional, a log axis's ticks).
+**The chart kinds** (`js/charts/`), one module per shape several figures
+share: `cdf` (CDF lines), `stacked_bars` (stacked bars over a named x
+column, a week or a bin), `ranges` (quantile ranges per category),
+`histogram`, `ranked` (stacked shares over ranked sessions), `knee_lines`
+(cost against cache TTL with one TTL called out) and `donut`. Each exports a
+draw function, `drawCdf(rows, body, colours, { named parameters }, hidden)`,
+and, where it has series, a legend function, `cdfLegend(rows, colours, {
+named parameters })`, `colours` there being the Map of its series' colours
+in the legend's order; its module says what rows it takes and its draw
+function what each parameter decides. A kind imports only from `shared/`,
+`axes/` and `theme/`. A kind takes only parameters two or more figures use,
+with two exceptions: a kind kept whole may take a parameter one figure uses
+when the alternative is a near-copy of the kind (the histogram's `ticks`,
+the donut's `labels`), and a frame or axis setting (the stacked bars'
+`weeks` and `margins`, the CDF's `height`) is a plain
+setting, not behaviour. A note the kind does not draw, such as the scope
+CDFs' ratio of medians, is a short named function in the figure's module,
+given to the kind as its `callout`. A figure that would need any other
+parameter no other figure uses keeps a plain draw function of its own.
+
+A **histogram figure** has no `binColumn`: its `query` is a bins query,
+`explore/<prefix>_bins` (each row a bin's `bin_start`, `bin_end` and `rows`),
+and it declares `statsQuery`, the matching `explore/<prefix>_stats` (one row
+of `count`, `max` and the 50th, 75th, 90th and 95th percentiles), which the
+page reads as the sign of a histogram and its `draw` gives `drawHistogram`
+as its `statsQuery`, both from one named constant. The kind draws every bin,
+one line above them of the median, the 95th percentile and, with
+`showsMaximum`, the maximum, and writes the count as the figure's line of
+rows.
 
 ```js
 Object.freeze({
-  name: "tokens_per_request_cdf",
-  title: "Tokens per request",
-  insight: "Huge inputs don't necessarily mean huge computation.",
-  definition: "Each line shows the percentage of requests with this many tokens or fewer, for total input, uncached input, and output. Uncached input counts only requests with reported cache usage. Output excludes responses with one token or fewer.",
-  caption: "A median request carries 129K input tokens, but only about 500 are uncached and require fresh processing. Outputs contain just a few hundred tokens.",
+  name: "requests_per_session_cdf",
+  title: "Requests and steps per session",
+  insight: "A handful of user prompts can trigger hundreds of LLM and tool interactions.",
+  definition: "Each line shows the percentage of main sessions with this many requests or fewer. …",
+  caption: "A median session contains just 4 user steps, compared with 42 LLM requests and 36 tool steps. …",
   drawsLines: true,
-  query: "figures/tokens_per_request_cdf",
+  query: "figures/requests_per_session_cdf",
   binColumn: "series",
   seriesColumn: "series",
   seriesOverSameRows: true,
-  legend: (rows, colours, seriesColumn) =>
-    seriesLegend(rows, seriesColumn, new Map(Object.entries(TOKEN_SERIES_COLOURS)), TOKEN_SERIES),
-  draw: drawTokensPerRequest,
+  legend: (rows) => cdfLegend(rows, SESSION_COUNT_COLOURS, { labels: SESSION_COUNT_SERIES }),
+  draw: (rows, body, colours, hidden) => drawCdf(rows, body, colours, {
+    labels: SESSION_COUNT_SERIES,
+    floor: MIN_COUNT_DRAWN,
+    logScale: true,
+    xTickFormat: formatCountTick,
+    xLabel: "Requests or steps",
+    yLabel: "Share of sessions",
+    valueFormat: formatCount,
+  }, hidden),
 }),
 ```
 
 **Adding a figure.** A figure ends at its answer and its words: one query,
-answered by `make data`, one draw function over the answer's rows, its card's
-words, and their tests. Nothing about it runs in the browser.
+answered by `make data`, one entry whose draw calls a chart kind over the
+answer's rows, its card's words, and their tests. Nothing about it runs in
+the browser.
 
 1. **The query**, `site/queries/figures/<name>.sql`, as above: the population
    from the selection tables, so `make data` answers it for every week and the
@@ -349,24 +401,29 @@ words, and their tests. Nothing about it runs in the browser.
    runs every figure query live on the fixture and compares it with the answer
    written for it, and fails on a query with no rows there, so the fixture must
    hold a case of the figure.
-3. **The entry and the draw function**, in its section's module or a module
+3. **The entry and its draw**, in its section's module or a module
    it takes entries from (`js/figures/`, `js/simulation/`, `js/comparison/`):
    a frozen figure entry with its `title`, an `insight` of one sentence and
    at most twenty words, a `caption` of up to three sentences and forty
    words total, and a `definition` of up to three
-   short sentences and at most sixty words in total, and a
-   draw function that loads Plot where it needs it and colours its series
-   from `colours`. Its
-   pure parts (rows to series, bars or stacks) are exported and tested with
-   `node --test`. Add its name to its section's list in `SECTION_FIGURES` of
+   short sentences and at most sixty words in total, and a `draw` that is
+   one call to its chart kind; a figure no kind fits, or one that would
+   need a parameter of its own, has a plain draw function that loads Plot
+   where it needs it and colours its series from `colours`, its pure parts
+   (rows to series, bars or stacks) exported and tested with `node --test`. Add its name to its section's list in `SECTION_FIGURES` of
    `tests/figure_sections.test.js`, which checks the legend's shape;
    `tests/figure_words.test.js` counts the words of its insight, caption and
    definition, and of each section's takeaway.
-4. **The legend**, for a figure of more than one series: `legend(rows,
-   colours, seriesColumn)` (`seriesLegend` in `figures/figure_rows.js` builds
-   one from rows that name their series), and either a `seriesColumn` or a
-   `draw` that leaves out the series named in `hidden`. A series that is a
-   model, category, cause, transition or gap bin takes that thing's colour.
+4. **The legend**, for a figure of more than one series, and for any figure
+   drawn by `cdf`, `stacked_bars`, `ranked` or `knee_lines`, even of one
+   series, since those kinds colour their series from the legend's colours:
+   `legend(rows, colours, seriesColumn)`, a call to its kind's legend
+   function, or a legend several figures share (`scopeLegend` in
+   `comparison/scopes.js`), or, beside a plain draw, `seriesLegend` in
+   `shared/series.js`, which builds one from rows that name their series;
+   and either a `seriesColumn` or a `draw` that leaves out the series named
+   in `hidden`. A series that is a model, category, cause, transition or
+   gap bin takes that thing's colour.
 5. **Parity**, when the paper's `numbers.json` holds a number the figure
    shows: compare it in `tests/test_paper_parity*.py`, which reads the
    query's shipped answer, `site/data/all_weeks/<query>.json`, through
@@ -382,6 +439,10 @@ words, and their tests. Nothing about it runs in the browser.
    an item of README's "Where the numbers come from" says how; the definition
    says what is drawn and leaves the paper out, which
    `tests/test_differences.py` checks.
+8. **The snapshots.** With the entry in place, run `make snapshots`, and
+   commit `tests/snapshots` with it: a new figure adds units; no other unit
+   may move. `make test` is then green, the figure having joined
+   `EXPECTED_COLUMNS` (step 1) and `SECTION_FIGURES` (step 3).
 
 ## JavaScript style
 
@@ -464,7 +525,7 @@ which is plain HTML.
   medians is written on the chart, not in the legend. After each drawing the
   chart is named for a screen reader by its title and insight (or caption),
   `nameChart` in `shared/charts.js`. Bars start at zero, and a label written
-  by a line sits off every line (`lineLabels` of `shared/cdf.js`).
+  by a line sits off every line (`lineLabelPoints` of `figures/caching_cdfs.js`).
 - **Axis text.** At most six ticks per axis (`axes/ticks.js`), no minor
   gridlines on a log axis, no arrow on an axis title, and no title that the
   card's title or legend already gives; a y-axis title says what is counted
@@ -480,8 +541,27 @@ which is plain HTML.
 
 ```bash
 make test PIPELINE=<the pipeline's checkout>   # with the paper-parity tests
+make snapshots # when the change is meant to alter what a page shows
 make serve     # then open http://localhost:8000
 ```
+
+`make test` ends with the snapshot test (`tests/snapshot.py`): it opens
+twelve states of the pages in headless Chromium (the Explore page with each
+Insights topic shown, two fixed sessions, one with subagents, in each of
+their three views) and compares
+every chart, table, legend and block of text they show with its text file
+in `tests/snapshots/`, failing with the name of each unit that changed. A
+change that is meant to alter a chart or a text, a data rebuild among them,
+runs `make snapshots` to rewrite the files and commits them with the
+change. The diff of `tests/snapshots/` is reviewed like code: it is what a
+visitor will see differently, and a line there that the change did not mean
+to move is a bug. A change that should alter nothing a visitor sees, such
+as a refactoring, leaves the snapshots as they are. Without Chromium
+(`make setup-browser`) the snapshot test skips, saying so. It needs the
+network, since the pages load Plot from its CDN and the fonts from Google:
+offline it fails, naming each request that failed and its host. A unit is
+named by its card's title, so a retitled card shows as a "new" unit and its
+old one as "no longer shown".
 
 Before committing anything that touches a page: open it at 360 px wide and
 at desktop width, in light and dark mode; check the console is clean; check

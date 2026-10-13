@@ -1,0 +1,5 @@
+title: Cache reuse by provider
+insight: The same pause can be a cache hit on one provider and a miss on another.
+caption: One provider's median cache-hit ratio falls below 50% after 15 minutes, while another maintains high reuse near one hour, revealing substantial differences in cache retention.
+definition: The median percentage of input tokens read from cache, grouped by time since the same user’s previous request ended. Each line shows one of the eight busiest providers, labeled with a letter. Wait times range from 10 seconds to one hour.
+rows: 1,048,725 rows · 44 bins hidden (fewer than 50 rows each)

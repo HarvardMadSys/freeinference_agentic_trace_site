@@ -1,0 +1,31 @@
+<svg viewBox="-100 -100 200 200" class="donut" role="img" aria-label="Harness mix: Each harness's share of the sessions.">
+<path d="M 0 -100 A 100 100 0 0 1 87.82 47.82 L 54.45 29.65 A 62 62 0 0 0 0 -62 Z" fill="var(--series-5)" class="donut-slice">
+<title>hermes: 32.9% of sessions (3,953)</title>
+</path>
+<path d="M 87.82 47.82 A 100 100 0 0 1 16.42 98.64 L 10.18 61.16 A 62 62 0 0 0 54.45 29.65 Z" fill="var(--series-6)" class="donut-slice">
+<title>opencode: 14.4% of sessions (1,733)</title>
+</path>
+<path d="M 16.42 98.64 A 100 100 0 0 1 -58.09 81.4 L -36.02 50.47 A 62 62 0 0 0 10.18 61.16 Z" fill="var(--series-7)" class="donut-slice">
+<title>pi: 12.5% of sessions (1,499)</title>
+</path>
+<path d="M -58.09 81.4 A 100 100 0 0 1 -91.75 39.78 L -56.88 24.66 A 62 62 0 0 0 -36.02 50.47 Z" fill="var(--series-8)" class="donut-slice">
+<title>swe-bench: 8.6% of sessions (1,035)</title>
+</path>
+<path d="M -91.75 39.78 A 100 100 0 0 1 -100 -0.81 L -62 -0.5 A 62 62 0 0 0 -56.88 24.66 Z" fill="var(--series-1)" class="donut-slice">
+<title>kilo: 6.6% of sessions (797)</title>
+</path>
+<path d="M -100 -0.81 A 100 100 0 0 1 -91.81 -39.64 L -56.92 -24.57 A 62 62 0 0 0 -62 -0.5 Z" fill="var(--series-2)" class="donut-slice">
+<title>codex: 6.4% of sessions (763)</title>
+</path>
+<path d="M -91.81 -39.64 A 100 100 0 0 1 -70.81 -70.61 L -43.9 -43.78 A 62 62 0 0 0 -56.92 -24.57 Z" fill="var(--series-3)" class="donut-slice">
+<title>oh-my-pi: 6.0% of sessions (719)</title>
+</path>
+<path d="M -70.81 -70.61 A 100 100 0 0 1 -43.7 -89.94 L -27.1 -55.77 A 62 62 0 0 0 -43.9 -43.78 Z" fill="var(--series-4)" class="donut-slice">
+<title>claude-code: 5.3% of sessions (639)</title>
+</path>
+<path d="M -43.7 -89.94 A 100 100 0 0 1 0 -100 L 0 -62 A 62 62 0 0 0 -27.1 -55.77 Z" fill="var(--series-other)" class="donut-slice">
+<title>Other: 7.2% of sessions (864)</title>
+</path>
+<text y="-0.15em" class="donut-total">12,002</text>
+<text y="1.35em" class="donut-unit">sessions</text>
+</svg>

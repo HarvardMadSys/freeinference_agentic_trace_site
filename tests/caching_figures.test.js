@@ -2,12 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { FIGURES, idleGapEdgeSeconds, idleGapLegend } from "../site/js/figures/caching.js";
-import { GAP_FIGURES, gapBinColours, meanHitRatioBars, mutationTableLines } from "../site/js/figures/caching_gaps.js";
-import {
-  API_COST_BY_TTL, calloutPoint, costLegend, costStacks, kneeText, lowestText,
-} from "../site/js/simulation/costs.js";
-import { prefillPoints, retainedDomain, ttlLabel } from "../site/js/simulation/prefill.js";
-import { scopeLegend } from "../site/js/comparison/scopes.js";
+import { GAP_FIGURES, meanHitRatioBars, mutationTableLines } from "../site/js/figures/caching_gaps.js";
+import { gapBinColours, HIT_RATIO_CDF_BY_GAP_BIN } from "../site/js/figures/caching_cdfs.js";
+import { costColours, INFRASTRUCTURE_COST_BY_TTL } from "../site/js/simulation/costs.js";
+import { prefillPoints, retainedDomain } from "../site/js/simulation/prefill.js";
 import { decadeTicks } from "../site/js/axes/ticks.js";
 import { assignColours, OTHER_SERIES } from "../site/js/theme/colours.js";
 
@@ -30,7 +28,7 @@ test("the gap bins take the six gap-bin colours, shortest gap first, whichever b
   const colours = gapBinColours();
   assert.deepEqual([...colours.keys()], ["<1m", "1–5m", "5–15m", "15–30m", "30m–1h", ">1h"]);
   assert.deepEqual([...colours.values()], [1, 2, 3, 4, 5, 6].map((slot) => `var(--gap-bin-${slot})`));
-  const legend = GAP_FIGURES.hitRatioByGapBin.legend([{ series: ">1h" }, { series: "<1m" }], FIGURE_COLOURS, "series");
+  const legend = HIT_RATIO_CDF_BY_GAP_BIN.legend([{ series: ">1h" }, { series: "<1m" }], FIGURE_COLOURS, "series");
   assert.deepEqual(legend.series, [{ name: "<1m", label: "Under 1 min" }, { name: ">1h", label: "Over 1 h" }]);
   assert.equal(legend.colours.get(">1h"), "var(--gap-bin-6)");
 });
@@ -97,7 +95,6 @@ test("a prefill point per row, in the query's order, its TTL named, and placed w
     { scope: "SWE-Bench", ttl: "10s", label: "10 s", retained: 7_300, prefill: 3.2, placement: "below" },
     { scope: "SWE-Bench", ttl: "15m", label: "15 min", retained: 42_000, prefill: 1.02, placement: null },
   ]);
-  assert.equal(ttlLabel("1d"), "1 d");
 });
 
 test("the retained-tokens axis runs from half the fewest to three times the most, ticked at powers of ten", () => {
@@ -107,57 +104,15 @@ test("the retained-tokens axis runs from half the fewest to three times the most
   assert.deepEqual(decadeTicks([1, 100]), [1, 10, 100]);
 });
 
-test("the scope legend lists the paper's harnesses as human-driven, then the benchmark, each in its colour", () => {
-  const legend = scopeLegend([{ scope: "SWE-Bench" }, { scope: "Agentic" }], FIGURE_COLOURS, "scope");
-  assert.deepEqual(legend.series, [
-    { name: "Agentic", label: "Human-driven" }, { name: "SWE-Bench", label: "Benchmark" },
-  ]);
-  assert.equal(legend.colours.get("Agentic"), "var(--series-1)");
-  assert.equal(legend.colours.get("SWE-Bench"), "var(--series-8)");
-});
-
-// Rows of the API cost query at two TTLs, by part, then in TTL order, as the query gives them; the knee at 30m.
-const MINUTE = { ttl: "1m", ttl_seconds: 60, total_multiple: 1, is_knee: false, rows: 90 };
-const HALF_HOUR = { ttl: "30m", ttl_seconds: 1800, total_multiple: 0.65, is_knee: true, rows: 90 };
-const API_ROWS = [
-  { ...MINUTE, part: "cache_read", cost_multiple: 0.1 },
-  { ...HALF_HOUR, part: "cache_read", cost_multiple: 0.15 },
-  { ...MINUTE, part: "input", cost_multiple: 0.5 },
-  { ...HALF_HOUR, part: "input", cost_multiple: 0.1 },
-  { ...MINUTE, part: "output", cost_multiple: 0.4 },
-  { ...HALF_HOUR, part: "output", cost_multiple: 0.4 },
-];
-const API_LABELS = { output: "Output", cache_read: "Cached input", input: "Uncached input" };
-
-test("a cost legend lists the parts bottom up in the stack, each in the colour of what it prices", () => {
-  const legend = costLegend(API_ROWS, "part", API_LABELS);
-  assert.deepEqual(legend.series.map((one) => one.label), ["Output", "Cached input", "Uncached input"]);
-  assert.equal(legend.colours.get("cache_read"), "var(--token-cached)");
-  assert.equal(legend.colours.get("input"), "var(--token-uncached)");
-  const infrastructure = costLegend([{ part: "storage" }], "part", { recompute: "Recompute", storage: "Storage" });
+test("a cost figure's legend lists its parts, each in the colour of what it prices", () => {
+  const colours = costColours(["output", "cache_read", "input"]);
+  assert.deepEqual([...colours.keys()], ["output", "cache_read", "input"]);
+  assert.equal(colours.get("cache_read"), "var(--token-cached)");
+  assert.equal(colours.get("input"), "var(--token-uncached)");
+  const infrastructure = INFRASTRUCTURE_COST_BY_TTL.legend([{ part: "storage" }], {}, "part");
   assert.deepEqual(infrastructure.series, [{ name: "storage", label: "Storage" }]);
   assert.equal(infrastructure.colours.get("recompute"), "var(--token-uncached)");
   assert.equal(infrastructure.colours.get("storage"), "var(--series-7)");
-});
-
-test("a cost stack per TTL tops at the sum of its shown parts, its tooltip reading down from the top", () => {
-  const stacks = costStacks(API_ROWS, API_LABELS);
-  assert.deepEqual(stacks.map((stack) => [stack.ttl, stack.seconds]), [["1m", 60], ["30m", 1800]]);
-  assert.ok(Math.abs(stacks[1].top - 0.65) < 1e-12);
-  assert.equal(stacks[1].text, "TTL 30 min\nUncached input 0.10×\nCached input 0.15×\nOutput 0.40×\nTotal 0.65×");
-  const outputHidden = costStacks(API_ROWS.filter((row) => row.part !== "output"), API_LABELS);
-  assert.ok(Math.abs(outputHidden[1].top - 0.25) < 1e-12);
-  assert.equal(outputHidden[1].text, "TTL 30 min\nUncached input 0.10×\nCached input 0.15×\nTotal 0.65×");
-});
-
-test("the callout sits on the marked TTL's stack and names its total, or is absent when none is marked", () => {
-  const stacks = costStacks(API_ROWS, API_LABELS);
-  const callout = calloutPoint(API_ROWS, stacks, "is_knee", kneeText);
-  assert.equal(callout.seconds, 1800);
-  assert.equal(callout.text, "0.65× at 30 min,\nnear the lowest");
-  assert.equal(lowestText("0.42×", "15 min"), "Lowest 0.42×\nat 15 min");
-  const unmarked = API_ROWS.map((row) => ({ ...row, is_knee: false }));
-  assert.equal(calloutPoint(unmarked, stacks, "is_knee", kneeText), null);
 });
 
 test("the mutation table's lines come in the paper's order, causes after transitions, shares with one decimal", () => {
@@ -171,12 +126,4 @@ test("the mutation table's lines come in the paper's order, causes after transit
     { name: "mutation", isCause: false, cells: ["Mutation", "4.0%", "56.4%", "—"] },
     { name: "compaction", isCause: true, cells: ["Compaction", "<0.1%", "3.7%", "0.6%"] },
   ]);
-});
-
-test("the API cost's legend lists every part its stack draws, the output included", () => {
-  const legend = API_COST_BY_TTL.legend(API_ROWS, {}, "part");
-  const drawn = [...new Set(API_ROWS.map((row) => row.part))].sort();
-  assert.deepEqual(legend.series.map((one) => one.name).sort(), drawn);
-  assert.deepEqual(legend.series.map((one) => one.label), ["Cached input", "Uncached input", "Output"]);
-  assert.equal(legend.colours.get("output"), "var(--token-output)");
 });

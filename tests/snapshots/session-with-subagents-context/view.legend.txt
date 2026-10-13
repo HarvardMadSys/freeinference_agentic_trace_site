@@ -1,0 +1,8 @@
+Cached and uncached | pressed=true
+By role | pressed=false
+Cached input | legend-dash color: var(--token-cached); background: var(--token-cached);
+Uncached input | legend-dash color: var(--token-uncached); background: var(--token-uncached);
+Main agent | legend-dash is-line color: var(--series-1); background: var(--series-1);
+Subagents | legend-dash is-line color: var(--series-7); background: var(--series-7); opacity: 0.8;
+Model or provider switch | legend-dash is-dot color: var(--color-text); background: var(--color-text);
+Turn start | legend-dash is-dotted color: var(--chart-axis); background: none;

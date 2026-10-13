@@ -27,8 +27,8 @@ test("a step that is not a whole number is no step", () => {
 });
 
 test("the sessions table's keys are every key but the Session page's own", () => {
-  const params = new URLSearchParams("week=2026-08-09&id=abc&view=context&step=3&month=2026-08&harnesses=codex&q=ab");
-  assert.equal(tableParameters(params).toString(), "month=2026-08&harnesses=codex&q=ab");
+  const params = new URLSearchParams("week=2026-08-09&id=abc&view=context&step=3&months=2026-08&harnesses=codex&q=ab");
+  assert.equal(tableParameters(params).toString(), "months=2026-08&harnesses=codex&q=ab");
 });
 
 test("a view's parameters keep the session and the table's keys, set the view and drop the step", () => {

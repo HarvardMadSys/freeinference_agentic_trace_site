@@ -1,0 +1,8 @@
+Read | pressed=true | legend-swatch background: var(--tool-group-read);
+Search | pressed=true | legend-swatch background: var(--tool-group-search);
+Write/Edit | pressed=true | legend-swatch background: var(--tool-group-write-edit);
+Execute | pressed=true | legend-swatch background: var(--tool-group-execute);
+Build/Test | pressed=true | legend-swatch background: var(--tool-group-build-test);
+Git/VCS | pressed=true | legend-swatch background: var(--tool-group-git-vcs);
+Browser/Web | pressed=true | legend-swatch background: var(--tool-group-browser-web);
+Other | pressed=true | legend-swatch background: var(--tool-group-other);

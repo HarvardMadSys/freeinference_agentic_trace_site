@@ -1,0 +1,12 @@
+Cite
+If the trace supports your work, please cite From Requests to Sessions, the paper that introduces it.
+BIBTEX · FREEINFERENCE AGENTIC DATASET
+Copy
+@misc{freeinference2026requests,
+title = {From Requests to Sessions: A Large-Scale Characterization
+of Human-Driven Agentic Workloads},
+author = {Nixon, William and Tian, Muxin and Zheng, Yunjia
+and Gunawi, Haryadi S. and Yang, Juncheng},
+year = {2026},
+howpublished = {\url{https://data.freeinference.org/pdf/paper/from-requests-to-sessions.pdf}}
+}

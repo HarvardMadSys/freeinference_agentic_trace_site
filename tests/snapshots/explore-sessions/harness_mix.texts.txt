@@ -1,0 +1,4 @@
+title: Harness mix
+caption: Each harness's share of the sessions.
+definition: Top-level sessions of every harness over every week, the benchmark replay's included, by harness. The eight harnesses with most sessions are named, as the trends name them; the rest are Other.
+rows: 12,002 sessions

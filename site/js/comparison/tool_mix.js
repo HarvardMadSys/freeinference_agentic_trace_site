@@ -9,9 +9,9 @@
 
 import { AXIS_STYLE, chartFrame, colourScale, GRID_STYLE } from "../shared/charts.js";
 import { isNarrowChart, percentTick } from "../axes/ticks.js";
-import { TOOL_GROUP_COLOURS } from "../theme/colours.js";
+import { TOOL_GROUP_COLOUR_MAP } from "../theme/colours.js";
 import { formatPercent, formatShare } from "../shared/format.js";
-import { seriesLegend } from "../figures/figure_rows.js";
+import { seriesLegend } from "../shared/series.js";
 import { SCOPE_LABELS, SCOPES } from "./scopes.js";
 
 /** The tenths a turn is cut into; each tenth's share is drawn flat across it, from 0% to 100% of the turn. */
@@ -42,7 +42,7 @@ export const TOOL_MIX_BY_TURN_POSITION = Object.freeze({
   seriesNouns: Object.freeze({ Agentic: "human-driven calls", "SWE-Bench": "benchmark calls" }),
   seriesColumn: "tool_group",
   legend: (rows, colours, seriesColumn) =>
-    seriesLegend(rows, seriesColumn, new Map(Object.entries(TOOL_GROUP_COLOURS))),
+    seriesLegend(rows, seriesColumn, TOOL_GROUP_COLOUR_MAP),
   draw: drawToolMix,
 });
 
@@ -102,8 +102,7 @@ async function drawToolMix(rows, body, colours) {
     y: { domain: SHARE_DOMAIN },
     color: colourScale(colours.series, groups),
     marks: [
-      // Each panel's title at its own left edge, lifted clear of the share axis's top label; wrapped on a narrow
-      // chart, growing upward, so that the first does not run into the second.
+      // Titles above the share axis's "100%"; on a narrow chart wrapped upward, so one panel's does not reach the next.
       Plot.text(scopesOf(rows), {
         fx: (scope) => scope, text: scopeLabel, frameAnchor: "top-left", textAnchor: "start", lineAnchor: "bottom",
         dy: -PANEL_TITLE_RISE / 2, lineWidth: isNarrowChart(frame.width) ? NARROW_TITLE_WIDTH : Infinity,

@@ -1,0 +1,4 @@
+Prefill | pressed=true | legend-swatch background: var(--part-prefill);
+Decode | pressed=true | legend-swatch background: var(--part-decode);
+Tool wait | pressed=true | legend-swatch background: var(--part-tool);
+User idle | pressed=true | legend-swatch background: var(--part-user);

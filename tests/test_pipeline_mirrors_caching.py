@@ -19,11 +19,13 @@ import test_pipeline_mirrors
 SITE_FOLDER = pathlib.Path(__file__).resolve().parent.parent / "site"
 GAP_BIN_QUERY = SITE_FOLDER / "queries" / "figures" / "hit_ratio_cdf_by_gap_bin.sql"  # bins the gaps
 CAUSE_QUERY = SITE_FOLDER / "queries" / "figures" / "mean_hit_ratio_by_cause.sql"  # orders the causes
-CACHING_GAPS_MODULE = SITE_FOLDER / "js" / "figures" / "caching_gaps.js"  # the bins' labels, the causes' names
+CACHING_GAPS_MODULE = SITE_FOLDER / "js" / "figures" / "caching_gaps.js"  # the causes' names, the gap limits, the mutation table's rows
+CACHING_CDFS_MODULE = SITE_FOLDER / "js" / "figures" / "caching_cdfs.js"  # the gap bins' labels
 COLOURS_MODULE = SITE_FOLDER / "js" / "theme" / "colours.js"  # the causes' colours
 TIMELINE_BARS_MODULE = SITE_FOLDER / "js" / "session_charts" / "timeline_bars.js"  # the causes a wait bar names
 RETENTION_MODULE = SITE_FOLDER / "js" / "simulation" / "prefill.js"  # the scopes' names, the labelled TTLs
-COSTS_MODULE = SITE_FOLDER / "js" / "simulation" / "costs.js"  # how high a cost figure's callout rises
+FORMAT_MODULE = SITE_FOLDER / "js" / "shared" / "format.js"  # how a TTL's name is written, the TTL none's too
+COSTS_KIND_MODULE = SITE_FOLDER / "js" / "charts" / "knee_lines.js"  # how high a cost figure's callout rises
 PREFILL_QUERY = SITE_FOLDER / "queries" / "figures" / "prefill_against_storage.sql"  # orders the TTLs
 API_COST_QUERY = SITE_FOLDER / "queries" / "figures" / "api_cost_by_ttl.sql"  # the API's prices, the knee
 INFRASTRUCTURE_COST_QUERY = SITE_FOLDER / "queries" / "figures" / "infrastructure_cost_by_ttl.sql"  # the provider's
@@ -40,8 +42,8 @@ CAUSE_ROW = re.compile(r"\('(\w+)', (\d+)\)")
 OBJECT_ENTRY = re.compile(r'(\w+): "([^"]+)"')
 # A TTL of a query: `('<name>', <seconds>)`, the last one's seconds infinite.
 TTL_ROW = re.compile(r"\('(\w+)', (\d+|'infinity'::DOUBLE)\)")
-# A key of a JavaScript object of TTLs: a quoted name, or the constant `[NO_TTL]`.
-TTL_ENTRY = re.compile(r'"([^"]+)":|\[NO_TTL\]:')
+# A key of a JavaScript object of TTLs: a quoted name, or the constant `[NO_TTL_NAME]`.
+TTL_ENTRY = re.compile(r'"([^"]+)":|\[NO_TTL_NAME\]:')
 
 
 def bound(text: str) -> float:
@@ -64,7 +66,7 @@ def test_the_query_s_gap_bins_are_the_pipeline_s_in_its_order() -> None:
 
 
 def test_the_browser_s_gap_bin_labels_are_the_pipeline_s_in_its_order() -> None:
-    body = test_pipeline_mirrors.declaration(CACHING_GAPS_MODULE, r"const GAP_BIN_LABELS = Object\.freeze\(\[(.*?)\]\);")
+    body = test_pipeline_mirrors.declaration(CACHING_CDFS_MODULE, r"const GAP_BIN_LABELS = Object\.freeze\(\[(.*?)\]\);")
     assert re.findall(r'"([^"]+)"', body.group(1)) == [label for _name, label, _lower, _upper in gaps.GAP_BINS]
 
 
@@ -96,8 +98,8 @@ def test_a_query_s_ttls_are_the_simulation_s_in_its_order(path: pathlib.Path) ->
 def test_the_retention_figures_name_the_scopes_and_the_ttl_none_as_the_pipeline_and_the_paper() -> None:
     assert test_pipeline_mirrors.javascript_object_keys(COLOURS_MODULE, "SCOPE_COLOURS") == [
         population.AGENTIC, population.SWE_BENCH]
-    assert javascript_string(RETENTION_MODULE, "NO_TTL") == cache_retention.NO_TTL
-    assert javascript_string(RETENTION_MODULE, "NO_TTL_LABEL") == cache_retention.TTL_LABELS[cache_retention.NO_TTL]
+    assert javascript_string(FORMAT_MODULE, "NO_TTL_NAME") == cache_retention.NO_TTL
+    assert javascript_string(FORMAT_MODULE, "NO_TTL_LABEL") == cache_retention.TTL_LABELS[cache_retention.NO_TTL]
 
 
 def test_the_prefill_figure_labels_the_ttls_the_paper_labels_beside_the_benchmark() -> None:
@@ -111,10 +113,10 @@ def javascript_string(path: pathlib.Path, constant: str) -> str:
 
 
 def labelled_ttls(scope: str) -> list[str]:
-    """The TTLs `LABELLED_TTLS` of simulation/prefill.js places a name beside for `scope`, in order, `[NO_TTL]` read as
-    the TTL it names."""
+    """The TTLs `LABELLED_TTLS` of simulation/prefill.js places a name beside for `scope`, in order,
+    `[NO_TTL_NAME]` read as the TTL it names."""
     body = test_pipeline_mirrors.declaration(RETENTION_MODULE, rf'"?{scope}"?: Object\.freeze\(\{{(.*?)\}}\)').group(1)
-    no_ttl = javascript_string(RETENTION_MODULE, "NO_TTL")
+    no_ttl = javascript_string(FORMAT_MODULE, "NO_TTL_NAME")
     return [name if name else no_ttl for name in TTL_ENTRY.findall(body)]
 
 
@@ -141,7 +143,7 @@ def test_a_cost_is_counted_per_million_tokens_and_normalised_at_the_pipeline_s_t
 
 
 def test_a_cost_figure_s_callout_rises_as_the_paper_s() -> None:
-    rise = test_pipeline_mirrors.javascript_number(COSTS_MODULE, "CALLOUT_RISE_SHARE")
+    rise = test_pipeline_mirrors.javascript_number(COSTS_KIND_MODULE, "CALLOUT_RISE_SHARE")
     assert rise == cache_retention.CALLOUT_RISE_SHARE
 
 

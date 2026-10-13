@@ -1,0 +1,294 @@
+<svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" width="328" height="240" viewBox="0 0 328 240" role="img" aria-label="Requests per week: Requests each week, by model." style="color: var(--chart-label); background: transparent; font-family: var(--font-sans);">
+<style>:where(.plot-d6a7b5) { --plot-background: white; display: block; height: auto; height: intrinsic; max-width: 100%; } :where(.plot-d6a7b5 text), :where(.plot-d6a7b5 tspan) { white-space: pre; }</style>
+<g aria-label="y-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0,0.5)">
+<line x1="44" x2="320" y1="192" y2="192">
+</line>
+<line x1="44" x2="320" y1="143.8314743850485" y2="143.8314743850485">
+</line>
+<line x1="44" x2="320" y1="95.66294877009697" y2="95.66294877009697">
+</line>
+<line x1="44" x2="320" y1="47.494423155145476" y2="47.494423155145476">
+</line>
+</g>
+<g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(8,0)">
+<path transform="translate(47,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(64,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(81,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(98,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(115,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(132,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(149,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(166,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(183,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(200,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(217,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(234,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(251,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(268,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(285,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(302,192)" d="M0,0L0,6">
+</path>
+</g>
+<g aria-label="x-axis tick label" transform="translate(8,9.5)">
+<text y="0.71em" transform="translate(47,192)">May</text>
+<text y="0.71em" transform="translate(64,192)">
+</text>
+<text y="0.71em" transform="translate(81,192)">
+</text>
+<text y="0.71em" transform="translate(98,192)">Jun</text>
+<text y="0.71em" transform="translate(115,192)">
+</text>
+<text y="0.71em" transform="translate(132,192)">
+</text>
+<text y="0.71em" transform="translate(149,192)">
+</text>
+<text y="0.71em" transform="translate(166,192)">Jul</text>
+<text y="0.71em" transform="translate(183,192)">
+</text>
+<text y="0.71em" transform="translate(200,192)">
+</text>
+<text y="0.71em" transform="translate(217,192)">
+</text>
+<text y="0.71em" transform="translate(234,192)">Aug</text>
+<text y="0.71em" transform="translate(251,192)">
+</text>
+<text y="0.71em" transform="translate(268,192)">
+</text>
+<text y="0.71em" transform="translate(285,192)">
+</text>
+<text y="0.71em" transform="translate(302,192)">Sep</text>
+</g>
+<g aria-label="y-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0,0.5)">
+<path transform="translate(44,192)" d="M0,0L-6,0">
+</path>
+<path transform="translate(44,143.8314743850485)" d="M0,0L-6,0">
+</path>
+<path transform="translate(44,95.66294877009697)" d="M0,0L-6,0">
+</path>
+<path transform="translate(44,47.494423155145476)" d="M0,0L-6,0">
+</path>
+</g>
+<g aria-label="y-axis tick label" text-anchor="end" font-variant="tabular-nums" transform="translate(-8.5,0.5)">
+<text y="0.32em" transform="translate(44,192)">0</text>
+<text y="0.32em" transform="translate(44,143.8314743850485)">50k</text>
+<text y="0.32em" transform="translate(44,95.66294877009697)">100k</text>
+<text y="0.32em" transform="translate(44,47.494423155145476)">150k</text>
+</g>
+<g aria-label="bar">
+<rect x="48" width="13" y="186.68510629187983" height="4.314893708120167" fill="var(--series-3)">
+</rect>
+<rect x="48" width="13" y="184.70730663012995" height="0" fill="var(--series-8)">
+</rect>
+<rect x="48" width="13" y="182.83836783626984" height="0" fill="var(--series-other)">
+</rect>
+<rect x="65" width="13" y="182.01179593671725" height="5.4786452869773825" fill="var(--series-8)">
+</rect>
+<rect x="65" width="13" y="189.49044122369463" height="1.5095587763053686" fill="var(--series-3)">
+</rect>
+<rect x="65" width="13" y="180.85767806298304" height="0" fill="var(--series-other)">
+</rect>
+<rect x="82" width="13" y="186.68317955085527" height="2.3814090899359996" fill="var(--series-8)">
+</rect>
+<rect x="82" width="13" y="191.06458864079127" height="0" fill="var(--series-3)">
+</rect>
+<rect x="82" width="13" y="186.10515724347584" height="0" fill="var(--series-other)">
+</rect>
+<rect x="99" width="13" y="188.98948855729915" height="2.010511442700846" fill="var(--series-3)">
+</rect>
+<rect x="99" width="13" y="187.42401147481323" height="0" fill="var(--series-8)">
+</rect>
+<rect x="99" width="13" y="186.39224165614095" height="0" fill="var(--series-other)">
+</rect>
+<rect x="116" width="13" y="165.206760720173" height="13.578664554387586" fill="var(--series-5)">
+</rect>
+<rect x="116" width="13" y="184.2487422662756" height="4.1135492710496635" fill="var(--series-3)">
+</rect>
+<rect x="116" width="13" y="161.36676585814908" height="1.8399948620239286" fill="var(--series-7)">
+</rect>
+<rect x="116" width="13" y="180.7854252745606" height="1.4633169917150042" fill="var(--series-4)">
+</rect>
+<rect x="116" width="13" y="190.36229153732526" height="0.6377084626747376" fill="var(--series-2)">
+</rect>
+<rect x="116" width="13" y="158.69533942754384" height="0" fill="var(--series-other)">
+</rect>
+<rect x="116" width="13" y="160.2232450600501" height="0" fill="var(--series-8)">
+</rect>
+<rect x="133" width="13" y="151.84192160304852" height="19.13538566932843" fill="var(--series-5)">
+</rect>
+<rect x="133" width="13" y="143.06946971805357" height="6.77245188499495" fill="var(--series-7)">
+</rect>
+<rect x="133" width="13" y="179.43863329836654" height="6.337008413435825" fill="var(--series-3)">
+</rect>
+<rect x="133" width="13" y="172.97730727237695" height="4.461326025989592" fill="var(--series-4)">
+</rect>
+<rect x="133" width="13" y="187.77564171180236" height="3.224358288197635" fill="var(--series-2)">
+</rect>
+<rect x="133" width="13" y="139.08496927918478" height="1.8139838581918752" fill="var(--series-other)">
+</rect>
+<rect x="133" width="13" y="142.89895313737665" height="0" fill="var(--series-8)">
+</rect>
+<rect x="150" width="13" y="160.628824045728" height="14.506390357731561" fill="var(--series-4)">
+</rect>
+<rect x="150" width="13" y="177.13521440345957" height="6.917920832352138" fill="var(--series-3)">
+</rect>
+<rect x="150" width="13" y="149.18590910064012" height="5.741645436835" fill="var(--series-7)">
+</rect>
+<rect x="150" width="13" y="186.0531352358117" height="4.946864764188291" fill="var(--series-2)">
+</rect>
+<rect x="150" width="13" y="156.92755453747512" height="1.7012695082528921" fill="var(--series-5)">
+</rect>
+<rect x="150" width="13" y="146.24570229710346" height="0" fill="var(--series-other)">
+</rect>
+<rect x="150" width="13" y="148.06550919483632" height="0" fill="var(--series-8)">
+</rect>
+<rect x="167" width="13" y="136.55130483183834" height="18.889726188692123" fill="var(--series-5)">
+</rect>
+<rect x="167" width="13" y="165.40232493416968" height="14.765537025540027" fill="var(--series-3)">
+</rect>
+<rect x="167" width="13" y="182.1678619597097" height="8.8186508531181" fill="var(--series-2)">
+</rect>
+<rect x="167" width="13" y="157.44103102053046" height="5.961293913639224" fill="var(--series-4)">
+</rect>
+<rect x="167" width="13" y="132.03984072274199" height="0.9267196163644087" fill="var(--series-8)">
+</rect>
+<rect x="167" width="13" y="129.3424032883047" height="0.6974374344372904" fill="var(--series-other)">
+</rect>
+<rect x="167" width="13" y="134.9665603391064" height="0" fill="var(--series-7)">
+</rect>
+<rect x="167" width="13" y="192.9865128128278" height="0" fill="var(--series-1)">
+</rect>
+<rect x="184" width="13" y="163.14611119436537" height="16.570893365588404" fill="var(--series-2)">
+</rect>
+<rect x="184" width="13" y="146.92487850827428" height="14.2212326860911" fill="var(--series-3)">
+</rect>
+<rect x="184" width="13" y="181.71700455995378" height="9.282995440046221" fill="var(--series-1)">
+</rect>
+<rect x="184" width="13" y="139.9703067799876" height="4.95457172828668" fill="var(--series-4)">
+</rect>
+<rect x="184" width="13" y="129.67572948556017" height="4.2474577722591675" fill="var(--series-7)">
+</rect>
+<rect x="184" width="13" y="135.92318725781934" height="2.047119522168259" fill="var(--series-5)">
+</rect>
+<rect x="184" width="13" y="127.70949026995784" height="0" fill="var(--series-other)">
+</rect>
+<rect x="201" width="13" y="168.38202992871058" height="22.61797007128942" fill="var(--series-1)">
+</rect>
+<rect x="201" width="13" y="133.75560360514655" height="17.524630172764432" fill="var(--series-3)">
+</rect>
+<rect x="201" width="13" y="153.28023377791098" height="13.1017961507996" fill="var(--series-2)">
+</rect>
+<rect x="201" width="13" y="121.69902164372417" height="5.664575795851107" fill="var(--series-7)">
+</rect>
+<rect x="201" width="13" y="129.932949412344" height="1.8226541928025597" fill="var(--series-4)">
+</rect>
+<rect x="201" width="13" y="119.28963199246431" height="0.4093896512598576" fill="var(--series-other)">
+</rect>
+<rect x="201" width="13" y="129.36359743957527" height="0" fill="var(--series-5)">
+</rect>
+<rect x="218" width="13" y="170.87908629658966" height="20.120913703410338" fill="var(--series-1)">
+</rect>
+<rect x="218" width="13" y="134.03979790627477" height="18.569887178608866" fill="var(--series-3)">
+</rect>
+<rect x="218" width="13" y="154.60968508488364" height="14.269401211706025" fill="var(--series-2)">
+</rect>
+<rect x="218" width="13" y="119.21159898096808" height="4.2551647363575995" fill="var(--series-7)">
+</rect>
+<rect x="218" width="13" y="128.5360621695104" height="3.5037357367643693" fill="var(--series-4)">
+</rect>
+<rect x="218" width="13" y="125.46676371732568" height="1.069298452184725" fill="var(--series-5)">
+</rect>
+<rect x="218" width="13" y="116.15193423390636" height="1.059664747061717" fill="var(--series-other)">
+</rect>
+<rect x="235" width="13" y="153.054805078033" height="37.94519492196699" fill="var(--series-1)">
+</rect>
+<rect x="235" width="13" y="138.4741923743872" height="12.580612703645812" fill="var(--series-2)">
+</rect>
+<rect x="235" width="13" y="124.5621588062769" height="11.912033568110303" fill="var(--series-3)">
+</rect>
+<rect x="235" width="13" y="120.04491447410675" height="2.5172443321701508" fill="var(--series-4)">
+</rect>
+<rect x="235" width="13" y="118.73858405942924" height="0" fill="var(--series-7)">
+</rect>
+<rect x="235" width="13" y="119.485196206461" height="0" fill="var(--series-5)">
+</rect>
+<rect x="235" width="13" y="118.52086232364968" height="0" fill="var(--series-other)">
+</rect>
+<rect x="252" width="13" y="89.96270685705721" height="101.03729314294279" fill="var(--series-1)">
+</rect>
+<rect x="252" width="13" y="70.1172743036972" height="17.845432553360013" fill="var(--series-2)">
+</rect>
+<rect x="252" width="13" y="57.48556014643232" height="10.63171415726488" fill="var(--series-3)">
+</rect>
+<rect x="252" width="13" y="47.78056560553188" height="7.704994540900437" fill="var(--series-4)">
+</rect>
+<rect x="252" width="13" y="43.14386332983665" height="2.636702275695235" fill="var(--series-5)">
+</rect>
+<rect x="252" width="13" y="38.80002568988032" height="1.0596647470617313" fill="var(--series-other)">
+</rect>
+<rect x="252" width="13" y="41.85969043694205" height="0" fill="var(--series-7)">
+</rect>
+<rect x="269" width="13" y="100.92104643445869" height="90.07895356554131" fill="var(--series-1)">
+</rect>
+<rect x="269" width="13" y="82.39157800089914" height="16.529468433559543" fill="var(--series-2)">
+</rect>
+<rect x="269" width="13" y="68.1327310483612" height="8.365866712337578" fill="var(--series-4)">
+</rect>
+<rect x="269" width="13" y="78.49859776069877" height="1.892980240200373" fill="var(--series-3)">
+</rect>
+<rect x="269" width="13" y="64.94590139367602" height="1.1868296546851766" fill="var(--series-5)">
+</rect>
+<rect x="269" width="13" y="62.458478730919914" height="0.4874226627561029" fill="var(--series-7)">
+</rect>
+<rect x="269" width="13" y="59.43542206332556" height="1.0230566675943535" fill="var(--series-other)">
+</rect>
+<rect x="286" width="13" y="93.91252595748324" height="97.08747404251676" fill="var(--series-1)">
+</rect>
+<rect x="286" width="13" y="72.76557984200724" height="19.146946115476" fill="var(--series-2)">
+</rect>
+<rect x="286" width="13" y="58.87570379567981" height="11.88987604632743" fill="var(--series-4)">
+</rect>
+<rect x="286" width="13" y="43.08220761704952" height="11.582560852904031" fill="var(--series-6)">
+</rect>
+<rect x="286" width="13" y="56.66476846995355" height="0.21093532572626117" fill="var(--series-5)">
+</rect>
+<rect x="286" width="13" y="42.47239408276423" height="0" fill="var(--series-7)">
+</rect>
+<rect x="286" width="13" y="42.412665111001694" height="0" fill="var(--series-other)">
+</rect>
+<rect x="303" width="13" y="89.88852732761019" height="101.11147267238981" fill="var(--series-1)">
+</rect>
+<rect x="303" width="13" y="19.616428678469738" height="46.65213761212562" fill="var(--series-6)">
+</rect>
+<rect x="303" width="13" y="70.53056025347348" height="9.217486245209898" fill="var(--series-4)">
+</rect>
+<rect x="303" width="13" y="81.74804649868338" height="6.140480828926812" fill="var(--series-2)">
+</rect>
+<rect x="303" width="13" y="13" height="4.397743572177852" fill="var(--series-other)">
+</rect>
+<rect x="303" width="13" y="68.26856629059536" height="0.2619939628781225" fill="var(--series-5)">
+</rect>
+<rect x="303" width="13" y="19.397743572177852" height="0" fill="var(--series-7)">
+</rect>
+</g>
+<g aria-label="rule" stroke="var(--chart-axis)" transform="translate(0,0.5)">
+<line x1="44" x2="320" y1="192" y2="192">
+</line>
+</g>
+<g aria-label="tip" fill="var(--plot-background)" stroke="currentColor" pointer-events="none" text-anchor="start" transform="translate(8,0.5)">
+</g>
+</svg>

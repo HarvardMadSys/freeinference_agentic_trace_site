@@ -1,0 +1,5 @@
+title: Token split by week
+insight: Most token traffic is the same context being read again and again.
+caption: Cached input dominates the token mix across weeks. Overall, cached input accounts for 97.4% of token volume among requests with reported cache usage, far exceeding fresh input and output.
+definition: Each bar shows the percentages of cached input, uncached input, and output tokens in one week. Only requests with reported cache usage are included. Tokens are counted equally, regardless of price.
+rows: 1,077,413 rows

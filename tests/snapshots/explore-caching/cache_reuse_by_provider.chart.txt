@@ -1,0 +1,357 @@
+<svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" width="528" height="240" viewBox="0 0 528 240" role="img" aria-label="Cache reuse by provider: The same pause can be a cache hit on one provider and a miss on another." style="color: var(--chart-label); background: transparent; font-family: var(--font-sans);">
+<style>:where(.plot-d6a7b5) { --plot-background: white; display: block; height: auto; height: intrinsic; max-width: 100%; } :where(.plot-d6a7b5 text), :where(.plot-d6a7b5 tspan) { white-space: pre; }</style>
+<g aria-label="x-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0.5,0)">
+<line x1="88" x2="88" y1="32" y2="192">
+</line>
+<line x1="207.32675810426596" x2="207.32675810426596" y1="32" y2="192">
+</line>
+<line x1="360.673241895734" x2="360.673241895734" y1="32" y2="192">
+</line>
+<line x1="480" x2="480" y1="32" y2="192">
+</line>
+</g>
+<g aria-label="y-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0,0.5)">
+<line x1="72" x2="496" y1="192" y2="192">
+</line>
+<line x1="72" x2="496" y1="160.00000000000003" y2="160.00000000000003">
+</line>
+<line x1="72" x2="496" y1="127.99999999999999" y2="127.99999999999999">
+</line>
+<line x1="72" x2="496" y1="96.00000000000001" y2="96.00000000000001">
+</line>
+<line x1="72" x2="496" y1="63.99999999999999" y2="63.99999999999999">
+</line>
+<line x1="72" x2="496" y1="32" y2="32">
+</line>
+</g>
+<g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0.5,0)">
+<path transform="translate(88,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(207.32675810426596,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(360.673241895734,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(480,192)" d="M0,0L0,6">
+</path>
+</g>
+<g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0.5,9.5)">
+<text y="0.71em" transform="translate(88,192)">10 s</text>
+<text y="0.71em" transform="translate(207.32675810426596,192)">1 min</text>
+<text y="0.71em" transform="translate(360.673241895734,192)">10 min</text>
+<text y="0.71em" transform="translate(480,192)">1 h</text>
+</g>
+<g aria-label="x-axis label" text-anchor="end" transform="translate(29.5,45.5)">
+<text transform="translate(496,192)">Idle gap</text>
+</g>
+<g aria-label="y-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0,0.5)">
+<path transform="translate(72,192)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,160.00000000000003)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,127.99999999999999)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,96.00000000000001)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,63.99999999999999)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,32)" d="M0,0L-6,0">
+</path>
+</g>
+<g aria-label="y-axis tick label" text-anchor="end" font-variant="tabular-nums" transform="translate(-8.5,0.5)">
+<text y="0.32em" transform="translate(72,192)">0%</text>
+<text y="0.32em" transform="translate(72,160.00000000000003)">20%</text>
+<text y="0.32em" transform="translate(72,127.99999999999999)">40%</text>
+<text y="0.32em" transform="translate(72,96.00000000000001)">60%</text>
+<text y="0.32em" transform="translate(72,63.99999999999999)">80%</text>
+<text y="0.32em" transform="translate(72,32)">100%</text>
+</g>
+<g aria-label="y-axis label" text-anchor="start" transform="translate(-68.5,-28.5)">
+<text y="0.71em" transform="translate(72,32)">Median hit ratio</text>
+</g>
+<g aria-label="line" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" transform="translate(0.5,0.5)">
+<path stroke="var(--series-1)" d="M95.538,32.471L110.615,32.335L125.692,32.356L140.769,32.353L155.846,32.399L170.923,32.333L186,32.384L201.077,32.342L216.154,32.333L231.231,32.355L246.308,32.377L261.385,32.434L276.462,32.348L291.538,32.366L306.615,32.376L321.692,33.107L336.769,33.31L351.846,33.447L366.923,34.739L382,33.815L397.077,35.18L412.154,34.344L427.231,33.169L442.308,33.537L457.385,36.123L472.462,33.418">
+</path>
+<path stroke="var(--series-2)" d="M95.538,32.77L110.615,32.616L125.692,32.65L140.769,32.652L155.846,32.623L170.923,32.6L186,32.683L201.077,32.624L216.154,32.729L231.231,32.873L246.308,32.924L261.385,32.826L276.462,33.045L291.538,33.321L306.615,33.34L321.692,33.318L336.769,34.556L351.846,34.667L366.923,34.81L382,39.274L397.077,40.551L412.154,49.876L427.231,104.338L442.308,169.357L457.385,183.822L472.462,185.24">
+</path>
+<path stroke="var(--series-4)" d="M95.538,32.632L110.615,32.551L125.692,32.622L140.769,32.662L155.846,32.777L170.923,32.638L186,32.622L201.077,32.694L216.154,32.457L231.231,32.828L246.308,32.741L261.385,32.796L276.462,33.029L291.538,33.293L306.615,33.278L321.692,33.335L336.769,34.113L351.846,35.227L366.923,38.881L382,178.952L397.077,184.408L412.154,190.795L427.231,191.163L442.308,191.16L457.385,191.193L472.462,191.157">
+</path>
+<path stroke="var(--series-3)" d="M95.538,32.635L110.615,32.634L125.692,32.612L140.769,32.601L155.846,32.616L170.923,32.588L186,32.738L201.077,32.571L216.154,32.532L231.231,32.745L246.308,32.634L261.385,32.756L276.462,33.096L291.538,33.147L306.615,33.629L321.692,32.998L336.769,34.849L351.846,35.118L366.923,34.441L382,35.244L397.077,36.263L412.154,46.675L427.231,44.476L442.308,135.115L457.385,73.181L472.462,48.45">
+</path>
+<path stroke="var(--series-5)" d="M95.538,32.861L110.615,32.771L125.692,32.758L140.769,32.742L155.846,32.766L170.923,32.8L186,32.783L201.077,32.729L216.154,32.38L231.231,33.103L246.308,33.8L261.385,32.923L276.462,34.729L291.538,34.49L306.615,33.312L321.692,33.073L336.769,33.845L351.846,33.787L366.923,34.787">
+</path>
+<path stroke="var(--series-6)" d="M95.538,32.863L110.615,32.906L125.692,32.948L140.769,32.688L155.846,32.631L170.923,32.732L186,32.486L201.077,32.457L216.154,47.766">
+</path>
+<path stroke="var(--series-8)" d="M95.538,34.925Z">
+</path>
+</g>
+<g aria-label="dot" transform="translate(0.5,0.5)">
+<circle cx="95.53846153846153" cy="32.47113335065278" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="110.61538461538458" cy="32.334559088614895" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="125.69230769230768" cy="32.35576931411752" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="140.76923076923077" cy="32.35273447102799" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="155.84615384615384" cy="32.39946743413935" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="170.9230769230769" cy="32.332855083819794" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="186" cy="32.384110554199175" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="201.07692307692304" cy="32.34170633205363" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="216.15384615384616" cy="32.33279073786552" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="231.23076923076925" cy="32.354919832287166" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="246.30769230769235" cy="32.377374068743066" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="261.38461538461536" cy="32.43396389392761" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="276.4615384615385" cy="32.34837238066519" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="291.5384615384616" cy="32.36621714693428" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="306.6153846153846" cy="32.3759752178607" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="321.69230769230774" cy="33.107318148940664" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="336.7692307692307" cy="33.309982768636964" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="351.8461538461539" cy="33.44712106338286" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="366.9230769230769" cy="34.738519896078" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="382.00000000000006" cy="33.81478897236602" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="397.0769230769231" cy="35.17977006971045" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="412.1538461538462" cy="34.3436157014601" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="427.2307692307693" cy="33.16900827606344" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="442.3076923076924" cy="33.53739389161888" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="457.3846153846155" cy="36.12268945811313" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="472.4615384615385" cy="33.418294216166416" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="95.53846153846153" cy="32.770344854581744" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="110.61538461538458" cy="32.615729281468504" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="125.69230769230768" cy="32.64976282291916" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="140.76923076923077" cy="32.652449027419735" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="155.84615384615384" cy="32.62256809338521" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="170.9230769230769" cy="32.600394326782414" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="186" cy="32.68283723191616" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="201.07692307692304" cy="32.62396166692898" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="216.15384615384616" cy="32.72948328267478" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="231.23076923076925" cy="32.873178583805384" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="246.30769230769235" cy="32.923601891081006" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="261.38461538461536" cy="32.826495350963654" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="276.4615384615385" cy="33.04509988661903" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="291.5384615384616" cy="33.32078004600686" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="306.6153846153846" cy="33.33967747086061" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="321.69230769230774" cy="33.31838500541393" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="336.7692307692307" cy="34.55603965397487" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="351.8461538461539" cy="34.66720649780417" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="366.9230769230769" cy="34.81028216480539" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="382.00000000000006" cy="39.27435132985704" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="397.0769230769231" cy="40.550832711906544" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="412.1538461538462" cy="49.87568527580717" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="427.2307692307693" cy="104.33814874264314" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="442.3076923076924" cy="169.35717547487275" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="457.3846153846155" cy="183.82181205075872" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="472.4615384615385" cy="185.23963859568357" r="3" fill="var(--series-2)">
+</circle>
+<circle cx="95.53846153846153" cy="32.63214676910011" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="110.61538461538458" cy="32.550656154424075" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="125.69230769230768" cy="32.621513154635096" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="140.76923076923077" cy="32.662469098262406" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="155.84615384615384" cy="32.77666837681045" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="170.9230769230769" cy="32.637827505536364" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="186" cy="32.622296963076025" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="201.07692307692304" cy="32.69390047436677" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="216.15384615384616" cy="32.45656580881554" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="231.23076923076925" cy="32.828104066722624" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="246.30769230769235" cy="32.741049749168354" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="261.38461538461536" cy="32.79629409668607" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="276.4615384615385" cy="33.028539561242866" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="291.5384615384616" cy="33.29289617673738" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="306.6153846153846" cy="33.27764488522882" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="321.69230769230774" cy="33.33478187651626" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="336.7692307692307" cy="34.11311216429699" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="351.8461538461539" cy="35.22674041423742" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="366.9230769230769" cy="38.880669607510455" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="382.00000000000006" cy="178.95195065165768" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="397.0769230769231" cy="184.4084245998315" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="412.1538461538462" cy="190.7948522244614" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="427.2307692307693" cy="191.16274674768195" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="442.3076923076924" cy="191.15961736247257" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="457.3846153846155" cy="191.19306187624153" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="472.4615384615385" cy="191.15734035549704" r="3" fill="var(--series-4)">
+</circle>
+<circle cx="95.53846153846153" cy="32.6352835545747" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="110.61538461538458" cy="32.63372101160235" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="125.69230769230768" cy="32.61229586780854" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="140.76923076923077" cy="32.60135331147588" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="155.84615384615384" cy="32.6160146698968" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="170.9230769230769" cy="32.58845115675993" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="186" cy="32.73752665534562" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="201.07692307692304" cy="32.57133700610024" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="216.15384615384616" cy="32.53203510718872" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="231.23076923076925" cy="32.74527820316489" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="246.30769230769235" cy="32.63423548486804" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="261.38461538461536" cy="32.755682028160685" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="276.4615384615385" cy="33.09552554247912" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="291.5384615384616" cy="33.14705315772197" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="306.6153846153846" cy="33.62916827040835" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="321.69230769230774" cy="32.99805163488071" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="336.7692307692307" cy="34.848856193457934" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="351.8461538461539" cy="35.117955137170334" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="366.9230769230769" cy="34.44141754881557" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="382.00000000000006" cy="35.2437955801293" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="397.0769230769231" cy="36.263487792665345" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="412.1538461538462" cy="46.67479315725937" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="427.2307692307693" cy="44.47630932713367" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="442.3076923076924" cy="135.11479265157732" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="457.3846153846155" cy="73.18085754276494" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="472.4615384615385" cy="48.449835760287606" r="3" fill="var(--series-3)">
+</circle>
+<circle cx="95.53846153846153" cy="32.86145952959775" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="110.61538461538458" cy="32.77080684172651" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="125.69230769230768" cy="32.75798954025488" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="140.76923076923077" cy="32.74210241994017" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="155.84615384615384" cy="32.76637657694125" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="170.9230769230769" cy="32.79988874168308" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="186" cy="32.78334381840847" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="201.07692307692304" cy="32.72937090338941" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="216.15384615384616" cy="32.38049035694751" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="231.23076923076925" cy="33.10308054404199" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="246.30769230769235" cy="33.80007536200678" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="261.38461538461536" cy="32.922500714938046" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="276.4615384615385" cy="34.72867048812266" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="291.5384615384616" cy="34.49036971599999" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="306.6153846153846" cy="33.31169334736608" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="321.69230769230774" cy="33.073441273816975" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="336.7692307692307" cy="33.84548790229208" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="351.8461538461539" cy="33.786524664951834" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="366.9230769230769" cy="34.78680713642862" r="3" fill="var(--series-5)">
+</circle>
+<circle cx="95.53846153846153" cy="32.86285879965207" r="3" fill="var(--series-6)">
+</circle>
+<circle cx="110.61538461538458" cy="32.905624536058625" r="3" fill="var(--series-6)">
+</circle>
+<circle cx="125.69230769230768" cy="32.94833600899564" r="3" fill="var(--series-6)">
+</circle>
+<circle cx="140.76923076923077" cy="32.68750926063121" r="3" fill="var(--series-6)">
+</circle>
+<circle cx="155.84615384615384" cy="32.631073377804725" r="3" fill="var(--series-6)">
+</circle>
+<circle cx="170.9230769230769" cy="32.73204620333893" r="3" fill="var(--series-6)">
+</circle>
+<circle cx="186" cy="32.485790254728244" r="3" fill="var(--series-6)">
+</circle>
+<circle cx="201.07692307692304" cy="32.45715460401766" r="3" fill="var(--series-6)">
+</circle>
+<circle cx="216.15384615384616" cy="47.76645239194516" r="3" fill="var(--series-6)">
+</circle>
+<circle cx="95.53846153846153" cy="34.925097150016285" r="3" fill="var(--series-8)">
+</circle>
+</g>
+<g aria-label="tip" fill="var(--plot-background)" stroke="currentColor" pointer-events="none" text-anchor="start" transform="translate(0.5,0.5)">
+</g>
+</svg>

@@ -1,0 +1,5 @@
+title: Cost breakdown by session
+insight: Even discounted cache reads become the biggest API expense.
+caption: Cached input accounts for 72.9% of modeled API cost, despite costing one-tenth as much per token as uncached input. Its enormous volume outweighs the pricing discount.
+definition: The percentage of each session’s API cost spent on each token type. Prices are $1 per 1 million cached input tokens, $10 per 1 million uncached input tokens, and $50 per 1 million output tokens. Only requests with reported cache usage count; sessions are sorted by cached cost percentage, then averaged in groups.
+rows: 10,865 rows

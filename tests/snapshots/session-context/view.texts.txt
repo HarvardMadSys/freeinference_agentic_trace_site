@@ -1,0 +1,5 @@
+title: Context over time
+caption: Input tokens of each request over the session.
+definition: Input tokens of each request at its start, against time since the session's first request: the top-level session's input as a stacked area, and one line per agent; a request whose provider reported no cache reads counts as uncached. Dotted rules mark each turn's start; dots mark a request whose context was rewritten (mutation) or that went to another model or provider (switch). By role, the parts are counted with one tokenizer, not the provider's, so they need not add up to the input. Click a point to open its request.
+rows: 83 requests · 1 agent
+range: Time range 0:00–22:29 of 22:29 (m:ss)

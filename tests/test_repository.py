@@ -1,11 +1,14 @@
 """The repository's rules, checked on every commit: short units, small folders, no aliased imports, one home for library
-URLs and for SQL, libraries loaded only where they are drawn with, no machine paths, and the shipped data whole."""
+URLs and for SQL, libraries loaded only where they are drawn with, no machine paths, the shipped data whole, and a
+tracked snapshot for every page state."""
 
 import ast
 import json
 import pathlib
 import re
 import subprocess
+
+import snapshot_units
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 MAX_FUNCTION_LINES = 50  # a longer function does two jobs
@@ -19,6 +22,7 @@ ANSWERS_MODULE = JAVASCRIPT_FOLDER / "shared" / "answers.js"  # the Explore page
 PAGES = ("index.html", "session.html")  # the site's pages: Explore, the landing page, and Session
 DATA_FOLDER = "site/data"  # built by `make data` and tracked, so a clone serves the site without building
 BUCKETS_FOLDER = "session_buckets"  # every week's folder of session buckets, beside its index `index.json.gz`
+SNAPSHOTS_FOLDER = "tests/snapshots"  # the snapshot test's files, tracked so a change to what a page shows is a diff
 CDN_HOSTS = ("cdn.jsdelivr.net", "unpkg.com", "cdnjs.cloudflare.com", "esm.sh")
 
 # A static import of the libraries module, by any relative path: the `from` clause, or an import for its side effects.
@@ -193,3 +197,13 @@ def test_shipped_data_is_whole() -> None:
         assert len(buckets) > 1, f"{DATA_FOLDER}/{BUCKETS_FOLDER}/{entry['week']}/ holds no tracked bucket"
     row_files = sorted(name for name in tracked_files if name.endswith(".parquet"))
     assert row_files == [], f"row files are tracked: {', '.join(row_files)}"
+
+
+def test_every_page_state_has_a_tracked_snapshot() -> None:
+    """Git tracks one folder of snapshots for each state the snapshot test reads, and none for a state it no longer
+    reads."""
+    tracked = subprocess.run(["git", "ls-files", SNAPSHOTS_FOLDER], cwd=ROOT, capture_output=True, text=True, check=True)
+    folders = set()
+    for name in tracked.stdout.split():
+        folders.add(pathlib.PurePosixPath(name).relative_to(SNAPSHOTS_FOLDER).parts[0])
+    assert folders == set(snapshot_units.state_names()), f"{SNAPSHOTS_FOLDER}/ holds {sorted(folders)}"

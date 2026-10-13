@@ -1,0 +1,5 @@
+title: Serving cost by cache retention time
+insight: The cache that saves the most computation isn't the cheapest to run.
+caption: Simulated infrastructure cost reaches its minimum at 15 minutes, falling to 42% of the one-minute baseline. Longer retention increases storage cost faster than it reduces recomputation.
+definition: Simulated serving cost for different cache retention times, compared with a one-minute cache. Processing uncached input costs $1 per 1 million tokens. Storage costs $30 per 1 million tokens per day, including tokens that will not be used again.
+rows: 1,125,604 rows

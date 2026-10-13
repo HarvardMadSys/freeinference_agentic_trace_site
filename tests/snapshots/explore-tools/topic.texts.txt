@@ -1,0 +1,8 @@
+tab: 01 SESSION STRUCTURE | selected=false
+tab: 02 TOKENS AND COST | selected=false
+tab: 03 LATENCY | selected=false
+tab: 04 TOOLS | selected=true
+tab: 05 PREFIX CACHING | selected=false
+tab: 06 HUMAN-DRIVEN AGAINST BENCHMARK | selected=false
+heading: 04 Tools
+takeaway: Most requests call one tool; calling tools together can reduce total waiting time.

@@ -1,0 +1,7 @@
+Provider A | pressed=true | legend-swatch is-line background: var(--series-1);
+Provider B | pressed=true | legend-swatch is-line background: var(--series-2);
+Provider C | pressed=true | legend-swatch is-line background: var(--series-4);
+Provider D | pressed=true | legend-swatch is-line background: var(--series-3);
+Provider E | pressed=true | legend-swatch is-line background: var(--series-5);
+Provider F | pressed=true | legend-swatch is-line background: var(--series-6);
+Provider H | pressed=true | legend-swatch is-line background: var(--series-8);

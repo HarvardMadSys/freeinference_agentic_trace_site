@@ -1,0 +1,11 @@
+Harness: hermes
+Models: deepseek-v4-flash 83 requests
+Started: Sep 5, 2026, 23:37 UTC
+Duration: 22.5 min
+Turns: 10
+Requests: 83
+Input tokens: 14.2M
+Cached share (reported): 97.8% 13.9M cached
+Output tokens: 181.9k
+Subagents: 0
+Tool calls: 110

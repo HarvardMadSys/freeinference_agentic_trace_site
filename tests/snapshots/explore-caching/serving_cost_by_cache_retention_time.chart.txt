@@ -1,0 +1,84 @@
+<svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" width="528" height="240" viewBox="0 0 528 240" role="img" aria-label="Serving cost by cache retention time: The cache that saves the most computation isn't the cheapest to run." style="color: var(--chart-label); background: transparent; font-family: var(--font-sans);">
+<style>:where(.plot-d6a7b5) { --plot-background: white; display: block; height: auto; height: intrinsic; max-width: 100%; } :where(.plot-d6a7b5 text), :where(.plot-d6a7b5 tspan) { white-space: pre; }</style>
+<g aria-label="x-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0.5,0)">
+<line x1="88" x2="88" y1="32" y2="192">
+</line>
+<line x1="229.19990878428484" x2="229.19990878428484" y1="32" y2="192">
+</line>
+<line x1="370.3998175685697" x2="370.3998175685697" y1="32" y2="192">
+</line>
+<line x1="480" x2="480" y1="32" y2="192">
+</line>
+</g>
+<g aria-label="y-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0,0.5)">
+<line x1="72" x2="496" y1="192" y2="192">
+</line>
+<line x1="72" x2="496" y1="149.86779087242968" y2="149.86779087242968">
+</line>
+<line x1="72" x2="496" y1="107.73558174485929" y2="107.73558174485929">
+</line>
+<line x1="72" x2="496" y1="65.60337261728894" y2="65.60337261728894">
+</line>
+</g>
+<g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0.5,0)">
+<path transform="translate(88,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(229.19990878428484,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(370.3998175685697,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(480,192)" d="M0,0L0,6">
+</path>
+</g>
+<g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0.5,9.5)">
+<text y="0.71em" transform="translate(88,192)">1 s</text>
+<text y="0.71em" transform="translate(229.19990878428484,192)">1 min</text>
+<text y="0.71em" transform="translate(370.3998175685697,192)">1 h</text>
+<text y="0.71em" transform="translate(480,192)">1 d</text>
+</g>
+<g aria-label="x-axis label" text-anchor="end" transform="translate(29.5,45.5)">
+<text transform="translate(496,192)">Cache TTL</text>
+</g>
+<g aria-label="y-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0,0.5)">
+<path transform="translate(72,192)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,149.86779087242968)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,107.73558174485929)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,65.60337261728894)" d="M0,0L-6,0">
+</path>
+</g>
+<g aria-label="y-axis tick label" text-anchor="end" font-variant="tabular-nums" transform="translate(-8.5,0.5)">
+<text y="0.32em" transform="translate(72,192)">0×</text>
+<text y="0.32em" transform="translate(72,149.86779087242968)">2×</text>
+<text y="0.32em" transform="translate(72,107.73558174485929)">4×</text>
+<text y="0.32em" transform="translate(72,65.60337261728894)">6×</text>
+</g>
+<g aria-label="area">
+<path fill="var(--token-uncached)" d="M88,46.729L167.408,145.276L205.296,164.729L229.2,172.229L284.704,183.797L308.608,186.117L322.591,186.877L346.496,187.697L370.4,188.136L408.287,188.483L432.191,188.597L480,188.795L480,192L432.191,192L408.287,192L370.4,192L346.496,192L322.591,192L308.608,192L284.704,192L229.2,192L205.296,192L167.408,192L88,192Z">
+</path>
+<path fill="var(--series-7)" d="M88,46.545L167.408,144.559L205.296,163.706L229.2,170.934L284.704,181.467L308.608,183.057L322.591,183.245L346.496,182.609L370.4,180.54L408.287,171.997L432.191,159.764L480,95.895L480,188.795L432.191,188.597L408.287,188.483L370.4,188.136L346.496,187.697L322.591,186.877L308.608,186.117L284.704,183.797L229.2,172.229L205.296,164.729L167.408,145.276L88,46.729Z">
+</path>
+</g>
+<g aria-label="rule" stroke="var(--chart-axis)" stroke-dasharray="4 3" transform="translate(0,0.5)">
+<line x1="72" x2="496" y1="170.93389543621484" y2="170.93389543621484">
+</line>
+</g>
+<g aria-label="rule" stroke="var(--chart-label)" transform="translate(0.5,0)">
+<line x1="322.59127718718526" x2="322.59127718718526" y1="183.2451835556458" y2="111.24518355564582">
+</line>
+</g>
+<g aria-label="dot" fill="var(--color-surface)" stroke="var(--chart-label)" stroke-width="2" transform="translate(0.5,0.5)">
+<circle cx="322.59127718718526" cy="183.2451835556458" r="5">
+</circle>
+</g>
+<g aria-label="text" fill="var(--chart-label)" stroke="var(--color-surface)" stroke-width="4" stroke-linejoin="round" paint-order="stroke" transform="translate(0.5,0.5)">
+<text transform="translate(322.59127718718526,111.24518355564582)">
+<tspan x="0" y="-1em">Lowest 0.42×</tspan>
+<tspan x="0" dy="1em">at 15 min</tspan>
+</text>
+</g>
+<g aria-label="tip" fill="var(--plot-background)" stroke="currentColor" pointer-events="none" text-anchor="start" transform="translate(0.5,0.5)">
+</g>
+</svg>

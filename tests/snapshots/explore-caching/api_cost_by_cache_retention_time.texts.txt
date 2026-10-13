@@ -1,0 +1,5 @@
+title: API cost by cache retention time
+insight: Most API savings come from relatively short cache retention.
+caption: Extending retention from one to 30 minutes reduces modeled API cost by 35%. Longer retention continues reducing recomputation, but provides diminishing additional savings.
+definition: Simulated API cost for different cache retention times, compared with a one-minute cache. Prices per 1 million tokens are $1 for cached input, $10 for uncached input, and $50 for output. The marker shows the shortest retention time with a cost within 5% of the lowest cost.
+rows: 1,125,604 rows

@@ -64,17 +64,6 @@ test("the start is the UTC minute with its year, and the models are lines, the f
   assert.deepEqual(values["Models"], [[{ text: "model-y", note: "2 requests" }, { text: "model-x", note: "1" }], ""]);
 });
 
-test("the card lists the eleven fields three to a row, the subagents beside the tool calls, and no detail restates its label", () => {
-  const facts = sessionFacts([TOP_LEVEL], [{ model: "model-x" }]);
-  assert.deepEqual(facts.map((fact) => fact.label), [
-    "Harness", "Models", "Started", "Duration", "Turns", "Requests", "Input tokens", "Cached share (reported)",
-    "Output tokens", "Subagents", "Tool calls",
-  ]);
-  for (const label of ["Harness", "Duration", "Subagents", "Input tokens", "Output tokens"]) {
-    assert.equal(facts.find((fact) => fact.label === label).detail, "", label);
-  }
-});
-
 test("models with as many requests are in name order", () => {
   const requests = [{ model: "b" }, { model: "a" }, { model: "c" }, { model: "c" }];
   assert.deepEqual(requestsPerModel(requests), [

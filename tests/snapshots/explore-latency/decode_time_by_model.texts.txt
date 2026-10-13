@@ -1,0 +1,5 @@
+title: Decode time by model
+insight: Agents generate short responses, leaving relatively little decoding work.
+caption: Requests generate only a few hundred output tokens at the median, keeping typical decode latency around one to three seconds on the externally routed models.
+definition: Each line shows the percentage of requests that finish generating output within the time shown, for the five busiest models. Generation time is total request time minus time to first token. Only requests with reliable first-token measurements are included.
+rows: 729,443 rows

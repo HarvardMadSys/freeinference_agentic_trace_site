@@ -1,0 +1,114 @@
+<svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" width="528" height="240" viewBox="0 0 528 240" role="img" aria-label="User prompt size: Real users give short instructions, unlike the detailed tasks in benchmarks." style="color: var(--chart-label); background: transparent; font-family: var(--font-sans);">
+<style>:where(.plot-d6a7b5) { --plot-background: white; display: block; height: auto; height: intrinsic; max-width: 100%; } :where(.plot-d6a7b5 text), :where(.plot-d6a7b5 tspan) { white-space: pre; }</style>
+<g aria-label="x-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0.5,0)">
+<line x1="88" x2="88" y1="32" y2="192">
+</line>
+<line x1="166.4" x2="166.4" y1="32" y2="192">
+</line>
+<line x1="244.8" x2="244.8" y1="32" y2="192">
+</line>
+<line x1="323.2" x2="323.2" y1="32" y2="192">
+</line>
+<line x1="401.6" x2="401.6" y1="32" y2="192">
+</line>
+<line x1="480" x2="480" y1="32" y2="192">
+</line>
+</g>
+<g aria-label="y-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0,0.5)">
+<line x1="72" x2="496" y1="192" y2="192">
+</line>
+<line x1="72" x2="496" y1="160.00000000000003" y2="160.00000000000003">
+</line>
+<line x1="72" x2="496" y1="127.99999999999999" y2="127.99999999999999">
+</line>
+<line x1="72" x2="496" y1="96.00000000000001" y2="96.00000000000001">
+</line>
+<line x1="72" x2="496" y1="63.99999999999999" y2="63.99999999999999">
+</line>
+<line x1="72" x2="496" y1="32" y2="32">
+</line>
+</g>
+<g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0.5,0)">
+<path transform="translate(88,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(166.4,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(244.8,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(323.2,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(401.6,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(480,192)" d="M0,0L0,6">
+</path>
+</g>
+<g aria-label="x-axis tick label" font-variant="tabular-nums" transform="translate(0.5,9.5)">
+<text y="0.71em" transform="translate(88,192)">1</text>
+<text y="0.71em" transform="translate(166.4,192)">10</text>
+<text y="0.71em" transform="translate(244.8,192)">100</text>
+<text y="0.71em" transform="translate(323.2,192)">1k</text>
+<text y="0.71em" transform="translate(401.6,192)">10k</text>
+<text y="0.71em" transform="translate(480,192)">100k</text>
+</g>
+<g aria-label="x-axis label" text-anchor="end" transform="translate(29.5,45.5)">
+<text transform="translate(496,192)">Tokens</text>
+</g>
+<g aria-label="y-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0,0.5)">
+<path transform="translate(72,192)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,160.00000000000003)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,127.99999999999999)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,96.00000000000001)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,63.99999999999999)" d="M0,0L-6,0">
+</path>
+<path transform="translate(72,32)" d="M0,0L-6,0">
+</path>
+</g>
+<g aria-label="y-axis tick label" text-anchor="end" font-variant="tabular-nums" transform="translate(-8.5,0.5)">
+<text y="0.32em" transform="translate(72,192)">0%</text>
+<text y="0.32em" transform="translate(72,160.00000000000003)">20%</text>
+<text y="0.32em" transform="translate(72,127.99999999999999)">40%</text>
+<text y="0.32em" transform="translate(72,96.00000000000001)">60%</text>
+<text y="0.32em" transform="translate(72,63.99999999999999)">80%</text>
+<text y="0.32em" transform="translate(72,32)">100%</text>
+</g>
+<g aria-label="y-axis label" text-anchor="start" transform="translate(-68.5,-28.5)">
+<text y="0.71em" transform="translate(72,32)">Share of prompts</text>
+</g>
+<clipPath id="plot-clip">
+<rect x="72" y="32" width="424" height="160">
+</rect>
+</clipPath>
+<g aria-label="line" clip-path="url(#plot-clip)">
+<g fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" transform="translate(0.5,0.5)">
+<path stroke="var(--series-1)" d="M88,192L125.406,191.2L125.406,190.4L125.406,189.6L125.406,188.8L125.406,188L135.202,187.2L135.202,186.4L135.202,185.6L135.202,184.8L142.799,184L142.799,183.2L142.799,182.4L142.799,181.6L142.799,180.8L149.007,180L149.007,179.2L149.007,178.4L149.007,177.6L149.007,176.8L154.256,176L154.256,175.2L154.256,174.4L154.256,173.6L158.802,172.8L158.802,172L158.802,171.2L158.802,170.4L158.802,169.6L162.813,168.8L162.813,168L162.813,167.2L162.813,166.4L166.4,165.6L166.4,164.8L166.4,164L166.4,163.2L169.645,162.4L169.645,161.6L169.645,160.8L169.645,160L172.608,159.2L172.608,158.4L172.608,157.6L172.608,156.8L175.333,156L175.333,155.2L175.333,154.4L175.333,153.6L177.856,152.8L177.856,152L177.856,151.2L180.206,150.4L180.206,149.6L180.206,148.8L180.206,148L182.403,147.2L182.403,146.4L182.403,145.6L184.467,144.8L184.467,144L184.467,143.2L186.413,142.4L186.413,141.6L186.413,140.8L188.254,140L188.254,139.2L190.001,138.4L190.001,137.6L190.001,136.8L191.662,136L191.662,135.2L193.246,134.4L193.246,133.6L194.759,132.8L194.759,132L196.209,131.2L196.209,130.4L196.209,129.6L197.598,128.8L198.934,128L198.934,127.2L200.219,126.4L200.219,125.6L201.457,124.8L202.652,124L202.652,123.2L203.806,122.4L204.923,121.6L206.004,120.8L206.004,120L207.051,119.2L208.068,118.4L209.055,117.6L210.014,116.8L210.014,116L210.947,115.2L212.739,114.4L213.602,113.6L214.442,112.8L215.263,112L216.064,111.2L217.612,110.4L218.36,109.6L219.809,108.8L220.511,108L221.874,107.2L223.183,106.4L224.444,105.6L225.661,104.8L226.835,104L228.524,103.2L229.605,102.4L230.652,101.6L231.164,100.8L232.656,100L234.085,99.2L235.456,98.4L236.774,97.6L238.456,96.8L240.058,96L241.589,95.2L243.054,94.4L244.8,93.6L245.806,92.8L247.104,92L248.353,91.2L249.854,90.4L251.008,89.6L252.669,88.8L254.253,88L255.269,87.2L256.978,86.4L258.832,85.6L260.159,84.8L261.851,84L264.048,83.2L265.562,82.4L267.011,81.6L269.242,80.8L271.178,80L272.862,79.2L274.609,78.4L276.405,77.6L277.854,76.8L279.367,76L280.46,75.2L280.934,74.4L281.634,73.6L282.668,72.8L284.297,72L286.166,71.2L288.414,70.4L290.7,69.6L293.173,68.8L295.247,68L297.781,67.2L300.407,66.4L302.906,65.6L305.75,64.8L309.001,64L311.778,63.2L314.521,62.4L316.856,61.6L319.232,60.8L321.093,60L323.519,59.2L324.074,58.4L325.726,57.6L328.256,56.8L330.552,56L331.897,55.2L331.897,54.4L332.542,53.6L334.841,52.8L337.457,52L338.45,51.2L340.374,50.4L342.468,49.6L345.251,48.8L348.005,48L349.829,47.2L351.366,46.4L352.465,45.6L355.365,44.8L358.001,44L360.961,43.2L362.451,42.4L366.474,41.6L368.457,40.8L371.573,40L375.704,39.2L379.842,38.4L384.34,37.6L389.761,36.8L395.97,36L402.058,35.2L410.999,34.4L421.759,33.6L438.126,32.8L541.468,32">
+</path>
+<path stroke="var(--series-8)" d="M184.467,192L184.467,191.2L217.612,190.4L233.139,189.6L240.058,188.8L241.961,188L244.622,187.2L247.734,186.4L247.734,185.6L247.734,184.8L261.706,184L263.463,183.2L267.713,182.4L281.868,181.6L284.827,180.8L295.708,180L296.087,179.2L296.88,178.4L300.935,177.6L300.935,176.8L304.001,176L304.636,175.2L304.945,174.4L307.522,173.6L309.666,172.8L310.603,172L311.075,171.2L316.732,170.4L316.732,169.6L319.27,168.8L319.688,168L319.688,167.2L321.186,166.4L322.3,165.6L322.443,164.8L324.008,164L325.28,163.2L325.723,162.4L325.946,161.6L326.121,160.8L327.077,160L327.21,159.2L327.702,158.4L327.81,157.6L328.106,156.8L329.094,156L329.618,155.2L329.71,154.4L330.352,153.6L330.661,152.8L330.893,152L331.096,151.2L331.365,150.4L331.365,149.6L331.365,148.8L331.552,148L331.608,147.2L331.658,146.4L331.746,145.6L331.976,144.8L332.138,144L332.262,143.2L332.387,142.4L332.446,141.6L332.571,140.8L332.744,140L332.807,139.2L332.884,138.4L333.072,137.6L333.19,136.8L333.19,136L333.296,135.2L333.368,134.4L333.418,133.6L333.493,132.8L333.544,132L333.594,131.2L333.694,130.4L333.794,129.6L333.828,128.8L333.919,128L333.99,127.2L334.046,126.4L334.152,125.6L334.208,124.8L334.314,124L334.363,123.2L334.437,122.4L334.547,121.6L334.681,120.8L334.778,120L334.864,119.2L334.947,118.4L335.115,117.6L335.187,116.8L335.235,116L335.331,115.2L335.402,114.4L335.426,113.6L335.663,112.8L335.757,112L336.015,111.2L336.109,110.4L336.254,109.6L336.435,108.8L336.526,108L336.82,107.2L337.006,106.4L337.009,105.6L337.051,104.8L337.187,104L337.5,103.2L337.701,102.4L337.946,101.6L338.034,100.8L338.275,100L338.319,99.2L338.48,98.4L338.602,97.6L338.67,96.8L338.753,96L339.147,95.2L339.305,94.4L339.365,93.6L339.51,92.8L339.731,92L339.752,91.2L339.821,90.4L340.106,89.6L340.251,88.8L340.54,88L340.722,87.2L340.916,86.4L341.203,85.6L341.557,84.8L341.78,84L341.995,83.2L342.446,82.4L342.814,81.6L343.167,80.8L343.376,80L343.795,79.2L344.238,78.4L344.821,77.6L345.104,76.8L345.179,76L345.179,75.2L345.408,74.4L345.588,73.6L345.886,72.8L345.93,72L346.13,71.2L346.494,70.4L347.111,69.6L347.772,68.8L348.157,68L348.513,67.2L348.782,66.4L349.405,65.6L349.48,64.8L349.484,64L349.968,63.2L350.319,62.4L350.522,61.6L350.561,60.8L351.145,60L351.735,59.2L351.969,58.4L352.537,57.6L353.597,56.8L354.202,56L355.073,55.2L355.204,54.4L355.405,53.6L356.431,52.8L356.874,52L357.235,51.2L358.034,50.4L359.598,49.6L361.094,48.8L362.489,48L363.384,47.2L363.972,46.4L364.55,45.6L366.96,44.8L368.14,44L368.177,43.2L368.457,42.4L372.119,41.6L373.177,40.8L374.351,40L374.351,39.2L374.351,38.4L375.477,37.6L377.769,36.8L379.532,36L380.922,35.2L383.629,34.4L387.278,33.6L388.217,32.8L408.759,32">
+</path>
+</g>
+</g>
+<g aria-label="dot" transform="translate(0.5,0.5)">
+<circle cx="215.2627443671954" cy="112" r="3" fill="var(--series-1)">
+</circle>
+<circle cx="335.7571941679474" cy="112" r="3" fill="var(--series-8)">
+</circle>
+</g>
+<g aria-label="text" stroke="var(--color-surface)" stroke-width="3" stroke-linejoin="round" paint-order="stroke" text-anchor="end" transform="translate(-7.5,-7.5)">
+<text y="0.32em" transform="translate(215.2627443671954,112)">42</text>
+</g>
+<g aria-label="text" stroke="var(--color-surface)" stroke-width="3" stroke-linejoin="round" paint-order="stroke" text-anchor="start" transform="translate(8.5,8.5)">
+<text y="0.32em" transform="translate(335.7571941679474,112)">1.4k</text>
+</g>
+<g aria-label="rule" stroke="var(--chart-axis)" stroke-dasharray="1 3" transform="translate(0,0.5)">
+<line x1="215.2627443671954" x2="335.7571941679474" y1="112" y2="112">
+</line>
+</g>
+<g aria-label="text" fill="var(--chart-label)" stroke="var(--color-surface)" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="end" transform="translate(-5.5,-5.5)">
+<text transform="translate(496,192)">benchmark 34.4× longer</text>
+</g>
+<g aria-label="tip" fill="var(--plot-background)" stroke="currentColor" pointer-events="none" text-anchor="start" transform="translate(0.5,0.5)">
+</g>
+</svg>

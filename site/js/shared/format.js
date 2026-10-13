@@ -36,6 +36,13 @@ const TOKENS_PER_BINARY_THOUSAND = 1024;
 
 // The unit of a TTL's name, by its last letter, as a duration is written: "1m" is "1 min", never "1m".
 const TTL_UNITS = Object.freeze({ s: "s", m: "min", h: "h", d: "d" });
+// tests/test_pipeline_mirrors_caching.py checks these two against the pipeline.
+/** The simulation's name of the TTL of a cache that keeps every block for the week. */
+export const NO_TTL_NAME = "none";
+const NO_TTL_LABEL = "∞"; // how a figure writes the TTL `none`, as the paper does
+
+/** A multiple in a tooltip or a callout, with two decimals: 0.65×. */
+export const MULTIPLE_DECIMALS = 2;
 
 /** The text of a value that has none, such as a share of nothing or a median over no rows. */
 export const MISSING_TEXT = "—";
@@ -122,8 +129,14 @@ export function formatDurationTick(seconds) {
   return `${seconds} s`;
 }
 
-/** A TTL's name as the simulation gives it, written as every duration is: "1m" → "1 min", "10s" → "10 s", "1d" → "1 d". */
+/**
+ * A TTL's name as the simulation gives it, written as every duration is: "1m" → "1 min", "10s" → "10 s", "1d" → "1 d";
+ * the TTL "none", a cache that never expires, as "∞".
+ */
 export function formatTtlName(ttl) {
+  if (ttl === NO_TTL_NAME) {
+    return NO_TTL_LABEL;
+  }
   return `${ttl.slice(0, -1)} ${TTL_UNITS[ttl.slice(-1)]}`;
 }
 
@@ -169,6 +182,11 @@ export function formatShare(share) {
 export function formatMultiple(multiple, decimals) {
   const digits = decimals === undefined ? String(multiple) : multiple.toFixed(decimals);
   return `${digits}×`;
+}
+
+/** A multiple as an axis writes it, as it is: "2×"; Plot also passes a tick's index, which is no number of decimals. */
+export function formatMultipleTick(multiple) {
+  return formatMultiple(multiple);
 }
 
 /** A share as `formatShare` writes it, or "—" for a missing share (null), such as a share of nothing. */

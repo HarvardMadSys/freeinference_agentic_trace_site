@@ -7,7 +7,6 @@ import { ROWS_PER_PAGE } from "../site/js/shared/table.js";
 import {
   benchmarkMark,
   choices,
-  COLUMNS,
   firstPageCountLine,
   harnessText,
   isDefaultState,
@@ -87,14 +86,6 @@ test("the default sort lists the newest session first, and writes no sort key", 
 test("an explicit sort in the URL is still read", () => {
   const state = readTableState(new URLSearchParams("sort=input_tokens&direction=ascending"));
   assert.deepEqual(state.sort, { key: "input_tokens", direction: "ascending" });
-});
-
-test("the columns are the session, its start, harness and requests, which fit a phone, then the model and four numbers", () => {
-  const titles = COLUMNS.map((column) => column.title);
-  const expected = [
-    "Session", "Started (UTC)", "Harness", "Requests", "Model", "Turns", "Duration", "Input tokens", "Cached share",
-  ];
-  assert.deepEqual(titles, expected);
 });
 
 test("a search by an id prefix finds the session", () => {

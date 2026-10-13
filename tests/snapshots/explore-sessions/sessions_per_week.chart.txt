@@ -1,0 +1,334 @@
+<svg class="plot-d6a7b5" fill="currentColor" font-family="system-ui, sans-serif" font-size="10" text-anchor="middle" width="328" height="240" viewBox="0 0 328 240" role="img" aria-label="Sessions per week: Top-level sessions each week, by harness." style="color: var(--chart-label); background: transparent; font-family: var(--font-sans);">
+<style>:where(.plot-d6a7b5) { --plot-background: white; display: block; height: auto; height: intrinsic; max-width: 100%; } :where(.plot-d6a7b5 text), :where(.plot-d6a7b5 tspan) { white-space: pre; }</style>
+<g aria-label="y-grid" aria-hidden="true" stroke="var(--chart-grid)" transform="translate(0,0.5)">
+<line x1="44" x2="320" y1="192" y2="192">
+</line>
+<line x1="44" x2="320" y1="142.16611295681065" y2="142.16611295681065">
+</line>
+<line x1="44" x2="320" y1="92.33222591362126" y2="92.33222591362126">
+</line>
+<line x1="44" x2="320" y1="42.498338870431894" y2="42.498338870431894">
+</line>
+</g>
+<g aria-label="x-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(8,0)">
+<path transform="translate(47,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(64,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(81,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(98,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(115,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(132,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(149,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(166,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(183,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(200,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(217,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(234,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(251,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(268,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(285,192)" d="M0,0L0,6">
+</path>
+<path transform="translate(302,192)" d="M0,0L0,6">
+</path>
+</g>
+<g aria-label="x-axis tick label" transform="translate(8,9.5)">
+<text y="0.71em" transform="translate(47,192)">May</text>
+<text y="0.71em" transform="translate(64,192)">
+</text>
+<text y="0.71em" transform="translate(81,192)">
+</text>
+<text y="0.71em" transform="translate(98,192)">Jun</text>
+<text y="0.71em" transform="translate(115,192)">
+</text>
+<text y="0.71em" transform="translate(132,192)">
+</text>
+<text y="0.71em" transform="translate(149,192)">
+</text>
+<text y="0.71em" transform="translate(166,192)">Jul</text>
+<text y="0.71em" transform="translate(183,192)">
+</text>
+<text y="0.71em" transform="translate(200,192)">
+</text>
+<text y="0.71em" transform="translate(217,192)">
+</text>
+<text y="0.71em" transform="translate(234,192)">Aug</text>
+<text y="0.71em" transform="translate(251,192)">
+</text>
+<text y="0.71em" transform="translate(268,192)">
+</text>
+<text y="0.71em" transform="translate(285,192)">
+</text>
+<text y="0.71em" transform="translate(302,192)">Sep</text>
+</g>
+<g aria-label="y-axis tick" aria-hidden="true" fill="none" stroke="var(--chart-axis)" transform="translate(0,0.5)">
+<path transform="translate(44,192)" d="M0,0L-6,0">
+</path>
+<path transform="translate(44,142.16611295681065)" d="M0,0L-6,0">
+</path>
+<path transform="translate(44,92.33222591362126)" d="M0,0L-6,0">
+</path>
+<path transform="translate(44,42.498338870431894)" d="M0,0L-6,0">
+</path>
+</g>
+<g aria-label="y-axis tick label" text-anchor="end" font-variant="tabular-nums" transform="translate(-8.5,0.5)">
+<text y="0.32em" transform="translate(44,192)">0</text>
+<text y="0.32em" transform="translate(44,142.16611295681065)">500</text>
+<text y="0.32em" transform="translate(44,92.33222591362126)">1k</text>
+<text y="0.32em" transform="translate(44,42.498338870431894)">1.5k</text>
+</g>
+<g aria-label="bar">
+<rect x="48" width="13" y="183.93023255813955" height="2.0863787375415086" fill="var(--series-1)">
+</rect>
+<rect x="48" width="13" y="188.51495016611295" height="0.39202657807308583" fill="var(--series-6)">
+</rect>
+<rect x="48" width="13" y="190.90697674418604" height="0.09302325581396076" fill="var(--series-5)">
+</rect>
+<rect x="48" width="13" y="182.43521594684387" height="0" fill="var(--series-other)">
+</rect>
+<rect x="48" width="13" y="188.01661129568106" height="0" fill="var(--series-7)">
+</rect>
+<rect x="65" width="13" y="179.9435215946844" height="3.38205980066445" fill="var(--series-1)">
+</rect>
+<rect x="65" width="13" y="185.32558139534885" height="1.48837209302323" fill="var(--series-7)">
+</rect>
+<rect x="65" width="13" y="188.81395348837208" height="1.2890365448504895" fill="var(--series-6)">
+</rect>
+<rect x="65" width="13" y="192.10299003322257" height="0" fill="var(--series-5)">
+</rect>
+<rect x="65" width="13" y="179.54485049833886" height="0" fill="var(--series-other)">
+</rect>
+<rect x="82" width="13" y="186.72093023255815" height="0.29235880398670133" fill="var(--series-1)">
+</rect>
+<rect x="82" width="13" y="189.61129568106313" height="0.09302325581396076" fill="var(--series-7)">
+</rect>
+<rect x="82" width="13" y="191.7043189368771" height="0" fill="var(--series-6)">
+</rect>
+<rect x="82" width="13" y="189.01328903654485" height="0" fill="var(--series-8)">
+</rect>
+<rect x="82" width="13" y="186.52159468438535" height="0" fill="var(--series-other)">
+</rect>
+<rect x="99" width="13" y="188.6146179401993" height="1.4883720930232585" fill="var(--series-7)">
+</rect>
+<rect x="99" width="13" y="185.22591362126246" height="1.3887043189368455" fill="var(--series-1)">
+</rect>
+<rect x="99" width="13" y="192.10299003322257" height="0" fill="var(--series-6)">
+</rect>
+<rect x="99" width="13" y="185.0265780730897" height="0" fill="var(--series-other)">
+</rect>
+<rect x="116" width="13" y="150.64119601328903" height="28.996677740863788" fill="var(--series-8)">
+</rect>
+<rect x="116" width="13" y="187.81727574750832" height="3.1827242524916812" fill="var(--series-5)">
+</rect>
+<rect x="116" width="13" y="181.63787375415282" height="2.9833887043189122" fill="var(--series-7)">
+</rect>
+<rect x="116" width="13" y="145.6578073089701" height="0.5913621262458548" fill="var(--series-other)">
+</rect>
+<rect x="116" width="13" y="148.74750830564784" height="0" fill="var(--series-1)">
+</rect>
+<rect x="116" width="13" y="186.62126245847173" height="0" fill="var(--series-6)">
+</rect>
+<rect x="116" width="13" y="148.24916943521595" height="0" fill="var(--series-2)">
+</rect>
+<rect x="133" width="13" y="141.67109634551494" height="31.787375415282384" fill="var(--series-8)">
+</rect>
+<rect x="133" width="13" y="184.9269102990033" height="6.0730897009966895" fill="var(--series-5)">
+</rect>
+<rect x="133" width="13" y="175.45847176079732" height="3.4817275747508347" fill="var(--series-7)">
+</rect>
+<rect x="133" width="13" y="126.02325581395348" height="6.970099667774093" fill="var(--series-other)">
+</rect>
+<rect x="133" width="13" y="180.94019933554816" height="1.9867109634551525" fill="var(--series-6)">
+</rect>
+<rect x="133" width="13" y="138.58139534883722" height="1.0897009966777205" fill="var(--series-1)">
+</rect>
+<rect x="133" width="13" y="135.89036544850495" height="0" fill="var(--series-3)">
+</rect>
+<rect x="133" width="13" y="134.99335548172758" height="0" fill="var(--series-4)">
+</rect>
+<rect x="133" width="13" y="137.68438538205982" height="0" fill="var(--series-2)">
+</rect>
+<rect x="150" width="13" y="154.0299003322259" height="9.760797342192717" fill="var(--series-3)">
+</rect>
+<rect x="150" width="13" y="176.55481727574752" height="7.069767441860449" fill="var(--series-6)">
+</rect>
+<rect x="150" width="13" y="185.62458471760797" height="5.3754152823920265" fill="var(--series-5)">
+</rect>
+<rect x="150" width="13" y="169.27906976744188" height="5.275747508305642" fill="var(--series-7)">
+</rect>
+<rect x="150" width="13" y="166.1893687707641" height="1.0897009966777773" fill="var(--series-1)">
+</rect>
+<rect x="150" width="13" y="143.96345514950167" height="6.172757475083046" fill="var(--series-other)">
+</rect>
+<rect x="150" width="13" y="152.13621262458472" height="0" fill="var(--series-4)">
+</rect>
+<rect x="150" width="13" y="165.79069767441862" height="0" fill="var(--series-2)">
+</rect>
+<rect x="167" width="13" y="136.2890365448505" height="34.777408637873776" fill="var(--series-8)">
+</rect>
+<rect x="167" width="13" y="176.85382059800665" height="8.863787375415285" fill="var(--series-6)">
+</rect>
+<rect x="167" width="13" y="126.12292358803985" height="8.166112956810636" fill="var(--series-1)">
+</rect>
+<rect x="167" width="13" y="187.71760797342193" height="3.2823920265780657" fill="var(--series-5)">
+</rect>
+<rect x="167" width="13" y="119.34551495016612" height="1.9867109634551525" fill="var(--series-3)">
+</rect>
+<rect x="167" width="13" y="173.06644518272427" height="1.7873754152823835" fill="var(--series-7)">
+</rect>
+<rect x="167" width="13" y="110.07641196013287" height="5.574750830564781" fill="var(--series-other)">
+</rect>
+<rect x="167" width="13" y="123.33222591362127" height="0.7906976744185812" fill="var(--series-2)">
+</rect>
+<rect x="167" width="13" y="117.65116279069765" height="0" fill="var(--series-4)">
+</rect>
+<rect x="184" width="13" y="172.26910299003322" height="18.73089700996678" fill="var(--series-5)">
+</rect>
+<rect x="184" width="13" y="160.30897009966776" height="9.960132890365458" fill="var(--series-6)">
+</rect>
+<rect x="184" width="13" y="141.57142857142856" height="7.568106312292372" fill="var(--series-2)">
+</rect>
+<rect x="184" width="13" y="133.69767441860466" height="5.873754152823892" fill="var(--series-3)">
+</rect>
+<rect x="184" width="13" y="151.13953488372093" height="4.478405315614623" fill="var(--series-1)">
+</rect>
+<rect x="184" width="13" y="127.61794019933555" height="4.079734219269113" fill="var(--series-4)">
+</rect>
+<rect x="184" width="13" y="157.61794019933555" height="0.6910299003322109" fill="var(--series-7)">
+</rect>
+<rect x="184" width="13" y="123.33222591362127" height="2.2857142857142776" fill="var(--series-other)">
+</rect>
+<rect x="201" width="13" y="164.7940199335548" height="26.205980066445193" fill="var(--series-5)">
+</rect>
+<rect x="201" width="13" y="117.95016611295681" height="9.661129568106318" fill="var(--series-4)">
+</rect>
+<rect x="201" width="13" y="154.22923588039868" height="8.564784053156131" fill="var(--series-6)">
+</rect>
+<rect x="201" width="13" y="134.59468438538207" height="5.475083056478383" fill="var(--series-2)">
+</rect>
+<rect x="201" width="13" y="142.06976744186045" height="4.976744186046517" fill="var(--series-1)">
+</rect>
+<rect x="201" width="13" y="149.04651162790697" height="3.1827242524917096" fill="var(--series-7)">
+</rect>
+<rect x="201" width="13" y="129.61129568106313" height="2.9833887043189407" fill="var(--series-3)">
+</rect>
+<rect x="201" width="13" y="114.6611295681063" height="1.2890365448505037" fill="var(--series-other)">
+</rect>
+<rect x="218" width="13" y="155.4252491694352" height="35.574750830564795" fill="var(--series-5)">
+</rect>
+<rect x="218" width="13" y="104.49501661129568" height="10.558139534883722" fill="var(--series-4)">
+</rect>
+<rect x="218" width="13" y="142.96677740863785" height="10.458471760797352" fill="var(--series-6)">
+</rect>
+<rect x="218" width="13" y="128.51495016611295" height="5.67441860465118" fill="var(--series-1)">
+</rect>
+<rect x="218" width="13" y="136.18936877076413" height="4.7774086378737195" fill="var(--series-7)">
+</rect>
+<rect x="218" width="13" y="122.63455149501662" height="3.88039867109633" fill="var(--series-2)">
+</rect>
+<rect x="218" width="13" y="117.0531561461794" height="3.581395348837219" fill="var(--series-3)">
+</rect>
+<rect x="218" width="13" y="100.30897009966777" height="2.1860465116279073" fill="var(--series-other)">
+</rect>
+<rect x="235" width="13" y="154.62790697674419" height="36.372093023255815" fill="var(--series-5)">
+</rect>
+<rect x="235" width="13" y="137.58471760797346" height="7.26910299003319" fill="var(--series-7)">
+</rect>
+<rect x="235" width="13" y="146.85382059800665" height="5.774086378737536" fill="var(--series-6)">
+</rect>
+<rect x="235" width="13" y="126.12292358803985" height="4.976744186046503" fill="var(--series-2)">
+</rect>
+<rect x="235" width="13" y="114.06312292358804" height="4.478405315614623" fill="var(--series-4)">
+</rect>
+<rect x="235" width="13" y="120.54152823920266" height="3.581395348837191" fill="var(--series-3)">
+</rect>
+<rect x="235" width="13" y="133.09966777408636" height="2.4850498338871034" fill="var(--series-1)">
+</rect>
+<rect x="235" width="13" y="110.17607973421927" height="1.887043189368768" fill="var(--series-other)">
+</rect>
+<rect x="252" width="13" y="138.48172757475083" height="52.518272425249165" fill="var(--series-5)">
+</rect>
+<rect x="252" width="13" y="98.91362126245848" height="25.607973421926914" fill="var(--series-7)">
+</rect>
+<rect x="252" width="13" y="126.52159468438539" height="9.960132890365443" fill="var(--series-6)">
+</rect>
+<rect x="252" width="13" y="78.68106312292358" height="9.661129568106332" fill="var(--series-2)">
+</rect>
+<rect x="252" width="13" y="90.34219269102991" height="6.571428571428569" fill="var(--series-1)">
+</rect>
+<rect x="252" width="13" y="67.51827242524917" height="3.8803986710963443" fill="var(--series-4)">
+</rect>
+<rect x="252" width="13" y="73.39867109634551" height="3.2823920265780657" fill="var(--series-3)">
+</rect>
+<rect x="252" width="13" y="58.14950166112958" height="7.3687707641195885" fill="var(--series-other)">
+</rect>
+<rect x="269" width="13" y="135.59136212624585" height="55.408637873754145" fill="var(--series-5)">
+</rect>
+<rect x="269" width="13" y="99.31229235880399" height="16.338870431893668" fill="var(--series-7)">
+</rect>
+<rect x="269" width="13" y="117.65116279069765" height="15.9401993355482" fill="var(--series-6)">
+</rect>
+<rect x="269" width="13" y="71.00664451827242" height="7.368770764119603" fill="var(--series-4)">
+</rect>
+<rect x="269" width="13" y="86.75415282392025" height="6.671096345514968" fill="var(--series-2)">
+</rect>
+<rect x="269" width="13" y="80.37541528239203" height="4.378737541528224" fill="var(--series-3)">
+</rect>
+<rect x="269" width="13" y="95.42524916943522" height="1.887043189368768" fill="var(--series-1)">
+</rect>
+<rect x="269" width="13" y="62.734219269102994" height="6.27242524916943" fill="var(--series-other)">
+</rect>
+<rect x="286" width="13" y="142.96677740863785" height="48.03322259136215" fill="var(--series-5)">
+</rect>
+<rect x="286" width="13" y="102.5016611295681" height="38.46511627906975" fill="var(--series-6)">
+</rect>
+<rect x="286" width="13" y="81.57142857142857" height="18.930232558139537" fill="var(--series-7)">
+</rect>
+<rect x="286" width="13" y="68.71428571428572" height="6.770764119601324" fill="var(--series-2)">
+</rect>
+<rect x="286" width="13" y="63.33222591362127" height="3.38205980066445" fill="var(--series-3)">
+</rect>
+<rect x="286" width="13" y="50.17607973421927" height="7.767441860465112" fill="var(--series-other)">
+</rect>
+<rect x="286" width="13" y="59.943521594684384" height="1.3887043189368882" fill="var(--series-4)">
+</rect>
+<rect x="286" width="13" y="77.48504983388705" height="1.089700996677749" fill="var(--series-1)">
+</rect>
+<rect x="286" width="13" y="80.5747508305648" height="0" fill="var(--series-8)">
+</rect>
+<rect x="303" width="13" y="114.76079734219269" height="76.23920265780731" fill="var(--series-5)">
+</rect>
+<rect x="303" width="13" y="60.64119601328903" height="25.50830564784053" fill="var(--series-7)">
+</rect>
+<rect x="303" width="13" y="88.14950166112956" height="24.611295681063126" fill="var(--series-6)">
+</rect>
+<rect x="303" width="13" y="30.242524916943516" height="11.056478405315623" fill="var(--series-3)">
+</rect>
+<rect x="303" width="13" y="43.29900332225914" height="10.45847176079733" fill="var(--series-2)">
+</rect>
+<rect x="303" width="13" y="13" height="11.455149501661126" fill="var(--series-other)">
+</rect>
+<rect x="303" width="13" y="55.75747508305647" height="2.8837209302325633" fill="var(--series-1)">
+</rect>
+<rect x="303" width="13" y="26.455149501661126" height="1.7873754152823906" fill="var(--series-4)">
+</rect>
+</g>
+<g aria-label="rule" stroke="var(--chart-axis)" transform="translate(0,0.5)">
+<line x1="44" x2="320" y1="192" y2="192">
+</line>
+</g>
+<g aria-label="tip" fill="var(--plot-background)" stroke="currentColor" pointer-events="none" text-anchor="start" transform="translate(8,0.5)">
+</g>
+</svg>

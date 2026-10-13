@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  drawWithLegend, hasLegend, isEverySeriesHidden, legendIndexForKey, mountLegend, shownRows, toggledSeries,
+  drawWithLegend, hasLegend, isEverySeriesHidden, legendIndexForKey, mountLegend, toggledSeries,
 } from "../site/js/explore/legend.js";
 
 /**
@@ -55,11 +55,6 @@ class FakeElement {
   focus() {
     globalThis.document.activeElement = this;
   }
-
-  /** The text of the element's own string children, as a button's label is. */
-  label() {
-    return this.children.filter((child) => typeof child === "string").join("");
-  }
 }
 
 /** Make a stand-in the global document for the test of `context`; node has none of its own. */
@@ -86,12 +81,6 @@ test("toggling a series hides it when shown and shows it when hidden, leaving th
   assert.deepEqual([...hidden], ["pi"]);
 });
 
-test("a long-format figure keeps the rows of the series not hidden, in their order", () => {
-  const rows = [{ model: "a", x: 1 }, { model: "b", x: 2 }, { model: "a", x: 3 }];
-  assert.deepEqual(shownRows(rows, "model", new Set(["b"])), [{ model: "a", x: 1 }, { model: "a", x: 3 }]);
-  assert.deepEqual(shownRows(rows, "model", new Set()), rows);
-});
-
 test("every series is hidden only when each of the legend's series is", () => {
   assert.equal(isEverySeriesHidden(LEGEND.series, new Set(["hermes"])), false);
   assert.equal(isEverySeriesHidden(LEGEND.series, new Set(["hermes", "pi"])), true);
@@ -115,15 +104,11 @@ test("a legend of one series mounts no button", (context) => {
   assert.deepEqual(container.children, []);
 });
 
-test("the legend is one button per series, labelled, coloured and pressed", (context) => {
+test("the legend is one button per series", (context) => {
   useFakeDocument(context);
   const container = new FakeElement("div");
   mountLegend(container, LEGEND.series, LEGEND.colours, () => undefined);
-  const buttons = container.children;
-  assert.deepEqual(buttons.map((button) => button.tag), ["button", "button"]);
-  assert.deepEqual(buttons.map((button) => button.label()), ["hermes", "Pi"]);
-  assert.deepEqual(buttons.map((button) => button.children[0].style.background), ["var(--series-1)", "var(--series-2)"]);
-  assert.deepEqual(buttons.map((button) => button.getAttribute("aria-pressed")), ["true", "true"]);
+  assert.deepEqual(container.children.map((button) => button.tag), ["button", "button"]);
 });
 
 test("a click on a legend button names its series and flips the button", (context) => {

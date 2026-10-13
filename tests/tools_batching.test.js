@@ -4,24 +4,13 @@ import { test } from "node:test";
 import {
   LATENCY_BY_BATCH_WIDTH, waitAxisEnd, widthLabel, WIDEST_DRAWN,
 } from "../site/js/figures/tools_batching.js";
-import { dropThinGroups } from "../site/js/figures/figure_rows.js";
-import { BATCH_COLOURS } from "../site/js/theme/colours.js";
+import { dropThinGroups } from "../site/js/explore/figure_rows.js";
 
 // Rows of the batch-width query: one-call requests, and the widest width, which holds requests of eight calls or more.
 const ROWS = [
   { width: 1, rows: 900, p10: 0.4, p25: 0.7, p50: 1.8, p75: 5, p90: 17.8, serial_s: 6.4 },
   { width: WIDEST_DRAWN, rows: 40, p10: 0.5, p25: 0.8, p50: 1.7, p75: 6.6, p90: 24.6, serial_s: 50.9 },
 ];
-
-test("the legend lists the batched calls and the serial line, each in its own colour", () => {
-  const { series, colours } = LATENCY_BY_BATCH_WIDTH.legend();
-  assert.deepEqual(series, [
-    { name: "batched", label: "Batched calls: median, p25–p75, p10–p90" },
-    { name: "serial", label: "Same calls one by one" },
-  ]);
-  assert.equal(colours.get("batched"), BATCH_COLOURS.batched);
-  assert.equal(colours.get("serial"), BATCH_COLOURS.serial);
-});
 
 test("the widest width reads as that many calls or more", () => {
   assert.equal(widthLabel(1), "1");

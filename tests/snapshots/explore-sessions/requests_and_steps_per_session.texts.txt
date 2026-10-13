@@ -1,0 +1,5 @@
+title: Requests and steps per session
+insight: A handful of user prompts can trigger hundreds of LLM and tool interactions.
+caption: A median session contains just 4 user steps, compared with 42 LLM requests and 36 tool steps. Most activity happens within the autonomous LLM–tool loop.
+definition: Each line shows the percentage of main sessions with this many requests or fewer. The lines count all model requests, requests after user prompts, and requests after tool results. Sessions with no tool requests are shown at one on the log scale.
+rows: 10,967 rows

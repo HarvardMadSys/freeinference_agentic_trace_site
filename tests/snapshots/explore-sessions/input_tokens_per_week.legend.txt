@@ -1,0 +1,3 @@
+Not reported | pressed=true | legend-swatch background: var(--series-other);
+Uncached input | pressed=true | legend-swatch background: var(--token-uncached);
+Cached input | pressed=true | legend-swatch background: var(--token-cached);

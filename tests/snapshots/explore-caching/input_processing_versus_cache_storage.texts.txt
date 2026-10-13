@@ -1,0 +1,5 @@
+title: Input processing versus cache storage
+insight: Keeping caches longer eventually means storing mostly dead tokens.
+caption: One day of retention brings prefill within roughly 1% of the infinite-cache minimum, but dead cached blocks accumulate to around 120× the active token volume.
+definition: Each point represents a simulated cache retention time: how long tokens stay cached. The chart shows average tokens stored and input tokens processed without cache, compared with a cache that never expires. Human sessions and SWE-Bench are simulated separately.
+rows: 1,186,582 rows

@@ -1,0 +1,5 @@
+title: User prompt size
+insight: Real users give short instructions, unlike the detailed tasks in benchmarks.
+caption: SWE-Bench prompts have a median size of 1.4K tokens and little variation, while human-written prompts are typically shorter, with occasional large inputs such as code and error logs.
+definition: Each line shows the percentage of user prompts with this many tokens or fewer, for human sessions and SWE-Bench. Prompt size is the increase in user tokens since the previous request; for the first request, it is all user tokens. Dots mark the medians.
+rows: 81,781 human-driven prompts · 1,055 benchmark prompts

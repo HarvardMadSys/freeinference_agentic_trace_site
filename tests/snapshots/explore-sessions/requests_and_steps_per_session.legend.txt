@@ -1,0 +1,3 @@
+Requests | pressed=true | legend-swatch is-line background: var(--series-1);
+User steps | pressed=true | legend-swatch is-line background: var(--series-2);
+Tool steps | pressed=true | legend-swatch is-line background: var(--series-3);

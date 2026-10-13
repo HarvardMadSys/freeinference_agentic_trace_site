@@ -11,9 +11,9 @@ import {
   AXIS_STYLE, categoryRowsFrame, chartFrame, colourScale, DASH, GRID_STYLE, LINE_WIDTH, TALL_CHART_HEIGHT,
 } from "../shared/charts.js";
 import { TICK_COUNT, tickCountFor } from "../axes/ticks.js";
-import { BATCH_COLOURS } from "../theme/colours.js";
+import { BATCH_COLOUR_MAP } from "../theme/colours.js";
 import { formatCount, formatDurationTick, formatSeconds } from "../shared/format.js";
-import { partsLegend } from "./figure_rows.js";
+import { partsLegend } from "../shared/series.js";
 
 /** The widest width the batch-width query draws on its own; requests of more calls are drawn with it. */
 export const WIDEST_DRAWN = 8;
@@ -56,7 +56,7 @@ export const LATENCY_BY_BATCH_WIDTH = Object.freeze({
   drawsLines: true,
   query: "figures/latency_by_batch_width",
   binColumn: "width",
-  legend: () => partsLegend(BATCH_LINES, new Map(Object.entries(BATCH_COLOURS))),
+  legend: () => partsLegend(BATCH_LINES, BATCH_COLOUR_MAP),
   draw: drawLatencyByWidth,
 });
 

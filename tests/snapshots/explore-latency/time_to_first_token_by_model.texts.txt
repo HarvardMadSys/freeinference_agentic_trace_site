@@ -1,0 +1,5 @@
+title: Time to first token by model
+insight: Most of the first-token wait isn't spent processing input.
+caption: On the two externally routed models, median time to first token is roughly four seconds, while estimated prefill typically takes less than 0.1 seconds. Serving overhead accounts for most of the delay.
+definition: Each line shows the percentage of requests that receive their first output token within the time shown, for the five busiest models. This time includes input processing and waiting at the server. Measurements count only when positive and below 95% of total request time.
+rows: 729,443 rows

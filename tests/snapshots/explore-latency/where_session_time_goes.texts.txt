@@ -1,0 +1,5 @@
+title: Where session time goes
+insight: Most session time is spent outside the LLM.
+caption: User idle time accounts for 50.3% of session duration and tool execution another 21.7%. Prefill and decoding together account for the remaining 28%.
+definition: Each main session’s time is split into input processing, output generation, tool or subagent waits, and user waits. Sessions are sorted by the percentage of time spent waiting for users, then averaged in groups. Input processing time is estimated using time to first token.
+rows: 10,967 rows

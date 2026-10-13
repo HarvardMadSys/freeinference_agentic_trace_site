@@ -1,0 +1,9 @@
+deepseek-v4-flash 43.3% | pressed=true | legend-swatch background: var(--series-1);
+glm-5.2 13.8% | pressed=true | legend-swatch background: var(--series-2);
+glm-5.1 12.5% | pressed=true | legend-swatch background: var(--series-3);
+minimax-m3 8.8% | pressed=true | legend-swatch background: var(--series-4);
+qwen3.6-35b 7.2% | pressed=true | legend-swatch background: var(--series-5);
+glm-5.3-flash 5.4% | pressed=true | legend-swatch background: var(--series-6);
+kimi-k2.7-code 4.2% | pressed=true | legend-swatch background: var(--series-7);
+minimax-m2.7 1.8% | pressed=true | legend-swatch background: var(--series-8);
+Other 3.0% | pressed=true | legend-swatch background: var(--series-other);

@@ -1,0 +1,2 @@
+Batched calls: median, p25–p75, p10–p90 | pressed=true | legend-swatch is-line background: var(--cause-tool);
+Same calls one by one | pressed=true | legend-swatch is-line background: var(--color-text-muted);

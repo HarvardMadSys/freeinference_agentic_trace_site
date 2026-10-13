@@ -1,0 +1,3 @@
+caption: Times since the session's first request, in m:ss, or h:mm:ss from an hour on.
+definition: One row per request in start order, each subagent's rows in a group under the step that spawned it. A bar is the request's cached input, uncached input and output tokens against the largest request's; output is often a sliver. Times run from the session's first request, in m:ss, or h:mm:ss from an hour on. Brackets on the left join requests that ran at overlapping times; past 6 crossing one row, the rest are not drawn.
+rows: 

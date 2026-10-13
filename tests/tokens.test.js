@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { growthPoints } from "../site/js/figures/tokens.js";
+import { growthPoints, inputSizeTicks } from "../site/js/figures/tokens.js";
 
 // Rows of the token growth query: two message bins, the second with no uncached median.
 const ROWS = [
@@ -17,4 +17,10 @@ test("the token growth draws a point per bin of each shown part with a median, a
   const withoutCached = growthPoints(ROWS, ["uncached", "output"]);
   assert.ok(withoutCached.every((point) => point.part !== "cached"));
   assert.equal(points[0].tokens, 1, "a median of zero is drawn at one token, on the log axis");
+});
+
+test("the input-size axis writes its bins' starts in binary thousands, on at most five evenly spaced bins", () => {
+  const bins = [1024, 2048, 4096, 8192, 16384, 32768, 65536];
+  const format = inputSizeTicks(bins.map((binStart) => ({ bin_start: binStart, role: "system", share: 1 })));
+  assert.deepEqual(bins.map(format), ["1k", "", "4k", "", "16k", "", "64k"]);
 });

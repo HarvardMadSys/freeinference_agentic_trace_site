@@ -1,0 +1,5 @@
+title: Tokens per request
+insight: Huge inputs don't necessarily mean huge computation.
+caption: A median request carries 129K input tokens, but only about 500 are uncached and require fresh processing. Outputs contain just a few hundred tokens.
+definition: Each line shows the percentage of requests with this many tokens or fewer, for total input, uncached input, and output. Uncached input counts only requests with reported cache usage. Output excludes responses with one token or fewer.
+rows: 1,125,604 rows

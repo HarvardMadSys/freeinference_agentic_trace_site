@@ -47,6 +47,8 @@ export const TOKEN_PART_COLOURS = Object.freeze({
   uncached: "var(--token-uncached)",
   output: "var(--token-output)",
 });
+/** `TOKEN_PART_COLOURS` as a Map, as a chart's colour scale and a legend take colours. */
+export const TOKEN_PART_COLOUR_MAP = new Map(Object.entries(TOKEN_PART_COLOURS));
 
 /** The colour of each part of a session's time as the paper colours it: prefill, decode, tool and user idle. */
 export const TIME_PART_COLOURS = Object.freeze({
@@ -55,6 +57,8 @@ export const TIME_PART_COLOURS = Object.freeze({
   tool: "var(--part-tool)",
   user: "var(--part-user)",
 });
+/** `TIME_PART_COLOURS` as a Map, as a chart's colour scale and a legend take colours. */
+export const TIME_PART_COLOUR_MAP = new Map(Object.entries(TIME_PART_COLOURS));
 
 /** The name of each part of a session's time in every legend, tooltip and label, by the keys of its colours. */
 export const TIME_PART_NAMES = Object.freeze({
@@ -95,6 +99,8 @@ export const CAUSE_COLOURS = Object.freeze({
   user: "var(--cause-user)",
   subagent: "var(--cause-subagent)",
 });
+/** `CAUSE_COLOURS` as a Map, as a chart's colour scale and a legend take colours. */
+export const CAUSE_COLOUR_MAP = new Map(Object.entries(CAUSE_COLOURS));
 
 /**
  * The colour of each wait on the Session page's Timeline, by the release's `waited_for` value: a pale tint of the
@@ -116,6 +122,8 @@ export const TRANSITION_COLOURS = Object.freeze({
   append: "var(--transition-append)",
   mutation: "var(--transition-mutation)",
 });
+/** `TRANSITION_COLOURS` as a Map, as a chart's colour scale and a legend take colours. */
+export const TRANSITION_COLOUR_MAP = new Map(Object.entries(TRANSITION_COLOURS));
 
 /**
  * The colour of each line of the tool latency by batch width: the tool wait of a batch in the colour of a wait for a
@@ -125,6 +133,8 @@ export const BATCH_COLOURS = Object.freeze({
   batched: "var(--cause-tool)",
   serial: "var(--color-text-muted)",
 });
+/** `BATCH_COLOURS` as a Map, as a chart's colour scale and a legend take colours. */
+export const BATCH_COLOUR_MAP = new Map(Object.entries(BATCH_COLOURS));
 
 /**
  * The colour of each tool group of the tool mix along a turn, by the group's name in the pipeline's order, the same in
@@ -140,6 +150,8 @@ export const TOOL_GROUP_COLOURS = Object.freeze({
   "Browser/Web": "var(--tool-group-browser-web)",
   "Other": "var(--tool-group-other)",
 });
+/** `TOOL_GROUP_COLOURS` as a Map, as a chart's colour scale and a legend take colours. */
+export const TOOL_GROUP_COLOUR_MAP = new Map(Object.entries(TOOL_GROUP_COLOURS));
 
 /**
  * The tool group of each tool category that has one, as the pipeline groups them for the tool mix along a turn; every
@@ -190,6 +202,8 @@ export const SCOPE_COLOURS = Object.freeze({
   Agentic: "var(--series-1)",
   "SWE-Bench": "var(--series-8)",
 });
+/** `SCOPE_COLOURS` as a Map, as a chart's colour scale and a legend take colours. */
+export const SCOPE_COLOUR_MAP = new Map(Object.entries(SCOPE_COLOURS));
 
 /** The six gap-bin colours, shortest gap first: one blue from light to dark. */
 export const GAP_BIN_SLOTS = Object.freeze([

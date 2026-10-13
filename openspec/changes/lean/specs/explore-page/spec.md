@@ -32,10 +32,14 @@ Every series a chart draws SHALL be in its legend.
 
 Each figure SHALL be one query
 file answered by `make data` and one entry whose `draw` is one call to
-a chart kind in `js/charts/` with its columns and labels written out,
+a chart kind in `js/charts/` with its columns, where they vary, and its labels
+written out,
 plus, where the paper's callout needs it, one short named function; a
-kind SHALL take only parameters two or more figures use, and a figure
-that needs more SHALL keep a plain draw function of its own. The definitions,
+kind SHALL take only parameters two or more figures use, with two
+exceptions: a kind kept whole may take a one-figure parameter when the
+alternative is a near-copy of the kind, and a frame or axis setting is a
+plain setting; a figure that needs more SHALL keep a plain draw function
+of its own. The definitions,
 parity and legend behaviour stay as they are.
 Nothing on the page SHALL run a query in the browser.
 
@@ -89,4 +93,4 @@ Nothing on the page SHALL run a query in the browser.
 
 #### Scenario: Adding a figure
 - **WHEN** a maintainer adds a figure of an existing kind
-- **THEN** the change SHALL be one `.sql` file, one entry whose `draw` calls the kind, and `make data`
+- **THEN** the change SHALL be one `.sql` file, one entry whose `draw` calls the kind, its lines in the tests that list queries and figures, `make data` and `make snapshots`

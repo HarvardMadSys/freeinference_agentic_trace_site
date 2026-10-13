@@ -62,11 +62,6 @@ export function atMost(ticks, maxTicks) {
   return ticks.length <= maxTicks ? ticks : everyOther(ticks);
 }
 
-/** The ticks of `ticks` an axis of a chart `width` pixels wide labels: every other one on a narrow chart, else all. */
-export function fewerOnNarrow(ticks, width) {
-  return isNarrowChart(width) ? everyOther(ticks) : ticks;
-}
-
 /**
  * The ticks an axis of a chart `width` pixels wide asks for or labels at most: `count`, or `NARROW_MAX_TICKS` on a
  * narrow chart.
@@ -111,8 +106,7 @@ export function axisWithTicks(makeAxis, ticks, { tickFormat, ...options }) {
   if (tickFormat === undefined) {
     return makeAxis(ticks, options);
   }
-  // Written as the mark's text, every tick is labelled; as its tick format, a log axis blanks a tick such as 60 that
-  // is not 1, 2 or 5 times a power of ten.
+  // As `text` every tick is labelled; as `tickFormat` a log axis blanks a tick not 1, 2 or 5 times 10^k, such as 60.
   return makeAxis(ticks, { ...options, text: (tick) => tickFormat(tick) });
 }
 

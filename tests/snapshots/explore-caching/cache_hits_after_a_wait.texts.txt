@@ -1,0 +1,5 @@
+title: Cache hits after a wait
+insight: Taking a break can turn reused context into fresh work.
+caption: Prefix reuse stays high when requests arrive within one minute, but falls to roughly 58% after 15–30 minutes and just 18% after gaps longer than an hour.
+definition: Each line groups requests by how long they waited after the previous request ended. It shows the percentage of requests at or below each cache hit ratio: cached input tokens divided by total input tokens. Lighter lines show shorter waits.
+rows: 1,069,993 rows

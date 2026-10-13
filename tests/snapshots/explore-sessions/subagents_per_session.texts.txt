@@ -1,0 +1,5 @@
+title: Subagents per session
+insight: Multi-agent coding is still mostly single-agent coding.
+caption: Nearly 90% of sessions never invoke subagents. Even when used, most subagent calls spawn just one child rather than multiple agents in parallel. Sessions with zero subagents are excluded from the bars.
+definition: The number of subagents started by each main session, including subagents started by other subagents. Sessions with no subagents count toward the summary statistics but are not shown on the log scale.
+rows: 10,967 sessions

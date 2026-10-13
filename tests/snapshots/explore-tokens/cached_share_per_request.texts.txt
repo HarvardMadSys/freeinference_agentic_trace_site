@@ -1,0 +1,5 @@
+title: Cached share per request
+insight: Cache hits are the norm, not the exception.
+caption: Requests typically reuse nearly all their input tokens. Across requests with reported cache usage, cached tokens account for more than 97% of total token volume.
+definition: The percentage of each request’s input tokens read from cache, grouped into 5% ranges. Only main-session requests with reported cache usage are included. The vertical axis counts requests on a log scale.
+rows: 1,077,413 requests

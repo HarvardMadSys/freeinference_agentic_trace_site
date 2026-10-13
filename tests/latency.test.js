@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  modelCdfLegend, SPEEDUP_AXIS_HEADROOM, speedupAxisEnd, speedupBars, TTFT_CDF_BY_MODEL,
+  durationTicksOf, modelCdfLegend, SPEEDUP_AXIS_HEADROOM, speedupAxisEnd, speedupBars, TTFT_CDF_BY_MODEL,
 } from "../site/js/figures/latency.js";
 import { assignColours, OTHER_SERIES } from "../site/js/theme/colours.js";
 
@@ -14,7 +14,7 @@ const FIGURE_COLOURS = Object.freeze({ models: assignColours(MODEL_ORDER), categ
 const ANSWER_ROWS = ["m9", "m2", "m10", "m7", "m4"].map((model) => ({ series: model, x: 1, share: 0.5, rows: 60 }));
 
 test("a model CDF lists the answer's models among the eight with most requests, none in the Other grey", () => {
-  const legend = modelCdfLegend(ANSWER_ROWS, FIGURE_COLOURS, "series");
+  const legend = modelCdfLegend(ANSWER_ROWS, FIGURE_COLOURS);
   assert.deepEqual(legend.series.map((one) => one.name), ["m2", "m4", "m7"]);
   const swatches = legend.series.map((one) => legend.colours.get(one.name));
   assert.ok(!swatches.includes(OTHER_SERIES));
@@ -27,8 +27,13 @@ test("a model CDF draws, and its caption counts, only the rows of the models its
 });
 
 test("a model keeps the colour of its place over every week, whatever the answer's rows", () => {
-  const legend = modelCdfLegend(ANSWER_ROWS, FIGURE_COLOURS, "series");
+  const legend = modelCdfLegend(ANSWER_ROWS, FIGURE_COLOURS);
   assert.equal(legend.colours.get("m7"), "var(--series-7)");
+});
+
+test("a model CDF ticks at the durations within its rows' range of seconds, whatever their series", () => {
+  const rows = [{ series: "m1", x: 0.4, share: 0.1 }, { series: "m2", x: 7200, share: 1 }, { series: "m1", x: 30, share: 1 }];
+  assert.deepEqual(durationTicksOf(rows), [1, 60, 3600]);
 });
 
 // The speed-up query's rows, in another order than the bars'.

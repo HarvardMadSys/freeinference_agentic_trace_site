@@ -1,0 +1,9 @@
+hermes 32.9% | pressed=true | legend-swatch background: var(--series-5);
+opencode 14.4% | pressed=true | legend-swatch background: var(--series-6);
+pi 12.5% | pressed=true | legend-swatch background: var(--series-7);
+swe-bench 8.6% | pressed=true | legend-swatch background: var(--series-8);
+kilo 6.6% | pressed=true | legend-swatch background: var(--series-1);
+codex 6.4% | pressed=true | legend-swatch background: var(--series-2);
+oh-my-pi 6.0% | pressed=true | legend-swatch background: var(--series-3);
+claude-code 5.3% | pressed=true | legend-swatch background: var(--series-4);
+Other 7.2% | pressed=true | legend-swatch background: var(--series-other);
