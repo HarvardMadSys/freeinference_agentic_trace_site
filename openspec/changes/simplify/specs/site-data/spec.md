@@ -182,7 +182,7 @@ say so.
 ### Requirement: Weeks index
 `weeks.json` SHALL list every week, oldest first, as `{week, last_day,
 month, simulated}`, where `month` (`YYYY-MM`) is the month of the week's
-Sunday. Every page SHALL read it first.
+Sunday. Every page SHALL read it; the Explore page before any answer.
 
 #### Scenario: A week that spans two months
 - **WHEN** a week runs from 2026-05-31 to 2026-06-06
@@ -192,7 +192,8 @@ Sunday. Every page SHALL read it first.
 `harnesses.json` SHALL list every harness of the release, most sessions
 first, as `{harness, sessions, benchmark}`, where `sessions` counts its
 top-level sessions over every week and `benchmark` is whether the pipeline's
-population puts it in the benchmark scope. Every page SHALL read it first.
+population puts it in the benchmark scope. The Explore page SHALL read it, with
+`weeks.json`, before any answer.
 
 #### Scenario: The benchmark harness
 - **WHEN** the release holds `eval:swe-bench` sessions
