@@ -5,7 +5,7 @@
  * answers over every week and every harness, and from the selection's weeks (while the figures are frozen, every week);
  * none is typed.
  *
- * A section's `context` is what the page gives every section; see `pages/explore.js`.
+ * A section's `context` is what the page gives every section; see `explore/start.js`.
  */
 
 import { showError, showLoading } from "../shared/charts.js";

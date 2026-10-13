@@ -49,7 +49,7 @@ keeps its first; older links' `weeks`, `month`, `scope` and `harness` are
 read as the filter and rewritten.
 
 The browser query path stays in the code behind one switch:
-`FIGURES_ARE_FROZEN` in `site/js/pages/explore.js` is `true`. Set to
+`FIGURES_ARE_FROZEN` in `site/js/explore/start.js` is `true`. Set to
 `false`, the page mounts the week and harness pickers again, and any
 selection but the default is computed by DuckDB-WASM over the Parquet files
 from the same queries. After the first view the page could then stream
@@ -199,8 +199,9 @@ site/              exactly the files that are deployed
                    setup), duckdb_files (the week files' names, and the stream of every week's files)
   js/theme/        colours, the site's colours as the style tokens give them
   js/axes/         ticks, the ticks of every chart's axes: how many, and where a log, duration or week axis ticks
-  js/pages/        one module per page: explore (with FIGURES_ARE_FROZEN), session
-  js/explore/      the Explore page's sections: trends, figure_sections (the figure runner),
+  js/pages/        one module per page: explore, session
+  js/explore/      the Explore page's start and sections: start (the start every Explore page shares, with
+                   FIGURES_ARE_FROZEN), trends, figure_sections (the figure runner),
                    legend (the legend of buttons that hides and shows a series), sessions_table, sessions_table_state
                    (its columns and its state in the URL), sessions_filter (its month and harness filter), and
                    selection_pickers (the week and harness pickers, mounted only with the switch off)

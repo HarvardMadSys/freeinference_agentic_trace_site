@@ -13,7 +13,7 @@
  * current run (`newFigureRun`; null from a layout until its run starts), the names of the figures whose cards are in
  * view, and whether every run draws all its figures at once.
  * Each layout makes fresh places, so a run that a newer one replaced draws into places no longer on the page. A run's
- * `context` is what the page gives every section; see `pages/explore.js`. Each figure shows its own loading state,
+ * `context` is what the page gives every section; see `explore/start.js`. Each figure shows its own loading state,
  * error or note.
  *
  * A figure with a `legend` draws it as buttons above its chart (`explore/legend.js`); a click hides or shows a series
@@ -29,9 +29,9 @@ import { dropThinGroups, figureDrawnRows, figureRowsText, unsimulatedWeeks } fro
 import { drawWithLegend, shownRows } from "./legend.js";
 
 /**
- * Each figure section of the page, in the page's order: the element its figures go in, and the module listing them.
- * Every section module exports its figures as `FIGURES` and its topic's takeaway as `TAKEAWAY`, so each is imported by
- * its path rather than under a second name.
+ * Each figure section of the Insights, in the page's order: the element its figures go in, and the module listing
+ * them. Every section module exports its figures as `FIGURES` and its topic's takeaway as `TAKEAWAY`, so each is
+ * imported by its path rather than under a second name.
  */
 export const FIGURE_SECTIONS = Object.freeze([
   Object.freeze({ selector: "#insights-sessions", module: "../figures/sessions.js" }),
@@ -50,11 +50,12 @@ const NO_ROWS_NOTE = "No rows over every week and the paper's harnesses.";
 const ALL_THIN_NOTE = `Too few rows: every bin has fewer than ${MIN_ROWS_PER_BIN} rows.`;
 
 /**
- * Place a card for every figure of every section and, unless `drawsEveryRunAtOnce`, watch which cards are in view;
- * return what the page keeps of the figures, nothing laid out yet.
+ * Place a card for every figure of every section of `figureSections` (entries of `FIGURE_SECTIONS`) and, unless
+ * `drawsEveryRunAtOnce`, watch which cards are in view; return what the page keeps of the figures, nothing laid out
+ * yet.
  */
-export async function mountFigureSections(drawsEveryRunAtOnce = false) {
-  const cards = await placeCards();
+export async function mountFigureSections(figureSections, drawsEveryRunAtOnce = false) {
+  const cards = await placeCards(figureSections);
   const figures = { cards, places: new Map(), run: null, visibleNames: new Set(), drawsEveryRunAtOnce };
   if (drawsEveryRunAtOnce) {
     return figures;
@@ -67,9 +68,9 @@ export async function mountFigureSections(drawsEveryRunAtOnce = false) {
   return figures;
 }
 
-/** Show `error` in place of each figure section's cards, when the page cannot load the indexes to place them. */
-export function showErrorInFigureSections(error) {
-  for (const section of FIGURE_SECTIONS) {
+/** Show `error` in place of each of `figureSections`' cards, when the page cannot read the indexes to place them. */
+export function showErrorInFigureSections(figureSections, error) {
+  for (const section of figureSections) {
     showError(document.querySelector(`${section.selector} .card-grid`), error);
   }
 }
@@ -262,12 +263,12 @@ function layOutPlaces(figures) {
 }
 
 /**
- * Every figure of every section, each with a new card in its section's grid, `[{ figure, card }]`; each section's
- * takeaway is written under its heading.
+ * Every figure of every section of `figureSections`, each with a new card in its section's grid, `[{ figure, card }]`;
+ * each section's takeaway is written under its heading.
  */
-async function placeCards() {
+async function placeCards(figureSections) {
   const cards = [];
-  for (const section of FIGURE_SECTIONS) {
+  for (const section of figureSections) {
     const { FIGURES, TAKEAWAY } = await import(section.module);
     placeTakeaway(document.querySelector(section.selector), TAKEAWAY);
     const grid = document.querySelector(`${section.selector} .card-grid`);

@@ -5,7 +5,7 @@
  * where the page gives no `context.onWeekClick` (null), a bar takes no click. Each chart's legend is a row of buttons
  * that hide and show its series (`explore/legend.js`). Each chart is a card of its own, laid out as the figure cards.
  *
- * A section's `context` is what the page gives every section; see `pages/explore.js`.
+ * A section's `context` is what the page gives every section; see `explore/start.js`.
  */
 
 import {

@@ -88,7 +88,7 @@ binding, and `make test` checks the countable ones.
 ```
 make data:     queries/explore/, queries/figures/, setup/*_order  →  run over site/data/*.parquet  →  data/all_weeks/<page>/<query>.json
                queries/buckets/, one week at a time                →  run over site/data/*.parquet  →  data/session_buckets/<week>/<xx>.json.gz
-Explore:       index.html  →  js/pages/explore.js  →  section modules and js/shared/  →  data/all_weeks/<page>/<query>.json
+Explore:       index.html  →  js/pages/explore.js  →  js/explore/start.js, section modules and js/shared/  →  data/all_weeks/<page>/<query>.json
 Session:       session.html  →  js/pages/session.js  →  js/session/bucket.js  →  data/session_buckets/<week>/<xx>.json.gz
 ```
 
@@ -103,9 +103,9 @@ js/axes/              the ticks of every chart's axes: how many, where a log, du
                       week a week axis labels, and an axis mark that labels each tick it is given
 js/engine/            DuckDB in the page: starting it, its views and setup, and the stream of every week's files, kept
                       behind the switch
-js/explore/           the Explore page's sections, the figure runner (figure_sections.js), the legend of buttons, the
-                      session list with its state and its month and harness filter, and the week and harness pickers,
-                      mounted only with the switch off
+js/explore/           the Explore page's start (start.js), its sections, the figure runner (figure_sections.js), the
+                      legend of buttons, the session list with its state and its month and harness filter, and the
+                      week and harness pickers, mounted only with the switch off
 js/figures/           the Explore page's figures: one module per section, listing its figure entries, the modules a
                       section takes entries from, and the row rules every figure shares (figure_rows.js)
 js/simulation/        the Prefix-caching section's figures of the cache simulation: prefill against storage, and the
@@ -125,8 +125,8 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
 - An HTML file is a shell: a header, titled sections with ids, a footer, and
   one `<script type="module">`. It holds no data and no inline script.
 - The page module mounts the header and footer, reads what it shows from the
-  URL, opens the database (the Explore page) or fetches its session's bucket
-  (the Session page), and fills each section.
+  URL, opens the database (the Explore page, through `explore/start.js`) or
+  fetches its session's bucket (the Session page), and fills each section.
 - `shared/database.js` fetches `weeks.json` and `harnesses.json` and runs a
   query by name: `runQuery("explore/request_count")` names
   `queries/explore/request_count.sql`. An Explore or figure query is
@@ -139,7 +139,7 @@ A folder holds one purpose and at most nine modules; `make test` counts them.
   `sessions` and `simulation` and fills `benchmark_harness`.
 - The Session page imports nothing from `shared/database.js` or `js/engine/`,
   and `tests/test_repository.py` checks it; how it reads a session is below.
-- The figures are frozen: `FIGURES_ARE_FROZEN` in `pages/explore.js` is
+- The figures are frozen: `FIGURES_ARE_FROZEN` in `explore/start.js` is
   `true`. The browser query path stays in the code and its tests behind it.
   Set to `false`, `shared/selection.js` reads the selection from the URL
   keys `weeks`, `month` and `harnesses` (none for the default: every week

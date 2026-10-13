@@ -5,7 +5,7 @@ a view checks it in a browser at 1280 and 360 px, light and dark. No query
 and no data change is expected.
 
 ## 1. The shared start
-- [ ] 1.1 `js/explore/start.js`: `startPage({ file, sections, figureSections })` with the start, the selection, the database, the orders, the runs, the notes and errors, `scrollToAnchor`, and behind `FIGURES_ARE_FROZEN` (moved here) the pickers, the selection change and the stream; `pages/explore.js` reduced to a call of it; the repository test checks `start.js`.
+- [x] 1.1 `js/explore/start.js`: `startPage({ file, sections, figureSections })` with the start, the selection, the database, the orders, the runs, the notes and errors, `scrollToAnchor`, and behind `FIGURES_ARE_FROZEN` (moved here) the pickers, the selection change and the stream; `pages/explore.js` reduced to a call of it; the repository test checks `start.js`.
 
 ## 2. Three pages
 - [ ] 2.1 `pages/overview.js` and `index.html` trimmed to the hero and stats strip, mixes, trends, Cite and Team; the old-link map (`#sessions`, `#insights`, `#insights-<topic>`) applied before the page draws, with its node test; the hero's buttons "Session Explorer", "Insights", "Dataset", "Paper", "Code".

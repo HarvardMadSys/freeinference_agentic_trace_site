@@ -12,7 +12,7 @@
  * the selection instead, the table never touches the selection's keys, has no month drop-down, and its harness
  * drop-down chooses among the selected harnesses.
  *
- * A section's `context` is what the page gives every section; see `pages/explore.js`. This one writes its state
+ * A section's `context` is what the page gives every section; see `explore/start.js`. This one writes its state
  * with `context.replaceQuery(params)`.
  */
 

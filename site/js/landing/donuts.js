@@ -7,7 +7,7 @@
  * largest first, "Other" last. Its legend hides and shows a slice (`explore/legend.js`); once one is hidden, the shares
  * and the total in the centre are of the slices shown, and the centre says so.
  *
- * A section's `context` is what the page gives every section; see `pages/explore.js`.
+ * A section's `context` is what the page gives every section; see `explore/start.js`.
  */
 
 import { columnTotal, renderFigure, showError, showLoading } from "../shared/charts.js";

@@ -102,6 +102,6 @@ test("the harness mix and the sessions trend draw the page's one answer of sessi
     assert.ok(!text.includes(`runQuery("${query}")`), `${reader} asks for ${query} itself`);
     assert.ok(text.includes("await context.sessionsPerWeekByHarness"), `${reader} reads the page's answer`);
   }
-  const page = readFileSync(new URL("../site/js/pages/explore.js", import.meta.url), "utf8");
+  const page = readFileSync(new URL("../site/js/explore/start.js", import.meta.url), "utf8");
   assert.equal(page.split(`runQuery("${query}")`).length - 1, 1, "the page asks for it once");
 });
