@@ -86,7 +86,7 @@ export function topicTab(topic) {
   const tab = document.createElement("button");
   tab.type = "button";
   tab.id = `${TAB_ID_PREFIX}${topic.anchor}`;
-  tab.className = "nav-link topic-tab";
+  tab.className = "topic-tab";
   tab.setAttribute("role", "tab");
   tab.setAttribute("aria-controls", topic.anchor);
   tab.textContent = `${topic.number} ${topic.title}`;

@@ -135,7 +135,7 @@ test("a tab is a button in the tab role, controlling its topic's section", () =>
   delete globalThis.document;
   assert.equal(tab.type, "button");
   assert.equal(tab.id, "tab-insights-tokens");
-  assert.equal(tab.className, "nav-link topic-tab");
+  assert.equal(tab.className, "topic-tab");
   assert.equal(tab.getAttribute("role"), "tab");
   assert.equal(tab.getAttribute("aria-controls"), "insights-tokens");
 });

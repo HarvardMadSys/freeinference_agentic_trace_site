@@ -1,8 +1,8 @@
-tab: 01 SESSION STRUCTURE | selected=false
-tab: 02 TOKENS AND COST | selected=false
-tab: 03 LATENCY | selected=false
-tab: 04 TOOLS | selected=false
-tab: 05 PREFIX CACHING | selected=false
-tab: 06 HUMAN-DRIVEN AGAINST BENCHMARK | selected=true
+tab: 01 Session structure | selected=false
+tab: 02 Tokens and cost | selected=false
+tab: 03 Latency | selected=false
+tab: 04 Tools | selected=false
+tab: 05 Prefix caching | selected=false
+tab: 06 Human-driven against benchmark | selected=true
 heading: 06 Human-driven against benchmark
 takeaway: Human sessions last longer and use larger inputs than SWE-Bench sessions.

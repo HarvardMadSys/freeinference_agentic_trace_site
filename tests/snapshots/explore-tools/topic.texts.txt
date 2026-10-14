@@ -1,8 +1,8 @@
-tab: 01 SESSION STRUCTURE | selected=false
-tab: 02 TOKENS AND COST | selected=false
-tab: 03 LATENCY | selected=false
-tab: 04 TOOLS | selected=true
-tab: 05 PREFIX CACHING | selected=false
-tab: 06 HUMAN-DRIVEN AGAINST BENCHMARK | selected=false
+tab: 01 Session structure | selected=false
+tab: 02 Tokens and cost | selected=false
+tab: 03 Latency | selected=false
+tab: 04 Tools | selected=true
+tab: 05 Prefix caching | selected=false
+tab: 06 Human-driven against benchmark | selected=false
 heading: 04 Tools
 takeaway: Most requests call one tool; calling tools together can reduce total waiting time.
