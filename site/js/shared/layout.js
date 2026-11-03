@@ -11,7 +11,7 @@
 export const URLS = Object.freeze({
   lab: "https://madsys.seas.harvard.edu/",
   dataset: "https://huggingface.co/datasets/harvardMadsys/freeinference_agentic_trace",
-  paper: "https://data.freeinference.org/pdf/paper/from-requests-to-sessions.pdf",
+  paper: "https://data.freeinference.org/pdf/paper/from-requests-to-sessions",
   code: "https://github.com/HarvardMadSys/freeinference_agentic_trace",
   openData: "https://data.freeinference.org/",
   freeInference: "https://freeinference.org/",
