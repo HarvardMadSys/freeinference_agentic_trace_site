@@ -1043,6 +1043,34 @@ section[id] {
   }
 }
 
+/* ---------- Paper ---------- */
+
+/* The Paper page: the title, the authors and the links as the hero sets them, then the abstract and the BibTeX, at a
+   reading width. */
+.paper {
+  max-width: 48rem;
+  padding-bottom: clamp(3rem, 8vw, 5.75rem);
+}
+
+.paper h1 {
+  font-size: clamp(1.9rem, 1.3rem + 2vw, 2.75rem);
+  letter-spacing: -0.03em;
+}
+
+.paper-authors {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+}
+
+.paper-affiliations,
+.paper-date {
+  color: var(--color-text-muted);
+}
+
+.paper-abstract {
+  margin-top: 2.5rem;
+}
+
 /* ---------- Page layout ---------- */
 
 .page {

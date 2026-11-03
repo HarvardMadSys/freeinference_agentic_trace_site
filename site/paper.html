@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>From Requests to Sessions: A Large-Scale Characterization of Human-Driven Agentic Workloads</title>
+  <meta name="description" content="A study of 3.7 months of production coding-agent traffic from FreeInference: 209B input tokens and 12K sessions across 13 agent harnesses.">
+  <link rel="canonical" href="https://agent-traces.freeinference.org/paper">
+  <link rel="cite-as" href="https://doi.org/10.5281/zenodo.23903440">
+  <!-- This page is for Google Scholar, which finds it through sitemap.xml and reads these tags (Highwire Press); the
+       PDF must sit in this page's folder. The page runs no script. -->
+  <meta name="citation_title" content="From Requests to Sessions: A Large-Scale Characterization of Human-Driven Agentic Workloads">
+  <meta name="citation_author" content="Nixon, William">
+  <meta name="citation_author_institution" content="University of Chicago">
+  <meta name="citation_author_institution" content="Harvard University">
+  <meta name="citation_author" content="Tian, Muxin">
+  <meta name="citation_author_institution" content="University of Toronto">
+  <meta name="citation_author" content="Zheng, Yunjia">
+  <meta name="citation_author_institution" content="Harvard University">
+  <meta name="citation_author" content="Gunawi, Haryadi S.">
+  <meta name="citation_author_institution" content="University of Chicago">
+  <meta name="citation_author" content="Yang, Juncheng">
+  <meta name="citation_author_institution" content="Harvard University">
+  <meta name="citation_publication_date" content="2026/11/03">
+  <meta name="citation_publisher" content="Zenodo">
+  <meta name="citation_doi" content="10.5281/zenodo.23903440">
+  <meta name="citation_language" content="en">
+  <meta name="citation_pdf_url" content="https://agent-traces.freeinference.org/from-requests-to-sessions.pdf">
+  <meta name="citation_abstract_html_url" content="https://agent-traces.freeinference.org/paper">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <article class="paper" aria-labelledby="paper-title">
+      <p class="breadcrumb">Paper</p>
+      <h1 id="paper-title">From Requests to Sessions: A Large-Scale Characterization of Human-Driven Agentic Workloads</h1>
+      <p class="paper-authors">William Nixon, Muxin Tian, Yunjia Zheng, Haryadi S. Gunawi, Juncheng Yang</p>
+      <p class="paper-affiliations">University of Chicago · Harvard University · University of Toronto</p>
+      <p class="paper-date">Version of 6 October 2026</p>
+      <div class="hero-actions">
+        <a class="button button--primary" href="from-requests-to-sessions.pdf">PDF</a>
+      </div>
+      <section class="paper-abstract" aria-labelledby="abstract-title">
+        <h2 id="abstract-title">Abstract</h2>
+        <p>
+          Coding agents are becoming an important source of LLM inference traffic, yet their workload behavior
+          remains poorly understood. Existing workload studies largely focus on general LLM traffic, providing
+          limited visibility into the characteristics of agentic workloads. To bridge this gap, we study 3.7 months
+          of production traffic from FreeInference, spanning 209B input tokens and 12K sessions across 13 agent
+          harnesses, revealing agentic workload characteristics that are not captured by request-centric views of
+          LLM serving.
+        </p>
+        <p>
+          Our analysis shows that coding-agent sessions are long-lived and bursty, with tight LLM–tool loops
+          separated by longer user idle periods. Contexts grow substantially while outputs remain short, causing
+          cache reads to dominate token volume and API cost. Tool execution dominates active-session latency, yet
+          tool parallelism remains uncommon. Prefix reuse is high but disrupted by user idle gaps and context
+          mutations performed by agent harnesses. A 15-minute KV-cache retention time captures most practical
+          reuse, while longer retention provides diminishing returns at substantially higher storage cost. We will
+          release the trace alongside the paper to enable further research on agentic workloads and serving
+          systems.
+        </p>
+      </section>
+      <figure class="cite-block">
+        <figcaption>
+          <span>BibTeX</span>
+        </figcaption>
+        <pre id="bibtex"><code>@misc{nixon2026requests,
+  title        = {From Requests to Sessions: A Large-Scale Characterization
+                  of Human-Driven Agentic Workloads},
+  author       = {Nixon, William and Tian, Muxin and Zheng, Yunjia
+                  and Gunawi, Haryadi S. and Yang, Juncheng},
+  year         = {2026},
+  month        = nov,
+  publisher    = {Zenodo},
+  note         = {Preprint},
+  doi          = {10.5281/zenodo.23903440},
+  url          = {https://doi.org/10.5281/zenodo.23903440}
+}</code></pre>
+      </figure>
+    </article>
+  </main>
+</body>
+</html>
